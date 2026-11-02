@@ -13,6 +13,7 @@ REQUIRED = (
     "docs/specs/FOUNDATION.md", "docs/specs/ARCHITECTURE.md",
     "docs/specs/CONTRACTS.md", "docs/specs/CAPABILITY-CATALOG.md",
     "docs/specs/UI-FOUNDATION.md", "docs/specs/ACCEPTANCE.md",
+    "docs/specs/NODE-EDGE-FOUNDATION.md",
     "docs/implementation/ROADMAP.md", "docs/implementation/FIRST-STAGE.md",
     "docs/reference/BASELINE.md", "docs/governance/DECISIONS.md",
     "docs/governance/UI-EXCEPTIONS.md", "docs/governance/VERIFICATION.md",

@@ -4,6 +4,8 @@ Read [STATE.md](STATE.md), [HANDOFF.md](HANDOFF.md), and the referenced stage be
 
 ## Product rules
 
+- Apply the adopted [Node & Edge Foundation](docs/specs/NODE-EDGE-FOUNDATION.md). Preserve resource/invocation identities and shared form/node values; allow incomplete drafts to save, and require readiness for activation/execution. Six edge meanings are explicit. U0 partial-execution interactions are labelled simulations; live Run Node/To/From require safe engine/adapter support and never automatically replay protected actions. Prove native mapping in G0 and fixtures A–C in U0 before claiming those criteria.
+
 - Build the actual independent TORI Studio and reusable TORI capabilities. Follow [Foundation](docs/specs/FOUNDATION.md), [Architecture](docs/specs/ARCHITECTURE.md), and [Contracts](docs/specs/CONTRACTS.md).
 - Reuse VICT public UI/Structure/Flow/editor contracts and Mastra mechanisms. Do not build another general agent runtime, workflow engine, graph editor, or component system.
 - VICT owns canonical definitions, immutable activation, authorization, revisions, and protected effects. A node, skill, connector, model, or Mastra feature never creates authority by itself.

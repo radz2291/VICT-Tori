@@ -14,20 +14,32 @@ Evidence levels: **D** deterministic contracts/failure probes; **S** installed S
 | --- | --- |
 | U0-01 | A fresh install/build launches independent TORI Studio with documented Windows-compatible and portable instructions; no reliance on VICT Studio source aliases |
 | U0-02 | All six areas and three principal views operate with shared project/selection context and native VICT components |
-| U0-03 | From blank, create/edit/clone/retire an agent definition; attach Skills/tools; configure model/mode/memory/policies; inspect saved values |
-| U0-04 | Create/move/connect/reconnect/delete typed graph nodes; reject incompatible/dangling/capacity-invalid relationships with specific diagnostics |
-| U0-05 | Undo/Redo authoring changes; preserve an intervening manual edit; reject stale revisions; save, fully reload and reopen definitions/layout |
-| U0-06 | Build three creative branches, compare versions, select/revisit alternatives, and preserve reference versus executable relation semantics |
+| U0-03 | From blank, create/edit/clone/retire an agent definition; attach Skills/tools; configure model/mode/memory/policies; inline/inspector values agree; show/hide resource projections without changing bindings; distinguish invocation inputs from shared definitions |
+| U0-04 | Create/move/connect/reconnect/delete typed graph nodes; reject incompatible/dangling/capacity-invalid connections with specific diagnostics; permit reference cycles while unsupported execution cycles receive readiness diagnostics |
+| U0-05 | Undo/Redo authoring changes; preserve an intervening manual edit; reject stale revisions; save, fully reload and reopen definitions/layout including incomplete drafts; domain and projection identities remain consistent |
+| U0-06 | Build three creative branches, compare versions, select/revisit alternatives; preserve reference/executable/provenance meanings, explicit context binding and grouping/subworkflow distinction; simulate selected-node run/reuse/staleness/new-variation intents with unsupported cases |
 | U0-07 | Move among selected artifact/definition, simulated run/Trace and Session with stable IDs, selection and history |
 | U0-08 | Simulated connections/responses/runs/evaluations are labelled in UI and records; no real secret input or external execution; no simulated live pass |
 | U0-09 | Success/wait/failure/denial/cancel/interrupted/unknown-cost fixtures render correctly; typed errors are visible; no live-to-fixture fallback |
 | U0-10 | Save failure/corrupt or unsupported import/stale writer leave prior work intact; fixtures can be reset separately from authored work |
 | U0-11 | Desktop/narrow keyboard/focus/touch-alternative checks and shared-theme popup/node behavior pass; physical-device gaps recorded separately |
 | U0-12 | Representative Quellight and coding workspaces use synthetic data and share the same navigation/inspection contracts |
-| U0-13 | Public artifact consumer smoke proves required VICT packages/exports; stub/live port design and actual dependency identities are documented |
+| U0-13 | Public artifact consumer smoke proves required VICT packages/exports; stub/live ports, dependency identities and semantic graph mapping are documented, including draft/readiness checks, coordinating engine boundaries and branch behavior |
 | U0-14 | Fresh independent engineering review at exact candidate; reproducible owner walkthrough and known issues; owner UX approval recorded separately |
 
 U0 engineering completion does not pass T01–T09. U0 remains at the owner review boundary until O approval is recorded.
+
+### Required Node & Edge fixture coverage
+
+Run fixtures A–C in [Node & Edge Foundation](NODE-EDGE-FOUNDATION.md#8-three-required-u0-fixtures) with D/S evidence. They refine existing criteria and do not introduce a new stage:
+
+| Fixture | U0 coverage | Required observations |
+| --- | --- | --- |
+| A — Quellight agent graph | U0-03, U0-04, U0-05, U0-12 | Browser-tool availability and specialist delegation start no run; shared inspector/inline values; expose/hide preserves configuration; edits/history/reopen retain identities |
+| B — AI-to-business workflow | U0-04, U0-05, U0-08, U0-09, U0-13 | Explicit VICT coordinator/Mastra step mapping; typed branch/review/action boundaries; exclusive/multi-match/no-match cases; incomplete Save/reopen; protected-effect rerun refusal shown as simulation |
+| C — Creative Weave | U0-04, U0-05, U0-06, U0-07, U0-08 | Three spatial alternatives and reference cycle; explicit workflow conversion; Run Node/To/From simulation plus unavailable states; exact reused inputs and stale versions; new variation retains old output |
+
+Across these fixtures, demonstrate real structural/readiness diagnostics, save without configured provider, reference versus actual context inclusion, visual group versus executable subworkflow, and rejection of fabricated provenance claims. Runtime authorization, receipts, recovery and per-adapter partial execution remain live-slice proofs; simulation of those cases passes only the U0 representation requirement.
 
 ## T01 — Agent Studio
 
@@ -41,11 +53,13 @@ U0 engineering completion does not pass T01–T09. U0 remains at the owner revie
 
 ## T02 — Executable AI Workflow
 
-**Setup:** Studio-built input → research agent → decision → specialist → human review → output, with typed schemas and two branch inputs.
+**Setup:** Studio-built input → research agent → decision → specialist → human review → output, with typed schemas and two branch inputs. The base scenario uses explicitly exclusive routing. Separately exercise multiple-matching and no-match configurations where supported, with declared output/join behavior; do not assume identical branch behavior across engines.
 
 **Pass:** T02-01 save/activate exact graph; T02-02 actual typed output reaches downstream steps; T02-03 each branch tested, unselected branch does not execute; T02-04 review suspends and resumes the intended run; T02-05 trace reflects actual selected steps/input/result; T02-06 reopen/restart behavior follows documented support; T02-07 invalid types, stale/duplicate answers, failure and cancellation cannot fabricate output or repeat effects.
 
 Evidence D/S/L. Show a paused run before and after a real answer, not two independent canned runs. Use Mastra's workflow mechanism, with VICT authority for any protected actions. First complete at V2.
+
+Verify the exact adapter's execution mapping, including nested engine boundaries where used. An unsupported composition must fail readiness with a useful diagnostic. No universal partial-execution claim follows from passing the full-workflow test.
 
 ## T03 — Governed VICT Business Workflow
 
@@ -55,6 +69,8 @@ Evidence D/S/L. Show a paused run before and after a real answer, not two indepe
 
 Evidence D/S and real controlled business service operation (L where AI is used). Do not promise exactly-once behavior for a non-idempotent remote system. Prove safe refusal/reconciliation where automatic recovery is impossible. First complete at V2.
 
+For the AI-to-business fixture, VICT owns the business continuation and approvals; Mastra runs the governed AI step. Test cancellation/recovery across that boundary. A partial-rerun request must not automatically repeat the protected action; test receipt reuse/reconciliation, required approval and explicit refusal where safe continuation is unavailable.
+
 ## T04 — Generative Pipeline
 
 **Setup:** Prompt and reference image → generation provider → at least two actual alternatives → selected image → transform/upscale → final artifact. Use a bounded agreed call budget and non-sensitive inputs.
@@ -62,6 +78,8 @@ Evidence D/S and real controlled business service operation (L where AI is used)
 **Pass:** T04-01 Studio configures real typed image inputs/operator settings; T04-02 provider truly generates and transform truly executes; T04-03 previews resolve actual bytes; T04-04 final output records prompt/reference/operator/model/run lineage; T04-05 edit upstream input and rerun affected downstream steps as a new version; T04-06 earlier outputs remain accessible; T04-07 denied/failed/unsupported-media operation produces no fake artifact or misleading success.
 
 Evidence D/S/L/O, with actual generated artifacts and receipts. Partial reruns must identify any reused output. A static thumbnail or generic model text is not this test. First complete at V3.
+
+Demonstrate explicit input-version selection and new variation creation without destroying prior results. Enable Run Node/To/From individually only where safe adapter support is proven; unavailable commands must explain why and cannot silently rerun the whole graph. T04-05 requires a supported revision/rerun path, not universal arbitrary subgraph execution. Changing transform settings must not silently regenerate its selected source image.
 
 ## T05 — Creative Canvas
 

@@ -11,6 +11,8 @@ The owner supplied `https://github.com/radz2291/VICT-Tori` and asked: **“This 
 
 ## Prepared next task: G0 → U0
 
+**Adopted Node & Edge amendment (2 November 2026):** The owner requested repository incorporation of the agreed proposal and final clarifications. [Node & Edge Foundation](docs/specs/NODE-EDGE-FOUNDATION.md) is required reading: four catalog families, six relationships, real shared editing and incomplete-draft persistence, explicit execution ownership, G0 native mapping and three U0 fixtures. Run Node/To/From are simulated in U0 and enabled live only per safe adapter support; protected actions are never automatically replayed. This refines the same ticket/stages and does not launch implementation or authorize custom UI/upstream changes.
+
 **Work coordination:** The owner requested TORI setup in Rolladice Work. Project/code `TORI`, standard `TORI — Codex Execution and Review` and prepared ticket `TORI-001` now coordinate this task. Follow the [Work protocol](docs/governance/ROLLADICE-WORK.md), resolve live UUIDs/pins, and test local read/comment access before claiming execution. This setup does not start G0/U0; the local launch instruction below still applies. Use ticket discussion for the intermediate walkthroughs and final Review handoff.
 
 **Owner-approved preparation refinement (2 November 2026):** Add the [cross-repository capability ownership matrix](docs/implementation/CAPABILITY-OWNERSHIP.md) and intermediate working UI walkthroughs. This is documentation-only scope; it does not activate application implementation or upstream changes. The matrix must be resolved against public APIs before each runtime slice, beginning with V1a.

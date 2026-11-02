@@ -21,6 +21,8 @@ Keep app record IDs as references. A Quellight commitment remains a Quellight re
 
 ## 2. Graph and port semantics
 
+The adopted [Node & Edge Foundation](NODE-EDGE-FOUNDATION.md) makes these rules concrete: four catalog families, resource versus invocation identities, shared inline/inspector editing, draft/readiness separation, execution ownership and adapter-specific run intents. Its three U0 fixtures are required mapping and authoring proofs.
+
 Every connection carries an explicit relationship kind and schema. The initial semantic families below are requirements for clarity, not a final node taxonomy:
 
 | Relationship | Meaning | Validation |
@@ -32,13 +34,19 @@ Every connection carries an explicit relationship kind and schema. The initial s
 | Context/reference | Informational connection between resources/cards | Access scope, resolvable reference; never executed automatically |
 | Provenance | Result derived from particular inputs/run/version | Recorded from actual production of output; cannot pretend a manually linked asset was generated |
 
-Typed ports include stable ID, label, direction, schema reference, cardinality, optionality and supported artifact/media constraints. Do not treat every string as compatible or infer runtime types from node titles/colors. Reject dangling references, missing required inputs, incompatible ports and unsupported execution cycles with actionable node/port-specific diagnostics. Informational cycles may be valid; executable loop policies are explicit.
+Typed ports include stable ID, label, direction, schema reference, cardinality, optionality and supported artifact/media constraints. Do not treat every string as compatible or infer runtime types from node titles/colors. Reject structurally invalid edits such as dangling references and incompatible connections with actionable node/port-specific diagnostics. Allow explicit unconfigured nodes and missing runtime inputs in saveable drafts; validation reports readiness gaps, and activation/execution requires the relevant checks. Informational cycles may be valid; unsupported executable cycles block execution with explicit loop-policy diagnostics. Schema-safe drafts may retain unresolved execution mappings without being reported runnable.
 
 Changing upstream inputs creates a new revision and marks affected downstream results stale. Existing artifacts remain inspectable. A partial rerun records exactly which node revisions and inputs were reused; no new run is silently credited with older output.
+
+Run Node / Run To Node / Run From Node are supported only where the selected engine/adapter can implement their declared scope safely. U0 demonstrates labelled simulations and unavailable cases. Live adapters must not silently substitute a full run, repeat protected actions or return fixture success. New variations are deliberate new attempts; unchanged inputs do not imply that an earlier generation should always be reused. Effect replay requires receipt/uncertainty reconciliation and applicable authorization.
+
+Context/reference edges do not automatically inject material into an agent: explicit context bindings determine admitted sources and resolved versions. A visual group does not define an executable subworkflow. Provenance comes from production evidence, or explicitly labelled simulation/external claims, not ordinary user-drawn derivation assertions.
 
 Creative-to-workflow conversion is an explicit operation: user chooses executable operators/ports, validates typed boundaries, and preserves branch/artifact identity. The system must not interpret every creative link as a runnable dependency.
 
 ## 3. Authoring transactions and persistence
+
+Inline controls, inspector fields and exposed resource nodes share canonical values and revision guards. Showing/hiding a projection preserves the binding; detach, delete, clone and create-reusable-resource are distinct edits. A Run Agent/Call Tool invocation references a resource/version and owns its invocation inputs without silently modifying the shared definition. Domain and visual projection updates must remain consistent through history and persistence.
 
 Use VICT transaction/history and revision/occurrence protections. Each edit has expected source revision and applicable node/occurrence identity. Multi-property operations are atomic where the public contract supports them. A stale edit is rejected or presented for reconciliation, never applied over newer manual work.
 
@@ -79,6 +87,8 @@ Modes are named configurations with enabled state, instructions/context and tool
 Fallback is an explicit policy. If a selected model disappears or a connection is revoked, report it and follow only permitted fallback policy. Record the actual model used. Supported public reasoning, structured output, tool calling, image/audio/video input and usage data are feature flags, not universal assumptions.
 
 ## 6. Runtime and effect lifecycle
+
+An executable workflow declares its coordinating engine. The initial AI-to-business fixture uses VICT to coordinate the business process and a governed Mastra AI step; AI-led workflows may use Mastra with VICT-governed protected calls. Map typed boundaries, approval/continuation ownership, cancellation/retry/recovery and receipts; unsupported mixed compositions fail readiness rather than invoking a new TORI scheduler. Distinguish exclusive routing from multiple-matching branches, including no-match and join/output semantics, against exact pinned engine APIs.
 
 ```mermaid
 stateDiagram-v2

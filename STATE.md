@@ -1,6 +1,6 @@
 # TORI current state
 
-**2 November 2026 — Repository preparation complete; application implementation not started.** The pack has independent documentation-only PASS at remote candidate `e4ae1cfe86385420724565f67d77c28ec50e26ea`, verified equal to the reviewed local file tree; its GitHub documentation CI passed. [Bootstrap validation](docs/evidence/bootstrap/VALIDATION.md) records exact identities, corrections and limits. This completion commit updates reporting only. There is no runtime, UI acceptance, independent product verdict, or deployed TORI service. The owner handoff reports the exact completion SHA.
+**2 November 2026 — Repository preparation complete; Node & Edge Foundation v0.1 adopted; application implementation not started.** The historical bootstrap has independent documentation-only PASS at remote candidate `e4ae1cfe86385420724565f67d77c28ec50e26ea`, verified equal to its reviewed local file tree; its GitHub documentation CI passed. [Bootstrap validation](docs/evidence/bootstrap/VALIDATION.md) records those identities, corrections and limits. Subsequent ownership, Work coordination and Node & Edge amendments are documentation changes with their own commit/review attribution. There is no runtime, UI acceptance, independent product verdict, or deployed TORI service.
 
 ## Authority and readiness
 
@@ -22,6 +22,8 @@
 The [decision register](docs/governance/DECISIONS.md) owns the open questions. Immediate work is G0 package installation and source-to-domain mapping. The prior “eight operations” vocabulary must be recovered from its actual source before any exact names are frozen; this pack does not invent it. Provider eligibility, full durable-session recovery, and real consumer parity remain evidence tasks for their slices.
 
 ## Next action
+
+The owner adopted [Node & Edge Foundation v0.1](docs/specs/NODE-EDGE-FOUNDATION.md) on 2 November 2026. G0 now explicitly proves native semantic mapping and draft/readiness separation; U0 adds concrete fixture coverage for shared node/inspector editing, three graph experiences and simulated partial-execution intents. Live partial execution remains adapter-specific, with protected-effect replay governed separately. TORI-001 carries this amended scope; application implementation remains unstarted.
 
 Rolladice Work setup is now part of the owner's preparation request: project/code `TORI`, pinned execution standard and prepared `TORI-001`. See the [coordination protocol](docs/governance/ROLLADICE-WORK.md). Cloud setup is verified; Windows/local Codex connectivity remains untested. Ticket creation does not start application implementation; current ticket status must be read from Work.
 

@@ -2,6 +2,8 @@
 
 U0 delivers the actual product UI with replaceable execution adapters. It is not a disposable prototype. The behaviors in this document are required; the exact layout is a candidate for owner review. Use the [native package map](../reference/BASELINE.md), then verify public component behavior before composition.
 
+Apply [Node & Edge Foundation v0.1](NODE-EDGE-FOUNDATION.md) across all surfaces. Definition, Operation, Control and Creative/Material are catalog discovery families; node role and edge meaning are explicit. Agent definitions and Run Agent invocations are different usages of the same reusable capability. Use a small starter palette for the required fixtures, extending it through catalog registrations.
+
 ## 1. Studio shell and navigation
 
 Primary views: **Definition, Trace, Session**. Within Definition, users work with Agent, Workflow, and Creative surfaces. Connections and the capability catalog are supporting management areas, not separate products. Use a shared project context, selection model, inspection behavior, styling and artifact identity.
@@ -19,6 +21,7 @@ Always show project, selected definition/revision, saved/unsaved state, and whet
 - Create from blank or an explicit editable template, name, clone, edit and retire.
 - Configure instructions, allowed models/default, enabled modes, Skills, tools, memory, processors, budgets, permissions and child-agent references.
 - Use rich VICT-native nodes/forms; render relationship types distinctly with readable labels and accessible alternatives.
+- Inline controls and inspector edit the same values. Expose existing resource bindings as nodes when useful; hiding a projection preserves configuration. Clearly separate hide, detach, delete, clone and invocation-specific settings.
 - Inspect an effective configuration preview and validation diagnostics. Surface unsupported runtime features honestly.
 - Separate Save, Validate and Activate intent. In U0, Save and Validate work; activation is explicitly a simulation or unavailable, never a real authorization grant.
 - Provide Test & Evaluation as an attached workspace: cases, expected behavior, version/model comparison and labelled sample results during U0.
@@ -30,6 +33,8 @@ Always show project, selected definition/revision, saved/unsaved state, and whet
 - Distinguish AI workflow and VICT business control semantics. Do not pretend a new shared runner executes both.
 - Support selection, contextual menu, shared inspector, zoom/pan/fit, and undoable graph edits.
 - Validate drafts and Save/reopen actual graph definitions/layout. Show graph revision and result staleness after upstream edits.
+- Allow incomplete drafts to save; validation reports missing inputs/configuration and unsupported execution mappings. Reject incompatible edge edits without losing the prior draft. Activation/execution require relevant readiness and authority; U0 activation remains simulated or unavailable.
+- Inspect the workflow's coordinating engine and step boundary, exclusive versus multi-match routing, no-match behavior and joins. Layout grouping never implicitly creates an executable subworkflow.
 - A simulated run follows a fixture scenario and opens the corresponding Trace; animation alone is not the result.
 
 ### Creative Canvas
@@ -40,6 +45,8 @@ Always show project, selected definition/revision, saved/unsaved state, and whet
 - Preserve relationships among source idea, branch, versions, selection and final artifact.
 - Make “create executable workflow from selection” an explicit authored operation with validation and retained identity. In U0 execution remains simulated.
 - Test flexible rich node content using VICT components. Do not constrain all nodes to the same fixed text card.
+- Demonstrate Run Node / Run To Node / Run From Node, reuse and new-variation intents using labelled simulations, with scope/input-version/staleness previews and explicit unsupported cases. Live availability later follows adapter proof; a partial rerun never silently repeats protected actions or regenerates upstream media.
+- Ordinary context links are associations; explicit context bindings control what reaches an agent. Render provenance from recorded evidence with origin labels; user-drawn links cannot claim observed generation.
 
 ### Session
 
@@ -82,6 +89,8 @@ Every simulated result must carry machine-readable origin metadata and a visible
 
 ## 4. Required review scenarios
 
+The three [Node & Edge fixtures](NODE-EDGE-FOUNDATION.md#8-three-required-u0-fixtures) refine the authoring-agent/Quellight, governed-action/research-workflow and creative scenarios below. Demonstrate all three through real editing, Undo/Redo and Save/reopen, with simulated execution only. Include incomplete drafts, shared form/node values, non-executable reference cycles, supported/unsupported run intents and protected-action rerun refusal. These fixtures supplement the eight scenario rows rather than replacing them.
+
 | Fixture | Contents | What it exercises |
 | --- | --- | --- |
 | Blank project | Empty definitions/session/artifact list | First-use clarity and real creation without pre-seeded success |
@@ -99,7 +108,7 @@ Fixtures are resettable without deleting authored user work. Use versioned deter
 
 - Pointer and keyboard selection; visible focus; context-menu and non-context-menu equivalents; Escape/focus restoration for owned overlays.
 - Editing inside a node must not accidentally drag it or trigger canvas shortcuts. Graph shortcuts must not override text editing.
-- Connect/reconnect/delete operations enter history consistently. Invalid edit leaves the prior valid state intact.
+- Connect/reconnect/delete operations enter history consistently. Invalid connection/structural edits leave the prior draft intact; that draft may be incomplete and not execution-ready.
 - Unsaved work indicator; reload/reopen from committed storage; quota/write failure and stale revision shown with recoverable drafts.
 - Browser back/forward and surface changes preserve the intended project/selection context. Modal/panel state does not lock hidden frames or the whole Studio.
 - Light/dark or chosen VICT themes use shared semantic tokens, including popups, node controls, media and portals. Do not patch colors separately in each feature.

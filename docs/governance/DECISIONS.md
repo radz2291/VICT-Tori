@@ -53,6 +53,22 @@ Routine choices consistent with these boundaries can be resolved by the implemen
 
 The nine tests replace the earlier three-test-only acceptance framing: old A → T07, old B → T08, old C → T09, with T01–T06 added. Earlier G0–G6 and M1–M4 proposals are historical planning schemes. The current [roadmap](../implementation/ROADMAP.md) organizes the agreed UI-first approach; it does not remove their underlying behaviors or resume VICT's paused Milestone 2.
 
+## Adopted amendments
+
+### D-13 — Node & Edge Foundation adopted, 2 November 2026
+
+**Authority:** After the Node & Edge proposal, repository/source review and the final clarification on partial execution and incomplete saving, the owner asked to “update the repository accordingly.” This adopts the behavior in [Node & Edge Foundation v0.1](../specs/NODE-EDGE-FOUNDATION.md), without starting implementation.
+
+**Prior rule:** Six semantic relationship families, typed validation and creative conversion were required, while detailed palette/projection mapping was left to G0. The prior blanket rejection wording for missing required inputs could prevent incomplete authoring.
+
+**Decision:** Use four catalog discovery families with explicit resource/invocation roles; rich VICT node controls and inspector share canonical values. Save structurally sound incomplete drafts; diagnose readiness and require it for activation/execution. Keep six relationship meanings, explicit context admission and evidence-derived provenance. Distinguish layout groups from executable subworkflows, exclusive routing from multi-match branching, and declare execution ownership. Default AI-to-business fixture uses a VICT coordinator with a governed Mastra AI step.
+
+**Partial execution:** U0 demonstrates selected-node/to-node/from-node, reuse/staleness and new-variation intents with labelled simulations and unsupported cases. Live operations require safe per-engine/adapter proof; no promise of universal arbitrary partial execution and no automatic replay of protected actions. This is a qualification of execution support, not removal of creative iteration or T04's supported rerun requirement.
+
+**Affected work:** Contracts, UI, U0-03–U0-06/U0-13, fixtures A–C, relevant T02–T04 checks, FIRST-STAGE, agent entry/start/handoff and TORI-001. Stage order and T01–T09 coverage are unchanged. Exact first-release palette and the historical eight-operation vocabulary remain open. Custom UI still requires the documented exception before implementation.
+
+**Migration / next proof:** No implemented TORI schema or saved application exists to migrate. G0 records public API/domain/projection mappings and support gaps; U0 proves real editing/history/persistence with simulated execution, followed by owner review. Live conformance remains in the assigned runtime slices.
+
 ## Amendment format
 
 Append: decision ID/date; concrete question; owner instruction or implementation evidence; prior rule; selected option and reason; affected contracts/tests/stages; migration; next proof. Preserve old evidence. Only the owner can accept a product-scope reduction or custom-UI exception; an agent may resolve routine implementation choices inside existing scope.
