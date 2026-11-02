@@ -1,0 +1,30 @@
+name: Documentation integrity
+
+on:
+  push:
+    paths:
+      - '**.md'
+      - 'scripts/check_docs.py'
+      - '.github/workflows/docs.yml'
+  pull_request:
+    paths:
+      - '**.md'
+      - 'scripts/check_docs.py'
+      - '.github/workflows/docs.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  check-docs:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Check specification integrity
+        run: python scripts/check_docs.py
