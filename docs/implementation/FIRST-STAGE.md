@@ -41,6 +41,20 @@ Do not import application-private designer/agent code from VICT Studio. If a pub
 4. Exercise three creative alternatives and the unified navigation path. User-created work remains separate from resettable samples.
 5. Refine desktop/narrow layouts, keyboard/focus and touch alternatives. Provide a phone review route when the environment permits; no public deployment is required by this stage.
 
+## Intermediate U0 owner walkthroughs
+
+Arrange these walkthroughs as the working areas become usable, rather than waiting for all six areas to be complete:
+
+| Checkpoint | Timing | Working experience to show |
+| --- | --- | --- |
+| U0-R1 | During work package C, once shell and agent editing work | Navigation, blank-project agent creation/configuration, native inspection, Undo/Redo and Save/reopen |
+| U0-R2 | During work package C, once workflow and creative editing work | Typed connections and invalid states; three spatial creative alternatives; compare/branch/revisit; saved manual work |
+| U0-R3 | During work package D, once operational views are composed | Session, Trace and provider/capability configuration; explicit simulations; cross-view identity; narrow-screen essentials |
+
+For each checkpoint, provide the runnable candidate SHA, launch/review route, short hands-on steps, simulated or unfinished areas, and focused experience decisions. Record owner feedback and resulting changes in `docs/evidence/u0/OWNER-REVIEWS.md`. Use status `offered`, `reviewed — changes requested`, or `reviewed — checkpoint accepted`; no response is not acceptance.
+
+Continue independent authorized work while feedback is pending. Avoid hardening dependent interaction choices when the owner's answer is necessary; pause only that work. Routine in-scope fixes need no new permission. These are iterative product walkthroughs, not three additional mandatory stage approval gates. Final U0 engineering verification and explicit owner UI acceptance still apply to the final candidate; checkpoint acceptance cannot substitute for either or start V1.
+
 ## Work package E — verify, repair, hand over
 
 Run build/type checks and meaningful tests of graph validity, transaction/history, persistence/conflicts, simulation separation and projection parity. Use installed browser interactions for U0-01–U0-14. Do not replace browser interaction with direct state injection when proving authoring.

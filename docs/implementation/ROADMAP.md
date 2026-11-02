@@ -4,6 +4,8 @@ The owner agreed the delivery approach and final expectations. This is a propose
 
 ## Stage sequence
 
+Each functional slice couples necessary VICT–Mastra exposure work with reusable TORI services and the working Studio experience. Use the [cross-repository ownership matrix](CAPABILITY-OWNERSHIP.md); confirm actual API gaps and target packages before V1a and each later runtime slice. Not every slice requires an upstream change. G0/U0 records those dependencies while keeping upstream read-only.
+
 | Stage | User-visible outcome | Required evidence / exit |
 | --- | --- | --- |
 | G0 | Confirmed foundation and minimum domain mappings | Public-package install/build proof, exact source/artifact identities, UI reuse map, authoring/store/graph contracts and open-decision register |
@@ -34,6 +36,8 @@ V1a/V1b/V1c split the former “V1 Agent Runtime” for tractable delivery; they
 **Prerequisites:** G0 native installation and minimum contracts demonstrated. Runtime APIs may remain unverified behind explicit simulated ports.
 
 **Scope:** Six core areas, native editing/history, real persistence, typed graph semantics, cross-view identities, fixture scenarios, responsive/accessibility review and owner walkthrough.
+
+**Intermediate review:** Show working candidates during U0: shell/agent authoring first, workflow/creative canvas next, then Session/Trace/provider and capability management. Follow the [checkpoint procedure](FIRST-STAGE.md#intermediate-u0-owner-walkthroughs). Record feedback and iterate within U0; these walkthroughs do not replace final acceptance or authorize runtime work.
 
 **Exit:** Independent engineering criteria complete; owner receives a runnable candidate and gives UI acceptance or concrete changes. Ordinary in-scope UX fixes stay within this stage. No requirement to polish every advanced settings detail before a first runtime slice.
 

@@ -11,6 +11,8 @@ The owner supplied `https://github.com/radz2291/VICT-Tori` and asked: **“This 
 
 ## Prepared next task: G0 → U0
 
+**Owner-approved preparation refinement (2 November 2026):** Add the [cross-repository capability ownership matrix](docs/implementation/CAPABILITY-OWNERSHIP.md) and intermediate working UI walkthroughs. This is documentation-only scope; it does not activate application implementation or upstream changes. The matrix must be resolved against public APIs before each runtime slice, beginning with V1a.
+
 This section is the implementation contract to use when the owner starts the next Codex task. It is not an assertion that merely reading this file authorizes a running application or every later stage.
 
 **Outcome:** A locally runnable, independent TORI Studio that the owner can use to review all six UI areas, with real VICT-native editing and durable local Save/reopen. Execution services are clearly simulated behind the contracts that real integrations will later implement.
@@ -26,6 +28,8 @@ This section is the implementation contract to use when the owner starts the nex
 **Required reading:** [First-stage tasks](docs/implementation/FIRST-STAGE.md), [UI](docs/specs/UI-FOUNDATION.md), [contracts](docs/specs/CONTRACTS.md), [U0 criteria and full acceptance](docs/specs/ACCEPTANCE.md), [baseline](docs/reference/BASELINE.md).
 
 **Demo:** Start with an empty project; create and edit an agent; connect allowed Skills/tools; build a typed workflow; explore three creative branches; save, fully reload, and reopen; inspect a labelled simulated run; move among Definition, Trace, and Session without losing selection, revisions, or artifact identity. Repeat essential operations in a narrow viewport.
+
+**During U0:** Offer the working shell/agent, workflow/canvas and Session/Trace/configuration checkpoints in [First-stage tasks](docs/implementation/FIRST-STAGE.md#intermediate-u0-owner-walkthroughs). Record feedback and revisions while development continues; final UI acceptance remains separate and silence never counts as acceptance.
 
 **Exit:** All U0 engineering criteria demonstrated at an exact candidate, fresh verifier verdict, reproducible local launch instructions, review route and fixture guide, known issues, state update, and owner report. Final UI acceptance remains **HELD** until the owner actually reviews the application.
 

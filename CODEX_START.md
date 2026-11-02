@@ -8,6 +8,8 @@ Copy the following into the implementation Codex session after cloning this repo
 >
 > Resolve routine implementation choices and repairs yourself. Coordinate builders if useful and have a fresh independent verifier challenge the exact candidate. Repair in-scope findings and reverify until the stage criteria are met or a concrete blocker remains. Keep all evidence and failed findings. Commit and push the candidate/evidence to a dedicated feature branch; report its exact SHA and reproducible launch/review instructions.
 >
+> Show working U0 checkpoints as shell/agent authoring, workflow/creative canvas, and Session/Trace/configuration become usable. Record my feedback and iterate throughout U0, following FIRST-STAGE.md. Continue unaffected work while feedback is pending; do not treat silence as acceptance. Use docs/implementation/CAPABILITY-OWNERSHIP.md to record future VICT–Mastra versus TORI gaps without implementing runtime or upstream changes during U0.
+>
 > Stop at owner UI review. Do not begin live runtime integrations, change the existing VICT Studio, resume its Milestone 2, or replace its agent. Any genuinely custom UI primitive requires the specific exception described in the repository. The final report must distinguish engineering proof, simulated behavior, and UI decisions awaiting my review.
 
 The longer specification is the authority for details; this prompt is a convenient entry point, not a replacement for the repository contract.
