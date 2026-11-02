@@ -1,6 +1,6 @@
 # TORI current state
 
-**2 November 2026 — Specification pack prepared and statically checked; application implementation not started.** The repository was empty at inspection. This pack consolidates the owner's agreed product direction and prepares the next Codex task. Independent documentation review found no substantive blocker; its exact local candidate, minor corrections and limits are recorded in [bootstrap validation](docs/evidence/bootstrap/VALIDATION.md). There is no runtime, UI acceptance, independent product verdict, or deployed TORI service. The published documentation revision is the commit containing this state file; the owner handoff reports its exact remote SHA.
+**2 November 2026 — Repository preparation complete; application implementation not started.** The pack has independent documentation-only PASS at remote candidate `e4ae1cfe86385420724565f67d77c28ec50e26ea`, verified equal to the reviewed local file tree; its GitHub documentation CI passed. [Bootstrap validation](docs/evidence/bootstrap/VALIDATION.md) records exact identities, corrections and limits. This completion commit updates reporting only. There is no runtime, UI acceptance, independent product verdict, or deployed TORI service. The owner handoff reports the exact completion SHA.
 
 ## Authority and readiness
 

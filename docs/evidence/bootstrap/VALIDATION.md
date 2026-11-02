@@ -33,3 +33,11 @@ Post-review changes are limited to those wording fixes, this evidence record, ST
 ## Limits and next proof
 
 This review is not runtime, UI, dependency-installation, product acceptance or deployment proof. G0 must prove installable native artifacts and domain mapping. U0 must build the actual Studio and demonstrate its criteria; owner UI review remains future work. The final local check is rerun before GitHub publication, and the remote file tree is compared to the prepared pack afterward.
+
+## Final recheck and GitHub receipt
+
+The separate verifier rechecked final local candidate `7a8349c09f118a196035ce29a30db8599d0f2059` and returned **PASS — documentation only**, with both low-severity findings resolved. Its checker result was 20 Markdown files and 51 local link destinations; all capability/test/stage inventories passed. The working tree was clean.
+
+The verifier independently confirmed remote `main` at **`e4ae1cfe86385420724565f67d77c28ec50e26ea`** with Git tree **`a3a132ae607c1949a6d73a6731346c6d83a99f7e`**, exactly equal to that reviewed local candidate. The preparer independently read back the same branch/tree and all 24 files. GitHub's [Documentation integrity run](https://github.com/radz2291/VICT-Tori/actions/runs/41412880073) completed successfully at that remote candidate.
+
+The follow-up commit introducing this receipt changes only VALIDATION and STATE to record these results. The specification, handoff, checker and workflow bytes remain those reviewed above. The remote SHA of this documentation-only completion commit is supplied in the owner handoff; this avoids pretending that a commit can contain its own hash.
