@@ -23,6 +23,8 @@ The [decision register](docs/governance/DECISIONS.md) owns the open questions. I
 
 ## Next action
 
+Rolladice Work setup is now part of the owner's preparation request: project/code `TORI`, pinned execution standard and prepared `TORI-001`. See the [coordination protocol](docs/governance/ROLLADICE-WORK.md). Cloud setup is verified; Windows/local Codex connectivity remains untested. Ticket creation does not start application implementation; current ticket status must be read from Work.
+
 The owner authorized two documentation refinements on 2 November 2026: a [provisional cross-repository capability matrix](docs/implementation/CAPABILITY-OWNERSHIP.md), resolved before each runtime slice, and [intermediate U0 walkthroughs](docs/implementation/FIRST-STAGE.md#intermediate-u0-owner-walkthroughs). These do not start G0/U0, authorize upstream edits, or change the final UI acceptance gate. The historical bootstrap review above applies to its named candidate, not automatically to these additions.
 
 Use [CODEX_START.md](CODEX_START.md) to begin G0 → U0. The implementation agent should finish the usable UI candidate and its independent engineering review, then stop for the owner's UI review. It must not drift into live runtime or external application integration before that gate.

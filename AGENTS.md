@@ -15,6 +15,8 @@ Read [STATE.md](STATE.md), [HANDOFF.md](HANDOFF.md), and the referenced stage be
 
 ## Execution discipline
 
+Use [Rolladice Work protocol](docs/governance/ROLLADICE-WORK.md) for persistent coordination. Resolve project/code `TORI` and the current ticket (initial assignment `TORI-001`) from live tools; read its handoff, discussion, dependencies and pinned standard before execution. Check the first local read/comment round trip, claim actual work with `run_start`, heartbeat with `run_update` every few minutes, and verify closure updates by reading them back. Submit completed delivery to Review; only Radzi accepts it. A ticket does not launch Codex or expand scope. If tools are unavailable, report that limitation and use the documented manual handoff within owner-authorized work. GitHub retains specifications/code/evidence; Work retains assignment/status/review.
+
 Use the [first-stage plan](docs/implementation/FIRST-STAGE.md), [roadmap](docs/implementation/ROADMAP.md), and [verification runbook](docs/governance/VERIFICATION.md). One stage manager owns an accepted stage through implementation, independent challenge, repair, re-verification, and final report. Independent builder/verifier delegation is allowed within that accepted scope; use separate fresh sessions when delegation is unavailable. A builder cannot provide its own independent verdict.
 
 Resolve routine in-scope defects without asking the owner to relay each iteration. Stop only for the stage boundary, a concrete product/authority fork, or an unavailable required dependency. Complete unaffected work before presenting a narrow blocker. Do not convert an agent proposal into owner acceptance.
