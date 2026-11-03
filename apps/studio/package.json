@@ -1,0 +1,22 @@
+{
+  "dependencies": {
+    "@victframework/contracts": "file:packs/victframework-contracts-0.4.0-rc.1.tgz",
+    "@victframework/ui": "file:packs/victframework-ui-0.4.0-rc.1.tgz",
+    "@victframework/sdk": "file:packs/victframework-sdk-0.4.0-rc.1.tgz",
+    "@victframework/application": "file:packs/victframework-application-0.4.0-rc.1.tgz",
+    "@victframework/ui-svelte": "file:packs/victframework-ui-svelte-0.4.0-rc.1.tgz",
+    "@victframework/ui-media-svelte": "file:packs/victframework-ui-media-svelte-0.4.0-rc.1.tgz",
+    "@victframework/ui-editor": "file:packs/victframework-ui-editor-0.4.0-rc.1.tgz",
+    "@victframework/ui-flow-svelte": "file:packs/victframework-ui-flow-svelte-0.4.0-rc.1.tgz",
+    "@victframework/ui-structure-svelte": "file:packs/victframework-ui-structure-svelte-0.4.0-rc.1.tgz",
+    "@victframework/ui-ai-svelte": "file:packs/victframework-ui-ai-svelte-0.4.0-rc.1.tgz",
+    "@victframework/ui-patterns-svelte": "file:packs/victframework-ui-patterns-svelte-0.4.0-rc.1.tgz",
+    "svelte": "5.57.0",
+    "vite": "6.4.3",
+    "@sveltejs/vite-plugin-svelte": "5.1.1",
+    "zod": "3.25.76"
+  },
+  "name": "tori-vict-consumer",
+  "type": "module",
+  "private": true
+}
