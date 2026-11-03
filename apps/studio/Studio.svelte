@@ -1,6 +1,7 @@
 <script>
   import { GraphWorkspaceV3, GraphViewport, emptyGraphV3, parseGraphV3 } from '@victframework/ui-flow-svelte';
   import { Button } from '@victframework/ui-svelte/catalog/button';
+  import { MediaIcon } from '@victframework/ui-media-svelte';
   import AddAgent from './AddAgent.svelte';
   import { ControlScope } from '@victframework/ui-svelte/controls';
 
@@ -114,11 +115,17 @@
           <h1>Agents</h1>
           <div class="tools">
             <div class="group" role="group" aria-label="Edit history">
-              <Button.Root class="action" onclick={() => frame.onOutput('undo')}>Undo</Button.Root>
-              <Button.Root class="action" onclick={() => frame.onOutput('redo')}>Redo</Button.Root>
+              <Button.Root class="action icon-action" aria-label="Undo" title="Undo" onclick={() => frame.onOutput('undo')}>
+                <MediaIcon props={{ name: 'undo', size: 16 }} nodeId="undo-icon" occurrenceKey="undo-icon"/>
+              </Button.Root>
+              <Button.Root class="action icon-action" aria-label="Redo" title="Redo" onclick={() => frame.onOutput('redo')}>
+                <MediaIcon props={{ name: 'redo', size: 16 }} nodeId="redo-icon" occurrenceKey="redo-icon"/>
+              </Button.Root>
             </div>
             <div class="group" role="group" aria-label="Draft actions">
-              <Button.Root class="action" onclick={save}>Save draft</Button.Root>
+              <Button.Root class="action icon-action" aria-label="Save draft" title="Save draft" onclick={save}>
+                <MediaIcon props={{ name: 'save', size: 16 }} nodeId="save-icon" occurrenceKey="save-icon"/>
+              </Button.Root>
               <Button.Root class="action" disabled={!savedSource} onclick={reopen}>Reopen saved draft</Button.Root>
             </div>
             {#if agent && !inspectorOpen}
@@ -195,6 +202,7 @@
   h1, h2 { margin: 0; line-height: 1.3; font-size: 13px; font-weight: 600; }
   :global(.studio .action), :global(.studio .tab) { cursor: pointer; border: 0; color: var(--vict-color-muted); background: transparent; padding: 4px 8px; border-radius: 2px; white-space: nowrap; }
   :global(.studio .action:hover:not(:disabled)), :global(.studio .tab:hover) { background: var(--studio-raised); color: var(--vict-color-text); }
+  :global(.studio .icon-action) { display: grid; place-items: center; width: 32px; height: 30px; padding: 0; }
   :global(.studio .tab[aria-current]) { color: var(--vict-color-accent); box-shadow: inset 0 -1px var(--vict-color-accent); }
   :global(.studio .primary) { background: var(--studio-raised); color: var(--vict-color-text); padding: 5px 11px; }
   .workspace { display: grid; grid-template-columns: minmax(0, 1fr); }
