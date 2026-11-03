@@ -1,8 +1,9 @@
 <script>
-  import { GraphWorkspaceV3, GraphViewport, emptyGraphV3, parseGraphV3 } from '@victframework/ui-flow-svelte';
+  import { GraphWorkspaceV3, emptyGraphV3, parseGraphV3 } from '@victframework/ui-flow-svelte';
   import { Button } from '@victframework/ui-svelte/catalog/button';
   import { MediaIcon } from '@victframework/ui-media-svelte';
   import AddAgent from './AddAgent.svelte';
+  import AgentCanvas from './AgentCanvas.svelte';
   import { ControlScope } from '@victframework/ui-svelte/controls';
 
   const key = 'tori.studio.draft.v1';
@@ -135,9 +136,7 @@
         </div>
         <div class="workspace" class:inspecting={agent && inspectorOpen}>
           <div class="canvas">
-            {#key viewportVersion}
-              <GraphViewport props={{}} nodeId="canvas" occurrenceKey="canvas"/>
-            {/key}
+            <AgentCanvas version={viewportVersion} onclear={() => selected = null}/>
             {#if !graph?.nodes.length}
               <div class="empty">
 
@@ -146,7 +145,10 @@
                 <AddAgent primary onadd={focusAddedAgent}/>
               </div>
             {:else}
-              <div class="canvas-tools"><AddAgent onadd={focusAddedAgent}/></div>
+              <div class="canvas-tools" role="group" aria-label="Canvas tools">
+                <AddAgent onadd={focusAddedAgent}/>
+                <Button.Root class="action" onclick={() => viewportVersion += 1}>Fit view</Button.Root>
+              </div>
             {/if}
           </div>
           {#if agent && inspectorOpen}
@@ -213,11 +215,12 @@
   .empty { position: absolute; inset: 0; display: grid; place-content: center; justify-items: center; gap: 10px; pointer-events: none; }
   .empty :global(button) { pointer-events: auto; }
   .empty h2 { color: var(--vict-color-muted); font-weight: 400; }
-  .canvas-tools { position: absolute; top: 8px; left: 8px; background: var(--vict-color-surface); }
+  .canvas-tools { position: absolute; top: 8px; left: 8px; display: flex; background: var(--vict-color-surface); }
   aside { padding: 12px; background: var(--vict-color-surface); border-left: 1px solid var(--vict-color-border); }
   .inspector-heading { justify-content: space-between; border-bottom: 1px solid var(--vict-color-border); padding-bottom: 6px; }
   .node { width: 15rem; background: var(--studio-raised); border-radius: 3px; box-shadow: 0 5px 16px #0005; padding: 10px; }
   .node.active { box-shadow: 0 0 0 1px var(--vict-color-accent), 0 5px 16px #0005; }
+  .node:not(.active):hover { background: #303032; }
   .canvas :global(.composed-graph-node.selected) { outline: none; }
   .node-heading { cursor: grab; display: flex; align-items: center; gap: 8px; }
   .node-heading strong { font-size: 15px; font-weight: 650; overflow-wrap: anywhere; }

@@ -88,6 +88,14 @@ try {
   await page.locator('[data-graph-node]').click({ position: { x: 85, y: 20 } });
   await page.locator('[data-graph-node] .node.active').waitFor();
   await page.screenshot({ path: 'test-results/studio-r1-selected.png' });
+  await page.keyboard.press('Escape');
+  await page.locator('[data-graph-node] .node.active').waitFor({ state: 'hidden' });
+  await page.locator('[data-graph-node]').click({ position: { x: 85, y: 20 } });
+  await page.locator('[data-graph-node] .node.active').waitFor();
+  await page.locator('.svelte-flow__pane').click({ position: { x: 160, y: 100 } });
+  await page.locator('[data-graph-node] .node.active').waitFor({ state: 'hidden' });
+  await button('Fit view').click();
+  await inline.waitFor();
   console.log('Browser check passed for installed imports, inline/inspector edits, Undo/Redo, Save/reload and navigation.');
 } finally {
   await browser?.close();
