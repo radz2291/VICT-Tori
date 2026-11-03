@@ -1,4 +1,5 @@
 <script>
+  import { tick } from 'svelte';
   import { GraphWorkspaceV3, emptyGraphV3, parseGraphV3 } from '@victframework/ui-flow-svelte';
   import { Button } from '@victframework/ui-svelte/catalog/button';
   import { MediaIcon } from '@victframework/ui-media-svelte';
@@ -19,6 +20,9 @@
   let savedSource = $state(null);
   let selected = $state(null);
   let status = $state('New local draft');
+  let draftError = $state('');
+  let nameInput = $state();
+  let showInspectorButton = $state(null);
   let inspectorOpen = $state(false);
   let inspectorDismissed = $state(false);
   let viewportVersion = $state(0);
@@ -38,8 +42,9 @@
       selected = result.graph.nodes[0]?.id ?? null;
       inspectorOpen = selected !== null;
       status = 'Saved draft reopened';
-    } catch (error) {
-      status = error.message;
+      draftError = '';
+    } catch {
+      draftError = 'Could not reopen the saved draft. Your current edits are still here. Download a copy before refreshing.';
     }
   }
   reopen();
@@ -47,14 +52,25 @@
   function save() {
     try {
       if (localStorage.getItem(key) !== savedSource) {
-        throw new Error('The saved draft changed in another tab. Reopen it before saving.');
+        draftError = 'Save blocked. Another tab changed the saved draft. Download your edits before reopening the saved version.';
+        return;
       }
       localStorage.setItem(key, source);
       savedSource = source;
       status = 'Draft saved locally';
-    } catch (error) {
-      status = error.message;
+      draftError = '';
+    } catch {
+      draftError = 'Could not save to browser storage. Your edits are still here. Free up browser storage and retry Save draft, or download a copy.';
     }
+  }
+
+  function downloadDraft() {
+    const url = URL.createObjectURL(new Blob([source], { type: 'application/json' }));
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = 'tori-draft.json';
+    link.click();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
   }
 
   function emit(name, value) {
@@ -71,11 +87,21 @@
     }
   }
 
-  function focusAddedAgent(id, previousCount) {
+  async function focusAddedAgent(id, previousCount) {
     selected = id;
     inspectorDismissed = false;
     inspectorOpen = true;
     if (previousCount > 0) viewportVersion += 1;
+    await tick();
+    nameInput?.focus();
+  }
+
+  async function toggleInspector(open) {
+    inspectorDismissed = !open;
+    inspectorOpen = open;
+    await tick();
+    if (open) nameInput?.focus();
+    else showInspectorButton?.focus();
   }
 
   function edit(frame, key, value) {
@@ -96,6 +122,12 @@
     </nav>
     <span class="save-state" role="status">{status}</span>
   </header>
+  {#if draftError}
+    <div class="draft-feedback">
+      <span role="alert">{draftError}</span>
+      <Button.Root class="action" onclick={downloadDraft}>Download draft</Button.Root>
+    </div>
+  {/if}
   <main>
     {#snippet body(frame)}
       <article class="node" class:active={frame.props.nodeId === selected}>
@@ -114,6 +146,19 @@
       <div hidden={view !== 'Definition'}>
         <div class="workbar">
           <h1>Agents</h1>
+          {#if graph?.nodes.length}
+            <label class="agent-picker">Select agent
+              <select value={selected ?? ''} onchange={(event) => {
+                selected = event.currentTarget.value || null;
+                if (selected && !inspectorDismissed) inspectorOpen = true;
+              }}>
+                <option value="">None</option>
+                {#each graph.nodes as node (node.id)}
+                  <option value={node.id}>{node.label}</option>
+                {/each}
+              </select>
+            </label>
+          {/if}
           <div class="tools">
             <div class="group" role="group" aria-label="Edit history">
               <Button.Root class="action icon-action" aria-label="Undo" title="Undo" onclick={() => frame.onOutput('undo')}>
@@ -130,11 +175,11 @@
               <Button.Root class="action" disabled={!savedSource} onclick={reopen}>Reopen saved draft</Button.Root>
             </div>
             {#if agent && !inspectorOpen}
-              <Button.Root class="action" onclick={() => { inspectorDismissed = false; inspectorOpen = true; }}>Show inspector</Button.Root>
+              <Button.Root bind:ref={showInspectorButton} class="action" onclick={() => toggleInspector(true)}>Show inspector</Button.Root>
             {/if}
           </div>
         </div>
-        <div class="workspace">
+        <div class="workspace" class:inspecting={agent && inspectorOpen}>
           <div class="canvas">
             <AgentCanvas version={viewportVersion} onclear={() => selected = null}/>
             {#if !graph?.nodes.length}
@@ -155,12 +200,12 @@
             <aside aria-label="Inspector">
               <div class="inspector-heading">
                 <h2>Inspector</h2>
-                <Button.Root class="action" onclick={() => { inspectorDismissed = true; inspectorOpen = false; }}>Hide inspector</Button.Root>
+                <Button.Root class="action" onclick={() => toggleInspector(false)}>Hide inspector</Button.Root>
               </div>
-              <label>Agent name <input value={agent.label} onchange={(event) => edit(frame, 'label', event.currentTarget.value)} /></label>
-              <label>Agent instructions <textarea placeholder="Describe what this agent should do" value={String(agent.values.instructions ?? '')}
+              <label>Agent name <input bind:this={nameInput} value={agent.label} onchange={(event) => edit(frame, 'label', event.currentTarget.value)} /></label>
+              <label>Agent instructions <textarea aria-describedby="agent-readiness" placeholder="Describe what this agent should do" value={String(agent.values.instructions ?? '')}
                 onchange={(event) => edit(frame, 'instructions', event.currentTarget.value)}></textarea></label>
-              <p class="readiness">{agent.values.instructions ? 'Instructions configured' : 'Draft · Instructions required for readiness'}</p>
+              <p class="readiness" id="agent-readiness">{agent.values.instructions ? 'Instructions configured' : 'Add instructions before running this agent. You can save it as a draft now.'}</p>
             </aside>
           {/if}
         </div>
@@ -197,6 +242,7 @@
   .project strong { font-weight: 500; }
   .wordmark { font-size: 11px; font-weight: 700; letter-spacing: .15em; border-right: 1px solid var(--vict-color-border); padding-right: 12px; }
   .save-state, footer, .readiness { color: var(--vict-color-muted); font-size: 11px; }
+  .draft-feedback { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; padding: 6px 14px; border-bottom: 1px solid var(--vict-color-border); }
   .workbar { min-height: 38px; justify-content: space-between; flex-wrap: wrap; padding: 3px 14px; border-bottom: 1px solid var(--vict-color-border); }
   .tools { flex-wrap: wrap; }
   .group { gap: 0; }
@@ -207,7 +253,8 @@
   :global(.studio .icon-action) { display: grid; place-items: center; width: 32px; height: 30px; padding: 0; }
   :global(.studio .tab[aria-current]) { color: var(--vict-color-accent); box-shadow: inset 0 -1px var(--vict-color-accent); }
   :global(.studio .primary) { background: var(--studio-raised); color: var(--vict-color-text); padding: 5px 11px; }
-  .workspace { position: relative; }
+  .workspace { display: grid; grid-template-columns: minmax(0, 1fr); }
+  .workspace.inspecting { grid-template-columns: minmax(0, 1fr) 264px; }
   .canvas { position: relative; height: max(25rem, calc(100dvh - 107px)); overflow: hidden; }
   .canvas :global(.graph-viewport) { height: 100% !important; --vict-color-surface: var(--vict-color-bg); }
   .canvas :global(.svelte-flow__background) { --xy-background-pattern-color: #353537; }
@@ -215,19 +262,7 @@
   .empty :global(button) { pointer-events: auto; }
   .empty h2 { color: var(--vict-color-muted); font-weight: 400; }
   .canvas-tools { position: absolute; top: 8px; left: 8px; display: flex; background: var(--vict-color-surface); }
-  aside {
-    position: absolute;
-    inset: 8px 8px auto auto;
-    z-index: 2;
-    width: min(264px, calc(100% - 16px));
-    max-height: calc(100% - 16px);
-    overflow: auto;
-    padding: 12px;
-    background: var(--vict-color-surface);
-    border: 1px solid var(--vict-color-border);
-    border-radius: 4px;
-    box-shadow: 0 6px 20px #0005;
-  }
+  aside { padding: 12px; background: var(--vict-color-surface); border-left: 1px solid var(--vict-color-border); }
   .inspector-heading { justify-content: space-between; border-bottom: 1px solid var(--vict-color-border); padding-bottom: 6px; }
   .node { width: 15rem; background: var(--studio-raised); border-radius: 3px; box-shadow: 0 5px 16px #0005; padding: 10px; }
   .node.active { box-shadow: 0 0 0 1px var(--vict-color-accent), 0 5px 16px #0005; }
@@ -237,7 +272,8 @@
   .node-heading strong { font-size: 15px; font-weight: 650; overflow-wrap: anywhere; }
   .node-kind { display: grid; place-items: center; width: 20px; height: 20px; flex: none; background: var(--vict-color-bg); font-size: 11px; color: var(--vict-color-muted); }
   label { display: grid; gap: 4px; margin-top: 10px; font-size: 12px; color: var(--vict-color-muted); }
-  input, textarea { color: var(--vict-color-text); border: 0; border-radius: 2px; background: var(--vict-color-bg); padding: 6px 8px; min-width: 0; width: 100%; }
+  input, textarea, select { color: var(--vict-color-text); border: 0; border-radius: 2px; background: var(--vict-color-bg); padding: 6px 8px; min-width: 0; width: 100%; }
+  .agent-picker { display: flex; align-items: center; margin: 0; }
   textarea { min-height: 3.5rem; resize: vertical; }
   aside textarea { min-height: 7rem; }
   input::placeholder, textarea::placeholder { color: var(--vict-color-muted); }
@@ -245,7 +281,14 @@
   footer { justify-content: space-between; padding: 3px 14px; border-top: 1px solid var(--vict-color-border); }
   .placeholder { padding: 14px; }
   @media (max-width: 690px) {
+    .workspace.inspecting { grid-template-columns: 1fr; }
     .canvas { height: 50dvh; }
-    aside { top: 44px; max-height: calc(100% - 52px); width: min(264px, 46%); }
+    aside { border-left: 0; border-top: 1px solid var(--vict-color-border); }
+  }
+  @media (pointer: coarse) {
+    :global(.studio .action), :global(.studio .tab) { min-height: 44px; min-width: 44px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    :global(.studio *) { scroll-behavior: auto !important; }
   }
 </style>

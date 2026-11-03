@@ -132,3 +132,5 @@ If a required behavior is genuinely missing, record native alternatives tested, 
 ## 8. Owner review checklist
 
 The owner reviews whether agents/tools/Skills are understandable; the node experience feels natural; creative alternatives are easy to compare and revisit; Definition/Trace/Session feel connected; native controls are coherent; phone operations are usable; and simulation is unmistakable. Record requested changes against the actual candidate, not a separate mockup. Engineering PASS and owner UI approval are separate records.
+
+Apply the [Studio accessibility and feedback guide](STUDIO-ACCESSIBILITY.md) across all views and review checkpoints.

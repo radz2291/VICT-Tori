@@ -26,7 +26,7 @@ try {
   browser = await chromium.launch({ executablePath: chrome });
   const page = await browser.newPage({ viewport: { width: 1280, height: 800 } });
   const errors = [];
-  page.on('pageerror', error => errors.push(error.message));
+  page.on('pageerror', error => { errors.push(error.message); console.error(error); });
   if (importUrl) {
     await page.goto(importUrl);
     await page.getByText('VICT public imports loaded (19)').waitFor();
@@ -96,7 +96,56 @@ try {
   await page.locator('[data-graph-node] .node.active').waitFor({ state: 'hidden' });
   await button('Fit view').click();
   await inline.waitFor();
-  console.log('Browser check passed for installed imports, inline/inspector edits, Undo/Redo, Save/reload and navigation.');
+  const keyboardContext = await browser.newContext({ viewport: { width: 640, height: 800 }, reducedMotion: 'reduce' });
+  const keyboard = await keyboardContext.newPage();
+  await keyboard.goto(studioUrl);
+  const press = async name => {
+    const target = keyboard.getByRole('button', { name, exact: true });
+    for (let attempt = 0; attempt < 45; attempt++) {
+      if (await target.evaluate(element => element === document.activeElement)) {
+        await keyboard.keyboard.press('Enter');
+        return;
+      }
+      await keyboard.keyboard.press('Tab');
+    }
+    throw new Error(`Could not tab to ${name}`);
+  };
+  await press('Add agent');
+  await keyboard.locator('input:focus').waitFor();
+  await keyboard.keyboard.press('ControlOrMeta+A');
+  await keyboard.keyboard.type('Keyboard agent');
+  await keyboard.keyboard.press('Tab');
+  await keyboard.keyboard.type('Work from the brief.');
+  await keyboard.keyboard.press('Tab');
+  await press('Undo');
+  const instructions = keyboard.getByLabel('Agent instructions', { exact: true });
+  await expectValue(instructions, '');
+  await press('Redo');
+  await expectValue(instructions, 'Work from the brief.');
+  await press('Hide inspector');
+  assert.equal(await keyboard.getByRole('button', { name: 'Show inspector' }).evaluate(el => el === document.activeElement), true);
+  await press('Show inspector');
+  await press('Save draft');
+  await keyboard.getByText('Draft saved locally').waitFor();
+  await press('Reopen saved draft');
+  await expectValue(keyboard.getByLabel('Agent name'), 'Keyboard agent');
+
+  const otherTab = await keyboard.context().newPage();
+  await otherTab.goto(studioUrl);
+  await otherTab.getByLabel('Agent name').fill('Changed in another tab');
+  await otherTab.getByRole('heading', { name: 'Agents', exact: true }).click();
+  await otherTab.getByRole('button', { name: 'Save draft' }).click();
+  await otherTab.getByText('Draft saved locally').waitFor();
+  await press('Save draft');
+  await keyboard.getByText(/Another tab changed the saved draft/).waitFor();
+  await expectValue(keyboard.getByLabel('Agent name'), 'Keyboard agent');
+  const download = keyboard.waitForEvent('download');
+  await press('Download draft');
+  assert.equal((await download).suggestedFilename(), 'tori-draft.json');
+  await press('Reopen saved draft');
+  await expectValue(keyboard.getByLabel('Agent name'), 'Changed in another tab');
+  await keyboard.getByText(/Another tab changed the saved draft/).waitFor({ state: 'hidden' });
+  console.log('Pointer and keyboard authoring, history, Save/reopen and save conflict recovery passed.');
 } finally {
   await browser?.close();
   for (const server of servers) server.kill();
