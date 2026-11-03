@@ -57,6 +57,9 @@ try {
   assert.equal(await inspector.inputValue(), 'Review the draft.');
   await button('Hide inspector').click();
   await inspector.waitFor({ state: 'hidden' });
+  await page.locator('[data-graph-node]').click({ position: { x: 85, y: 20 } });
+  await page.locator('[data-graph-node].selected').waitFor();
+  assert.equal(await inspector.isVisible(), false);
   await button('Show inspector').click();
   await inspector.waitFor();
   await button('Save draft').click();

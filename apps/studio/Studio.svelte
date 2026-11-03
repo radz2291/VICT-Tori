@@ -18,6 +18,7 @@
   let selected = $state(null);
   let status = $state('New local draft');
   let inspectorOpen = $state(false);
+  let inspectorDismissed = $state(false);
   let viewportVersion = $state(0);
   let view = $state('Definition');
   let parsed = $derived(parseGraphV3(source));
@@ -63,13 +64,14 @@
       const node = JSON.parse(value).nodes[0];
       if (node) {
         selected = node;
-        inspectorOpen = true;
+        if (!inspectorDismissed) inspectorOpen = true;
       }
     }
   }
 
   function focusAddedAgent(id, previousCount) {
     selected = id;
+    inspectorDismissed = false;
     inspectorOpen = true;
     if (previousCount > 0) viewportVersion += 1;
   }
@@ -120,7 +122,7 @@
               <Button.Root class="action" disabled={!savedSource} onclick={reopen}>Reopen saved draft</Button.Root>
             </div>
             {#if agent && !inspectorOpen}
-              <Button.Root class="action" onclick={() => inspectorOpen = true}>Show inspector</Button.Root>
+              <Button.Root class="action" onclick={() => { inspectorDismissed = false; inspectorOpen = true; }}>Show inspector</Button.Root>
             {/if}
           </div>
         </div>
@@ -144,7 +146,7 @@
             <aside aria-label="Inspector">
               <div class="inspector-heading">
                 <div><span class="kicker">SELECTED NODE</span><h2>Inspector</h2></div>
-                <Button.Root class="action" onclick={() => inspectorOpen = false}>Hide inspector</Button.Root>
+                <Button.Root class="action" onclick={() => { inspectorDismissed = true; inspectorOpen = false; }}>Hide inspector</Button.Root>
               </div>
               <label>Agent name <input value={agent.label} onchange={(event) => edit(frame, 'label', event.currentTarget.value)} /></label>
               <label>Agent instructions <textarea placeholder="Describe what this agent should do" value={String(agent.values.instructions ?? '')}

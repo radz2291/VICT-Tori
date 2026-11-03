@@ -18,3 +18,5 @@ The Chrome walkthrough passed at 1280 × 800. It verified agent creation and imm
 - [Saved draft with one agent selected](studio-r1-selected.png)
 
 The revised walkthrough is available at http://127.0.0.1:48743/ on a separate local origin for a blank start. Owner acceptance remains pending.
+
+Follow-up browser check passed. After hiding the inspector, selecting a node on the canvas keeps it hidden. Show inspector restores it, and adding an agent opens it for editing.
