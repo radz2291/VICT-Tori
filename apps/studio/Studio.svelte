@@ -86,7 +86,7 @@
 
 <ControlScope class="studio">
   <header>
-    <div class="project"><span class="mark" aria-hidden="true">T</span><div><span class="kicker">TORI STUDIO</span><strong>Untitled project</strong></div></div>
+    <div class="project"><span class="wordmark">TORI</span><strong>Untitled project</strong></div>
     <nav aria-label="Studio views">
       {#each ['Definition', 'Trace', 'Session'] as item}
         <Button.Root class="tab" aria-current={view === item ? 'page' : undefined} onclick={() => view = item}>{item}</Button.Root>
@@ -98,7 +98,7 @@
     {#snippet body(frame)}
       <article class="node" class:active={frame.props.nodeId === selected}>
         <div class="node-heading vict-graph-drag-handle">
-          <span class="kicker">AGENT DEFINITION</span>
+          <span class="node-kind" aria-hidden="true">A</span>
           <strong>{frame.props.label}</strong>
         </div>
         <label>Node instructions
@@ -111,7 +111,7 @@
     {#snippet content(frame)}
       <div hidden={view !== 'Definition'}>
         <div class="workbar">
-          <div><span class="kicker">DEFINITION</span><h1>Agent workspace</h1></div>
+          <h1>Agents</h1>
           <div class="tools">
             <div class="group" role="group" aria-label="Edit history">
               <Button.Root class="action" onclick={() => frame.onOutput('undo')}>Undo</Button.Root>
@@ -133,9 +133,9 @@
             {/key}
             {#if !graph?.nodes.length}
               <div class="empty">
-                <span class="empty-icon" aria-hidden="true">+</span>
+                
                 <h2>Start with an agent</h2>
-                <p>Give it a purpose, then refine its instructions right on the canvas.</p>
+                
                 <AddAgent primary onadd={focusAddedAgent}/>
               </div>
             {:else}
@@ -145,7 +145,7 @@
           {#if agent && inspectorOpen}
             <aside aria-label="Inspector">
               <div class="inspector-heading">
-                <div><span class="kicker">SELECTED NODE</span><h2>Inspector</h2></div>
+                <h2>Inspector</h2>
                 <Button.Root class="action" onclick={() => { inspectorDismissed = true; inspectorOpen = false; }}>Hide inspector</Button.Root>
               </div>
               <label>Agent name <input value={agent.label} onchange={(event) => edit(frame, 'label', event.currentTarget.value)} /></label>
@@ -169,64 +169,62 @@
 <style>
   :global(body) { margin: 0; }
   :global(.studio) {
-    --vict-color-bg: #10181b;
-    --vict-color-surface: #172226;
-    --vict-color-text: #eef5f3;
-    --vict-color-muted: #a4b7b6;
-    --vict-color-border: #3b5055;
-    --vict-color-accent: #a3e5cd;
-    --vict-color-focusRing: #8ee0c7;
-    --studio-raised: #233438;
+    --vict-font-family: "Segoe UI", system-ui, sans-serif;
+    --vict-font-sizeBase: 13px;
+    --vict-color-bg: #181819;
+    --vict-color-surface: #202021;
+    --vict-color-text: #efeff0;
+    --vict-color-muted: #aaaab0;
+    --vict-color-border: #363638;
+    --vict-color-accent: #b2a4ff;
+    --vict-color-focusRing: var(--vict-color-accent);
+    --studio-raised: #29292b;
     background: var(--vict-color-bg);
     min-height: 100dvh;
   }
-  header, .workbar, .tools, .group, nav, .project, .inspector-heading, footer { display: flex; align-items: center; gap: .7rem; }
-  header { padding: .6rem 1.25rem; justify-content: space-between; flex-wrap: wrap; border-bottom: 1px solid var(--vict-color-border); background: var(--vict-color-surface); }
-  .project { line-height: 1.25; }
-  .project strong, .kicker { display: block; }
-  .mark, .empty-icon { display: grid; place-items: center; color: var(--vict-color-accent); background: var(--studio-raised); border: 1px solid var(--vict-color-border); border-radius: .6rem; }
-  .mark { width: 2rem; height: 2rem; font-weight: 700; }
-  .kicker { color: var(--vict-color-accent); font-size: .69rem; font-weight: 650; letter-spacing: .1em; }
-  .save-state, footer, .empty p, .readiness { color: var(--vict-color-muted); }
-  .save-state { font-size: .82rem; }
-  main { padding: 0 1.25rem; }
-  .workbar { min-height: 4.4rem; justify-content: space-between; flex-wrap: wrap; padding-block: .55rem; }
+  header, .workbar, .tools, .group, nav, .project, .inspector-heading, footer { display: flex; align-items: center; gap: .5rem; }
+  header { min-height: 44px; padding: 4px 14px; justify-content: space-between; flex-wrap: wrap; border-bottom: 1px solid var(--vict-color-border); background: var(--vict-color-surface); }
+  .project { gap: 12px; }
+  .project strong { font-weight: 500; }
+  .wordmark { font-size: 11px; font-weight: 700; letter-spacing: .15em; border-right: 1px solid var(--vict-color-border); padding-right: 12px; }
+  .save-state, footer, .readiness { color: var(--vict-color-muted); font-size: 11px; }
+  .workbar { min-height: 38px; justify-content: space-between; flex-wrap: wrap; padding: 3px 14px; border-bottom: 1px solid var(--vict-color-border); }
   .tools { flex-wrap: wrap; }
-  .group { gap: .2rem; padding: .15rem; border: 1px solid var(--vict-color-border); border-radius: .5rem; }
-  h1, h2 { margin: 0; line-height: 1.3; }
-  h1 { font-size: 1.3rem; }
-  h2 { font-size: 1.1rem; }
-  :global(.studio .action), :global(.studio .tab) { cursor: pointer; border: 1px solid transparent; color: var(--vict-color-text); background: transparent; padding: .38rem .62rem; border-radius: .35rem; white-space: nowrap; }
-  :global(.studio .action:hover:not(:disabled)), :global(.studio .tab:hover), :global(.studio .tab[aria-current]) { background: var(--studio-raised); }
-  :global(.studio .primary) { color: var(--vict-color-bg); background: var(--vict-color-accent); font-weight: 700; padding-inline: 1rem; }
-  :global(.studio .primary:hover:not(:disabled)) { color: var(--vict-color-bg); background: #c1f0df; }
-  .workspace { display: grid; grid-template-columns: minmax(0, 1fr); gap: .75rem; }
-  .workspace.inspecting { grid-template-columns: minmax(0, 1fr) minmax(17rem, 23%); }
-  .canvas, aside { border: 1px solid var(--vict-color-border); border-radius: .65rem; background: var(--vict-color-surface); }
-  .canvas { position: relative; height: max(27rem, calc(100dvh - 10rem)); overflow: hidden; }
-  .canvas :global(.graph-viewport) { height: 100% !important; }
-  .canvas :global(.svelte-flow__background) { --xy-background-pattern-color: var(--vict-color-border); }
-  .empty { position: absolute; top: 47%; left: 50%; transform: translate(-50%, -50%); width: min(21rem, 88%); padding: 1.4rem; text-align: center; border: 1px solid var(--vict-color-border); border-radius: .75rem; background: var(--vict-color-surface); }
-  .empty-icon { margin: 0 auto .7rem; width: 2.5rem; height: 2.5rem; font-size: 1.35rem; }
-  .empty p { margin: .55rem 0 1rem; }
-  .canvas-tools { position: absolute; top: .65rem; right: .65rem; border: 1px solid var(--vict-color-border); border-radius: .5rem; background: var(--vict-color-surface); }
-  aside, .node { padding: .85rem; }
-  .inspector-heading { justify-content: space-between; border-bottom: 1px solid var(--vict-color-border); padding-bottom: .6rem; }
-  .node { width: 15rem; background: var(--studio-raised); border: 1px solid var(--vict-color-border); border-radius: .55rem; }
-  .node.active { border-color: var(--vict-color-focusRing); }
-  .node-heading { cursor: grab; }
-  .node-heading strong { display: block; overflow-wrap: anywhere; }
-  label { display: grid; gap: .3rem; margin-top: .75rem; font-size: .84rem; }
-  input, textarea { color: inherit; border: 1px solid var(--vict-color-border); border-radius: .35rem; background: var(--vict-color-bg); padding: .45rem; min-width: 0; width: 100%; }
-  textarea { min-height: 4rem; resize: vertical; }
+  .group { gap: 0; }
+  .group + .group { border-left: 1px solid var(--vict-color-border); padding-left: 8px; }
+  h1, h2 { margin: 0; line-height: 1.3; font-size: 13px; font-weight: 600; }
+  :global(.studio .action), :global(.studio .tab) { cursor: pointer; border: 0; color: var(--vict-color-muted); background: transparent; padding: 4px 8px; border-radius: 2px; white-space: nowrap; }
+  :global(.studio .action:hover:not(:disabled)), :global(.studio .tab:hover) { background: var(--studio-raised); color: var(--vict-color-text); }
+  :global(.studio .tab[aria-current]) { color: var(--vict-color-accent); box-shadow: inset 0 -1px var(--vict-color-accent); }
+  :global(.studio .primary) { background: var(--studio-raised); color: var(--vict-color-text); padding: 5px 11px; }
+  .workspace { display: grid; grid-template-columns: minmax(0, 1fr); }
+  .workspace.inspecting { grid-template-columns: minmax(0, 1fr) 264px; }
+  .canvas { position: relative; height: max(25rem, calc(100dvh - 107px)); overflow: hidden; }
+  .canvas :global(.graph-viewport) { height: 100% !important; --vict-color-surface: var(--vict-color-bg); }
+  .canvas :global(.svelte-flow__background) { --xy-background-pattern-color: #353537; }
+  .empty { position: absolute; inset: 0; display: grid; place-content: center; justify-items: center; gap: 10px; pointer-events: none; }
+  .empty :global(button) { pointer-events: auto; }
+  .empty h2 { color: var(--vict-color-muted); font-weight: 400; }
+  .canvas-tools { position: absolute; top: 8px; left: 8px; background: var(--vict-color-surface); }
+  aside { padding: 12px; background: var(--vict-color-surface); border-left: 1px solid var(--vict-color-border); }
+  .inspector-heading { justify-content: space-between; border-bottom: 1px solid var(--vict-color-border); padding-bottom: 6px; }
+  .node { width: 15rem; background: var(--studio-raised); border-radius: 3px; box-shadow: 0 5px 16px #0005; padding: 10px; }
+  .node.active { box-shadow: 0 0 0 1px var(--vict-color-accent), 0 5px 16px #0005; }
+  .canvas :global(.composed-graph-node.selected) { outline: none; }
+  .node-heading { cursor: grab; display: flex; align-items: center; gap: 8px; }
+  .node-heading strong { font-size: 15px; font-weight: 650; overflow-wrap: anywhere; }
+  .node-kind { display: grid; place-items: center; width: 20px; height: 20px; flex: none; background: var(--vict-color-bg); font-size: 11px; color: var(--vict-color-muted); }
+  label { display: grid; gap: 4px; margin-top: 10px; font-size: 12px; color: var(--vict-color-muted); }
+  input, textarea { color: var(--vict-color-text); border: 0; border-radius: 2px; background: var(--vict-color-bg); padding: 6px 8px; min-width: 0; width: 100%; }
+  textarea { min-height: 3.5rem; resize: vertical; }
   aside textarea { min-height: 7rem; }
   input::placeholder, textarea::placeholder { color: var(--vict-color-muted); }
-  .readiness { font-size: .78rem; margin: .75rem 0 0; }
-  footer { justify-content: space-between; padding: .35rem 0; font-size: .75rem; }
-  .placeholder { padding: 1.5rem 0; }
+  .readiness { margin: 8px 0 0; }
+  footer { justify-content: space-between; padding: 3px 14px; border-top: 1px solid var(--vict-color-border); }
+  .placeholder { padding: 14px; }
   @media (max-width: 690px) {
     .workspace.inspecting { grid-template-columns: 1fr; }
-    .canvas { height: 50dvh; min-height: 20rem; }
-    main, header { padding-inline: .75rem; }
+    .canvas { height: 50dvh; }
+    aside { border-left: 0; border-top: 1px solid var(--vict-color-border); }
   }
 </style>

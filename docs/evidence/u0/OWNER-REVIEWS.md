@@ -20,3 +20,5 @@ The Chrome walkthrough passed at 1280 × 800. It verified agent creation and imm
 The revised walkthrough is available at http://127.0.0.1:48743/ on a separate local origin for a blank start. Owner acceptance remains pending.
 
 Follow-up browser check passed. After hiding the inspector, selecting a node on the canvas keeps it hidden. Show inspector restores it, and adding an agent opens it for editing.
+
+The graphite visual pass is offered for style review. [First open](studio-r1-graphite-first-open.png) and [selected agent](studio-r1-graphite-selected.png) were captured at 1280 × 800. Chrome authoring regression passed. A fractional inspector width initially triggered the native Flow coordinate guard. The dock now uses an integer width at desktop sizes.

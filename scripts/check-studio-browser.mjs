@@ -36,9 +36,17 @@ try {
   const button = name => page.getByRole('button', { name, exact: true });
   const inspector = page.getByLabel('Agent instructions', { exact: true });
   const inline = page.getByLabel('Node instructions', { exact: true });
+  const expectValue = async (field, value) => {
+    for (let attempt = 0; attempt < 40; attempt++) {
+      if (await field.inputValue() === value) return;
+      await setTimeout(50);
+    }
+    assert.equal(await field.inputValue(), value);
+  };
   const commit = async (field, value) => {
+    await field.click();
     await field.fill(value);
-    await field.press('Tab');
+    await page.getByRole('heading', { name: 'Agents', exact: true }).click();
   };
   await page.getByRole('heading', { name: 'Start with an agent' }).waitFor();
   await page.screenshot({ path: 'test-results/studio-r1-first-open.png' });
@@ -48,13 +56,14 @@ try {
   await inline.waitFor();
   await commit(page.getByLabel('Agent name'), 'Research assistant');
   await commit(inspector, 'Inspect the draft.');
-  assert.equal(await inline.inputValue(), 'Inspect the draft.');
+  await expectValue(inline, 'Inspect the draft.');
+
   await commit(inline, 'Review the draft.');
-  assert.equal(await inspector.inputValue(), 'Review the draft.');
+  await expectValue(inspector, 'Review the draft.');
   await button('Undo').click();
-  assert.equal(await inspector.inputValue(), 'Inspect the draft.');
+  await expectValue(inspector, 'Inspect the draft.');
   await button('Redo').click();
-  assert.equal(await inspector.inputValue(), 'Review the draft.');
+  await expectValue(inspector, 'Review the draft.');
   await button('Hide inspector').click();
   await inspector.waitFor({ state: 'hidden' });
   await page.locator('[data-graph-node]').click({ position: { x: 85, y: 20 } });
@@ -66,15 +75,15 @@ try {
   await page.getByText('Draft saved locally').waitFor();
   await page.reload();
   await inline.waitFor();
-  assert.equal(await inspector.inputValue(), 'Review the draft.');
-  assert.equal(await inline.inputValue(), 'Review the draft.');
+  await expectValue(inspector, 'Review the draft.');
+  await expectValue(inline, 'Review the draft.');
   await button('Reopen saved draft').click();
   await page.getByText('Saved draft reopened').waitFor();
   assert.equal(await page.getByLabel('Agent name').inputValue(), 'Research assistant');
   await button('Session').click();
   await page.getByText(/Simulated execution/).waitFor();
   await button('Definition').click();
-  assert.equal(await inline.inputValue(), 'Review the draft.');
+  await expectValue(inline, 'Review the draft.');
   assert.deepEqual(errors, []);
   await page.locator('[data-graph-node]').click({ position: { x: 85, y: 20 } });
   await page.locator('[data-graph-node] .node.active').waitFor();
