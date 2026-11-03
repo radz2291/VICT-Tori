@@ -133,9 +133,9 @@
             {/key}
             {#if !graph?.nodes.length}
               <div class="empty">
-                
+
                 <h2>Start with an agent</h2>
-                
+
                 <AddAgent primary onadd={focusAddedAgent}/>
               </div>
             {:else}
