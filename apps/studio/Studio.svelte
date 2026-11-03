@@ -134,7 +134,7 @@
             {/if}
           </div>
         </div>
-        <div class="workspace" class:inspecting={agent && inspectorOpen}>
+        <div class="workspace">
           <div class="canvas">
             <AgentCanvas version={viewportVersion} onclear={() => selected = null}/>
             {#if !graph?.nodes.length}
@@ -207,8 +207,7 @@
   :global(.studio .icon-action) { display: grid; place-items: center; width: 32px; height: 30px; padding: 0; }
   :global(.studio .tab[aria-current]) { color: var(--vict-color-accent); box-shadow: inset 0 -1px var(--vict-color-accent); }
   :global(.studio .primary) { background: var(--studio-raised); color: var(--vict-color-text); padding: 5px 11px; }
-  .workspace { display: grid; grid-template-columns: minmax(0, 1fr); }
-  .workspace.inspecting { grid-template-columns: minmax(0, 1fr) 264px; }
+  .workspace { position: relative; }
   .canvas { position: relative; height: max(25rem, calc(100dvh - 107px)); overflow: hidden; }
   .canvas :global(.graph-viewport) { height: 100% !important; --vict-color-surface: var(--vict-color-bg); }
   .canvas :global(.svelte-flow__background) { --xy-background-pattern-color: #353537; }
@@ -216,7 +215,19 @@
   .empty :global(button) { pointer-events: auto; }
   .empty h2 { color: var(--vict-color-muted); font-weight: 400; }
   .canvas-tools { position: absolute; top: 8px; left: 8px; display: flex; background: var(--vict-color-surface); }
-  aside { padding: 12px; background: var(--vict-color-surface); border-left: 1px solid var(--vict-color-border); }
+  aside {
+    position: absolute;
+    inset: 8px 8px auto auto;
+    z-index: 2;
+    width: min(264px, calc(100% - 16px));
+    max-height: calc(100% - 16px);
+    overflow: auto;
+    padding: 12px;
+    background: var(--vict-color-surface);
+    border: 1px solid var(--vict-color-border);
+    border-radius: 4px;
+    box-shadow: 0 6px 20px #0005;
+  }
   .inspector-heading { justify-content: space-between; border-bottom: 1px solid var(--vict-color-border); padding-bottom: 6px; }
   .node { width: 15rem; background: var(--studio-raised); border-radius: 3px; box-shadow: 0 5px 16px #0005; padding: 10px; }
   .node.active { box-shadow: 0 0 0 1px var(--vict-color-accent), 0 5px 16px #0005; }
@@ -234,8 +245,7 @@
   footer { justify-content: space-between; padding: 3px 14px; border-top: 1px solid var(--vict-color-border); }
   .placeholder { padding: 14px; }
   @media (max-width: 690px) {
-    .workspace.inspecting { grid-template-columns: 1fr; }
     .canvas { height: 50dvh; }
-    aside { border-left: 0; border-top: 1px solid var(--vict-color-border); }
+    aside { top: 44px; max-height: calc(100% - 52px); width: min(264px, 46%); }
   }
 </style>
