@@ -2,6 +2,8 @@
 
 **4 November 2026 — G0 dependency proof recorded, U0-R1 accepted, and U0-R2 offered for owner walkthrough.** The active implementation branch is `codex/tori-ui-foundation`. See [installed VICT evidence](docs/evidence/g0/DEPENDENCIES.md), [owner checkpoints](docs/evidence/u0/OWNER-REVIEWS.md), and the [R2 control audit](docs/evidence/u0/VICT-CONTROL-AUDIT.md). TORI-001 governs the current assignment. R3 and final U0 engineering verification and acceptance are open.
 
+**TORI-002 ownership:** The separate Studio UX realignment is coordinated in Rolladice Work. TORI-002 owns the shell and presented UI in `codex/tori-002-studio-realignment`; TORI-001 retains the R2 walkthrough, U0 functional contracts and verification, and runtime boundaries. See the [interim walkthrough and independent evidence](docs/evidence/u0/tori-002/README.md). Final visual acceptance remains open.
+
 ## Historical bootstrap snapshot
 
 **2 November 2026 — Repository preparation complete; Node & Edge Foundation v0.1 adopted; application implementation not started.** The historical bootstrap has independent documentation-only PASS at remote candidate `e4ae1cfe86385420724565f67d77c28ec50e26ea`, verified equal to its reviewed local file tree; its GitHub documentation CI passed. [Bootstrap validation](docs/evidence/bootstrap/VALIDATION.md) records those identities, corrections and limits. Subsequent ownership, Work coordination and Node & Edge amendments are documentation changes with their own commit/review attribution. There is no runtime, UI acceptance, independent product verdict, or deployed TORI service.
