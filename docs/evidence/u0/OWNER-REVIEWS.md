@@ -24,3 +24,7 @@ Follow-up browser check passed. After hiding the inspector, selecting a node on 
 The graphite visual pass is offered for style review. [First open](studio-r1-graphite-first-open.png) and [selected agent](studio-r1-graphite-selected.png) were captured at 1280 × 800. Chrome authoring regression passed. A fractional inspector width initially triggered the native Flow coordinate guard. The dock now uses an integer width at desktop sizes.
 
 R1 accessibility walkthrough passed in Chrome. Pointer at 1280 × 800 and keyboard-only at 640 × 800 with reduced motion exercised add, edit, inspect, Undo/Redo and Save/reopen. A second tab updated the stored draft. The first tab announced the conflict, preserved its edits, downloaded a copy and reopened the other revision. Ports, edges, run feedback and menu/dialog focus checks are carried forward in the Studio accessibility guide.
+
+## U0-R1 · reviewed — checkpoint accepted
+
+On 4 November 2026 the owner approved the latest R1 tweaks and requested the move to R2. The final tweaks include the compact Find agent menu, its single selection checkmark, and permanent icon controls for reopening the draft and toggling the inspector. This accepts the R1 checkpoint. The Design Constitution remains a separate draft review.

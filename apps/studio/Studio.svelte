@@ -2,6 +2,7 @@
   import { tick } from 'svelte';
   import { GraphWorkspaceV3, emptyGraphV3, parseGraphV3 } from '@victframework/ui-flow-svelte';
   import { Button } from '@victframework/ui-svelte/catalog/button';
+  import { DropdownMenu } from '@victframework/ui-svelte/catalog/dropdown-menu';
   import { MediaIcon } from '@victframework/ui-media-svelte';
   import AddAgent from './AddAgent.svelte';
   import AgentCanvas from './AgentCanvas.svelte';
@@ -22,7 +23,6 @@
   let status = $state('New local draft');
   let draftError = $state('');
   let nameInput = $state();
-  let showInspectorButton = $state(null);
   let inspectorOpen = $state(false);
   let inspectorDismissed = $state(false);
   let viewportVersion = $state(0);
@@ -96,12 +96,9 @@
     nameInput?.focus();
   }
 
-  async function toggleInspector(open) {
+  function toggleInspector(open) {
     inspectorDismissed = !open;
     inspectorOpen = open;
-    await tick();
-    if (open) nameInput?.focus();
-    else showInspectorButton?.focus();
   }
 
   function edit(frame, key, value) {
@@ -146,19 +143,6 @@
       <div hidden={view !== 'Definition'}>
         <div class="workbar">
           <h1>Agents</h1>
-          {#if graph?.nodes.length}
-            <label class="agent-picker">Select agent
-              <select value={selected ?? ''} onchange={(event) => {
-                selected = event.currentTarget.value || null;
-                if (selected && !inspectorDismissed) inspectorOpen = true;
-              }}>
-                <option value="">None</option>
-                {#each graph.nodes as node (node.id)}
-                  <option value={node.id}>{node.label}</option>
-                {/each}
-              </select>
-            </label>
-          {/if}
           <div class="tools">
             <div class="group" role="group" aria-label="Edit history">
               <Button.Root class="action icon-action" aria-label="Undo" title="Undo" onclick={() => frame.onOutput('undo')}>
@@ -172,11 +156,15 @@
               <Button.Root class="action icon-action" aria-label="Save draft" title="Save draft" onclick={save}>
                 <MediaIcon props={{ name: 'save', size: 16 }} nodeId="save-icon" occurrenceKey="save-icon"/>
               </Button.Root>
-              <Button.Root class="action" disabled={!savedSource} onclick={reopen}>Reopen saved draft</Button.Root>
+              <Button.Root class="action icon-action" aria-label="Reopen saved draft" title="Reopen saved draft" disabled={!savedSource} onclick={reopen}>
+                <MediaIcon props={{ name: 'clock', size: 16 }} nodeId="reopen-icon" occurrenceKey="reopen-icon"/>
+              </Button.Root>
+              <Button.Root class="action icon-action" aria-label="Inspector" aria-pressed={Boolean(agent && inspectorOpen)}
+                title={!agent ? 'Select an agent to inspect' : inspectorOpen ? 'Hide inspector' : 'Show inspector'}
+                disabled={!agent} onclick={() => toggleInspector(!inspectorOpen)}>
+                <MediaIcon props={{ name: 'sliders-horizontal', size: 16 }} nodeId="inspector-icon" occurrenceKey="inspector-icon"/>
+              </Button.Root>
             </div>
-            {#if agent && !inspectorOpen}
-              <Button.Root bind:ref={showInspectorButton} class="action" onclick={() => toggleInspector(true)}>Show inspector</Button.Root>
-            {/if}
           </div>
         </div>
         <div class="workspace" class:inspecting={agent && inspectorOpen}>
@@ -193,6 +181,28 @@
               <div class="canvas-tools" role="group" aria-label="Canvas tools">
                 <AddAgent onadd={focusAddedAgent}/>
                 <Button.Root class="action" onclick={() => viewportVersion += 1}>Fit view</Button.Root>
+                <DropdownMenu.Root>
+                  <DropdownMenu.Trigger class="action">Find agent</DropdownMenu.Trigger>
+                  <DropdownMenu.Portal>
+                    <DropdownMenu.Content class="agent-menu" align="start" sideOffset={4}>
+                      <DropdownMenu.RadioGroup value={selected ?? ''} onValueChange={(id) => {
+                        selected = id;
+                        if (!inspectorDismissed) inspectorOpen = true;
+                      }}>
+                        {#each graph.nodes as node, index (node.id)}
+                          <DropdownMenu.RadioItem class="agent-menu-item" value={node.id} textValue={node.label}>
+                            <span class="agent-menu-label">{node.label}{graph.nodes.filter(item => item.label === node.label).length > 1 ? ` · ${index + 1}` : ''}</span>
+                            <span class="menu-current" aria-hidden="true">
+                              {#if selected === node.id}
+                                <MediaIcon props={{ name: 'check', size: 14 }} nodeId={node.id} occurrenceKey={node.id}/>
+                              {/if}
+                            </span>
+                          </DropdownMenu.RadioItem>
+                        {/each}
+                      </DropdownMenu.RadioGroup>
+                    </DropdownMenu.Content>
+                  </DropdownMenu.Portal>
+                </DropdownMenu.Root>
               </div>
             {/if}
           </div>
@@ -200,7 +210,6 @@
             <aside aria-label="Inspector">
               <div class="inspector-heading">
                 <h2>Inspector</h2>
-                <Button.Root class="action" onclick={() => toggleInspector(false)}>Hide inspector</Button.Root>
               </div>
               <label>Agent name <input bind:this={nameInput} value={agent.label} onchange={(event) => edit(frame, 'label', event.currentTarget.value)} /></label>
               <label>Agent instructions <textarea aria-describedby="agent-readiness" placeholder="Describe what this agent should do" value={String(agent.values.instructions ?? '')}
@@ -251,6 +260,7 @@
   :global(.studio .action), :global(.studio .tab) { cursor: pointer; border: 0; color: var(--vict-color-muted); background: transparent; padding: 4px 8px; border-radius: 2px; white-space: nowrap; }
   :global(.studio .action:hover:not(:disabled)), :global(.studio .tab:hover) { background: var(--studio-raised); color: var(--vict-color-text); }
   :global(.studio .icon-action) { display: grid; place-items: center; width: 32px; height: 30px; padding: 0; }
+  :global(.studio .icon-action[aria-pressed='true']) { background: var(--studio-raised); color: var(--vict-color-text); }
   :global(.studio .tab[aria-current]) { color: var(--vict-color-accent); box-shadow: inset 0 -1px var(--vict-color-accent); }
   :global(.studio .primary) { background: var(--studio-raised); color: var(--vict-color-text); padding: 5px 11px; }
   .workspace { display: grid; grid-template-columns: minmax(0, 1fr); }
@@ -272,8 +282,13 @@
   .node-heading strong { font-size: 15px; font-weight: 650; overflow-wrap: anywhere; }
   .node-kind { display: grid; place-items: center; width: 20px; height: 20px; flex: none; background: var(--vict-color-bg); font-size: 11px; color: var(--vict-color-muted); }
   label { display: grid; gap: 4px; margin-top: 10px; font-size: 12px; color: var(--vict-color-muted); }
-  input, textarea, select { color: var(--vict-color-text); border: 0; border-radius: 2px; background: var(--vict-color-bg); padding: 6px 8px; min-width: 0; width: 100%; }
-  .agent-picker { display: flex; align-items: center; margin: 0; }
+  input, textarea { color: var(--vict-color-text); border: 0; border-radius: 2px; background: var(--vict-color-bg); padding: 6px 8px; min-width: 0; width: 100%; }
+  :global(.studio .agent-menu) { z-index: 10; width: max-content; min-width: 0; max-width: min(300px, 85vw); max-height: 50vh; overflow: auto; padding: 4px; background: var(--studio-raised); border: 1px solid var(--vict-color-border); border-radius: 3px; }
+  :global(.studio .agent-menu-item) { display: flex; align-items: center; justify-content: flex-start; gap: 6px; padding: 4px 8px; cursor: pointer; }
+  :global(.studio .agent-menu-item[data-highlighted]) { background: var(--vict-color-bg); }
+  :global(.studio .agent-menu-item::before) { content: none; }
+  .agent-menu-label { min-width: 0; overflow-wrap: anywhere; }
+  .menu-current { color: var(--vict-color-accent); width: 14px; flex: none; }
   textarea { min-height: 3.5rem; resize: vertical; }
   aside textarea { min-height: 7rem; }
   input::placeholder, textarea::placeholder { color: var(--vict-color-muted); }
