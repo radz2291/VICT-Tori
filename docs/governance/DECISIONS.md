@@ -69,6 +69,22 @@ The nine tests replace the earlier three-test-only acceptance framing: old A →
 
 **Migration / next proof:** No implemented TORI schema or saved application exists to migrate. G0 records public API/domain/projection mappings and support gaps; U0 proves real editing/history/persistence with simulated execution, followed by owner review. Live conformance remains in the assigned runtime slices.
 
+### D-14 — Studio UI/UX consolidation and five-page shell, 4 November 2026
+
+**Owner authority:** During the subsequent TORI UI/UX discussion, the owner selected the five-page task-oriented approach, refined it using DaVinci Resolve-inspired conventional menus/panel management, explicitly required public VICT UI Foundation controls wherever they cover the role on **every reviewed surface**, and authorized consolidation of the existing Design Constitution with these decisions. This is a **design/navigation amendment**, not authorization to change runtime ownership or start a new stage.
+
+**Prior rule superseded:** D-03 and proposed P-05 describe **Definition / Trace / Session as primary UI views** and the earlier UI Foundation suggests a permanent project/navigation rail. That wording is now historical as **navigation**. The definition graph, execution trace and session **remain separate underlying concepts**; no data/activation/provenance contract is dropped. Keep D-03 as a record of its original context; don't erase its history.
+
+**Decision:** The five primary user-facing pages are **Agents, Workflows, Creative, Sessions, Runs** within one Studio. A conventional desktop menu bar and a central task surface are supported by optional Library/Inspector/Activity docked regions with **one consistent toolbar/Window-menu visibility-toggle language**, not mixed X/chevron/collapse semantics. Provider/Capability Management and Tests/Evaluations remain functional areas accessible in the task context instead of becoming mandatory extra pages. The existing [Studio Design Constitution](../specs/STUDIO-DESIGN-CONSTITUTION.md) is the single authoritative source for UI design/behavior; [UI Foundation](../specs/UI-FOUNDATION.md) retains functional authoring obligations; [UI/UX Verification](../specs/UI-UX-VERIFICATION.md) specifies review probes; [UI Exceptions](UI-EXCEPTIONS.md) remains the live exception register.
+
+**Public VICT policy:** On every Studio surface offered for review, including stubs, use an installed **public VICT UI Foundation component for each covered control role** (not merely a visually similar substitute). In particular, public VICT Select is required for a fixed-choice picker when covered. Buttons, fields, menus, dialogs, feedback and rich-node interiors follow the same rule. A missing public capability requires exact evidence and **owner-approved** exception; no silent browser-native fallback.
+
+**Preservation:** The older Design Constitution's V1–V4/W1–W4/A1–A5/R1–R3 IDs are retained because R1 assessment evidence cites them. The 4 November R1 **checkpoint** acceptance is not blanket approval of a final palette, later views, or an already-implemented five-page layout. Functional U0 obligations, fixtures A–C, T01–T09, VICT/Mastra ownership and protected-effect safeguards are unchanged.
+
+**Affected documents:** Studio Constitution, UI Foundation, Foundation section 3, Node & Edge's view terminology, U0-02 acceptance mapping, first-stage shell instruction, AGENTS entry and UI exception/verification references. Historic owner reviews and tested evidence remain untouched.
+
+**Migration and next proof:** Reconcile with the active U0 working branch without discarding in-progress edits. Show the actual five-page shell and consistent panel toggles, a complete public-VICT role-to-export inventory on all presented surfaces, saved authoring/identity behavior, accessibility checks, and owner hands-on review. UI simulations do not satisfy later live runtime criteria. No implemented code or U0 gate is declared passing by this documentation amendment.
+
 ## Amendment format
 
 Append: decision ID/date; concrete question; owner instruction or implementation evidence; prior rule; selected option and reason; affected contracts/tests/stages; migration; next proof. Preserve old evidence. Only the owner can accept a product-scope reduction or custom-UI exception; an agent may resolve routine implementation choices inside existing scope.
