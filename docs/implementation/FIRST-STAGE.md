@@ -29,13 +29,13 @@ Apply the adopted [Node & Edge Foundation](../specs/NODE-EDGE-FOUNDATION.md) wit
 ## Work package C — build the integrated shell and native authoring
 
 1. Create minimal compatible app tooling, build/typecheck scripts, local launch commands and documented independent data directory/port.
-2. Implement Definition/Trace/Session navigation, project context, contextual actions and shared inspection. Establish theme and owned overlay scope once.
+2. Implement the five primary Studio pages — Agents, Workflows, Creative, Sessions, Runs — with shared project context and consistent menu/panel controls under the [Studio Design Constitution](../specs/STUDIO-DESIGN-CONSTITUTION.md). Preserve Definition graph / Execution trace / Session as distinct underlying state concepts; establish theme, selection, inspection and owned overlay scope once. This is a UI navigation refinement, not a new runtime.
 3. Implement blank-project and agent CRUD; rich native forms for instructions/model/modes/Skills/tools/memory/policy/subagent references.
 4. Implement Workflow and Creative surfaces through native graph controls, including typed edges, invalid-state diagnostics, rich node content and history.
 5. Add real save/reopen and status feedback. Preserve manual edits across all surfaces. Link artifacts and simulated run/session references by stable ID.
 6. Build the small catalog-backed starter palette in the four discovery families. Keep resource definitions separate from invocations; allow explicit unconfigured bindings and incomplete draft Save/reopen. Implement shared inline/inspector editing and visual exposure of existing relationships without duplication or implicit detach.
 
-Do not import application-private designer/agent code from VICT Studio. If a public capability is insufficient, document its exact gap and propose an upstream shared change or approved exception; do not silently create a local fork.
+Do not import application-private designer/agent code from VICT Studio. **Every Studio surface presented for review must use the actual public VICT component for each covered control role**, including Select pickers, buttons, fields, menus, dialogs and feedback (even in U0 stubs); record import/export/version proof via [UI/UX Verification](../specs/UI-UX-VERIFICATION.md). If a public capability is insufficient, document its exact gap and propose an upstream shared change or owner-approved [UI exception](../governance/UI-EXCEPTIONS.md); do not silently create a browser-native substitute or local fork.
 
 ## Work package D — complete the review experience
 
