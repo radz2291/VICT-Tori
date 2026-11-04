@@ -1,0 +1,14 @@
+# R1 assessment against the draft Design Constitution
+
+**Candidate** `f821d132d3bac76a2ceebb3456e6a80399f5c3c1`. This assessment uses the recorded Chrome walkthrough and current source. Owner visual acceptance is pending.
+
+| Rules | Status | R1 observation |
+| --- | --- | --- |
+| V1–V3 | Met for the Definition direction. Visual acceptance open under V4. | Canvas dominates, the inspector is docked, and the title leads each node. Graphite and lavender are candidate choices. The graphite screenshots predate the latest accessibility controls. Trace and Session are placeholders, so cross-view visual coherence is unverified. |
+| W1, W4 | Met for exercised commands. | History and draft actions live in the document toolbar. Add and Fit live on the canvas. Adding selects the node and focuses its name. The inspector can be dismissed and restored. |
+| W2–W3 | Gap and unverified. | Shared inline and inspector editing, Escape and empty-canvas deselection, navigation and save recovery have evidence. Camera preservation across inspector and view changes was not measured. Explicit reopen can replace unsaved edits without a general confirmation. Related-object highlighting is not yet applicable. |
+| A1–A3, A5 | Met for exercised paths. Other paths unverified or not yet applicable. | Readiness guidance is beside instructions. Save conflict persists with a next step and a download action. Icon controls have accessible names. Keyboard and pointer authoring passed, including inspector focus return. Dedicated screen-reader testing and keyboard movement are unverified. Connection, run and menu/dialog checks await the corresponding UI. |
+| A4 | Unverified beyond the recorded checks. | Pointer was tested at 1280 × 800 and keyboard at 640 × 800 with reduced motion enabled. On the node surface, token contrast is approximately 12.6:1 for primary text, 6.3:1 for muted text and 6.7:1 for the focus accent. Touch, increased browser zoom, and contrast of every rendered state are unverified. Port and edge contrast awaits R2. |
+| R1–R3 | Evidence linked. R2 has unverified checks. R3 not yet applicable. | Candidate and walkthrough evidence are linked. No proposed exception is recorded for this pass. The fixed-width dock works around a reproduced Flow coordinate issue at fractional widths. Check camera stability and narrower layouts before treating that sizing as settled. |
+
+For the walkthrough, add an agent, edit its name in the inspector and its instructions on the node, hide and restore the inspector, Undo and Redo, then Save and reopen. Repeat with keyboard only. To reproduce the conflict, open the saved draft in a second tab and save a change there. Try saving in the first tab, confirm the edits remain, download a copy, then reopen the saved version. [Recorded walkthroughs and screenshots](OWNER-REVIEWS.md)

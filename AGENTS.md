@@ -4,6 +4,10 @@ Read [STATE.md](STATE.md), [HANDOFF.md](HANDOFF.md), and the referenced stage be
 
 ## Product rules
 
+- At every Studio review checkpoint, audit changed controls against the installed public VICT exports and show their relevant states in the running UI. Use the public VICT control wherever it covers the role, including fixed-choice Select, buttons, fields, menus, dialogs and feedback. Record the exact missing capability and follow the UI exception process before introducing a substitute.
+
+- Use the [TORI Studio Design Constitution](docs/specs/STUDIO-DESIGN-CONSTITUTION.md) to review Definition, Trace and Session. During owner review, distinguish existing requirements, proposed defaults and open design decisions.
+
 - Apply the adopted [Node & Edge Foundation](docs/specs/NODE-EDGE-FOUNDATION.md). Preserve resource/invocation identities and shared form/node values; allow incomplete drafts to save, and require readiness for activation/execution. Six edge meanings are explicit. U0 partial-execution interactions are labelled simulations; live Run Node/To/From require safe engine/adapter support and never automatically replay protected actions. Prove native mapping in G0 and fixtures A–C in U0 before claiming those criteria.
 
 - Build the actual independent TORI Studio and reusable TORI capabilities. Follow [Foundation](docs/specs/FOUNDATION.md), [Architecture](docs/specs/ARCHITECTURE.md), and [Contracts](docs/specs/CONTRACTS.md).

@@ -1,6 +1,7 @@
 <script>
   import { GraphWorkspaceV3, GraphViewport, GraphPortRow, parseGraphV3 } from '@victframework/ui-flow-svelte';
   import { Button } from '@victframework/ui-svelte/catalog/button';
+  import { Select } from '@victframework/ui-svelte/catalog/select';
   import { newWorkflowSource, workflowNodeTypes } from './workflow-graph.js';
 
   let source = $state(newWorkflowSource());
@@ -25,6 +26,21 @@
   }
 </script>
 
+{#snippet picker(label, value, options, change)}
+  <Select.Root type="single" {value} onValueChange={change}>
+    <Select.Trigger class="workflow-picker" aria-label={label}>
+      {options.find(option => option.value === value)?.label ?? `Choose ${label.toLowerCase()}`}
+    </Select.Trigger>
+    <Select.Portal>
+      <Select.Content sideOffset={6} align="start">
+        {#each options as option (option.value)}
+          <Select.Item value={option.value} label={option.label}>{option.label}</Select.Item>
+        {/each}
+      </Select.Content>
+    </Select.Portal>
+  </Select.Root>
+{/snippet}
+
 <h1>Workflow</h1>
 <p>R2 preview · Execution simulation</p>
 {#snippet body(frame)}
@@ -37,22 +53,14 @@
 {/snippet}
 {#snippet content(frame)}
   <div class="commands">
-    <label>Node <select aria-label="Node" bind:value={kind}>
-      {#each workflowNodeTypes as type}<option value={type.id}>{type.label}</option>{/each}
-    </select></label>
+    {@render picker('Node', kind, workflowNodeTypes.map(type => ({ value: type.id, label: type.label })), value => kind = value)}
     <Button.Root onclick={() => apply(frame, { type: 'addNode', nodeType: kind, position: { x: 44 + graph.nodes.length % 3 * 200, y: 48 + Math.floor(graph.nodes.length / 3) * 130 + graph.nodes.length % 2 * 24 } })}>Add node</Button.Root>
     <Button.Root onclick={() => frame.onOutput('undo')}>Undo</Button.Root>
     <Button.Root onclick={() => frame.onOutput('redo')}>Redo</Button.Root>
   </div>
   <div class="commands">
-    <label>Output <select aria-label="Output" bind:value={from}>
-      <option value="">Choose output</option>
-      {#each endpoints('output') as endpoint}<option value={endpoint.value}>{endpoint.label}</option>{/each}
-    </select></label>
-    <label>Input <select aria-label="Input" bind:value={to}>
-      <option value="">Choose input</option>
-      {#each endpoints('input') as endpoint}<option value={endpoint.value}>{endpoint.label}</option>{/each}
-    </select></label>
+    {@render picker('Output', from, endpoints('output'), value => from = value)}
+    {@render picker('Input', to, endpoints('input'), value => to = value)}
     <Button.Root disabled={!from || !to} onclick={() => connect(frame)}>Connect</Button.Root>
   </div>
   <GraphViewport props={{ height: 480 }} nodeId="workflow-canvas" occurrenceKey="workflow-canvas"/>
@@ -62,6 +70,7 @@
   nodeId="workflow" occurrenceKey="workflow"/>
 
 <style>
+  .commands :global(.workflow-picker) { width: auto; max-width: 100%; }
   .commands { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin: 8px 0; }
   article { width: 150px; background: var(--studio-raised); padding: 10px; }
   strong { cursor: grab; }

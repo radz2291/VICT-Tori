@@ -3,6 +3,8 @@
   import { GraphWorkspaceV3, emptyGraphV3, parseGraphV3 } from '@victframework/ui-flow-svelte';
   import { Button } from '@victframework/ui-svelte/catalog/button';
   import { DropdownMenu } from '@victframework/ui-svelte/catalog/dropdown-menu';
+  import { Feedback } from '@victframework/ui-svelte';
+  import { Input, Textarea } from '@victframework/ui-ai-svelte';
   import { MediaIcon } from '@victframework/ui-media-svelte';
   import AddAgent from './AddAgent.svelte';
   import AgentCanvas from './AgentCanvas.svelte';
@@ -23,7 +25,7 @@
   let selected = $state(null);
   let status = $state('New local draft');
   let draftError = $state('');
-  let nameInput = $state();
+  let nameInput = $state(null);
   let inspectorOpen = $state(false);
   let inspectorDismissed = $state(false);
   let viewportVersion = $state(0);
@@ -119,11 +121,11 @@
         <Button.Root class="tab" aria-current={view === item ? 'page' : undefined} onclick={() => view = item}>{item}</Button.Root>
       {/each}
     </nav>
-    <span class="save-state" role="status">{status}</span>
+    <div class="save-state"><Feedback message={status}/></div>
   </header>
   {#if draftError}
     <div class="draft-feedback">
-      <span role="alert">{draftError}</span>
+      <Feedback kind="error" message={draftError}/>
       <Button.Root class="action" onclick={downloadDraft}>Download draft</Button.Root>
     </div>
   {/if}
@@ -134,10 +136,10 @@
           <span class="node-kind" aria-hidden="true">A</span>
           <strong>{frame.props.label}</strong>
         </div>
-        <label>Node instructions
-          <textarea placeholder="Describe what this agent should do"
+        <label for={`node-instructions-${frame.props.nodeId}`}>Node instructions
+          <Textarea id={`node-instructions-${frame.props.nodeId}`} class="studio-field" placeholder="Describe what this agent should do"
             value={String(frame.state.instructions ?? '')}
-            onchange={(event) => frame.onStateChange('instructions', event.currentTarget.value)}></textarea>
+            onchange={(event) => frame.onStateChange('instructions', event.currentTarget.value)}/>
         </label>
       </article>
     {/snippet}
@@ -213,9 +215,9 @@
               <div class="inspector-heading">
                 <h2>Inspector</h2>
               </div>
-              <label>Agent name <input bind:this={nameInput} value={agent.label} onchange={(event) => edit(frame, 'label', event.currentTarget.value)} /></label>
-              <label>Agent instructions <textarea aria-describedby="agent-readiness" placeholder="Describe what this agent should do" value={String(agent.values.instructions ?? '')}
-                onchange={(event) => edit(frame, 'instructions', event.currentTarget.value)}></textarea></label>
+              <label for="agent-name">Agent name <Input id="agent-name" class="studio-field" bind:ref={nameInput} value={agent.label} onchange={(event) => edit(frame, 'label', event.currentTarget.value)} /></label>
+              <label for="agent-instructions">Agent instructions <Textarea id="agent-instructions" class="studio-field" aria-describedby="agent-readiness" placeholder="Describe what this agent should do" value={String(agent.values.instructions ?? '')}
+                onchange={(event) => edit(frame, 'instructions', event.currentTarget.value)}/></label>
               <p class="readiness" id="agent-readiness">{agent.values.instructions ? 'Instructions configured' : 'Add instructions before running this agent. You can save it as a draft now.'}</p>
             </aside>
           {/if}
@@ -230,7 +232,7 @@
         io={{ emit, scopedSlots: { content, body } }} nodeId="agents" occurrenceKey="agents"/>
     {/if}
     {#if view !== 'Definition'}
-      <section class="placeholder"><h1>{view}</h1><p>Simulated execution. {view} records will appear here in a later checkpoint.</p></section>
+      <section class="placeholder"><h1>{view}</h1><Feedback kind="empty" message={`Simulated execution. ${view} records will appear here in a later checkpoint.`}/></section>
     {/if}
   </main>
 </ControlScope>
@@ -244,6 +246,8 @@
     --vict-color-surface: #202021;
     --vict-color-text: #efeff0;
     --vict-color-muted: #aaaab0;
+    --vict-color-textMuted: var(--vict-color-muted);
+    --vict-color-danger: #ff9b9b;
     --vict-color-border: #363638;
     --vict-color-accent: #b2a4ff;
     --vict-color-focusRing: var(--vict-color-accent);
@@ -257,6 +261,8 @@
   .project strong { font-weight: 500; }
   .wordmark { font-size: 11px; font-weight: 700; letter-spacing: .15em; border-right: 1px solid var(--vict-color-border); padding-right: 12px; }
   .save-state, footer, .readiness { color: var(--vict-color-muted); font-size: 11px; }
+  .save-state :global(.vict-state) { margin: 0; padding: 0; border: 0; background: transparent; color: inherit; }
+  .draft-feedback :global(.vict-alert) { margin: 0; padding: 0 0 0 8px; border-width: 0 0 0 2px; border-radius: 0; }
   .draft-feedback { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; padding: 6px 14px; border-bottom: 1px solid var(--vict-color-border); }
   .workbar { min-height: 38px; justify-content: space-between; flex-wrap: wrap; padding: 3px 14px; border-bottom: 1px solid var(--vict-color-border); }
   .tools { flex-wrap: wrap; }
@@ -288,16 +294,16 @@
   .node-heading strong { font-size: 15px; font-weight: 650; overflow-wrap: anywhere; }
   .node-kind { display: grid; place-items: center; width: 20px; height: 20px; flex: none; background: var(--vict-color-bg); font-size: 11px; color: var(--vict-color-muted); }
   label { display: grid; gap: 4px; margin-top: 10px; font-size: 12px; color: var(--vict-color-muted); }
-  input, textarea { color: var(--vict-color-text); border: 0; border-radius: 2px; background: var(--vict-color-bg); padding: 6px 8px; min-width: 0; width: 100%; }
+  :global(.studio .studio-field) { color: var(--vict-color-text); border: 0; border-radius: 2px; background: var(--vict-color-bg); padding: 6px 8px; min-width: 0; width: 100%; }
   :global(.studio .agent-menu) { z-index: 10; width: max-content; min-width: 0; max-width: min(300px, 85vw); max-height: 50vh; overflow: auto; padding: 4px; background: var(--studio-raised); border: 1px solid var(--vict-color-border); border-radius: 3px; }
   :global(.studio .agent-menu-item) { display: flex; align-items: center; justify-content: flex-start; gap: 6px; padding: 4px 8px; cursor: pointer; }
   :global(.studio .agent-menu-item[data-highlighted]) { background: var(--vict-color-bg); }
   :global(.studio .agent-menu-item::before) { content: none; }
   .agent-menu-label { min-width: 0; overflow-wrap: anywhere; }
   .menu-current { color: var(--vict-color-accent); width: 14px; flex: none; }
-  textarea { min-height: 3.5rem; resize: vertical; }
-  aside textarea { min-height: 7rem; }
-  input::placeholder, textarea::placeholder { color: var(--vict-color-muted); }
+  :global(.studio textarea.studio-field) { min-height: 3.5rem; resize: vertical; }
+  aside :global(textarea.studio-field) { min-height: 7rem; }
+  :global(.studio .studio-field::placeholder) { color: var(--vict-color-muted); }
   .readiness { margin: 8px 0 0; }
   footer { justify-content: space-between; padding: 3px 14px; border-top: 1px solid var(--vict-color-border); }
   .placeholder { padding: 14px; }

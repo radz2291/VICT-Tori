@@ -133,4 +133,4 @@ If a required behavior is genuinely missing, record native alternatives tested, 
 
 The owner reviews whether agents/tools/Skills are understandable; the node experience feels natural; creative alternatives are easy to compare and revisit; Definition/Trace/Session feel connected; native controls are coherent; phone operations are usable; and simulation is unmistakable. Record requested changes against the actual candidate, not a separate mockup. Engineering PASS and owner UI approval are separate records.
 
-Apply the [Studio accessibility and feedback guide](STUDIO-ACCESSIBILITY.md) across all views and review checkpoints.
+Use the [TORI Studio Design Constitution](STUDIO-DESIGN-CONSTITUTION.md) as the shared UI review checklist. For each U0 checkpoint, link the candidate and screen evidence, give a short keyboard and pointer walkthrough, record applicable rule results and gaps, and link any exception and its approval status. See the [R1 assessment](../evidence/u0/R1-CONSTITUTION-ASSESSMENT.md) for the first application.

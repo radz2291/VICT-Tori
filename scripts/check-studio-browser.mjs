@@ -150,6 +150,7 @@ try {
   await otherTab.getByText('Draft saved locally').waitFor();
   await press('Save draft');
   await keyboard.getByText(/Another tab changed the saved draft/).waitFor();
+  await keyboard.screenshot({ path: 'test-results/studio-control-save-conflict.png' });
   await expectValue(keyboard.getByLabel('Agent name'), 'Keyboard agent');
   const download = keyboard.waitForEvent('download');
   await press('Download draft');
@@ -159,17 +160,23 @@ try {
   await keyboard.getByText(/Another tab changed the saved draft/).waitFor({ state: 'hidden' });
   await page.goto(new URL('?preview=workflow', studioUrl).href);
   await button('Add node').click();
-  await page.getByLabel('Node', { exact: true }).selectOption('run-agent');
+  const choose = async (label, option) => {
+    await page.getByLabel(label, { exact: true }).press('Enter');
+    await page.getByRole('option', { name: option, exact: true }).waitFor();
+    if (label === 'Output') await page.screenshot({ path: 'test-results/studio-control-workflow-select.png' });
+    await page.getByRole('option', { name: option, exact: true }).click();
+  };
+  await choose('Node', 'Run agent');
   await button('Add node').click();
-  await page.getByLabel('Output', { exact: true }).selectOption({ label: 'Request · Brief' });
-  await page.getByLabel('Input', { exact: true }).selectOption({ label: 'Run agent · Brief' });
+  await choose('Output', 'Request · Brief');
+  await choose('Input', 'Run agent · Brief');
   await button('Connect').click();
   await page.locator('.svelte-flow__edge').waitFor();
   await button('Undo').click();
   await page.locator('.svelte-flow__edge').waitFor({ state: 'detached' });
   await button('Redo').click();
   await page.locator('.svelte-flow__edge').waitFor();
-  await page.getByLabel('Output', { exact: true }).selectOption({ label: 'Run agent · Proposal' });
+  await choose('Output', 'Run agent · Proposal');
   await button('Connect').click();
   await page.getByRole('alert').waitFor();
   await page.locator('.svelte-flow__edge').waitFor();
