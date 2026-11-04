@@ -1,20 +1,22 @@
-# Production Studio UI foundation
+# Production Studio UI Foundation — functional contract
 
-U0 delivers the actual product UI with replaceable execution adapters. It is not a disposable prototype. The behaviors in this document are required; the exact layout is a candidate for owner review. Use the [native package map](../reference/BASELINE.md), then verify public component behavior before composition.
+U0 delivers the actual product UI with replaceable execution adapters. It is not a disposable prototype. **This document owns functional Studio surfaces, editing behavior, real-versus-simulated boundaries and fixtures.** The [Studio Design Constitution](STUDIO-DESIGN-CONSTITUTION.md) is the **single UI/UX authority** for five-page navigation, shell, panels, visual/accessibility interaction principles and mandatory public VICT control usage. [UI/UX Verification](UI-UX-VERIFICATION.md) provides repeatable checks, while [Acceptance](ACCEPTANCE.md) controls which checks belong to an accepted stage. Use the [native package map](../reference/BASELINE.md) to verify installed public exports before composition.
 
 Apply [Node & Edge Foundation v0.1](NODE-EDGE-FOUNDATION.md) across all surfaces. Definition, Operation, Control and Creative/Material are catalog discovery families; node role and edge meaning are explicit. Agent definitions and Run Agent invocations are different usages of the same reusable capability. Use a small starter palette for the required fixtures, extending it through catalog registrations.
 
 ## 1. Studio shell and navigation
 
-Primary views: **Definition, Trace, Session**. Within Definition, users work with Agent, Workflow, and Creative surfaces. Connections and the capability catalog are supporting management areas, not separate products. Use a shared project context, selection model, inspection behavior, styling and artifact identity.
+Primary navigation is **Agents · Workflows · Creative · Sessions · Runs**. These are the five task-oriented pages, with the six functional areas below mapped to their appropriate page/management context by [Constitution N1–N7](STUDIO-DESIGN-CONSTITUTION.md#product-experience-and-navigation). **Definition graph, Execution trace and Session** remain distinct underlying information concepts, not three competing primary page tabs. Connections and the capability catalog are supporting management areas, not separate products. Preserve shared project context, selection/inspection behavior, styling and artifact identity.
 
-Proposed desktop layout: project/navigation rail; central selected surface; contextual inspector; optional Session/Trace detail panel. The owner should be able to focus the canvas by closing secondary panels. Do not copy the old VICT Studio's fixed toolbar/clipboard/inspector arrangement by default. Prefer contextual actions and shared inspection, with navigation stable across views.
+The desktop shell follows the Constitution: conventional application menus, a central work stage, consistent toolbar/Window-menu visibility toggles for optional Library/Inspector/Activity docked regions, and a five-page task selector rather than a permanent navigation rail. Page arrangements adapt to task, panels resize and may remember state, and the main stage can expand. **Panel semantics and styling are defined only in the Constitution**, not independently in this functional contract. Do not restore the old VICT Studio's fixed toolbar/clipboard/inspector arrangement by default.
 
-Proposed narrow layout: one principal surface at a time, clear back/navigation controls and a VICT-native sheet/panel for inspection. Offer list/outline and form alternatives to precision graph dragging. Preserve selection and unsaved changes when opening/closing panels or changing views. No hover-only essential controls.
+Proposed narrow layout: one principal surface at a time, clear back/navigation controls and a **public VICT** sheet/panel for inspection where that role is covered. Offer list/outline and form alternatives to precision graph dragging. Preserve selection and unsaved changes when opening/closing panels or changing views. No hover-only essential controls.
 
 Always show project, selected definition/revision, saved/unsaved state, and whether the current execution source is simulated. Keep implementation package names out of ordinary product flows; expose technical provenance in inspection.
 
 ## 2. Six required areas
+
+These are **functional capabilities**, not six primary navigation pages. Agent Builder and attached Test & Evaluation belong within **Agents**; Workflow Builder within **Workflows**; Creative Canvas within **Creative**; Session within **Sessions**; Execution Trace within **Runs**. Provider & Capability Management is available through relevant cross-page settings, panels and menus rather than a sixth page. Follow the Constitution for layout and control roles. None of these capabilities is removed by the five-page navigation decision.
 
 ### Agent Builder
 
@@ -123,7 +125,7 @@ The owner does not need to perform complex desktop-style graph edits on a phone 
 
 ## 7. UI reuse and exceptions
 
-Use `StructureExplorer` and the established source/relationship contracts where appropriate, `GraphWorkspaceV3`/public Flow primitives for graphs, `EditorBridge`/editor contracts for changes and history, and shared VICT forms, AI and media components. These are evidence-backed candidates, not assumed drop-in domain implementations.
+Use `StructureExplorer` and the established source/relationship contracts where appropriate, `GraphWorkspaceV3`/public Flow primitives for graphs, `EditorBridge`/editor contracts for changes and history, and shared **public VICT** forms, AI and media components. These are evidence-backed candidates, not assumed drop-in domain implementations. The [Constitution's F1–F6 rules](STUDIO-DESIGN-CONSTITUTION.md#public-vict-ui-foundation-controls) apply to **every** presented Studio surface: fixed-choice pickers use public VICT Select when covered; the same applies to buttons, fields, menus, dialogs, feedback and controls inside nodes. Native/browser/custom substitutes for covered roles are not acceptable U0 shortcuts.
 
 G0 must document the projection between canonical UI source and TORI domain configuration. StructureExplorer alone is not a generic runtime definition builder. Compose through public extension points; do not copy `apps/studio` internals.
 
@@ -133,4 +135,4 @@ If a required behavior is genuinely missing, record native alternatives tested, 
 
 The owner reviews whether agents/tools/Skills are understandable; the node experience feels natural; creative alternatives are easy to compare and revisit; Definition/Trace/Session feel connected; native controls are coherent; phone operations are usable; and simulation is unmistakable. Record requested changes against the actual candidate, not a separate mockup. Engineering PASS and owner UI approval are separate records.
 
-Use the [TORI Studio Design Constitution](STUDIO-DESIGN-CONSTITUTION.md) as the shared UI review checklist. For each U0 checkpoint, link the candidate and screen evidence, give a short keyboard and pointer walkthrough, record applicable rule results and gaps, and link any exception and its approval status. See the [R1 assessment](../evidence/u0/R1-CONSTITUTION-ASSESSMENT.md) for the first application.
+Use the [TORI Studio Design Constitution](STUDIO-DESIGN-CONSTITUTION.md) as the single shared UI/UX authority, and [UI/UX Verification](UI-UX-VERIFICATION.md) for repeatable control-provenance and interaction checks. For each U0 checkpoint, link the candidate and screen evidence, give a short keyboard and pointer walkthrough, record applicable rule results and gaps, and link any exception and its approval status. See the [R1 assessment](../evidence/u0/R1-CONSTITUTION-ASSESSMENT.md) for the first application.
