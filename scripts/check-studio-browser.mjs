@@ -81,7 +81,7 @@ try {
   await page.getByText('Saved draft reopened').waitFor();
   assert.equal(await page.getByLabel('Agent name').inputValue(), 'Research assistant');
   await button('Sessions').click();
-  await page.getByText(/Simulated execution/).waitFor();
+  await page.getByText(/Simulation only/).waitFor();
   await button('Agents').click();
   await expectValue(inline, 'Review the draft.');
   assert.deepEqual(errors, []);
@@ -208,10 +208,13 @@ try {
   await button('Connect').click();
   await page.getByRole('alert').waitFor();
   await page.screenshot({ path: 'test-results/studio-r2-workflow-validation.png' });
+  await edge.waitFor();
   assert.equal(await edge.count(), 1);
   await button('Undo').click();
   await edge.waitFor({ state: 'detached' });
   await button('Reopen saved draft').click();
+  await page.getByRole('alertdialog').getByRole('button', { name: 'Reopen saved draft' }).click();
+  await page.getByRole('alertdialog').waitFor({ state: 'hidden' });
   await edge.waitFor();
   await page.getByText('Saved draft reopened').waitFor();
   await button('Fit view').click();
@@ -233,6 +236,8 @@ try {
   await metallic.press('Tab');
   await comparison.getByText('Unsaved alternative').waitFor();
   await button('Reopen saved draft').click();
+  await page.getByRole('alertdialog').getByRole('button', { name: 'Reopen saved draft' }).click();
+  await page.getByRole('alertdialog').waitFor({ state: 'hidden' });
   await comparison.getByText('Brushed titanium and soft light').waitFor();
   await page.screenshot({ path: 'test-results/studio-r2-creative-comparison.png' });
   await button('Branch Metallic').click();

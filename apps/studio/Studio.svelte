@@ -337,7 +337,7 @@
       <AlertDialog.Description>Reopening replaces unsaved edits in this workspace. Cancel to keep editing or save a copy first.</AlertDialog.Description>
       <div class="dialog-actions">
         <AlertDialog.Cancel>Keep editing</AlertDialog.Cancel>
-        <AlertDialog.Action onclick={() => reopenAction?.()}>Reopen saved draft</AlertDialog.Action>
+        <AlertDialog.Action onclick={() => { confirmReopen = false; reopenAction?.(); }}>Reopen saved draft</AlertDialog.Action>
       </div>
     </AlertDialog.Content>
   </AlertDialog.Root>
