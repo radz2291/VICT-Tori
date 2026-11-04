@@ -4,9 +4,9 @@ Build and pack the pinned VICT checkout by following the [G0 instructions](../..
 
 ```powershell
 npm ci --no-audit --no-fund
-node node_modules/vite/bin/vite.js --host 127.0.0.1 --port 48742 --strictPort
+node node_modules/vite/bin/vite.js --host 127.0.0.1 --port 48743 --strictPort
 ```
 
-Open [TORI Studio](http://127.0.0.1:48742/). The [first walkthrough](../../docs/evidence/u0/OWNER-REVIEWS.md) lists the authoring actions to try.
+Open [TORI Studio](http://127.0.0.1:48743/). The [owner walkthroughs](../../docs/evidence/u0/OWNER-REVIEWS.md) list the authoring actions to try. Agents, Workflows and Creative each store a separate draft in browser local storage for this origin. Switching to a different port or browser profile gives you a different set of drafts.
 
 The browser check takes the absolute Playwright ESM entry path, Chrome executable, Studio URL, consumer URL, Studio directory, and consumer directory. The last two arguments start temporary Vite servers. The consumer directory must already contain the production build from the G0 probe.

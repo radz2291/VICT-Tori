@@ -32,3 +32,15 @@ On 4 November 2026 the owner approved the latest R1 tweaks and requested the mov
 ## U0-R2 · implementation started
 
 The early Workflow preview is available at http://127.0.0.1:48743/?preview=workflow. Add Request and Run agent, choose their Brief endpoints, then Connect. Chrome verified native edge rendering, Undo/Redo and rejection of an invalid connection with the existing edge retained. The preview is in-memory. Workflow persistence, semantic fixture checks and the creative canvas remain open before the formal R2 walkthrough.
+
+## U0-R2 · offered
+
+Open [Studio](http://127.0.0.1:48743/) on the feature branch. The five pages follow Constitution N1. The tested application candidate is `0032faa59ddabc78e68e87945285c090ed0aa977`, on top of PR #2 at `7393401e780f2565cc69838555e6ce4a365e7efb` and the N1 terminology correction at `e2c496f`.
+
+1. **Agents.** Add an agent, name it, edit its instructions, and save. Visit Workflows and return to Agents. Your agent and inspector state should still be there. Reload and check the saved draft.
+2. **Workflows.** Add Request, Run agent and Decision from the Node Select. Choose your agent in Run agent. Drag Request’s Brief output to Decision’s Proposal input and confirm that no edge is created. Drag Brief to Run agent’s Brief input to create an edge. The Output and Input Selects offer a keyboard connection path with a visible diagnostic for incompatible types. Undo and redo the link, save, then undo and use Reopen saved draft to restore the saved link. Fit view brings the graph into view.
+3. **Creative.** Open Compare directions to see Metallic, Biological and Architectural together. Edit the notes on a canvas card. Branch that direction from the comparison panel, then undo and redo the branch. Save, edit again and reopen to recover the saved notes and variations. Reload and revisit Creative to check persistence.
+
+[Saved workflow](studio-r2-workflow-reopened.png) · [Invalid connection feedback](studio-r2-workflow-validation.png) · [Creative comparison](studio-r2-creative-comparison.png) · [VICT control audit](VICT-CONTROL-AUDIT.md)
+
+Creative uses synthetic text directions. Artifact comparison, preferred-result selection and workflow conversion remain open. Sessions and Runs show labelled simulation placeholders. The walkthrough covers the amended R2 interactions and leaves full fixture, cross-view execution identity and independent U0 verification open.
