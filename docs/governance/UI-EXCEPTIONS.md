@@ -2,7 +2,7 @@
 
 No custom UI exception is approved at bootstrap.
 
-The owner requires VICT-native appearance and behavior. Normal product composition, data binding, adapters and routes are expected implementation work. A replacement primitive, graph editor, interaction system, or custom styling/control mechanism needs a specific documented exception when existing VICT components cannot reasonably deliver the requirement.
+The owner requires **public VICT UI Foundation components wherever they cover each control's role, on every Studio surface presented for review**, including stubs, rich nodes, pickers, fields, buttons, menus, dialogs and feedback. Normal product composition, data binding, adapters and routes are expected implementation work. A browser-native/custom replacement for a covered public role, a replacement graph editor, interaction system, or custom styling/control mechanism is **not** a convenience fallback: it requires a specific documented owner-approved exception when published VICT capabilities genuinely cannot deliver the requirement. Public package access trouble is BLOCKED/unverified, not implied permission to substitute.
 
 Before asking the owner, finish the investigation and prepare a concrete reviewable proposal. Complete unaffected authorized work. Do not ask for permission merely because application composition code is necessary.
 
