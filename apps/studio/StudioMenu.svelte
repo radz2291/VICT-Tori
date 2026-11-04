@@ -9,13 +9,17 @@
       <Menubar.Trigger>{menu.name}</Menubar.Trigger>
       <Menubar.Content class="studio-command-menu" align="start" sideOffset={4}>
         {#if menu.name === 'Window'}
-          {#each panels as panel (panel.name)}
-            <Menubar.CheckboxItem checked={panel.open} onCheckedChange={() => toggle(panel.name)}>
-              <span aria-hidden="true">{panel.open ? '✓' : '·'}</span> {panel.name}
-            </Menubar.CheckboxItem>
-          {/each}
-          <Menubar.Separator/>
-          <Menubar.Item onSelect={reset}>Reset layout</Menubar.Item>
+          {#if panels.length}
+            {#each panels as panel (panel.name)}
+              <Menubar.CheckboxItem checked={panel.open} onCheckedChange={() => toggle(panel.name)}>
+                <span aria-hidden="true">{panel.open ? '✓' : '·'}</span> {panel.name}
+              </Menubar.CheckboxItem>
+            {/each}
+            <Menubar.Separator/>
+            <Menubar.Item onSelect={reset}>Reset layout</Menubar.Item>
+          {:else}
+            <Menubar.Item disabled>No panels available in this workspace</Menubar.Item>
+          {/if}
         {:else}
           {#each menu.items as item (item.label)}
             <Menubar.Item disabled={!item.run} onSelect={() => item.run?.()}>

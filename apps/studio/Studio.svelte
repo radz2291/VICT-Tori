@@ -33,7 +33,8 @@
   let inspectorOpen = $state(false);
   let inspectorDismissed = $state(false);
   let viewportVersion = $state(0);
-  let view = $state(new URLSearchParams(window.location.search).get('preview') === 'workflow' ? 'Workflows' : 'Agents');
+  const preview = new URLSearchParams(window.location.search).get('preview');
+  let view = $state(preview === 'sessions' ? 'Sessions' : preview === 'workflow' ? 'Workflows' : 'Agents');
   let workflowStatus = $state('New local draft');
   let creativeStatus = $state('New local draft');
   const pages = ['Agents', 'Workflows', 'Creative', 'Sessions', 'Runs'];
@@ -51,14 +52,20 @@
     reopenAction = commands.reopen;
     confirmReopen = true;
   }
-  let panels = $derived(['Library', 'Inspector', 'Activity'].map(name => ({
+  // Availability gates rendering and commands independently of visibility intent.
+  const dockRoles = ['Library', 'Inspector', 'Activity'];
+  const panelAvailability = { Sessions: [] };
+  let panels = $derived((panelAvailability[view] ?? dockRoles).map(name => ({
     name, open: name === 'Inspector' && view === 'Agents' ? inspectorOpen : Boolean(layouts[view]?.[name])
   })));
+  const panelOpen = name => panels.some(panel => panel.name === name && panel.open);
   function togglePanel(name) {
+    if (!panels.some(panel => panel.name === name)) return;
     if (name === 'Inspector' && view === 'Agents') return toggleInspector(!inspectorOpen);
     layouts[view] = { ...layouts[view], [name]: !layouts[view]?.[name] };
   }
   function resetLayout() {
+    if (!panels.length) return;
     layouts[view] = {};
     if (view === 'Agents') toggleInspector(Boolean(agent));
   }
@@ -173,17 +180,17 @@
   <div class="menu-strip"><span class="wordmark">TORI</span><StudioMenu {menus} {panels} toggle={togglePanel} reset={resetLayout}/></div>
   <header>
     <div class="project"><strong>Untitled project</strong><span aria-hidden="true">/</span><span>{view}</span></div>
-    <div class="panel-controls" role="group" aria-label="Workspace panels">
+    {#if panels.length}<div class="panel-controls" role="group" aria-label="Workspace panels">
       {#each panels as panel (panel.name)}
         <Button.Root class="action panel-toggle" aria-pressed={panel.open} onclick={() => togglePanel(panel.name)}>{panel.name}</Button.Root>
       {/each}
-    </div>
-    <div class="save-state">
+    </div>{/if}
+    {#if view !== 'Sessions'}<div class="save-state">
       {#if view === 'Agents'}<Feedback message={status}/>
       {:else if view === 'Workflows'}<Feedback message={workflowStatus}/>
       {:else if view === 'Creative'}<Feedback message={creativeStatus}/>
       {/if}
-    </div>
+    </div>{/if}
   </header>
   {#if view === 'Agents' && draftError}
     <div class="draft-feedback">
@@ -191,10 +198,10 @@
       <Button.Root class="action" onclick={downloadDraft}>Download draft</Button.Root>
     </div>
   {/if}
-  {#if help}<div class="draft-feedback"><Feedback message="TORI Studio � U0 local drafts. Live execution and provider access are unavailable."/><Button.Root class="action" onclick={() => help = false}>Dismiss</Button.Root></div>{/if}
-  <main>
+  {#if help}<div class="draft-feedback"><Feedback message="TORI Studio · U0 local drafts. Live execution and provider access are unavailable."/><Button.Root class="action" onclick={() => help = false}>Dismiss</Button.Root></div>{/if}
+  <main class:conversation-workspace={view === 'Sessions'}>
     <div class="desk">
-      {#if layouts[view]?.Library}
+      {#if panelOpen('Library')}
         <aside class="dock library" aria-label="Library">
           <h2>Library</h2>
           {#if objects.length}
@@ -268,7 +275,7 @@
                       }}>
                         {#each graph.nodes as node, index (node.id)}
                           <DropdownMenu.RadioItem class="agent-menu-item" value={node.id} textValue={node.label}>
-                            <span class="agent-menu-label">{node.label}{graph.nodes.filter(item => item.label === node.label).length > 1 ? ` · ${index + 1}` : ''}</span>
+                            <span class="agent-menu-label">{node.label}{graph.nodes.filter(item => item.label === node.label).length > 1 ? ` Â· ${index + 1}` : ''}</span>
                             <span class="menu-current" aria-hidden="true">
                               {#if selected === node.id}
                                 <MediaIcon props={{ name: 'check', size: 14 }} nodeId={node.id} occurrenceKey={node.id}/>
@@ -306,15 +313,28 @@
     </div>
     <div hidden={view !== 'Workflows'}><WorkflowPreview {requestReopen} agents={graph?.nodes ?? []} bind:status={workflowStatus} register={(value) => { workflowCommands = value; }}/></div>
     <div hidden={view !== 'Creative'}><CreativeCanvas {requestReopen} bind:status={creativeStatus} register={(value) => { creativeCommands = value; }}/></div>
-    {#if view === 'Sessions' || view === 'Runs'}
+    {#if view === 'Sessions'}
+      <section class="conversation" aria-labelledby="conversation-title">
+        <div class="conversation-heading">
+          <h1 id="conversation-title">Conversation</h1>
+          <Feedback message="U0 | Simulation only"/>
+        </div>
+        <div class="conversation-body">
+          <div>
+            <h2>No conversation yet</h2>
+            <Feedback kind="empty" message="Live sessions are unavailable in this build."/>
+          </div>
+        </div>
+      </section>
+    {:else if view === 'Runs'}
       <section class="placeholder">
-        <div class="workspace-caption">U0 � Simulation only</div>
-        <h1>{view === 'Sessions' ? 'Conversation' : 'Execution trace'}</h1>
-        <Feedback kind="empty" message={view === 'Sessions' ? 'No conversation records. This build cannot start a live session.' : 'No run evidence. This build cannot execute a workflow or record provider activity.'}/>
+        <div class="workspace-caption">U0 | Simulation only</div>
+        <h1>Execution trace</h1>
+        <Feedback kind="empty" message="No run evidence. This build cannot execute a workflow or record provider activity."/>
       </section>
     {/if}
       </div>
-      {#if view !== 'Agents' && layouts[view]?.Inspector}
+      {#if view !== 'Agents' && panelOpen('Inspector')}
         <aside class="dock" aria-label="Inspector">
           <h2>Inspector</h2>
           {#if selectedObject}
@@ -326,7 +346,7 @@
         </aside>
       {/if}
     </div>
-    {#if layouts[view]?.Activity}
+    {#if panelOpen('Activity')}
       <section class="activity" aria-label="Activity"><h2>Activity</h2><Feedback message="No execution activity. Live execution is unavailable in U0."/></section>
     {/if}
   </main>
@@ -434,6 +454,18 @@
   .library :global(.library-row) { display: block; width: 100%; text-align: left; margin-top: 8px; overflow: hidden; text-overflow: ellipsis; }
   .library :global(.library-row[aria-pressed=true]) { color: var(--vict-color-accent); background: var(--studio-raised); }
   .activity { padding: 10px 14px; border-top: 1px solid var(--vict-color-border); background: var(--vict-color-surface); }
+  .conversation-workspace, .conversation-workspace .stage { display: flex; flex-direction: column; }
+  .conversation-workspace .desk, .conversation { flex: 1; }
+  .conversation { display: flex; flex-direction: column; min-width: 0; }
+  .conversation-heading {
+    display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px;
+    min-height: 44px; padding: 6px clamp(14px, 3vw, 36px); border-bottom: 1px solid var(--vict-color-border);
+  }
+  .conversation-heading h1 { font-size: 16px; }
+  .conversation-heading :global(.vict-state) { margin: 0; padding: 0; border: 0; background: transparent; color: var(--vict-color-muted); }
+  .conversation-body { flex: 1; display: grid; place-items: center; padding: 24px; text-align: center; }
+  .conversation-body h2 { font-size: 15px; }
+  .conversation-body :global(.vict-state) { margin: 0; border: 0; background: transparent; }
   .placeholder { padding: clamp(20px, 5vw, 64px); max-width: 700px; }
   .placeholder h1 { font-size: 24px; margin: 6px 0 18px; }
   .workspace-caption { color: var(--vict-color-muted); }
