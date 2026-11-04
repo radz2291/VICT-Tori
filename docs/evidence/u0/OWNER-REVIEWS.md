@@ -28,3 +28,7 @@ R1 accessibility walkthrough passed in Chrome. Pointer at 1280 × 800 and keyboa
 ## U0-R1 · reviewed — checkpoint accepted
 
 On 4 November 2026 the owner approved the latest R1 tweaks and requested the move to R2. The final tweaks include the compact Find agent menu, its single selection checkmark, and permanent icon controls for reopening the draft and toggling the inspector. This accepts the R1 checkpoint. The Design Constitution remains a separate draft review.
+
+## U0-R2 · implementation started
+
+The early Workflow preview is available at http://127.0.0.1:48743/?preview=workflow. Add Request and Run agent, choose their Brief endpoints, then Connect. Chrome verified native edge rendering, Undo/Redo and rejection of an invalid connection with the existing edge retained. The preview is in-memory. Workflow persistence, semantic fixture checks and the creative canvas remain open before the formal R2 walkthrough.

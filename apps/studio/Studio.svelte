@@ -6,6 +6,7 @@
   import { MediaIcon } from '@victframework/ui-media-svelte';
   import AddAgent from './AddAgent.svelte';
   import AgentCanvas from './AgentCanvas.svelte';
+  import WorkflowPreview from './WorkflowPreview.svelte';
   import { ControlScope } from '@victframework/ui-svelte/controls';
 
   const key = 'tori.studio.draft.v1';
@@ -27,6 +28,7 @@
   let inspectorDismissed = $state(false);
   let viewportVersion = $state(0);
   let view = $state('Definition');
+  const workflowPreview = new URLSearchParams(window.location.search).get('preview') === 'workflow';
   let parsed = $derived(parseGraphV3(source));
   let graph = $derived(parsed.ok ? parsed.graph : null);
   let agent = $derived(graph?.nodes.find(node => node.id === selected));
@@ -221,8 +223,12 @@
         <footer><span>{graph?.nodes.length ?? 0} agents</span><span>Execution simulation</span></footer>
       </div>
     {/snippet}
-    <GraphWorkspaceV3 props={{ graph: source, label: 'Agent graph' }}
-      io={{ emit, scopedSlots: { content, body } }} nodeId="agents" occurrenceKey="agents"/>
+    {#if workflowPreview}
+      <div hidden={view !== 'Definition'}><WorkflowPreview/></div>
+    {:else}
+      <GraphWorkspaceV3 props={{ graph: source, label: 'Agent graph' }}
+        io={{ emit, scopedSlots: { content, body } }} nodeId="agents" occurrenceKey="agents"/>
+    {/if}
     {#if view !== 'Definition'}
       <section class="placeholder"><h1>{view}</h1><p>Simulated execution. {view} records will appear here in a later checkpoint.</p></section>
     {/if}

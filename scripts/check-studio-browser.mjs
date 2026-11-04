@@ -157,6 +157,23 @@ try {
   await press('Reopen saved draft');
   await expectValue(keyboard.getByLabel('Agent name'), 'Changed in another tab');
   await keyboard.getByText(/Another tab changed the saved draft/).waitFor({ state: 'hidden' });
+  await page.goto(new URL('?preview=workflow', studioUrl).href);
+  await button('Add node').click();
+  await page.getByLabel('Node', { exact: true }).selectOption('run-agent');
+  await button('Add node').click();
+  await page.getByLabel('Output', { exact: true }).selectOption({ label: 'Request · Brief' });
+  await page.getByLabel('Input', { exact: true }).selectOption({ label: 'Run agent · Brief' });
+  await button('Connect').click();
+  await page.locator('.svelte-flow__edge').waitFor();
+  await button('Undo').click();
+  await page.locator('.svelte-flow__edge').waitFor({ state: 'detached' });
+  await button('Redo').click();
+  await page.locator('.svelte-flow__edge').waitFor();
+  await page.getByLabel('Output', { exact: true }).selectOption({ label: 'Run agent · Proposal' });
+  await button('Connect').click();
+  await page.getByRole('alert').waitFor();
+  await page.locator('.svelte-flow__edge').waitFor();
+  assert.equal(await page.locator('.svelte-flow__edge').count(), 1);
   console.log('Pointer and keyboard authoring, history, Save/reopen and save conflict recovery passed.');
 } finally {
   await browser?.close();
