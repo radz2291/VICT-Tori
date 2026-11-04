@@ -2,7 +2,7 @@
   import { getContext } from 'svelte';
   import { GRAPH_WORKSPACE, GraphViewport } from '@victframework/ui-flow-svelte';
 
-  let { version, onclear } = $props();
+  let { active, version, onclear } = $props();
   const workspace = getContext(GRAPH_WORKSPACE);
 
   function clear() {
@@ -12,9 +12,9 @@
 </script>
 
 <svelte:window onclick={(event) => {
-  if (event.target?.matches?.('.studio .svelte-flow__pane')) clear();
+  if (active && event.target?.matches?.('.studio .svelte-flow__pane')) clear();
 }} onkeydown={(event) => {
-  if (event.key === 'Escape' && !event.defaultPrevented &&
+  if (active && event.key === 'Escape' && !event.defaultPrevented &&
       !event.target?.closest?.('input, textarea, select, [contenteditable]')) clear();
 }}/>
 

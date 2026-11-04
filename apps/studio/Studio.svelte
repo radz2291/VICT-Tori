@@ -9,6 +9,7 @@
   import AddAgent from './AddAgent.svelte';
   import AgentCanvas from './AgentCanvas.svelte';
   import WorkflowPreview from './WorkflowPreview.svelte';
+  import CreativeCanvas from './CreativeCanvas.svelte';
   import { ControlScope } from '@victframework/ui-svelte/controls';
 
   const key = 'tori.studio.draft.v1';
@@ -29,8 +30,9 @@
   let inspectorOpen = $state(false);
   let inspectorDismissed = $state(false);
   let viewportVersion = $state(0);
-  let view = $state('Definition');
-  const workflowPreview = new URLSearchParams(window.location.search).get('preview') === 'workflow';
+  let view = $state(new URLSearchParams(window.location.search).get('preview') === 'workflow' ? 'Workflows' : 'Agents');
+  let workflowStatus = $state('New local draft');
+  let creativeStatus = $state('New local draft');
   let parsed = $derived(parseGraphV3(source));
   let graph = $derived(parsed.ok ? parsed.graph : null);
   let agent = $derived(graph?.nodes.find(node => node.id === selected));
@@ -117,13 +119,18 @@
   <header>
     <div class="project"><span class="wordmark">TORI</span><strong>Untitled project</strong></div>
     <nav aria-label="Studio views">
-      {#each ['Definition', 'Trace', 'Session'] as item}
+      {#each ['Agents', 'Workflows', 'Creative', 'Sessions', 'Runs'] as item}
         <Button.Root class="tab" aria-current={view === item ? 'page' : undefined} onclick={() => view = item}>{item}</Button.Root>
       {/each}
     </nav>
-    <div class="save-state"><Feedback message={status}/></div>
+    <div class="save-state">
+      {#if view === 'Agents'}<Feedback message={status}/>
+      {:else if view === 'Workflows'}<Feedback message={workflowStatus}/>
+      {:else if view === 'Creative'}<Feedback message={creativeStatus}/>
+      {/if}
+    </div>
   </header>
-  {#if draftError}
+  {#if view === 'Agents' && draftError}
     <div class="draft-feedback">
       <Feedback kind="error" message={draftError}/>
       <Button.Root class="action" onclick={downloadDraft}>Download draft</Button.Root>
@@ -144,7 +151,7 @@
       </article>
     {/snippet}
     {#snippet content(frame)}
-      <div hidden={view !== 'Definition'}>
+      <div>
         <div class="workbar">
           <h1>Agents</h1>
           <div class="tools">
@@ -173,7 +180,7 @@
         </div>
         <div class="workspace" class:inspecting={agent && inspectorOpen}>
           <div class="canvas">
-            <AgentCanvas version={viewportVersion} onclear={() => selected = null}/>
+            <AgentCanvas active={view === 'Agents'} version={viewportVersion} onclear={() => selected = null}/>
             {#if !graph?.nodes.length}
               <div class="empty">
 
@@ -225,13 +232,13 @@
         <footer><span>{graph?.nodes.length ?? 0} agents</span><span>Execution simulation</span></footer>
       </div>
     {/snippet}
-    {#if workflowPreview}
-      <div hidden={view !== 'Definition'}><WorkflowPreview/></div>
-    {:else}
+    <div hidden={view !== 'Agents'}>
       <GraphWorkspaceV3 props={{ graph: source, label: 'Agent graph' }}
         io={{ emit, scopedSlots: { content, body } }} nodeId="agents" occurrenceKey="agents"/>
-    {/if}
-    {#if view !== 'Definition'}
+    </div>
+    <div hidden={view !== 'Workflows'}><WorkflowPreview agents={graph?.nodes ?? []} bind:status={workflowStatus}/></div>
+    <div hidden={view !== 'Creative'}><CreativeCanvas bind:status={creativeStatus}/></div>
+    {#if view === 'Sessions' || view === 'Runs'}
       <section class="placeholder"><h1>{view}</h1><Feedback kind="empty" message={`Simulated execution. ${view} records will appear here in a later checkpoint.`}/></section>
     {/if}
   </main>

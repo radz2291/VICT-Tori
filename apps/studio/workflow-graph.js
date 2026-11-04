@@ -37,5 +37,8 @@ export const workflowNodeTypes = [
 ];
 
 export function newWorkflowSource() {
-  return serializeGraphV3({ ...emptyGraphV3(), nodeTypes: workflowNodeTypes });
+  return serializeGraphV3({
+    ...emptyGraphV3(), nodeTypes: workflowNodeTypes,
+    edgeDefaults: { color: 'token:muted', width: 2, endArrow: 'closed' },
+  });
 }
