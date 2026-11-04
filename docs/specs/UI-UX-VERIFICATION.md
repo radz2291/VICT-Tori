@@ -56,8 +56,8 @@ For each ID, record: criterion, candidate SHA, tested surface + navigation path,
 
 | ID | Action / acceptance | Failure probe |
 |---|---|---|
-| SHELL-01 | Five main pages are visible/reachable: Agents, Workflows, Creative, Sessions, Runs; selected page is clear | One item masquerades as a panel rather than page, or navigation loses user position |
-| SHELL-02 | Conventional menu bar offers relevant File/Edit/View/Insert/Run/Window/Help families with available commands | Dead menu items or unavailable actions appear executable |
+| SHELL-01 | On desktop, the persistent bottom navigator exposes the five main pages in order: Agents, Workflows, Creative, Sessions, Runs; selected page is clear | Primary navigation appears as top tabs or a left rail; navigation loses user position |
+| SHELL-02 | The top menu bar offers relevant File/Edit/View/Insert/Run/Window/Help families with available commands | Dead menu items or unavailable actions appear executable |
 | SHELL-03 | Central working stage remains dominant at ordinary desktop size; optional supporting regions do not consume it by default | Canvas cramped by decorative panels or huge blank chrome |
 | SHELL-04 | Library, Inspector and Activity are controlled by consistent **toolbar visibility toggles** | Left collapse icon, right X and bottom chevron all perform hide behavior |
 | SHELL-05 | Window menu commands and matching toolbar toggles share **one synchronized visibility state** | Menu says visible while hidden; repeated click fails to hide/reopen |

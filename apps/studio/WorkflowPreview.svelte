@@ -5,9 +5,10 @@
   import { Feedback } from '@victframework/ui-svelte';
   import { GraphDraft } from './graph-draft.svelte.js';
   import DraftActions from './DraftActions.svelte';
+  import GraphCommands from './GraphCommands.svelte';
   import { newWorkflowSource, workflowNodeTypes } from './workflow-graph.js';
 
-  let { agents, status = $bindable() } = $props();
+  let { agents, status = $bindable(), register = () => {}, requestReopen } = $props();
   const draft = new GraphDraft('tori.studio.workflow.v1', newWorkflowSource());
   $effect(() => { status = draft.status; });
   let kind = $state(workflowNodeTypes[0].id);
@@ -33,6 +34,10 @@
 
   function apply(frame, operation) {
     frame.onOutput('operation', JSON.stringify([operation]));
+  }
+
+  function addNode(frame) {
+    apply(frame, { type: 'addNode', nodeType: kind, position: { x: 44 + graph.nodes.length % 3 * 235, y: 48 + Math.floor(graph.nodes.length / 3) * 180 + graph.nodes.length % 2 * 24 } });
   }
 
   function connect(frame) {
@@ -78,14 +83,21 @@
   </article>
 {/snippet}
 {#snippet content(frame)}
+  <GraphCommands register={(workspace) => register({
+    workspace, add: () => addNode(frame), addLabel: 'Add selected node type',
+    save: () => draft.save(), reopen: () => draft.saved === null ? undefined : draft.reopen(),
+    get dirty() { return draft.status === 'Unsaved edits'; },
+    get canReopen() { return draft.saved !== null; },
+    undo: () => workspace.undo(), redo: () => workspace.redo(), get fit() { return graph.nodes.length ? () => viewportVersion += 1 : undefined; }
+  })}/>
   <div class="commands">
     <h1>Workflows</h1>
     <span class="simulation">Execution simulation</span>
-    <DraftActions {draft}/>
+    <DraftActions {draft} {requestReopen}/>
   </div>
   <div class="commands">
     {@render picker('Node', kind, workflowNodeTypes.map(type => ({ value: type.id, label: type.label })), value => kind = value)}
-    <Button.Root class="action primary" onclick={() => apply(frame, { type: 'addNode', nodeType: kind, position: { x: 44 + graph.nodes.length % 3 * 235, y: 48 + Math.floor(graph.nodes.length / 3) * 180 + graph.nodes.length % 2 * 24 } })}>Add node</Button.Root>
+    <Button.Root class="action primary" onclick={() => addNode(frame)}>Add node</Button.Root>
     <Button.Root class="action" onclick={() => frame.onOutput('undo')}>Undo</Button.Root>
     <Button.Root class="action" onclick={() => frame.onOutput('redo')}>Redo</Button.Root>
     <Button.Root class="action" disabled={!graph.nodes.length} onclick={() => viewportVersion += 1}>Fit view</Button.Root>
@@ -109,7 +121,7 @@
   .commands { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; padding: 4px 14px; border-bottom: 1px solid var(--vict-color-border); }
   h1 { font-size: 13px; margin: 0 auto 0 0; }
   .simulation { color: var(--vict-color-muted); font-size: 11px; }
-  .canvas :global(.graph-viewport) { height: max(24rem, calc(100dvh - 175px)) !important; --vict-color-surface: var(--vict-color-bg); }
+  .canvas :global(.graph-viewport) { height: max(24rem, calc(100dvh - 245px)) !important; --vict-color-surface: var(--vict-color-bg); }
   .canvas :global(.svelte-flow__background) { --xy-background-pattern-color: #353537; }
   article { width: 178px; background: var(--studio-raised); padding: 10px; }
   strong { cursor: grab; }

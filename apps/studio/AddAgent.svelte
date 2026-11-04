@@ -3,7 +3,7 @@
   import { GRAPH_WORKSPACE } from '@victframework/ui-flow-svelte';
   import { Button } from '@victframework/ui-svelte/catalog/button';
 
-  let { onadd, primary = false } = $props();
+  let { onadd, primary = false, register = () => {} } = $props();
   const workspace = getContext(GRAPH_WORKSPACE);
 
   async function add() {
@@ -16,6 +16,7 @@
     await tick();
     workspace.select({ nodes: [id], edges: [] });
   }
+  $effect(() => register(add));
 </script>
 
 <Button.Root class={primary ? 'action primary' : 'action'} onclick={add}>

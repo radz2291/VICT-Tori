@@ -6,8 +6,9 @@
   import { Textarea } from '@victframework/ui-ai-svelte';
   import { GraphDraft } from './graph-draft.svelte.js';
   import DraftActions from './DraftActions.svelte';
+  import GraphCommands from './GraphCommands.svelte';
 
-  let { status = $bindable() } = $props();
+  let { status = $bindable(), register = () => {}, requestReopen } = $props();
   let comparing = $state(false);
   const directions = [
     ['metallic', 'Metallic', 'Reflective aluminum, machined edges and hard directional light.'],
@@ -59,13 +60,24 @@
 {/snippet}
 
 {#snippet content(frame)}
+  <GraphCommands register={(workspace) => register({
+    workspace, addLabel: 'Branch selected direction',
+    get add() {
+      const direction = graph.nodes.find(node => workspace.selection.nodes.includes(node.id));
+      return direction ? () => branch(frame, direction) : undefined;
+    },
+    save: () => draft.save(), reopen: () => draft.saved === null ? undefined : draft.reopen(),
+    get dirty() { return draft.status === 'Unsaved edits'; },
+    get canReopen() { return draft.saved !== null; },
+    undo: () => workspace.undo(), redo: () => workspace.redo()
+  })}/>
   <div class="commands">
     <h1>Creative</h1>
     <Button.Root class="action" aria-expanded={comparing} aria-controls="direction-comparison"
       onclick={() => comparing = !comparing}>Compare directions</Button.Root>
     <Button.Root class="action" onclick={() => frame.onOutput('undo')}>Undo</Button.Root>
     <Button.Root class="action" onclick={() => frame.onOutput('redo')}>Redo</Button.Root>
-    <DraftActions {draft}/>
+    <DraftActions {draft} {requestReopen}/>
   </div>
   <section id="direction-comparison" class="comparison" hidden={!comparing} aria-label="Direction comparison">
     {#each graph.nodes as node (node.id)}
@@ -92,6 +104,6 @@
   .comparison:not([hidden]) { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 12rem), 1fr)); }
   .comparison article { padding: 10px 14px; border: 1px solid var(--vict-color-border); background: var(--vict-color-surface); }
   .comparison p { color: var(--vict-color-muted); margin: 4px 0 0; overflow-wrap: anywhere; white-space: pre-wrap; }
-  .canvas :global(.graph-viewport) { height: max(24rem, calc(100dvh - 120px)) !important; --vict-color-surface: var(--vict-color-bg); }
+  .canvas :global(.graph-viewport) { height: max(24rem, calc(100dvh - 195px)) !important; --vict-color-surface: var(--vict-color-bg); }
   .canvas :global(.svelte-flow__background) { --xy-background-pattern-color: #353537; }
 </style>
