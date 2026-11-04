@@ -258,7 +258,7 @@ try {
   await button('Compare directions').click();
   await variation.waitFor();
   await button('Runs').click();
-  await page.getByRole('heading', { name: 'Runs', exact: true }).waitFor();
+  await page.getByRole('heading', { name: 'Execution trace', exact: true }).waitFor();
   await page.locator('.vict-state[data-state="empty"]:visible').waitFor();
   assert.deepEqual(errors, []);
   console.log('Passed Agents pointer/keyboard and conflict recovery, Workflows native port editing/history/reopen, and Creative comparison/reopen.');
