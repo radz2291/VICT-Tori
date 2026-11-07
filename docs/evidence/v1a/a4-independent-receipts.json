@@ -1,0 +1,47 @@
+[
+  {
+    "parent": {
+      "id": "fd380907-190a-4c10-8461-b342becbcb9e",
+      "status": "cancelled",
+      "code": "TORI_TURN_DEADLINE",
+      "attempts": 1,
+      "turn": "a7e52d15-8714-4e47-9665-9ad873f9002e",
+      "invocation": "22805074-951a-47c8-ab22-89b7bfcf607c",
+      "events": [
+        "Turn accepted by Studio",
+        "response.started",
+        "tool.requested",
+        "tool.started",
+        "response.cancelled",
+        "Fixture HTTP 200",
+        "Turn cancelled"
+      ]
+    },
+    "child": {
+      "id": "22eb7feb-512e-4cef-b074-a383071cf92f",
+      "parentRun": "fd380907-190a-4c10-8461-b342becbcb9e",
+      "parentVictTurn": "a7e52d15-8714-4e47-9665-9ad873f9002e",
+      "parentInvocation": "22805074-951a-47c8-ab22-89b7bfcf607c",
+      "status": "cancelled",
+      "events": [
+        "VICT · response.started",
+        "VICT · response.cancelled"
+      ]
+    },
+    "childModelEntries": 1,
+    "childSignalAborted": true,
+    "providerRequests": 1
+  },
+  {
+    "rejection": {
+      "run": "177ccaa7-f95f-42fb-a8f9-0908069989e5",
+      "status": "failed",
+      "validation": "rejected",
+      "code": "VICT_AGENT_STRUCTURED_OUTPUT_REJECTED",
+      "acceptedAssistantMessages": 0,
+      "domainCanaryPresent": false,
+      "providerRequests": 1,
+      "rejectedSessionFencedAfterReopen": true
+    }
+  }
+]

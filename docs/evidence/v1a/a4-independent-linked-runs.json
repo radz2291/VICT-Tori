@@ -1,0 +1,33 @@
+{
+  "parent": {
+    "id": "d139fa4e-ccca-477b-8c69-db18e45c2de6",
+    "status": "completed",
+    "activation": "v1_4140660826d8eb4d11b4c7432672c7ab9c722020428eafbcb22fd62d0b873444",
+    "outputContract": {
+      "id": "tori.output.finding",
+      "revision": "1"
+    },
+    "outputValidation": "accepted",
+    "governance": {
+      "calls": 0,
+      "turnId": "71de6d40-93c4-4807-9e12-03ce4b9ed0f6",
+      "streamId": "c015a3c3-5e0a-450f-b2a7-70d51fe3b4f8",
+      "invocations": [
+        {
+          "invocationId": "7e2b7f8a-220e-4a27-bcdc-f558435ca10e",
+          "status": "completed"
+        }
+      ]
+    }
+  },
+  "child": {
+    "id": "3d84f03a-0058-4857-970b-195e30afc984",
+    "status": "completed",
+    "activation": "v1_b764abe533d5aaf4783628481eed312ee9a8fb68e35b28db638e0cb620c7b664",
+    "parentRun": "d139fa4e-ccca-477b-8c69-db18e45c2de6",
+    "parentVictTurn": "71de6d40-93c4-4807-9e12-03ce4b9ed0f6",
+    "parentInvocation": "7e2b7f8a-220e-4a27-bcdc-f558435ca10e"
+  },
+  "matchedParentTurn": true,
+  "matchedParentInvocation": true
+}
