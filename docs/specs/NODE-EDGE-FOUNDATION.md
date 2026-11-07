@@ -4,7 +4,7 @@
 
 ## 1. One foundation, several experiences
 
-Use one VICT-native authoring foundation and shared domain definitions across Agent Builder, AI Workflow, Business Workflow, Generative Pipeline and Creative Canvas. Their palettes and projections can differ. Definition, Trace and Session remain the three primary Studio views. A visual connection never implies execution by itself.
+Use one VICT-native authoring foundation and shared domain definitions across Agent Builder, AI Workflow, Business Workflow, Generative Pipeline and Creative Canvas. Their palettes and projections can differ. Definition graph, Execution trace and Session remain distinct underlying information concepts. The five primary task pages are Agents, Workflows, Creative, Sessions and Runs, per the [Studio Design Constitution](STUDIO-DESIGN-CONSTITUTION.md); this changes navigation, not node/edge semantics. A visual connection never implies execution by itself.
 
 The catalog uses four discovery families. These are organizational categories, not four runtime classes or a closed node inventory. Nodes may have multiple discovery tags, but each actual definition or invocation has explicit semantics.
 

@@ -1,5 +1,8 @@
 # TORI
 
+**Current stage: [V1a Agent Assembly](docs/implementation/V1A.md).** The fresh standalone Studio starts from documentation-only main. See the [local launch and walkthrough](docs/evidence/v1a/README.md). Work tracks the active slice as TORI-003; [GitHub issue #3](https://github.com/radz2291/VICT-Tori/issues/3) is the owner handoff.
+
+
 **VICT-native Studio and reusable AI orchestration capability, powered by Mastra.**
 
 TORI brings agent configuration, executable workflows, creative exploration, persistent sessions, and execution evidence into one environment. Applications consume the same capabilities that Studio uses. VICT owns definitions and authority; Mastra supplies AI execution mechanisms.

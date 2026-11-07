@@ -1,0 +1,34 @@
+{
+  "private": true,
+  "name": "tori-studio",
+  "version": "0.1.0",
+  "dependencies": {
+    "@ai-sdk/openai-compatible": "2.0.0",
+    "@sveltejs/vite-plugin-svelte": "5.1.1",
+    "@victframework/application": "file:packs/victframework-application-0.4.0-rc.1.tgz",
+    "@victframework/contracts": "file:packs/victframework-contracts-0.4.0-rc.1.tgz",
+    "@victframework/control": "file:packs/victframework-control-0.4.0-rc.1.tgz",
+    "@victframework/kernel": "file:packs/victframework-kernel-0.4.0-rc.1.tgz",
+    "@victframework/mastra": "file:packs/victframework-mastra-0.4.0-rc.1.tgz",
+    "@victframework/runtime": "file:packs/victframework-runtime-0.4.0-rc.1.tgz",
+    "@victframework/sdk": "file:packs/victframework-sdk-0.4.0-rc.1.tgz",
+    "@victframework/store-sqlite": "file:packs/victframework-store-sqlite-0.4.0-rc.1.tgz",
+    "@victframework/ui": "file:packs/victframework-ui-0.4.0-rc.1.tgz",
+    "@victframework/ui-ai-svelte": "file:packs/victframework-ui-ai-svelte-0.4.0-rc.1.tgz",
+    "@victframework/ui-editor": "file:packs/victframework-ui-editor-0.4.0-rc.1.tgz",
+    "@victframework/ui-flow-svelte": "file:packs/victframework-ui-flow-svelte-0.4.0-rc.1.tgz",
+    "@victframework/ui-media-svelte": "file:packs/victframework-ui-media-svelte-0.4.0-rc.1.tgz",
+    "@victframework/ui-patterns-svelte": "file:packs/victframework-ui-patterns-svelte-0.4.0-rc.1.tgz",
+    "@victframework/ui-structure-svelte": "file:packs/victframework-ui-structure-svelte-0.4.0-rc.1.tgz",
+    "@victframework/ui-svelte": "file:packs/victframework-ui-svelte-0.4.0-rc.1.tgz",
+    "svelte": "5.57.0",
+    "vite": "6.4.3",
+    "zod": "3.25.76"
+  },
+  "scripts": {
+    "test": "node --test tests/*.test.mjs",
+    "dev": "vite --host 127.0.0.1 --port 48761 --strictPort",
+    "build": "vite build"
+  },
+  "type": "module"
+}

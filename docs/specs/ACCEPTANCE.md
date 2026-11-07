@@ -13,7 +13,7 @@ Evidence levels: **D** deterministic contracts/failure probes; **S** installed S
 | Criterion | Required demonstration |
 | --- | --- |
 | U0-01 | A fresh install/build launches independent TORI Studio with documented Windows-compatible and portable instructions; no reliance on VICT Studio source aliases |
-| U0-02 | All six areas and three principal views operate with shared project/selection context and native VICT components |
+| U0-02 | All six functional areas are reachable through the five task pages (Agents, Workflows, Creative, Sessions, Runs) and relevant management contexts, with shared project/selection identity; the distinct Definition/Trace/Session information models remain intact. Review surfaces use **public VICT UI Foundation controls for every covered role** and consistent toolbar/Window-menu panel visibility as specified in the [Studio Design Constitution](STUDIO-DESIGN-CONSTITUTION.md) |
 | U0-03 | From blank, create/edit/clone/retire an agent definition; attach Skills/tools; configure model/mode/memory/policies; inline/inspector values agree; show/hide resource projections without changing bindings; distinguish invocation inputs from shared definitions |
 | U0-04 | Create/move/connect/reconnect/delete typed graph nodes; reject incompatible/dangling/capacity-invalid connections with specific diagnostics; permit reference cycles while unsupported execution cycles receive readiness diagnostics |
 | U0-05 | Undo/Redo authoring changes; preserve an intervening manual edit; reject stale revisions; save, fully reload and reopen definitions/layout including incomplete drafts; domain and projection identities remain consistent |
@@ -27,7 +27,7 @@ Evidence levels: **D** deterministic contracts/failure probes; **S** installed S
 | U0-13 | Public artifact consumer smoke proves required VICT packages/exports; stub/live ports, dependency identities and semantic graph mapping are documented, including draft/readiness checks, coordinating engine boundaries and branch behavior |
 | U0-14 | Fresh independent engineering review at exact candidate; reproducible owner walkthrough and known issues; owner UX approval recorded separately |
 
-U0 engineering completion does not pass T01–T09. U0 remains at the owner review boundary until O approval is recorded.
+U0-02 and U0-11 are checked using the [UI/UX Verification Matrix](UI-UX-VERIFICATION.md). Its individual checks are **evidence probes for existing U0 obligations**, not an independent stage or a claim that new runtime capabilities are required in UI-first U0. The strict public VICT component policy applies to every presented U0 surface, even when execution data is stubbed. A covered role using a browser-native/custom substitute without an approved exception fails the UI review. U0 engineering completion does not pass T01–T09. U0 remains at the owner review boundary until O approval is recorded.
 
 ### Required Node & Edge fixture coverage
 

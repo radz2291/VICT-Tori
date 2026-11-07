@@ -1,5 +1,9 @@
 # TORI handoff
 
+**Current authority — V1a:** [GitHub issue #3](https://github.com/radz2291/VICT-Tori/issues/3) and Rolladice Work TORI-003. Use the [V1a contract](docs/implementation/V1A.md), [ownership and pins](docs/evidence/v1a/OWNERSHIP.md), and root [launch instructions](README.md). Use the adopted [Design Constitution](docs/specs/STUDIO-DESIGN-CONSTITUTION.md) for all presented surfaces. U0 code and tests are read-only and do not gate or form the implementation base. The owner reviews the actual candidate; engineering evidence is not owner acceptance.
+
+## Historical bootstrap handoff (not active)
+
 ## Current bootstrap authority
 
 The owner supplied `https://github.com/radz2291/VICT-Tori` and asked: **“This is your repo.. pls prepare in detail.”** The surrounding instruction is to prepare the repository before handing implementation to Codex. This authorizes the specification/bootstrap commit, not a claim that the application has been implemented or accepted.

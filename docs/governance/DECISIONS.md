@@ -1,5 +1,8 @@
 # Decision and open-question register
 
+**D-V1A — 7 November 2026, owner adopted.** [Issue #3](https://github.com/radz2291/VICT-Tori/issues/3) supersedes P-01 where U0 completion or acceptance was a dependency for V1a. U0 implementations, reports and acceptance status remain historical. V1a independently composes installed VICT artifacts from a clean repository baseline. The Design Constitution remains the UI authority, and V1a requires its own hands-on owner review. No upstream or live installation change is authorized.
+
+
 Source: owner/assistant discussion supplied with the repository-preparation request, consolidated 2 November 2026. Distinguish an owner-agreed product direction from this pack's proposed implementation details. Current stage authority remains in HANDOFF, not this historical register.
 
 ## Agreed direction

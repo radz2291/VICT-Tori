@@ -1,5 +1,8 @@
 # Implementation roadmap
 
+**Active owner pivot, 7 November 2026:** [Issue #3](https://github.com/radz2291/VICT-Tori/issues/3) authorizes the fresh [V1a slice](V1A.md) on a clean base. U0 remains historical reference; its product acceptance is no longer a prerequisite for V1a. The stage table retains the cumulative runtime objectives. Issue #3 governs the first working V1a checkpoint and does not authorize V1b or subsequent stages.
+
+
 The owner agreed the delivery approach and final expectations. This is a proposed execution breakdown. Current authorization is in [HANDOFF](../../HANDOFF.md); a roadmap row is not permission to execute every stage. G0/U0 is the prepared next implementation task. All runtime stages remain unstarted.
 
 ## Stage sequence

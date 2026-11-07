@@ -1,5 +1,11 @@
 # TORI current state
 
+**7 November 2026 — V1a active, fresh implementation.** Radzi's [issue #3](https://github.com/radz2291/VICT-Tori/issues/3) supersedes the U0 acceptance dependency for this bounded slice. V1a is assigned in Rolladice Work as **TORI-003**. The implementation starts at documentation-only main `a9eaf445b9025dcb65dbf8a97446871e746dae25` in `codex/tori-v1a`. U0 is preserved on its own branches as reference evidence. See [V1a ownership](docs/evidence/v1a/OWNERSHIP.md) and [slice contract](docs/implementation/V1A.md).
+
+V1a covers one Agent Assembly, explicit VICT activation, a real Z.AI Session and truthful turn evidence. Owner visual/interaction acceptance and independent verification remain open. VICT Studio, its current agent and paused Milestone 2 are outside this handoff.
+
+## Historical bootstrap and U0 context
+
 **2 November 2026 — Repository preparation complete; Node & Edge Foundation v0.1 adopted; application implementation not started.** The historical bootstrap has independent documentation-only PASS at remote candidate `e4ae1cfe86385420724565f67d77c28ec50e26ea`, verified equal to its reviewed local file tree; its GitHub documentation CI passed. [Bootstrap validation](docs/evidence/bootstrap/VALIDATION.md) records those identities, corrections and limits. Subsequent ownership, Work coordination and Node & Edge amendments are documentation changes with their own commit/review attribution. There is no runtime, UI acceptance, independent product verdict, or deployed TORI service.
 
 ## Authority and readiness

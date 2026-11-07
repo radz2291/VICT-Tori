@@ -25,15 +25,19 @@ Reusable functionality must be available through a documented programmatic bound
 
 No second general agent runtime, replacement VICT definition registry, new general workflow engine, or new graph editor. Reuse existing mechanisms and expose missing product capabilities. A custom bridge is justified by a concrete gap, not by convenience in bypassing an existing public contract.
 
-## 3. Three primary views
+## 3. Three underlying concepts; five user-facing Studio pages
 
-**Definition — design.** Author and inspect agent, workflow, connection, memory, model, and capability configuration. Agent, Workflow, and Creative surfaces share this authoring foundation; they are not separate applications.
+The following remain **three distinct types of product state**, not the top-level navigation:
 
-**Trace — observe.** Inspect actual run evidence: steps, tools, delegation, human requests, errors, artifacts, usage, and provenance. No graph animation can substitute for execution events.
+**Definition graph — design.** Author and inspect agent, workflow, connection, memory, model and capability configuration. Agent, Workflow and Creative use the same authoring foundation; they are not separate applications.
 
-**Session — operate.** An ongoing workspace with conversation, mode, chosen model, participants, background tasks, memory context, artifacts, and several runs. Navigation does not erase the session.
+**Execution trace — observe.** Inspect actual run evidence: steps, tools, delegation, human requests, errors, artifacts, usage and provenance. No graph animation can substitute for execution events.
 
-Activation remains a first-class internal object, visible in definition inspection and run provenance, rather than a fourth primary view. It is an immutable authorized snapshot, not a mutable “current settings” object.
+**Session — operate.** An ongoing workspace with conversation, mode, chosen model, participants, background tasks, memory context, artifacts and several runs. Navigation does not erase the session.
+
+**Primary Studio navigation is Agents · Workflows · Creative · Sessions · Runs.** These are task-oriented pages that expose the relevant definitions, sessions and run evidence. They do not introduce new runtime/state stores. The [Studio Design Constitution](STUDIO-DESIGN-CONSTITUTION.md) governs shell, menu, panel behavior, component policy and user-facing navigation; the [UI Foundation](UI-FOUNDATION.md) owns the six functional areas.
+
+Activation remains a first-class internal object, visible in definition inspection and run provenance, rather than an extra primary page. It is an immutable authorized snapshot, not a mutable “current settings” object.
 
 ## 4. One authoring foundation, explicit relationship meanings
 

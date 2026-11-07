@@ -1,0 +1,32 @@
+{
+  "schema": "tori.context-source@1",
+  "id": "synthetic-research-brief",
+  "version": "1",
+  "role": "protocol",
+  "origin": {
+    "kind": "fixture",
+    "uri": "fixtures/v1a/research-brief.context.json"
+  },
+  "scope": {
+    "projects": [
+      "local-evaluation"
+    ],
+    "invocations": [
+      "research-brief"
+    ]
+  },
+  "trust": "synthetic-owner-authored",
+  "manifest": {
+    "instructions": "Separate observations, hypotheses, and open questions in a synthetic research brief.",
+    "references": [],
+    "assets": [],
+    "scripts": []
+  },
+  "exampleBinding": {
+    "strategy": "on-demand",
+    "budget": {
+      "maxInputTokens": 256
+    }
+  },
+  "executionSupport": "design-fixture-only"
+}
