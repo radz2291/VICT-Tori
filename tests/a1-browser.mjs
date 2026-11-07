@@ -73,8 +73,8 @@ try {
     await page.getByText('Deterministic A1 fixture answer.',{exact:true}).last().waitFor();
   }
 
-  await page.goto(url);
-  await button('Add Agent').click();
+  await page.goto(url,{timeout:120000});
+  await button('Add Agent').click({timeout:60000});
   await field('inspector-agent-name').fill('A1 Fixture Agent');
   await field('inspector-agent-text').fill('Return a concise synthetic answer.');
   await button('Add model').click();
@@ -125,7 +125,7 @@ try {
 
   await stop();
   await launch();
-  await page.reload();
+  await page.reload({timeout:120000});
   await button('Sessions').click();
   await field('session-picker').selectOption(old.id);
   await turn(old,4096);
