@@ -88,7 +88,7 @@ test('A3 Studio uses pinned context, scoped memory, and a governed MCP read with
     assert.doesNotMatch(JSON.stringify(requests.at(-1).messages),/TERN-CONTEXT-/);
     delete process.env.TORI_CONTEXT_REVOKED;
 
-    edit(add('tool'),wire('tool','tool'),change('agent','maxSteps',2));
+    edit(add('tool'),wire('tool','tool'),change('agent','maxSteps',2),change('agent','maxRetries',1));
     const enough=await activate();
     assert.equal(await countToolCalls(),0);
     const before=requests.length;
@@ -109,6 +109,8 @@ test('A3 Studio uses pinned context, scoped memory, and a governed MCP read with
     assert.equal(limited.status,'failed',JSON.stringify(limited));
     assert.equal(limited.errorCode,'TORI_MODEL_STEP_LIMIT');
     assert.equal(limited.modelSteps,1);
+    assert.equal(limited.execution.maxRetries,1);
+    assert.equal(limited.providerAttempts,1);
     assert.equal(requests.length-lowBefore,1);
     assert.equal(await countToolCalls(),2);
     assert.equal(limited.governance.calls,1);
