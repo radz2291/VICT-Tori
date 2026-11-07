@@ -1,5 +1,7 @@
 # V1a reasoning visibility repair
 
+**Historical checkpoint:** Superseded for public-stream acceptance by [R-VIS-01](R-VIS-01.md). This provider-boundary observation did not pass through VICT's public reasoning contract.
+
 Product `728cbc7283c5d3f7451b123461ef1b208c131cf8` on `codex/tori-v1a`; prior review candidate `caa6411b31d0d32bb8cf7a7e2425a3288598f7a6`. Owner review feedback: thinking/reasoning was not visible in Session.
 
 The same installed public VICT `0.4.0-rc.1` StatusBadge changes from Waiting for Z.AI to Thinking only after Z.AI streams a reasoning signal. It changes to Preparing answer when visible answer text starts arriving. Session displays observed activity after completion; Runs stores only the first activity timestamps as timeline milestones. Older records have no reasoning telemetry. The provider route does not supply a separate public summary, and the supported SSE path strips raw reasoning before Mastra; Studio saves and displays only activity timestamps. Session and Run captions are read-only text; no new control role or exception.

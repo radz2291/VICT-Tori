@@ -2,7 +2,7 @@
 
 **Current authority — V1a:** [GitHub issue #3](https://github.com/radz2291/VICT-Tori/issues/3) and Rolladice Work TORI-003. Use the [V1a contract](docs/implementation/V1A.md), [ownership and pins](docs/evidence/v1a/OWNERSHIP.md), and root [launch instructions](README.md). Use the adopted [Design Constitution](docs/specs/STUDIO-DESIGN-CONSTITUTION.md) for all presented surfaces. U0 code and tests are read-only and do not gate or form the implementation base. The early hands-on product candidate is `caa6411b31d0d32bb8cf7a7e2425a3288598f7a6`: [local Studio](http://127.0.0.1:48761/), [builder evidence](docs/evidence/v1a/VERIFICATION.md) and [independent findings](docs/evidence/v1a/INDEPENDENT.md). The owner reviews the actual candidate; engineering evidence is not owner acceptance.
 
-**Review repair:** Product `728cbc7283c5d3f7451b123461ef1b208c131cf8` adds [observed thinking activity](docs/evidence/v1a/REASONING-VISIBILITY.md) to the running preview. The original candidate and its evidence retain their separate attribution.
+**R-VIS-01 review repair:** Product `8329b64f5c3297736758945e7e50299b34ccea20` verifies the installed reasoning boundary. [Public reasoning visibility is BLOCKED](docs/evidence/v1a/R-VIS-01.md) by VICT's adapter/stream contract; the same preview keeps the live Session and shows an honest unavailable state. The earlier provider-only projection is historical and does not pass this criterion.
 
 ## Historical bootstrap handoff (not active)
 

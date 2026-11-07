@@ -27,3 +27,5 @@ Held for final review: owner visual/interaction acceptance, direct panel resizin
 At the final candidate, the non-provider browser rerun passed at 1531×668, 1728×960 and 390×844, including Undo back to the saved draft and phone sheet close. The final build and both deterministic tests passed.
 
 The [independent UX challenge](INDEPENDENT.md) rechecked the keyboard, dirty state, dock and focus repairs at the final product candidate. The early owner walkthrough is open.
+
+**Amended criterion R-VIS-01: BLOCKED** for end-to-end public reasoning. The [separate installed boundary report](R-VIS-01.md) verifies the live provider and Mastra observations, VICT filtering and strict schema, current public-only fallback, and a proposed upstream extension. The real Session still passes. The historical UI/provider observation is not counted as public VICT evidence.
