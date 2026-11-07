@@ -36,6 +36,28 @@ try {
   assert.equal(await button('Reopen saved draft').evaluate(element => element === document.activeElement), true);
   for (const route of ['Agents', 'Workflows', 'Creative', 'Sessions', 'Runs']) {
     await button(route).click();
+    if (route === 'Workflows') {
+      await button('Add node').click();
+      await page.getByLabel('Node', { exact: true }).click();
+      await page.getByRole('option', { name: 'Run agent', exact: true }).click();
+      await button('Add node').click();
+      for (const [label, option] of [['Output', 'Request · Brief'], ['Input', 'Run agent · Brief']]) {
+        await page.getByLabel(label, { exact: true }).click();
+        await page.getByRole('option', { name: option, exact: true }).click();
+      }
+      await button('Connect').click();
+      const edge = page.locator('.svelte-flow__edge-path:visible').first();
+      await edge.waitFor();
+      results.graphColors = await edge.evaluate(element => ({
+        stroke: getComputedStyle(element).stroke,
+        width: getComputedStyle(element).strokeWidth,
+        ports: Array.from(document.querySelectorAll('.svelte-flow__handle')).map(port => ({
+          color: getComputedStyle(port).color,
+          background: getComputedStyle(port).backgroundColor,
+          border: getComputedStyle(port).borderColor
+        }))
+      }));
+    }
     results.surfaces.push({
       route,
       buttons: await page.getByRole('button').allTextContents(),
@@ -45,8 +67,8 @@ try {
     await capture(route.toLowerCase() + '-desktop');
   }
   await button('Workflows').click();
-  await page.getByLabel('Node', { exact: true }).press('Enter');
-  const option = page.getByRole('option', { name: 'Run agent', exact: true });
+  await page.getByLabel('Node', { exact: true }).press('ArrowDown');
+  const option = page.getByRole('option', { selected: true });
   await option.waitFor();
   await capture('workflow-select');
   await page.keyboard.press('Escape');

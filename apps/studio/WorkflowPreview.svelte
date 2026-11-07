@@ -71,7 +71,7 @@
       {options.find(option => option.value === value)?.label ?? `Choose ${label.toLowerCase()}`}
     </Select.Trigger>
     <Select.Portal>
-      <Select.Content sideOffset={6} align="start">
+      <Select.Content class="workflow-options" sideOffset={6} align="start">
         {#each options as option (option.value)}
           <Select.Item value={option.value} label={option.label}>{option.label}</Select.Item>
         {/each}
@@ -142,6 +142,8 @@
   nodeId="workflow" occurrenceKey="workflow"/></GraphHost>
 
 <style>
+  :global(.studio .workflow-options) { min-width: min(14rem, calc(100vw - 20px)); width: max-content; max-width: calc(100vw - 20px); }
+  :global(.studio .workflow-options [role=option]) { white-space: nowrap; }
   .connection-feedback { flex-basis: 100%; }
   .commands :global(.workflow-picker) { width: auto; max-width: 100%; }
   .commands { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; padding: 4px 14px; border-bottom: 1px solid var(--vict-color-border); }

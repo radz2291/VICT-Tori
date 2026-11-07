@@ -431,8 +431,11 @@
     --vict-color-focusRing: var(--vict-color-accent);
     --studio-raised: #29292b;
     background: var(--vict-color-bg);
+    color: var(--vict-color-text);
+  }
+  :global(.studio:has(> .menu-strip)) {
     min-height: 100dvh;
-    display: flex; flex-direction: column; color: var(--vict-color-text);
+    display: flex; flex-direction: column;
   }
   header, .workbar, .tools, .group, nav, .project, footer { display: flex; align-items: center; gap: .5rem; }
   header { min-height: 44px; padding: 4px 14px; justify-content: space-between; flex-wrap: wrap; border-bottom: 1px solid var(--vict-color-border); background: var(--vict-color-surface); }
