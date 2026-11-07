@@ -1,5 +1,7 @@
 # TORI current state
 
+**A1 ready for owner review.** Radzi accepted the Essential Agent Capability Baseline v0.1.0 and authorized A1. Candidate `c28b28c0d1d52818461eefbe456d7b026a4a046d` passed deterministic browser and fresh installed-consumer checks. See [A1 evidence and isolated fixture preview](docs/evidence/v1a/A1.md) and [baseline with proposed A3 acceptance](docs/implementation/ESSENTIAL-AGENT-CAPABILITY-BASELINE.md). Owner review and an independent verdict remain pending. A2 and VICT #3 Gate B require separate authority.
+
 **7 November 2026 — V1a active, fresh implementation.** Radzi's [issue #3](https://github.com/radz2291/VICT-Tori/issues/3) supersedes the U0 acceptance dependency for this bounded slice. V1a is assigned in Rolladice Work as **TORI-003**. The implementation starts at documentation-only main `a9eaf445b9025dcb65dbf8a97446871e746dae25` in `codex/tori-v1a`. U0 is preserved on its own branches as reference evidence. See [V1a ownership](docs/evidence/v1a/OWNERSHIP.md) and [slice contract](docs/implementation/V1A.md).
 
 **R-VIS-01 review repair:** Product `8329b64f5c3297736758945e7e50299b34ccea20` verifies the installed reasoning boundary. [Public reasoning visibility is BLOCKED](docs/evidence/v1a/R-VIS-01.md) by VICT's adapter/stream contract; the same preview keeps the live Session and shows an honest unavailable state. The earlier provider-only projection is historical and does not pass this criterion.
