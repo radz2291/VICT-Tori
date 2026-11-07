@@ -1,7 +1,7 @@
 <script lang="ts">
   import { Button, Select, StatusBadge, Feedback } from '@victframework/ui-svelte';
   import { Input, Textarea } from '@victframework/ui-ai-svelte';
-  import { binding, field, instructions, modelId, modelName, rootId, instructionId, modelNodeId, outputTokens, tokenSourceId } from './assembly';
+  import { binding, field, instructions, modelId, modelName, rootId, instructionId, modelNodeId, outputTokens, tokenSourceId, a3Resources } from './assembly';
   let {graph,route,id,area,edit,expose,exposeTokens,connect,disconnect,remove}=$props();
   let prefix=$derived(area+'-'+id);
   let name=$derived(String(field(graph,rootId,'name')??''));
@@ -9,6 +9,12 @@
   let tokenWire=$derived(binding(graph,'tokens'));
   const numeric=(value:string)=>value===''?undefined:Number(value);
   let sampling=$derived(graph.nodes.find(n=>n.id===modelNodeId)?.values);
+  let resource=$derived(a3Resources.find(item=>item.id===id));
+  const choices={
+    context:[{value:'reference@1',label:'Observatory reference · r1'},{value:'reference@2',label:'Observatory reference · r2'}],
+    memory:[{value:'recent-10@1',label:'Last 10 messages'},{value:'recent-100@1',label:'Last 100 messages'}],
+    tool:[{value:'local-reference@1',label:'Local observatory · read only'}],
+  };
   let modelWire=$derived(binding(graph,'model'));
 </script>
 
@@ -23,12 +29,15 @@
     <Input id={prefix+'-steps'} class="tori-field" type="number" min={1} max={4} step={1} value={field(graph,id,'maxSteps')} oninput={(e)=>edit(id,'maxSteps',numeric(e.currentTarget.value))}/>
     <label for={prefix+'-retries'}>Max model retries</label>
     <Input id={prefix+'-retries'} class="tori-field" type="number" min={0} max={1} step={1} value={field(graph,id,'maxRetries')} oninput={(e)=>edit(id,'maxRetries',numeric(e.currentTarget.value))}/>
-    <p class="muted">Host deadline: 90 seconds. Tool calls are disabled.</p>
+    <p class="muted">Host deadline: 90 seconds. {binding(graph,'tool')?'One governed read allowed.':'Tool calls are disabled.'}</p>
     <dl><dt>Model binding</dt><dd>{modelWire ? modelName : 'Not connected'}</dd><dt>Runtime</dt><dd>Conversation only · no tools</dd></dl>
   {/if}
 {:else if id===instructionId}
   <label for={prefix+'-value'}>Text value</label>
   <Textarea id={prefix+'-value'} class="tori-field nodrag nowheel" rows={area==='node'?2:4} value={String(field(graph,id,'text')??'')} oninput={(e)=>edit(id,'text',e.currentTarget.value)}/>
+{:else if resource}
+  <label for={prefix+'-reference'}>{resource.label}</label>
+  <div class="nodrag"><Select id={prefix+'-reference'} name="reference" value={String(field(graph,id,'reference'))} options={choices[resource.id]} onChange={v=>edit(id,'reference',v)}/></div>
 {:else if id===tokenSourceId}
   <label for={prefix+'-tokens'}>Output limit value</label>
   <Input id={prefix+'-tokens'} class="tori-field nodrag" type="number" min={64} max={32768} step={1} value={Number(field(graph,id,'tokens'))} oninput={(e)=>edit(id,'tokens',Number(e.currentTarget.value))}/>
@@ -59,6 +68,10 @@
     {#if id===tokenSourceId && !tokenWire}<Button label="Connect to output limit" variant="secondary" onclick={()=>connect(id,'tokens')}/>{/if}
     {#if id===modelNodeId && !modelWire}<Button label="Connect to Model" variant="secondary" onclick={()=>connect(id,'model')}/>{/if}
     {#if id===modelNodeId && modelWire}<Button label="Detach model reference" variant="secondary" onclick={()=>disconnect('model')}/>{/if}
+    {#if resource}
+      <Button label={binding(graph,id)?'Detach '+resource.label:'Connect '+resource.label} variant="secondary"
+        onclick={()=>binding(graph,id)?disconnect(id):connect(id,id)}/>
+    {/if}
     <Button label="Delete node" variant="danger" onclick={()=>remove(id)}/>
   </div>
 {/if}

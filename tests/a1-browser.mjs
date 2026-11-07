@@ -13,6 +13,7 @@ const capture = join(directory,'capture.jsonl');
 const port = process.env.TORI_A1_PORT ?? '48769';
 const url = 'http://127.0.0.1:'+port;
 const a2=process.env.TORI_BROWSER_A2==='1';
+const a3=process.env.TORI_BROWSER_A3==='1';
 let server, browser, log = '';
 async function launch() {
   log = '';
@@ -148,6 +149,57 @@ try {
   await field('session-picker').selectOption(next.id);
   await turn(next,2048);
   assert.deepEqual(await readCapture(),[4096,2048,4096,2048]);
+  if(a3){
+    await button('Agents').click();
+    await button('Output limit Integer').click();
+    await field('inspector-output-limit-tokens').fill('4096');
+    for(const label of ['Context Source','Memory Policy','Read-only MCP Tool']){
+      await page.getByRole('menuitem',{name:'Insert',exact:true}).click();
+      await page.getByRole('menuitem',{name:label,exact:true}).click();
+      await button('Connect '+label).click();
+    }
+    await button('A1 Fixture Agent').click();
+    await field('inspector-agent-steps').fill('2');
+    await clickRequest('Save','save');
+    await clickRequest('Activate','activate');
+    await clickRequest('Start Session','sessions');
+    await page.getByRole('checkbox',{name:'Include pinned context on next turn'}).click();
+    async function readReference(){
+      const composer=page.getByRole('textbox',{name:'Message'});
+      await composer.fill('Read the synthetic observatory reference.');
+      const pending=page.waitForResponse(r=>r.url().endsWith('/api/studio/turn'));
+      await composer.press('Enter');
+      const response=await pending;
+      assert.equal(response.status(),200);
+      return (await response.json()).runs[0];
+    }
+    const enough=await readReference();
+    assert.equal(enough.status,'completed');
+    assert.equal(enough.modelSteps,2);
+    assert.equal(enough.governance.calls,1);
+    assert.equal(enough.context.status,'admitted');
+    await button('Inspect runs').click();
+    await page.getByText('1 MCP calls · completed',{exact:true}).waitFor();
+    await page.screenshot({path:join(directory,'a3-completed.png'),animations:'disabled'});
+    await button('Agents').click();
+    await button('A1 Fixture Agent').click();
+    await field('inspector-agent-steps').fill('1');
+    await clickRequest('Save','save');
+    await clickRequest('Activate','activate');
+    await clickRequest('Start Session','sessions');
+    const low=await readReference();
+    assert.equal(low.errorCode,'TORI_MODEL_STEP_LIMIT');
+    assert.equal(low.modelSteps,1);
+    assert.equal(low.governance.calls,1);
+    await button('Inspect runs').click();
+    await page.getByText('Model step limit reached before the next call.',{exact:true}).waitFor();
+    await page.screenshot({path:join(directory,'a3-step-limit.png'),animations:'disabled'});
+    await button('Open Session').click();
+    await button('Delete Session').click();
+    await page.getByRole('dialog').getByText('Delete this Session?').waitFor();
+    await clickRequest('Confirm delete Session','delete-session');
+    assert.ok(!(await api()).sessions.some(session=>session.id===low.session));
+  }
   assert.deepEqual(errors,[]);
   console.log(JSON.stringify({mode:'deterministic fixture only',requests:await readCapture(),
     invalidDrafts:['63','64.5','32769'],restartIsolation:true,evidenceDirectory:directory}));

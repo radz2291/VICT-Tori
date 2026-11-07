@@ -8,7 +8,14 @@ globalThis.fetch = async (url, init) => {
   assert.equal(body.model, 'glm-5.3-flash');
   assert.equal(body.stream, true);
   appendFileSync(process.env.TORI_A1_CAPTURE, JSON.stringify({maxOutputTokens:body.max_tokens})+'\n');
-  const chunks = [
+  const lastUser=body.messages.findLastIndex(message=>message.role==='user');
+  const requestTool=process.env.TORI_BROWSER_A3==='1'&&body.tools?.length&&
+    !body.messages.slice(lastUser+1).some(message=>message.role==='tool');
+  const chunks = requestTool ? [
+    {choices:[{index:0,delta:{role:'assistant',tool_calls:[{index:0,id:'a3-browser-read',type:'function',
+      function:{name:body.tools[0].function.name,arguments:'{"key":"observatory"}'}}]},finish_reason:null}]},
+    {choices:[{index:0,delta:{},finish_reason:'tool_calls'}]},
+  ] : [
     {choices:[{index:0,delta:{role:'assistant',content:'Deterministic A1 fixture answer.'},finish_reason:null}]},
     {choices:[{index:0,delta:{},finish_reason:'stop'}]},
     {choices:[],usage:{prompt_tokens:5,completion_tokens:9,total_tokens:14}},

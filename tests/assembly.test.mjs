@@ -39,7 +39,8 @@ test('typed links, shared edit and history retain the last valid graph',()=>{
 test('output limit upgrades older graphs, rejects wrong wires and checks numeric boundaries',()=>{
   const {emptyAssembly,history,add,change,wire,readiness,resolved,modelId,tokenSourceId}=assembly;
   const graph=emptyAssembly();
-  graph.nodeTypes=graph.nodeTypes.filter(node=>node.id!==tokenSourceId);
+  graph.nodeTypes=graph.nodeTypes.filter(node=>['agent','text','model'].includes(node.id));
+  graph.nodeTypes.find(node=>node.id==='agent').ports=graph.nodeTypes.find(node=>node.id==='agent').ports.filter(port=>['instructions','model'].includes(port.id));
   delete graph.nodeTypes.find(node=>node.id==='agent').parameters.maxSteps;
   delete graph.nodeTypes.find(node=>node.id==='agent').parameters.maxRetries;
   delete graph.nodeTypes.find(node=>node.id==='model').parameters.temperature;

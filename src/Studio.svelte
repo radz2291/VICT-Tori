@@ -2,12 +2,13 @@
   import { onMount, tick } from 'svelte';
   import { Button, ControlScope, Feedback, Select, StatusBadge } from '@victframework/ui-svelte';
   import { Button as ControlButton, Dialog, Menubar } from '@victframework/ui-svelte/primitives';
+  import { Checkbox } from '@victframework/ui-svelte/catalog/checkbox';
   import { Conversation, Input } from '@victframework/ui-ai-svelte';
   import { SvelteFlow, SvelteFlowProvider, Background } from '@victframework/ui-flow-svelte';
   import AssemblyNode from './AssemblyNode.svelte';
   import FlowAccess from './FlowAccess.svelte';
   import Fields from './Fields.svelte';
-  import {add,binding,change,emptyAssembly,field,history,instructions,modelName,readiness,resolved,wire,outputTokens,tokenSourceId} from './assembly';
+  import {add,binding,change,emptyAssembly,field,history,instructions,modelName,readiness,resolved,wire,outputTokens,tokenSourceId,a3Resources} from './assembly';
 
   const initial=emptyAssembly();
   let graph=$state.raw(initial);
@@ -30,6 +31,7 @@
   let sendActivity=$state<{session:string;phase:string}|null>(null);
   let error=$state(''), graphError=$state('');
   let activeSession=$state(''), activeRun=$state('');
+  let includeContext=$state(false), deleteOpen=$state(false);
   let session=$derived(state.sessions.find((s)=>s.id===activeSession));
   let run=$derived(state.runs.find((r)=>r.id===activeRun));
   let layoutWidth=$state('Standard');
@@ -38,7 +40,7 @@
   let types={assembly:AssemblyNode};
   let nodes=$state.raw<any[]>([]);
   const pages=['Agents','Workflows','Creative','Sessions','Runs'];
-  const objectTitle=(id:string)=>id==='agent' ? resolved(graph).name||'Untitled agent':id==='model'?(field(graph,id,'model')?modelName:'Unassigned model'):id===tokenSourceId?'Output limit Integer':'System prompt';
+  const objectTitle=(id:string)=>id==='agent' ? resolved(graph).name||'Untitled agent':id==='model'?(field(graph,id,'model')?modelName:'Unassigned model'):id===tokenSourceId?'Output limit Integer':a3Resources.find(item=>item.id===id)?.label??'System prompt';
 
   async function request(path='',data?:any) {
     const response=await fetch('/api/studio'+path, data===undefined?{}:{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)});
@@ -67,7 +69,7 @@
   $effect(()=>{
     const g=graph,s=selection;
     nodes=g.nodes.map(n=>({id:n.id,type:'assembly',position:n.position,selected:s===n.id,
-      data:{title:objectTitle(n.id),subtitle:n.id==='agent'?(binding(g,'model')?modelName:'Model unbound'):n.id==='model'?'Z.AI · text generation':n.id===tokenSourceId?'Reusable output limit':'Reusable system instructions',
+      data:{title:objectTitle(n.id),subtitle:n.id==='agent'?(binding(g,'model')?modelName:'Model unbound'):n.id==='model'?'Z.AI · text generation':n.id===tokenSourceId?'Reusable output limit':a3Resources.some(item=>item.id===n.id)?'Revisioned resource':'Reusable system instructions',
         fields:{graph:g,route:state.route,edit,expose,exposeTokens,connect,disconnect,remove}}}));
   });
   let edges=$derived(graph.edges.map(e=>({id:e.id,source:e.source,target:e.target,sourceHandle:e.sourcePort,targetHandle:e.targetPort,selectable:false,
@@ -109,7 +111,7 @@
       void reveal(tokenSourceId);
   }
   function onConnection(c:any){
-    const validTarget=c.target==='agent' ? ['instructions','model'].includes(c.targetHandle) :
+    const validTarget=c.target==='agent' ? ['instructions','model',...a3Resources.map(item=>item.id)].includes(c.targetHandle) :
       c.target==='model' && c.targetHandle==='tokens';
     if(!validTarget||c.sourceHandle!=='value'){graphError='Connect a compatible source output to an Agent or Model input.';return;}
     connect(c.source,c.targetHandle);
@@ -118,7 +120,13 @@
   const save=()=>action(async()=>{const snapshot=graph;applyState(await request('/save',{graph:snapshot,expected:state.revision}));baseline=authoringBytes(snapshot);});
   const reload=()=>action(async()=>{const next=await request();applyState(next);reopen(next);});
   const activate=()=>action(async()=>{applyState(await request('/activate',{revision:state.revision}));});
-  const start=()=>action(async()=>{const next=await request('/sessions',{activation:state.activation.version});activeSession=next.sessions[0].id;applyState(next);page='Sessions';});
+  const start=()=>action(async()=>{const next=await request('/sessions',{activation:state.activation.version});activeSession=next.sessions[0].id;includeContext=false;applyState(next);page='Sessions';});
+  const deleteSession=()=>action(async()=>{
+    const next=await request('/delete-session',{session:activeSession});
+    activeSession=next.sessions[0]?.id??'';
+    applyState(next);
+    deleteOpen=false;
+  });
   async function send(input:string,accepted?:()=>void){
     const id=activeSession;
     sending=true;
@@ -136,7 +144,8 @@
     };
     void poll();
     try{
-      const next=await request('/turn',{session:id,input});
+      const next=await request('/turn',{session:id,input,includeContext});
+      includeContext=false;
       applyState(next);
       activeRun=next.runs[0]?.id??'';
       accepted?.();
@@ -169,7 +178,8 @@
     {name:'File',items:[{label:'Save draft',fn:save,disabled:!dirty||pending||!loaded},{label:'Reopen saved draft',fn:reload,disabled:dirty||pending||!state.revision}]},
     {name:'Edit',items:[{label:'Undo',fn:()=>travel('undo'),disabled:!canUndo},{label:'Redo',fn:()=>travel('redo'),disabled:!canRedo}]},
     {name:'View',items:[{label:'Fit canvas',fn:fit,disabled:page!=='Agents'||!graph.nodes.length}]},
-    {name:'Insert',items:[{label:'Agent Definition',fn:()=>create('agent'),disabled:!!graph.nodes.length},{label:'Instruction Text',fn:expose,disabled:!graph.nodes.length||!!binding(graph,'instructions')},{label:'Model Reference',fn:()=>create('model'),disabled:!graph.nodes.length||!!graph.nodes.find(n=>n.id==='model')}]},
+    {name:'Insert',items:[{label:'Agent Definition',fn:()=>create('agent'),disabled:!!graph.nodes.length},{label:'Instruction Text',fn:expose,disabled:!graph.nodes.length||!!binding(graph,'instructions')},{label:'Model Reference',fn:()=>create('model'),disabled:!graph.nodes.length||!!graph.nodes.find(n=>n.id==='model')},
+      ...a3Resources.map(item=>({label:item.label,fn:()=>create(item.id),disabled:!graph.nodes.length||graph.nodes.some(n=>n.id===item.id)}))]},
     {name:'Run',items:[{label:'Activate saved revision',fn:activate,disabled:activateDisabled},{label:'Start Session',fn:start,disabled:!state.activation||pending}]},
     {name:'Window',items:[{label:'Library',checked:mobile?undefined:library,fn:()=>toggle('Library'),disabled:page!=='Agents'},{label:'Inspector',checked:mobile?undefined:inspector,fn:()=>toggle('Inspector'),disabled:page!=='Agents'},{label:layoutWidth==='Wide'?'Use standard panels':'Use wider panels',fn:()=>layoutWidth=layoutWidth==='Wide'?'Standard':'Wide',disabled:mobile||page!=='Agents'},{label:'Reset layout',fn:()=>{layoutWidth='Standard';library=true;inspector=true;},disabled:mobile||page!=='Agents'}]},
     {name:'Help',items:[{label:'V1a · Assembly, Sessions and Runs',fn:()=>{},disabled:true}]},
@@ -268,10 +278,15 @@
           <header class="session-header"><div><p class="eyebrow">{session.fixture?'SESSION · DETERMINISTIC FIXTURE':'SESSION · LIVE PROVIDER'}</p><h1>{session.name}</h1><p>Z.AI {session.route==='coding'?'Coding':'General'} · {modelName} · Activated r{session.number} · Conversation</p></div>
             <StatusBadge value={sendActivity?.session===session.id?(sendActivity.phase==='answer'?'Writing answer':'Waiting for Z.AI'):session.interrupted?'Interrupted':session.connectionReady?'Ready':'Credential not connected'}/>
           </header>
-          {#if state.sessions.length>1}<div class="session-picker"><label for="session-picker">Open Session</label><Select id="session-picker" name="session" value={activeSession} options={state.sessions.map(s=>({value:s.id,label:s.name+' · '+new Date(s.created).toLocaleString()}))} onChange={v=>activeSession=v}/></div>{/if}
+          {#if state.sessions.length>1}<div class="session-picker"><label for="session-picker">Open Session</label><Select id="session-picker" name="session" value={activeSession} options={state.sessions.map(s=>({value:s.id,label:s.name+' · '+new Date(s.created).toLocaleString()}))} onChange={v=>{activeSession=v;includeContext=false;}}/></div>{/if}
+          {#if session.context}
+            <div class="session-picker"><Checkbox.Root id="context-demand" class="vict-btn vict-btn--secondary" bind:checked={includeContext} disabled={sending} aria-label="Include pinned context on next turn">{includeContext?'✓':'□'}</Checkbox.Root>
+            <label for="context-demand">Include pinned context on next turn</label></div>
+          {/if}
           <div class="conversation"><Conversation messages={session.messages} busy={sending} onSend={session.connectionReady&&!session.interrupted?send:undefined} emptyMessage="Start a conversation with your activated agent."/></div>
           <div class="session-foot">
             <span class="muted session-reasoning">Thinking details are unavailable through this connection.</span>
+            <Button label="Delete Session" variant="danger" disabled={sending||pending} onclick={()=>deleteOpen=true}/>
             <Button label="Inspect runs" variant="secondary" disabled={!state.runs.some(r=>r.session===activeSession)} onclick={()=>{activeRun=state.runs.find(r=>r.session===activeSession).id;page='Runs';}}/></div>
         {:else}
           <div class="empty"><p class="eyebrow">SESSIONS</p><h1>Start a conversation</h1><p>{state.activation?'Open a Session pinned to your active agent.':'Activate a saved agent to start a real Session.'}</p><Button label={state.activation?'Start Session':'Open Agents'} onclick={state.activation?start:()=>page='Agents'}/></div>
@@ -287,10 +302,14 @@
           <dt>Sampling</dt><dd>Temperature {run.execution.temperature??'provider default'}{run.sentTemperature!==undefined?' · sent '+run.sentTemperature:''} / Top-p {run.execution.topP??'provider default'}{run.sentTopP!==undefined?' · sent '+run.sentTopP:''}</dd>
           <dt>Execution limits</dt><dd>{run.execution.maxSteps} steps · {run.execution.maxRetries} model retries · {run.execution.maxToolCalls} tool calls · {run.execution.deadlineMs/1000}s host deadline</dd>
           <dt>Provider attempts</dt><dd>{run.providerAttempts}</dd>
-          {/if}<dt>Usage</dt><dd>{run.usage?run.usage.inputTokens+' input / '+run.usage.outputTokens+' output':'Not reported'}</dd><dt>Thinking</dt><dd>{run.reasoningAt?'Earlier provider observation; not a public VICT reasoning event.':'No public reasoning events or summary are available for this run.'}</dd><dt>Context</dt><dd>Pinned instructions and up to 100 recent messages. No JIT sources or tools.</dd></dl>
+          {/if}<dt>Usage</dt><dd>{run.usage?run.usage.inputTokens+' input / '+run.usage.outputTokens+' output':'Not reported'}</dd><dt>Thinking</dt><dd>{run.reasoningAt?'Earlier provider observation; not a public VICT reasoning event.':'No public reasoning events or summary are available for this run.'}</dd><dt>Context</dt><dd>{run.context?run.context.source+' · '+run.context.status+(run.context.reason?' · '+run.context.reason:''):'No on-demand source admitted'}</dd>
+          {#if run.memory}<dt>Scoped memory</dt><dd>{run.memory==='recent-10@1'?'Last 10 messages':'Last 100 messages'} · this Session</dd>{/if}
+          {#if run.governance}<dt>Governed tool</dt><dd>{run.governance.calls} MCP calls · {run.governance.disposition??'not called'}</dd>
+          <dt>VICT turn</dt><dd class="hash">{run.governance.turnId}</dd>
+          <dt>Observed model steps</dt><dd>{run.modelSteps}</dd>{/if}</dl>
           {#if run.message}<Feedback kind="error" message={run.message}/>{/if}
           <h2>Timeline</h2><ol class="timeline">{#each run.events as event}<li><time>{new Date(event.at).toLocaleTimeString()}</time><span>{event.label}</span></li>{/each}</ol>
-          <Button label="Open Session" variant="secondary" onclick={()=>{activeSession=run.session;page='Sessions';}}/>
+          <Button label="Open Session" variant="secondary" disabled={!state.sessions.some(s=>s.id===run.session)} onclick={()=>{activeSession=run.session;page='Sessions';}}/>
         {:else}<Feedback kind="empty" message="Completed, interrupted and failed turns will appear here."/>
         {/if}
       </main>
@@ -301,6 +320,11 @@
       {/each}
     </nav>
   </div>
+  <Dialog.Root bind:open={deleteOpen}><Dialog.Portal><Dialog.Overlay class="sheet-shade"/><Dialog.Content class="mobile-sheet">
+    <Dialog.Title>Delete this Session?</Dialog.Title><Dialog.Description>Deletes its transcript and conversation memory. Run receipts are retained.</Dialog.Description>
+    <Dialog.Close class="vict-btn vict-btn--secondary">Cancel</Dialog.Close>
+    <Button label="Confirm delete Session" variant="danger" disabled={pending} onclick={deleteSession}/>
+  </Dialog.Content></Dialog.Portal></Dialog.Root>
   <Dialog.Root bind:open={mobileOpen}><Dialog.Portal><Dialog.Overlay class="sheet-shade"/><Dialog.Content class="mobile-sheet" onCloseAutoFocus={(event)=>{if(sheetInvoker?.isConnected){event.preventDefault();sheetInvoker.focus({preventScroll:true});}}}>
     <div class="sheet-top"><Dialog.Title>{sheet}</Dialog.Title><Dialog.Close class="menu-trigger">Close</Dialog.Close></div>
     <Dialog.Description>Inspect the current assembly.</Dialog.Description>
