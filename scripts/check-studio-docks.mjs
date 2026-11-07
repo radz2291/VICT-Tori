@@ -30,11 +30,14 @@ try {
  assert.equal(await button('Library').getAttribute('aria-pressed'),'true');
  assert.equal(await button('Library').locator('svg').count(),1);
  const agentSlider=page.getByRole('slider',{name:'Library width'});
+ await button('Resize Library').click();
  await agentSlider.press('ArrowRight');
  const width=await agentSlider.getAttribute('aria-valuenow');
  assert.equal(width,'224');
  await page.reload();
  await dock('Library').waitFor();
+ assert.equal(await agentSlider.count(),0);
+ await button('Resize Library').click();
  assert.equal(await agentSlider.getAttribute('aria-valuenow'),width);
  assert.equal(Math.round((await dock('Library').boundingBox()).width),224);
  assert.equal(await dock('Inspector').count(),0);
@@ -47,11 +50,13 @@ try {
  await dock('Library').getByRole('button',{name:'Request',exact:true}).click();
  await button('Inspector').click();
  const stepWidth=page.getByRole('slider',{name:'Inspector width'});
+ await button('Resize Inspector').click();
  await stepWidth.press('ArrowRight');
  assert.equal(await stepWidth.getAttribute('aria-valuenow'),'268');
  await page.reload();
  await button('Workflows').click();
  await dock('Inspector').getByText('Request',{exact:true}).first().waitFor();
+ await button('Resize Inspector').click();
  assert.equal(await stepWidth.getAttribute('aria-valuenow'),'268');
 
  await button('Creative').click();
@@ -59,6 +64,7 @@ try {
  await dock('Library').getByRole('button',{name:'Metallic',exact:true}).click();
  await button('Inspector').click();
  await dock('Inspector').getByText('Metallic',{exact:true}).waitFor();
+ await button('Resize Inspector').click();
  assert.equal(await stepWidth.getAttribute('aria-valuenow'),'264');
  await capture('creative-desktop');
 

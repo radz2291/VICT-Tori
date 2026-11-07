@@ -163,7 +163,9 @@ try {
   await button('Workflows').click();
   assert.equal(await button('Workflows').getAttribute('data-button-root'), 'true');
   assert.equal(await button('Reopen saved draft').isDisabled(), true);
+  await button('Connect ports').click();
   assert.equal(await button('Connect').isDisabled(), true);
+  await button('Done').click();
   await button('Add node').click();
   const choose = async (label, option) => {
     const trigger = page.getByLabel(label, { exact: true });
@@ -203,6 +205,7 @@ try {
   await edge.waitFor();
   await button('Save draft').click();
   await page.getByText('Draft saved locally').waitFor();
+  await button('Connect ports').click();
   await choose('Output', 'Request · Brief');
   await choose('Input', 'Decision · Proposal');
   await button('Connect').click();
@@ -210,6 +213,7 @@ try {
   await page.screenshot({ path: 'test-results/studio-r2-workflow-validation.png' });
   await edge.waitFor();
   assert.equal(await edge.count(), 1);
+  await button('Done').click();
   await button('Undo').click();
   await edge.waitFor({ state: 'detached' });
   await button('Reopen saved draft').click();

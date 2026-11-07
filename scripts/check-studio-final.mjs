@@ -60,6 +60,7 @@ try {
   await button('Add node').click();
   await select('Node', 'Decision');
   await button('Add node').click();
+  await button('Connect ports').click();
   await select('Output', 'Request · Brief');
   await select('Input', 'Decision · Proposal');
   await button('Connect').click();
@@ -71,6 +72,7 @@ try {
   await button('Connect').click();
   assert.equal(await alert.count(), 0);
   await workflow.locator('.svelte-flow__edge').waitFor();
+  await button('Done').click();
 
   await button('Creative').click();
   await page.getByLabel('Metallic notes', { exact: true }).fill('Recovered creative notes');
@@ -81,14 +83,18 @@ try {
   await button('Library').click();
   await page.getByRole('complementary', { name: 'Library' }).getByRole('button', { name: 'Architectural', exact: true }).click();
   await page.setViewportSize({ width: 390, height: 844 });
-  await toolbar.getByRole('button', { name: 'Reveal selected object', exact: true }).click();
+  await button('Menu').click();
+  await page.getByRole('menuitem', { name: /^View/ }).press('ArrowRight');
+  await menu('Reveal selected object').click();
   const card = page.getByRole('region', { name: 'Creative graph' }).locator('[data-graph-node]').filter({ hasText: 'Architectural' });
   await page.waitForTimeout(200);
   const bounds = await card.boundingBox();
   assert.ok(bounds.x >= -1 && bounds.x + bounds.width <= 391, JSON.stringify(bounds));
   assert.ok(bounds.width >= 160, JSON.stringify(bounds));
   await capture('creative-phone');
-  await toolbar.getByRole('button', { name: 'Delete selected object', exact: true }).click();
+  await button('Menu').click();
+  await page.getByRole('menuitem', { name: /^Edit/ }).press('ArrowRight');
+  await menu('Delete selected object').click();
   await card.waitFor({ state: 'detached' });
 
   for (const route of ['Sessions', 'Runs']) {

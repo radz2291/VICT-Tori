@@ -41,11 +41,13 @@ try {
       await page.getByLabel('Node', { exact: true }).click();
       await page.getByRole('option', { name: 'Run agent', exact: true }).click();
       await button('Add node').click();
+      await button('Connect ports').click();
       for (const [label, option] of [['Output', 'Request · Brief'], ['Input', 'Run agent · Brief']]) {
         await page.getByLabel(label, { exact: true }).click();
         await page.getByRole('option', { name: option, exact: true }).click();
       }
       await button('Connect').click();
+      await button('Done').click();
       const edge = page.locator('.svelte-flow__edge-path:visible').first();
       await edge.waitFor();
       results.graphColors = await edge.evaluate(element => ({

@@ -221,10 +221,18 @@
 </script>
 
 <svelte:window onkeydown={shortcuts}/>
-<ControlScope class="studio">
-  <div class="menu-strip"><span class="wordmark">TORI</span><StudioMenu {menus} {panels} toggle={togglePanel} reset={resetLayout}/></div>
+<ControlScope class="studio"><div class="studio-shell" class:phone={narrow}>
+  {#if !narrow}<div class="menu-strip"><span class="wordmark">TORI</span><StudioMenu {menus} {panels} toggle={togglePanel} reset={resetLayout}/></div>{/if}
   <header>
-    <div class="project"><strong>Untitled project</strong><span aria-hidden="true">/</span><span>{view}</span></div>
+    <div class="project">{#if !narrow}<strong>Untitled project</strong><span aria-hidden="true">/</span>{/if}<span>{view}</span></div>
+  {#if objects.length && !narrow}
+    <div class="view-tools" role="group" aria-label="Canvas navigation">
+      <Button.Root class="action" onclick={() => commands.navigation?.zoomOut?.()}>Zoom out</Button.Root>
+      <Button.Root class="action" onclick={() => commands.navigation?.zoomIn?.()}>Zoom in</Button.Root>
+      <Button.Root class="action" disabled={!inspected} onclick={() => commands.navigation?.reveal(inspected.id)}>Reveal selected object</Button.Root>
+      <Button.Root class="action" disabled={!inspected} onclick={deleteSelected}>Delete selected object</Button.Root>
+    </div>
+  {/if}
     {#if panels.length}<div class="panel-controls" role="group" aria-label="Workspace panels">
       {#each panels as panel (panel.name)}
         <Button.Root class="action panel-toggle icon-action" id={'dock-toggle-' + panel.name} aria-label={panel.name} title={panel.name}
@@ -239,15 +247,11 @@
       {:else if view === 'Creative'}<Feedback message={creativeStatus}/>
       {/if}
     </div>{/if}
+    {#if narrow}
+      {#if objects.length}<Button.Root class="action phone-fit" aria-label="Fit view" onclick={() => commands.navigation?.fit?.()}>Fit</Button.Root>{/if}
+      <StudioMenu {menus} {panels} toggle={togglePanel} reset={resetLayout} {narrow}/>
+    {/if}
   </header>
-  {#if objects.length}
-    <div class="view-tools" role="group" aria-label="Canvas navigation">
-      <Button.Root class="action" onclick={() => commands.navigation?.zoomOut?.()}>Zoom out</Button.Root>
-      <Button.Root class="action" onclick={() => commands.navigation?.zoomIn?.()}>Zoom in</Button.Root>
-      <Button.Root class="action" disabled={!inspected} onclick={() => commands.navigation?.reveal(inspected.id)}>Reveal selected object</Button.Root>
-      <Button.Root class="action" disabled={!inspected} onclick={deleteSelected}>Delete selected object</Button.Root>
-    </div>
-  {/if}
   {#if view === 'Agents' && draftError}
     <div class="draft-feedback">
       <Feedback kind="error" message={draftError}/>
@@ -255,7 +259,7 @@
     </div>
   {/if}
   {#if help}<div class="draft-feedback"><Feedback message="TORI Studio · U0 local drafts. Live execution and provider access are unavailable."/><Button.Root class="action" onclick={() => help = false}>Dismiss</Button.Root></div>{/if}
-  <main class:conversation-workspace={view === 'Sessions'}>
+  <main class:phone-workspace={narrow} class:conversation-workspace={view === 'Sessions'}>
     <div class="desk">
       {#if library}
         <WorkspaceDock panel={library} {narrow} resize={(width) => setPanel('Library', { width })} close={() => closeNarrowPanel('Library')}>
@@ -286,7 +290,7 @@
     {/snippet}
     {#snippet content(frame)}
       <GraphCommands register={(workspace) => { agentWorkspace = workspace; }}/>
-      <div>
+      <div class="agent-page">
         <div class="workbar">
           <h1>Agents</h1>
           <div class="tools">
@@ -320,7 +324,7 @@
             {:else}
               <div class="canvas-tools" role="group" aria-label="Canvas tools">
                 <AddAgent onadd={focusAddedAgent} register={(action) => { addAgent = action; }}/>
-                <Button.Root class="action" onclick={() => agentNavigation.fit?.()}>Fit view</Button.Root>
+                <Button.Root class="action desktop-command" onclick={() => agentNavigation.fit?.()}>Fit view</Button.Root>
                 <DropdownMenu.Root>
                   <DropdownMenu.Trigger class="action">Find agent</DropdownMenu.Trigger>
                   <DropdownMenu.Portal>
@@ -348,12 +352,12 @@
         <footer><span>{graph?.nodes.length ?? 0} agents</span><span>Execution simulation</span></footer>
       </div>
     {/snippet}
-    <div hidden={view !== 'Agents'}>
+    <div class="authoring-page" hidden={view !== 'Agents'}>
       <GraphHost draft={agentDraft}><GraphWorkspaceV3 props={{ graph: source, label: 'Agent graph' }}
         io={{ emit, scopedSlots: { content, body } }} nodeId="agents" occurrenceKey="agents"/></GraphHost>
     </div>
-    <div hidden={view !== 'Workflows'}><WorkflowPreview active={view === 'Workflows'} onSelection={(id) => { inspectedNodes.Workflows = id; }} {requestReopen} agents={graph?.nodes ?? []} bind:status={workflowStatus} register={(value) => { workflowCommands = value; }}/></div>
-    <div hidden={view !== 'Creative'}><CreativeCanvas active={view === 'Creative'} onSelection={(id) => { inspectedNodes.Creative = id; }} {requestReopen} bind:status={creativeStatus} register={(value) => { creativeCommands = value; }}/></div>
+    <div class="authoring-page" hidden={view !== 'Workflows'}><WorkflowPreview active={view === 'Workflows'} onSelection={(id) => { inspectedNodes.Workflows = id; }} {requestReopen} agents={graph?.nodes ?? []} bind:status={workflowStatus} register={(value) => { workflowCommands = value; }}/></div>
+    <div class="authoring-page" hidden={view !== 'Creative'}><CreativeCanvas active={view === 'Creative'} onSelection={(id) => { inspectedNodes.Creative = id; }} {requestReopen} bind:status={creativeStatus} register={(value) => { creativeCommands = value; }}/></div>
     {#if view === 'Sessions'}
       <section class="conversation" aria-labelledby="conversation-title">
         <div class="conversation-heading">
@@ -413,7 +417,7 @@
       <Button.Root class="tab" aria-current={view === item ? 'page' : undefined} onclick={() => view = item}>{item}</Button.Root>
     {/each}
   </nav>
-</ControlScope>
+</div></ControlScope>
 
 <style>
   :global(body) { margin: 0; }
@@ -433,7 +437,7 @@
     background: var(--vict-color-bg);
     color: var(--vict-color-text);
   }
-  :global(.studio:has(> .menu-strip)) {
+  .studio-shell {
     min-height: 100dvh;
     display: flex; flex-direction: column;
   }
@@ -458,7 +462,7 @@
   :global(.studio .icon-action[aria-pressed='true']) { background: var(--studio-raised); color: var(--vict-color-text); }
   :global(.studio .tab[aria-current]) { color: var(--vict-color-accent); box-shadow: inset 0 -1px var(--vict-color-accent); }
   :global(.studio .primary) { background: var(--studio-raised); color: var(--vict-color-text); padding: 5px 11px; }
-  .canvas { position: relative; height: max(25rem, calc(100dvh - 217px)); overflow: hidden; }
+  .canvas { position: relative; height: max(25rem, calc(100dvh - 183px)); overflow: hidden; }
   .canvas :global(.graph-viewport) { height: 100% !important; --vict-color-surface: var(--vict-color-bg); }
   .canvas :global(.svelte-flow__background) { --xy-background-pattern-color: #353537; }
   .empty { position: absolute; inset: 0; display: grid; place-content: center; justify-items: center; gap: 10px; pointer-events: none; }
@@ -495,7 +499,7 @@
   .panel-controls { display: flex; gap: 2px; margin-left: auto; }
   .panel-controls :global(.panel-toggle[aria-pressed=true]) { color: var(--vict-color-accent); background: var(--studio-raised); }
   .view-tools, .object-actions { display: flex; gap: 4px; flex-wrap: wrap; padding: 4px 12px; }
-  .view-tools { justify-content: flex-end; border-bottom: 1px solid var(--vict-color-border); }
+  .view-tools { margin-left: auto; padding: 0; }
   main { flex: 1; min-width: 0; }
   .desk { display: flex; align-items: stretch; min-height: 0; }
   .stage { flex: 1; min-width: 0; }
@@ -525,9 +529,23 @@
   @media (max-width: 790px) {
     .menu-strip { padding-inline: 6px; }
   }
-  @media (max-width: 690px) {
-    .canvas { height: 50dvh; }
+  .phone { height: 100dvh; }
+  .phone header { padding: 0 8px; gap: 3px; flex-wrap: nowrap; }
+  .phone .project { font-weight: 650; }
+  .phone .project span { color: var(--vict-color-text); }
+  .phone .save-state { margin-left: auto; line-height: 1.2; }
+  .phone .panel-controls { margin-left: auto; gap: 0; }
+  .phone .panel-controls + .save-state { margin-left: 0; }
+  .phone :global(.mobile-menu), .phone :global(.phone-fit), .phone :global(.panel-toggle) { min-height: 44px; min-width: 44px; }
+  .phone :global(.desktop-command), .phone .workbar, .phone .agent-page footer { display: none; }
+  .phone-workspace { min-height: 0; overflow: auto; display: flex; flex-direction: column; }
+  .phone-workspace .desk, .phone-workspace .stage, .phone-workspace .authoring-page:not([hidden]),
+  .phone-workspace .authoring-page > :global(section), .phone-workspace .agent-page {
+    flex: 1; min-height: 0; display: flex; flex-direction: column;
   }
+  .phone-workspace .canvas { height: auto; flex: 1; min-height: 180px; }
+  .phone .page-dock { flex: none; }
+
   @media (pointer: coarse) {
     :global(.studio .action), :global(.studio .tab) { min-height: 44px; min-width: 44px; }
   }

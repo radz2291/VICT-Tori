@@ -1,8 +1,35 @@
 <script>
   import { Menubar } from '@victframework/ui-svelte/catalog/menubar';
-  let { menus, panels, toggle, reset } = $props();
+  import { DropdownMenu } from '@victframework/ui-svelte/catalog/dropdown-menu';
+  let { menus, panels, toggle, reset, narrow = false } = $props();
 </script>
 
+{#if narrow}
+  <DropdownMenu.Root>
+    <DropdownMenu.Trigger class="action mobile-menu">Menu</DropdownMenu.Trigger>
+    <DropdownMenu.Portal>
+      <DropdownMenu.Content align="end" sideOffset={4} class="studio-command-menu">
+        {#each menus as menu (menu.name)}
+          <DropdownMenu.Sub>
+            <DropdownMenu.SubTrigger>{menu.name}</DropdownMenu.SubTrigger>
+            <DropdownMenu.SubContent class="studio-command-menu">
+              {#if menu.name === 'Window'}
+                {#each panels as panel (panel.name)}
+                  <DropdownMenu.CheckboxItem checked={panel.open} onCheckedChange={() => toggle(panel.name)}>{panel.name}</DropdownMenu.CheckboxItem>
+                {/each}
+                <DropdownMenu.Item disabled={!panels.length} onSelect={reset}>{panels.length ? 'Reset layout' : 'No panels available'}</DropdownMenu.Item>
+              {:else}
+                {#each menu.items as item (item.label)}
+                  <DropdownMenu.Item disabled={!item.run} onSelect={() => item.run?.()}>{item.label}</DropdownMenu.Item>
+                {/each}
+              {/if}
+            </DropdownMenu.SubContent>
+          </DropdownMenu.Sub>
+        {/each}
+      </DropdownMenu.Content>
+    </DropdownMenu.Portal>
+  </DropdownMenu.Root>
+{:else}
 <Menubar.Root aria-label="Studio commands" class="studio-menubar">
   {#each menus as menu (menu.name)}
     <Menubar.Menu value={menu.name}>
@@ -31,6 +58,7 @@
     </Menubar.Menu>
   {/each}
 </Menubar.Root>
+{/if}
 
 <style>
   :global(.studio-menubar) { display: flex; gap: 2px; overflow-x: auto; border: 0; padding: 0; }

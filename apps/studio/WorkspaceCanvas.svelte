@@ -4,13 +4,12 @@
   let { active = true, label, register = () => {} } = $props();
   const workspace = getContext(GRAPH_WORKSPACE);
   const host = getContext(GRAPH_EDITOR_HOST);
-  let root;
+  let root = $state();
   let version = $state(0);
   const projectionKey = 'canvas';
   const identity = { nodeId: workspace.sourceIdentity.nodeId, occurrenceKey: JSON.stringify([workspace.sourceIdentity.occurrenceKey, 'viewport', projectionKey]) };
   const controller = host.presentationFor(identity);
-  const needsMobileStart = window.innerWidth <= 620 && !controller.get();
-  let mobileStarted = false;
+
 
   async function navigate(action, id) {
     await tick();
@@ -49,14 +48,35 @@
     });
   });
   $effect(() => {
-    if (!active || !workspace.graph.nodes.length) return;
-    untrack(() => {
-      if (needsMobileStart && !mobileStarted) {
-        mobileStarted = true;
-        void navigate('reveal', workspace.graph.nodes[0].id);
+    if (!active || !root) return;
+    const element = root;
+    let wasNarrow = false;
+    let frame;
+    const observer = new ResizeObserver(() => {
+      const narrow = window.innerWidth <= 620 && element.clientWidth > 0;
+      if (narrow && !wasNarrow) {
+        frame = requestAnimationFrame(() => untrack(() => {
+          const bounds = element.getBoundingClientRect();
+          const cards = [...element.querySelectorAll('[data-tori-node]')];
+          const readable = cards.some(card => {
+            const rect = card.getBoundingClientRect();
+            return rect.width >= 150 && rect.left >= bounds.left - 2 && rect.right <= bounds.right + 2
+              && rect.top >= bounds.top - 2 && rect.bottom <= bounds.bottom + 2;
+          });
+          if (readable) return;
+          const id = workspace.selection.nodes[0] ?? workspace.graph.nodes[0]?.id;
+          if (id) void navigate('reveal', id);
+        }));
       }
+      wasNarrow = narrow;
     });
+    observer.observe(element);
+    return () => {
+      observer.disconnect();
+      if (frame !== undefined) cancelAnimationFrame(frame);
+    };
   });
+
 </script>
 
 <div class="canvas-frame" bind:this={root}>
