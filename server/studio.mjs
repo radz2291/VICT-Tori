@@ -1,3 +1,4 @@
+import { publicProviderStream } from './provider-stream.mjs';
 import { randomUUID } from 'node:crypto';
 import { readFileSync, mkdirSync } from 'node:fs';
 import { homedir } from 'node:os';
@@ -53,38 +54,7 @@ function activationFor(revision,value,route,record) {
   if(!restored.ok)throw conflict('The original VICT activation could not be restored.');
   return restored.activation;
 }
-// The provider may return private reasoning in its protocol. Strip it before
-// Mastra can observe, retain or deliver it, while preserving text and usage.
-function publicProviderStream(response) {
-  if(!response.body || !response.headers.get('content-type')?.includes('text/event-stream'))return response;
-  let tail='';
-  const decoder=new TextDecoder(),encoder=new TextEncoder();
-  const redact=line=>{
-    if(!line.startsWith('data:')||line.trim()==='data: [DONE]')return line;
-    try {
-      const parsed=JSON.parse(line.slice(5));
-      const choices=parsed.choices?.map(c=>{
-        const sanitize=value=>{
-          if(!value)return value;
-          const {reasoning_content,reasoning,thinking,...publicParts}=value;
-          return publicParts;
-        };
-        return {...c,...(c.delta?{delta:sanitize(c.delta)}:{}),...(c.message?{message:sanitize(c.message)}:{})};
-      });
-      return 'data: '+JSON.stringify({...parsed,...(choices?{choices}:{})});
-    }catch{return 'data: {"error":{"message":"Invalid provider event"}}';}
-  };
-  const body=response.body.pipeThrough(new TransformStream({
-    transform(chunk,controller) {
-      const lines=(tail+decoder.decode(chunk,{stream:true})).split('\n');
-      tail=lines.pop()??'';
-      controller.enqueue(encoder.encode(lines.map(redact).join('\n')+(lines.length?'\n':'')));
-    },
-    flush(controller){const rest=tail+decoder.decode();if(rest)controller.enqueue(encoder.encode(redact(rest)));},
-  }));
-  return new Response(body,{status:response.status,headers:{'Content-Type':'text/event-stream'}});
-}
-function providerModel(key, route, evidence) {
+function providerModel(key, route, evidence, onPhase) {
   const endpoint=endpoints[route];
   return createOpenAICompatible({
     name:provider,baseURL:endpoint,supportsStructuredOutputs:false,
@@ -104,7 +74,7 @@ function providerModel(key, route, evidence) {
         return new Response(JSON.stringify({error:{message:'Z.AI rejected the request.',type:'provider_error',code:evidence.code}}),
           {status:reply.status,headers:{'Content-Type':'application/json'}});
       }
-      return publicProviderStream(reply);
+      return publicProviderStream(reply,onPhase);
     }
   }).chatModel(model);
 }
@@ -125,7 +95,7 @@ export function createStudio({getAssembly,dataDirectory}) {
     if(session)session.interrupted=true;
   }
   store(old);
-  let busy=false;
+  let activeTurn;
   let storage;
   const threads=new MastraThreadCoordinator();
   const projection=(state)=>{
@@ -136,6 +106,10 @@ export function createStudio({getAssembly,dataDirectory}) {
   };
   async function dispatch(path,input){
     if(path==='')return projection(snapshot());
+    if(path==='/activity'){
+      if(!activeTurn||activeTurn.session!==input.session)return {phase:null};
+      return {phase:activeTurn.answerAt?'answer':activeTurn.reasoningAt?'reasoning':'waiting'};
+    }
     const assembly=await getAssembly();
     const state=snapshot();
     const saved=state.drafts[0];
@@ -165,8 +139,8 @@ export function createStudio({getAssembly,dataDirectory}) {
       const key=credential(session?.route);
       if(!session)throw new StudioError(404,'This Session was not found.');
       if(session.interrupted)throw conflict('This Session was interrupted. Open a new Session to avoid replaying an uncertain turn.');
-      if(!key)throw conflict('Connect a Z.AI credential for this Session pinned pinned route on the local server.');
-      if(busy)throw conflict('A turn is already running. Wait for it to finish.');
+      if(!key)throw conflict("Connect a Z.AI credential for this Session's pinned route on the local server.");
+      if(activeTurn)throw conflict('A turn is already running. Wait for it to finish.');
       const text=typeof input.input==='string'?input.input.trim():'';
       if(!text||text.length>12000)throw new StudioError(400,'Enter a message between 1 and 12,000 characters.');
       const pin=state.activations.find(a=>a.record.activationVersion===session.activation);
@@ -179,12 +153,21 @@ export function createStudio({getAssembly,dataDirectory}) {
       run.events.push({at:run.started,label:'Turn accepted by Studio'});
       session.messages.push({id:run.id+'-user',role:'user',text});
       state.runs.unshift(run);store(state);
-      busy=true;
+      activeTurn=run;
+      const observePhase=phase=>{
+        if(phase==='reasoning'&&!run.reasoningAt){
+          run.reasoningAt=now();
+          run.events.push({at:run.reasoningAt,label:'Z.AI · Reasoning activity observed'});
+        }else if(phase==='answer'&&!run.answerAt){
+          run.answerAt=now();
+          run.events.push({at:run.answerAt,label:'Z.AI · Answer generation observed'});
+        }
+      };
       const evidence={};
       const eventTimes=new Map();
       try {
         storage??=await createDedicatedMastraStore({dataDir:dir,retention:{messagesMaxAgeMs:2592000000,threadsMaxAgeMs:2592000000,spansMaxAgeMs:86400000}});
-        const adapter=MastraProductAgent.create(activation,{store:storage.store,modelFactory:()=>providerModel(key,run.route,evidence),
+        const adapter=MastraProductAgent.create(activation,{store:storage.store,modelFactory:()=>providerModel(key,run.route,evidence,observePhase),
           threadCoordinator:threads,tracing:{sampling:{type:'never'}}});
         const outcome=await pinAgentTurnRunner(adapter,activation).runTurn({turnId:run.id,threadId:mastraThreadIdForConversation(session.id),actorId:actor,input:text},
           {abortSignal:AbortSignal.timeout(90000),victRunId:run.id,onEvent:event=>{eventTimes.set(event.seq,now());}});
@@ -202,11 +185,13 @@ export function createStudio({getAssembly,dataDirectory}) {
       } catch {
         run.status='failed';run.errorCode=evidence.code;run.message=codes[evidence.code]??'Studio could not confirm the model response. No automatic replay was attempted.';
         if(evidence.http===200)session.interrupted=true;
-      } finally {busy=false;}
+      }
       run.sentMaxOutputTokens=evidence.sentMaxOutputTokens;
       run.ended=now();
       if(evidence.http)run.events.push({at:run.ended,label:'Z.AI HTTP '+evidence.http+(evidence.code?' · '+evidence.code:'')});
       run.events.push({at:run.ended,label:'Turn '+run.status});
+      run.events.sort((a,b)=>a.at.localeCompare(b.at));
+      activeTurn=undefined;
       const latest=snapshot();
       latest.runs=latest.runs.map(r=>r.id===run.id?run:r);
       latest.sessions=latest.sessions.map(s=>s.id===session.id?session:s);

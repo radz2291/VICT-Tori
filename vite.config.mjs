@@ -22,8 +22,10 @@ export default defineConfig({
             for await(const chunk of req){bytes+=chunk.length;if(bytes>1000000)return send(413,{message:'The request is too large.'});chunks.push(chunk);}
             try{body=JSON.parse(Buffer.concat(chunks).toString('utf8'));}catch{return send(400,{message:'Invalid Studio request.'});}
           }
-          const path=new URL(req.url,'http://localhost').pathname.replace(/\/$/,'');
-          if((req.method==='GET')!==(!path))return send(405,{message:'Unsupported Studio method.'});
+          const parsed=new URL(req.url,'http://localhost');
+          const path=parsed.pathname.replace(/\/$/,'');
+          if(req.method==='GET'&&path==='/activity')body={session:parsed.searchParams.get('session')};
+          if((req.method==='GET')!==(!path||path==='/activity'))return send(405,{message:'Unsupported Studio method.'});
           service??=import('./server/studio.mjs').then(({createStudio})=>createStudio({
             getAssembly:()=>server.ssrLoadModule('/src/assembly.ts'),
             dataDirectory:process.env.TORI_DATA_DIR??resolve('.data'),

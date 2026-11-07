@@ -27,6 +27,8 @@
   let mobile=$state(false), sheet=$state(''), mobileOpen=$state(false);
   let sheetInvoker:HTMLElement|null=null;
   let loaded=$state(false), pending=$state(false), sending=$state(false);
+  let sendActivity=$state<{session:string;phase:string}|null>(null);
+  let lastSessionRun=$derived(state.runs.find(r=>r.session===activeSession));
   let error=$state(''), graphError=$state('');
   let activeSession=$state(''), activeRun=$state('');
   let session=$derived(state.sessions.find((s)=>s.id===activeSession));
@@ -112,6 +114,19 @@
   async function send(input:string,accepted?:()=>void){
     const id=activeSession;
     sending=true;
+    sendActivity={session:id,phase:'waiting'};
+    const activityAbort=new AbortController();
+    const poll=async()=>{
+      try {
+        const response=await fetch('/api/studio/activity?session='+encodeURIComponent(id),{signal:activityAbort.signal});
+        if(response.ok){
+          const {phase}=await response.json();
+          if(phase&&!activityAbort.signal.aborted)sendActivity={session:id,phase};
+        }
+      }catch{/* The turn request still owns success and failure. */}
+      if(!activityAbort.signal.aborted)setTimeout(poll,350);
+    };
+    void poll();
     try{
       const next=await request('/turn',{session:id,input});
       applyState(next);
@@ -120,7 +135,7 @@
       const last=next.runs[0];
       return last?.status==='completed'?{ok:true}:{ok:false,message:last?.message??'The response did not complete. See Runs.'};
     }catch(e){return {ok:false,message:(e as Error).message};}
-    finally{sending=false;}
+    finally{activityAbort.abort();sendActivity=null;sending=false;}
   }
   function toggle(panel:string,invoker:HTMLElement|null=null){
     if(mobile){sheetInvoker=invoker??document.getElementById('window-menu-trigger');sheet=panel;mobileOpen=true;}
@@ -243,11 +258,15 @@
       <main class="session-view">
         {#if session}
           <header class="session-header"><div><p class="eyebrow">SESSION · LIVE PROVIDER</p><h1>{session.name}</h1><p>Z.AI {session.route==='coding'?'Coding':'General'} · {modelName} · Activated r{session.number} · Conversation</p></div>
-            <StatusBadge value={sending?'Waiting for Z.AI':session.interrupted?'Interrupted':session.connectionReady?'Ready':'Credential not connected'}/>
+            <StatusBadge value={sendActivity?.session===session.id?(sendActivity.phase==='reasoning'?'Thinking':sendActivity.phase==='answer'?'Preparing answer':'Waiting for Z.AI'):session.interrupted?'Interrupted':session.connectionReady?'Ready':'Credential not connected'}/>
           </header>
           {#if state.sessions.length>1}<div class="session-picker"><label for="session-picker">Open Session</label><Select id="session-picker" name="session" value={activeSession} options={state.sessions.map(s=>({value:s.id,label:s.name+' · '+new Date(s.created).toLocaleString()}))} onChange={v=>activeSession=v}/></div>{/if}
           <div class="conversation"><Conversation messages={session.messages} busy={sending} onSend={session.connectionReady&&!session.interrupted?send:undefined} emptyMessage="Start a conversation with your activated agent."/></div>
-          <div class="session-foot"><Button label="Inspect runs" variant="secondary" disabled={!state.runs.some(r=>r.session===activeSession)} onclick={()=>{activeRun=state.runs.find(r=>r.session===activeSession).id;page='Runs';}}/></div>
+          <div class="session-foot">
+            {#if lastSessionRun?.reasoningAt}
+              <span class="muted session-reasoning">Thinking observed in the last turn. No reasoning summary available.</span>
+            {/if}
+            <Button label="Inspect runs" variant="secondary" disabled={!state.runs.some(r=>r.session===activeSession)} onclick={()=>{activeRun=state.runs.find(r=>r.session===activeSession).id;page='Runs';}}/></div>
         {:else}
           <div class="empty"><p class="eyebrow">SESSIONS</p><h1>Start a conversation</h1><p>{state.activation?'Open a Session pinned to your active agent.':'Activate a saved agent to start a real Session.'}</p><Button label={state.activation?'Start Session':'Open Agents'} onclick={state.activation?start:()=>page='Agents'}/></div>
         {/if}
@@ -257,7 +276,7 @@
         <p class="eyebrow">EXECUTION EVIDENCE</p><h1>Runs</h1>
         {#if run}
           <label for="run-picker">Run</label><Select id="run-picker" name="run" value={activeRun} options={state.runs.map(r=>({value:r.id,label:new Date(r.started).toLocaleString()+' · '+r.status}))} onChange={v=>activeRun=v}/>
-          <dl><dt>Status</dt><dd><StatusBadge value={run.status}/></dd><dt>Agent</dt><dd>{run.name} · r{run.number}</dd><dt>Activation</dt><dd class="hash">{run.activation}</dd><dt>Provider / model</dt><dd>Z.AI {run.route==='coding'?'Coding':'General'} / {run.observedModel??run.model}</dd><dt>Output token limit</dt><dd>{run.tokens}{run.sentMaxOutputTokens===undefined?' - configured':' - sent '+run.sentMaxOutputTokens}</dd><dt>Usage</dt><dd>{run.usage?run.usage.inputTokens+' input / '+run.usage.outputTokens+' output':'Not reported'}</dd><dt>Context</dt><dd>Pinned instructions and up to 100 recent messages. No JIT sources or tools.</dd></dl>
+          <dl><dt>Status</dt><dd><StatusBadge value={run.status}/></dd><dt>Agent</dt><dd>{run.name} · r{run.number}</dd><dt>Activation</dt><dd class="hash">{run.activation}</dd><dt>Provider / model</dt><dd>Z.AI {run.route==='coding'?'Coding':'General'} / {run.observedModel??run.model}</dd><dt>Output token limit</dt><dd>{run.tokens}{run.sentMaxOutputTokens===undefined?' - configured':' - sent '+run.sentMaxOutputTokens}</dd><dt>Usage</dt><dd>{run.usage?run.usage.inputTokens+' input / '+run.usage.outputTokens+' output':'Not reported'}</dd><dt>Thinking</dt><dd>{run.reasoningAt?'Observed by Z.AI. No reasoning summary available.':'No reasoning activity recorded for this run.'}</dd><dt>Context</dt><dd>Pinned instructions and up to 100 recent messages. No JIT sources or tools.</dd></dl>
           {#if run.message}<Feedback kind="error" message={run.message}/>{/if}
           <h2>Timeline</h2><ol class="timeline">{#each run.events as event}<li><time>{new Date(event.at).toLocaleTimeString()}</time><span>{event.label}</span></li>{/each}</ol>
           <Button label="Open Session" variant="secondary" onclick={()=>{activeSession=run.session;page='Sessions';}}/>
