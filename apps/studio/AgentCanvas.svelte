@@ -1,8 +1,9 @@
 <script>
   import { getContext } from 'svelte';
-  import { GRAPH_WORKSPACE, GraphViewport } from '@victframework/ui-flow-svelte';
+  import WorkspaceCanvas from './WorkspaceCanvas.svelte';
+  import { GRAPH_WORKSPACE } from '@victframework/ui-flow-svelte';
 
-  let { active, version, onclear } = $props();
+  let { active, register, onclear } = $props();
   const workspace = getContext(GRAPH_WORKSPACE);
 
   function clear() {
@@ -18,8 +19,6 @@
       !event.target?.closest?.('input, textarea, select, [contenteditable]')) clear();
 }}/>
 
-{#key version}
-  <GraphViewport props={{}} nodeId="canvas" occurrenceKey="canvas"/>
-{/key}
+<WorkspaceCanvas {active} {register} label="Agent canvas"/>
 
 <!-- The native pane owns pointer gestures and emits selection changes. -->

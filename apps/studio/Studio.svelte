@@ -1,4 +1,6 @@
 <script>
+  import GraphHost from './GraphHost.svelte';
+  import { GraphDraft } from './graph-draft.svelte.js';
   import { AlertDialog } from '@victframework/ui-svelte/catalog/alert-dialog';
   import WorkspaceDock from './WorkspaceDock.svelte';
   import StudioMenu from './StudioMenu.svelte';
@@ -25,13 +27,14 @@
       parameters: { instructions: { type: 'string', default: '', label: 'Instructions' } }
     }]
   });
-  let source = $state(blank());
-  let savedSource = $state(null);
-  let selected = $state(null);
-  let status = $state('New local draft');
-  let draftError = $state('');
+  const agentDraft = new GraphDraft(key, blank());
+  let source = $derived(agentDraft.source);
+  let savedSource = $derived(agentDraft.saved);
+  let selected = $state(parseGraphV3(agentDraft.source).graph?.nodes[0]?.id ?? null);
+  let status = $derived(agentDraft.status);
+  let draftError = $derived(agentDraft.error);
   let nameInput = $state(null);
-  let viewportVersion = $state(0);
+  let agentNavigation = $state.raw({});
   const preview = new URLSearchParams(window.location.search).get('preview');
   let view = $state(preview === 'sessions' ? 'Sessions' : preview === 'workflow' ? 'Workflows' : 'Agents');
   let workflowStatus = $state('New local draft');
@@ -119,8 +122,10 @@
     persistPageLayout(null);
   }
   let commands = $derived(view === 'Agents' ? {
-    save, reopen, dirty: status === 'Unsaved edits', canReopen: Boolean(savedSource), undo: agentWorkspace && (() => agentWorkspace.undo()),
-    redo: agentWorkspace && (() => agentWorkspace.redo()), fit: graph?.nodes.length ? () => viewportVersion += 1 : undefined,
+    save, reopen, dirty: agentDraft.dirty, canReopen: Boolean(savedSource),
+    undo: agentDraft.canUndo() ? () => agentWorkspace?.undo() : undefined,
+    redo: agentDraft.canRedo() ? () => agentWorkspace?.redo() : undefined,
+    navigation: agentNavigation,
     add: addAgent
   } : view === 'Workflows' ? workflowCommands : view === 'Creative' ? creativeCommands : {});
   let currentWorkspace = $derived(view === 'Agents' ? agentWorkspace : commands.workspace);
@@ -151,13 +156,24 @@
   });
   let menus = $derived([
     { name: 'File', items: [{ label: 'Save draft', run: commands.save, hint: 'Ctrl+S' }, { label: 'Reopen saved draft', run: commands.canReopen ? requestReopen : undefined }] },
-    { name: 'Edit', items: [{ label: 'Undo', run: commands.undo, hint: 'Ctrl+Z' }, { label: 'Redo', run: commands.redo, hint: 'Ctrl+Shift+Z' }] },
-    { name: 'View', items: [{ label: 'Fit view', run: commands.fit }] },
+    { name: 'Edit', items: [{ label: 'Undo', run: commands.undo, hint: 'Ctrl+Z' }, { label: 'Redo', run: commands.redo, hint: 'Ctrl+Shift+Z' }, { label: 'Delete selected object', run: inspected ? deleteSelected : undefined }] },
+    { name: 'View', items: [
+      { label: 'Fit view', run: objects.length ? commands.navigation?.fit : undefined },
+      { label: 'Reveal selected object', run: inspected ? () => commands.navigation?.reveal(inspected.id) : undefined },
+      { label: 'Zoom in', run: objects.length ? commands.navigation?.zoomIn : undefined },
+      { label: 'Zoom out', run: objects.length ? commands.navigation?.zoomOut : undefined }
+    ] },
     { name: 'Insert', items: [{ label: commands.addLabel ?? 'Add agent', run: commands.add }] },
     { name: 'Run', items: [{ label: 'Live execution unavailable in U0' }] },
     { name: 'Window' },
     { name: 'Help', items: [{ label: 'About this workspace', run: () => help = !help }] }
   ]);
+  function deleteSelected() {
+    if (!inspected || !currentWorkspace) return;
+    currentWorkspace.apply([{ type: 'remove', selection: { nodes: [inspected.id], edges: [] } }]);
+    if (view === 'Agents') selected = null;
+    else inspectedNodes[view] = null;
+  }
   function shortcuts(event) {
     if ((!event.ctrlKey && !event.metaKey) || event.altKey || event.defaultPrevented) return;
     const key = event.key.toLowerCase();
@@ -170,51 +186,16 @@
   let agent = $derived(graph?.nodes.find(node => node.id === selected));
 
   function reopen() {
-    try {
-      const stored = localStorage.getItem(key);
-      if (stored === null) return;
-      const result = parseGraphV3(stored);
-      if (!result.ok) throw new Error('The saved graph is invalid.');
-      source = stored;
-      savedSource = stored;
-      const preferred = layouts.Agents?.inspectedId;
-      selected = result.graph.nodes.find(node => node.id === preferred)?.id ?? result.graph.nodes[0]?.id ?? null;
-      status = 'Saved draft reopened';
-      draftError = '';
-    } catch {
-      draftError = 'Could not reopen the saved draft. Your current edits are still here. Download a copy before refreshing.';
-    }
+    agentDraft.reopen();
+    const nodes = parseGraphV3(agentDraft.source).graph?.nodes ?? [];
+    selected = nodes.find(node => node.id === layouts.Agents?.inspectedId)?.id ?? nodes[0]?.id ?? null;
   }
-  reopen();
-
-  function save() {
-    try {
-      if (localStorage.getItem(key) !== savedSource) {
-        draftError = 'Save blocked. Another tab changed the saved draft. Download your edits before reopening the saved version.';
-        return;
-      }
-      localStorage.setItem(key, source);
-      savedSource = source;
-      status = 'Draft saved locally';
-      draftError = '';
-    } catch {
-      draftError = 'Could not save to browser storage. Your edits are still here. Free up browser storage and retry Save draft, or download a copy.';
-    }
-  }
-
-  function downloadDraft() {
-    const url = URL.createObjectURL(new Blob([source], { type: 'application/json' }));
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = 'tori-draft.json';
-    link.click();
-    setTimeout(() => URL.revokeObjectURL(url), 1000);
-  }
+  function save() { agentDraft.save(); }
+  function downloadDraft() { agentDraft.download('tori-draft.json'); }
 
   function emit(name, value) {
     if (name === 'graphChange') {
-      source = value;
-      status = source === savedSource ? 'Saved draft' : 'Unsaved edits';
+      agentDraft.edit(value);
     }
     if (name === 'selectionChange') {
       const node = JSON.parse(value).nodes[0];
@@ -226,7 +207,7 @@
 
   async function focusAddedAgent(id, previousCount) {
     selected = id;
-    if (previousCount > 0) viewportVersion += 1;
+    if (previousCount > 0) void agentNavigation.reveal?.(id);
     await tick();
     nameInput?.focus();
   }
@@ -259,6 +240,14 @@
       {/if}
     </div>{/if}
   </header>
+  {#if objects.length}
+    <div class="view-tools" role="group" aria-label="Canvas navigation">
+      <Button.Root class="action" onclick={() => commands.navigation?.zoomOut?.()}>Zoom out</Button.Root>
+      <Button.Root class="action" onclick={() => commands.navigation?.zoomIn?.()}>Zoom in</Button.Root>
+      <Button.Root class="action" disabled={!inspected} onclick={() => commands.navigation?.reveal(inspected.id)}>Reveal selected object</Button.Root>
+      <Button.Root class="action" disabled={!inspected} onclick={deleteSelected}>Delete selected object</Button.Root>
+    </div>
+  {/if}
   {#if view === 'Agents' && draftError}
     <div class="draft-feedback">
       <Feedback kind="error" message={draftError}/>
@@ -283,15 +272,15 @@
       {/if}
       <div class="stage">
     {#snippet body(frame)}
-      <article class="node" class:active={frame.props.nodeId === selected}>
+      <article class="node" data-tori-node={frame.props.nodeId} class:active={frame.props.nodeId === selected}>
         <div class="node-heading vict-graph-drag-handle">
           <span class="node-kind" aria-hidden="true">A</span>
           <strong>{frame.props.label}</strong>
         </div>
         <label for={`node-instructions-${frame.props.nodeId}`}>Node instructions
-          <Textarea id={`node-instructions-${frame.props.nodeId}`} class="studio-field" placeholder="Describe what this agent should do"
+          <Textarea onfocus={() => agentDraft.beginEdit()} onblur={() => agentDraft.endEdit()} id={`node-instructions-${frame.props.nodeId}`} class="studio-field" placeholder="Describe what this agent should do"
             value={String(frame.state.instructions ?? '')}
-            onchange={(event) => frame.onStateChange('instructions', event.currentTarget.value)}/>
+            oninput={(event) => frame.onStateChange('instructions', event.currentTarget.value)}/>
         </label>
       </article>
     {/snippet}
@@ -302,10 +291,10 @@
           <h1>Agents</h1>
           <div class="tools">
             <div class="group" role="group" aria-label="Edit history">
-              <Button.Root class="action icon-action" aria-label="Undo" title="Undo" onclick={() => frame.onOutput('undo')}>
+              <Button.Root class="action icon-action" aria-label="Undo" title="Undo" disabled={!agentDraft.canUndo()} onclick={() => frame.onOutput('undo')}>
                 <MediaIcon props={{ name: 'undo', size: 16 }} nodeId="undo-icon" occurrenceKey="undo-icon"/>
               </Button.Root>
-              <Button.Root class="action icon-action" aria-label="Redo" title="Redo" onclick={() => frame.onOutput('redo')}>
+              <Button.Root class="action icon-action" aria-label="Redo" title="Redo" disabled={!agentDraft.canRedo()} onclick={() => frame.onOutput('redo')}>
                 <MediaIcon props={{ name: 'redo', size: 16 }} nodeId="redo-icon" occurrenceKey="redo-icon"/>
               </Button.Root>
             </div>
@@ -320,7 +309,7 @@
           </div>
         </div>
           <div class="canvas">
-            <AgentCanvas active={view === 'Agents'} version={viewportVersion} onclear={() => selected = null}/>
+            <AgentCanvas active={view === 'Agents'} register={(value) => { agentNavigation = value; }} onclear={() => selected = null}/>
             {#if !graph?.nodes.length}
               <div class="empty">
 
@@ -331,7 +320,7 @@
             {:else}
               <div class="canvas-tools" role="group" aria-label="Canvas tools">
                 <AddAgent onadd={focusAddedAgent} register={(action) => { addAgent = action; }}/>
-                <Button.Root class="action" onclick={() => viewportVersion += 1}>Fit view</Button.Root>
+                <Button.Root class="action" onclick={() => agentNavigation.fit?.()}>Fit view</Button.Root>
                 <DropdownMenu.Root>
                   <DropdownMenu.Trigger class="action">Find agent</DropdownMenu.Trigger>
                   <DropdownMenu.Portal>
@@ -360,11 +349,11 @@
       </div>
     {/snippet}
     <div hidden={view !== 'Agents'}>
-      <GraphWorkspaceV3 props={{ graph: source, label: 'Agent graph' }}
-        io={{ emit, scopedSlots: { content, body } }} nodeId="agents" occurrenceKey="agents"/>
+      <GraphHost draft={agentDraft}><GraphWorkspaceV3 props={{ graph: source, label: 'Agent graph' }}
+        io={{ emit, scopedSlots: { content, body } }} nodeId="agents" occurrenceKey="agents"/></GraphHost>
     </div>
-    <div hidden={view !== 'Workflows'}><WorkflowPreview onSelection={(id) => { inspectedNodes.Workflows = id; }} {requestReopen} agents={graph?.nodes ?? []} bind:status={workflowStatus} register={(value) => { workflowCommands = value; }}/></div>
-    <div hidden={view !== 'Creative'}><CreativeCanvas onSelection={(id) => { inspectedNodes.Creative = id; }} {requestReopen} bind:status={creativeStatus} register={(value) => { creativeCommands = value; }}/></div>
+    <div hidden={view !== 'Workflows'}><WorkflowPreview active={view === 'Workflows'} onSelection={(id) => { inspectedNodes.Workflows = id; }} {requestReopen} agents={graph?.nodes ?? []} bind:status={workflowStatus} register={(value) => { workflowCommands = value; }}/></div>
+    <div hidden={view !== 'Creative'}><CreativeCanvas active={view === 'Creative'} onSelection={(id) => { inspectedNodes.Creative = id; }} {requestReopen} bind:status={creativeStatus} register={(value) => { creativeCommands = value; }}/></div>
     {#if view === 'Sessions'}
       <section class="conversation" aria-labelledby="conversation-title">
         <div class="conversation-heading">
@@ -389,14 +378,21 @@
       {#if inspector}
         <WorkspaceDock panel={inspector} {narrow} resize={(width) => setPanel('Inspector', { width })} close={() => closeNarrowPanel('Inspector')}>
           {#if view === 'Agents' && agent}
-              <label for="agent-name">Agent name <Input id="agent-name" class="studio-field" bind:ref={nameInput} value={agent.label} onchange={(event) => edit('label', event.currentTarget.value)} /></label>
-              <label for="agent-instructions">Agent instructions <Textarea id="agent-instructions" class="studio-field" aria-describedby="agent-readiness" placeholder="Describe what this agent should do" value={String(agent.values.instructions ?? '')}
-                onchange={(event) => edit('instructions', event.currentTarget.value)}/></label>
+              <label for="agent-name">Agent name <Input onfocus={() => agentDraft.beginEdit()} onblur={() => agentDraft.endEdit()} id="agent-name" class="studio-field" bind:ref={nameInput} value={agent.label} oninput={(event) => edit('label', event.currentTarget.value)} /></label>
+              <label for="agent-instructions">Agent instructions <Textarea onfocus={() => agentDraft.beginEdit()} onblur={() => agentDraft.endEdit()} id="agent-instructions" class="studio-field" aria-describedby="agent-readiness" placeholder="Describe what this agent should do" value={String(agent.values.instructions ?? '')}
+                oninput={(event) => edit('instructions', event.currentTarget.value)}/></label>
               <p class="readiness" id="agent-readiness">{agent.values.instructions ? 'Instructions configured' : 'Add instructions before running this agent. You can save it as a draft now.'}</p>
           {:else if inspected}
             <dl><dt>Name</dt><dd>{inspected.label}</dd><dt>Type</dt><dd>{currentWorkspace.graph.nodeTypes.find(type => type.id === inspected.type)?.label ?? inspected.type}</dd></dl>
             <p class="readiness">Edit this object on the canvas.</p>
           {/if}
+          <div class="object-actions">
+            <Button.Root class="action" onclick={() => {
+              if (narrow) void closeNarrowPanel('Inspector');
+              commands.navigation?.reveal(inspected.id);
+            }}>Reveal selected object</Button.Root>
+            <Button.Root class="action" onclick={deleteSelected}>Delete this object</Button.Root>
+          </div>
         </WorkspaceDock>
       {/if}
     </div>
@@ -459,7 +455,7 @@
   :global(.studio .icon-action[aria-pressed='true']) { background: var(--studio-raised); color: var(--vict-color-text); }
   :global(.studio .tab[aria-current]) { color: var(--vict-color-accent); box-shadow: inset 0 -1px var(--vict-color-accent); }
   :global(.studio .primary) { background: var(--studio-raised); color: var(--vict-color-text); padding: 5px 11px; }
-  .canvas { position: relative; height: max(25rem, calc(100dvh - 183px)); overflow: hidden; }
+  .canvas { position: relative; height: max(25rem, calc(100dvh - 217px)); overflow: hidden; }
   .canvas :global(.graph-viewport) { height: 100% !important; --vict-color-surface: var(--vict-color-bg); }
   .canvas :global(.svelte-flow__background) { --xy-background-pattern-color: #353537; }
   .empty { position: absolute; inset: 0; display: grid; place-content: center; justify-items: center; gap: 10px; pointer-events: none; }
@@ -491,6 +487,8 @@
   .project span { color: var(--vict-color-muted); }
   .panel-controls { display: flex; gap: 2px; margin-left: auto; }
   .panel-controls :global(.panel-toggle[aria-pressed=true]) { color: var(--vict-color-accent); background: var(--studio-raised); }
+  .view-tools, .object-actions { display: flex; gap: 4px; flex-wrap: wrap; padding: 4px 12px; }
+  .view-tools { justify-content: flex-end; border-bottom: 1px solid var(--vict-color-border); }
   main { flex: 1; min-width: 0; }
   .desk { display: flex; align-items: stretch; min-height: 0; }
   .stage { flex: 1; min-width: 0; }

@@ -1,5 +1,7 @@
 <script>
-  import { GraphWorkspaceV3, GraphViewport, emptyGraphV3, parseGraphV3 } from '@victframework/ui-flow-svelte';
+  import GraphHost from './GraphHost.svelte';
+  import WorkspaceCanvas from './WorkspaceCanvas.svelte';
+  import { GraphWorkspaceV3, emptyGraphV3, parseGraphV3 } from '@victframework/ui-flow-svelte';
   import { serializeGraphV3 } from '@victframework/ui-flow-svelte/model';
   import { Button } from '@victframework/ui-svelte/catalog/button';
   import { Feedback } from '@victframework/ui-svelte';
@@ -8,7 +10,8 @@
   import DraftActions from './DraftActions.svelte';
   import GraphCommands from './GraphCommands.svelte';
 
-  let { status = $bindable(), register = () => {}, requestReopen, onSelection } = $props();
+  let { status = $bindable(), register = () => {}, requestReopen, onSelection, active } = $props();
+  let navigation = $state.raw({});
   let comparing = $state(false);
   const directions = [
     ['metallic', 'Metallic', 'Reflective aluminum, machined edges and hard directional light.'],
@@ -52,10 +55,10 @@
 {/if}
 
 {#snippet body(frame)}
-  <article class="direction">
+  <article class="direction" data-tori-node={frame.props.nodeId}>
     <strong class="vict-graph-drag-handle">{frame.props.label}</strong>
-    <Textarea class="studio-field" aria-label={`${frame.props.label} notes`}
-      value={String(frame.state.notes ?? '')} onchange={(event) => frame.onStateChange('notes', event.currentTarget.value)}/>
+    <Textarea onfocus={() => draft.beginEdit()} onblur={() => draft.endEdit()} class="studio-field" aria-label={`${frame.props.label} notes`}
+      value={String(frame.state.notes ?? '')} oninput={(event) => frame.onStateChange('notes', event.currentTarget.value)}/>
   </article>
 {/snippet}
 
@@ -67,16 +70,19 @@
       return direction ? () => branch(frame, direction) : undefined;
     },
     save: () => draft.save(), reopen: () => draft.saved === null ? undefined : draft.reopen(),
-    get dirty() { return draft.status === 'Unsaved edits'; },
+    get dirty() { return draft.dirty; },
     get canReopen() { return draft.saved !== null; },
-    undo: () => workspace.undo(), redo: () => workspace.redo()
+    navigation,
+    get undo() { return draft.canUndo() ? () => workspace.undo() : undefined; },
+    get redo() { return draft.canRedo() ? () => workspace.redo() : undefined; }
   })}/>
   <div class="commands">
     <h1>Creative</h1>
     <Button.Root class="action" aria-expanded={comparing} aria-controls="direction-comparison"
       onclick={() => comparing = !comparing}>Compare directions</Button.Root>
-    <Button.Root class="action" onclick={() => frame.onOutput('undo')}>Undo</Button.Root>
-    <Button.Root class="action" onclick={() => frame.onOutput('redo')}>Redo</Button.Root>
+    <Button.Root class="action" disabled={!draft.canUndo()} onclick={() => frame.onOutput('undo')}>Undo</Button.Root>
+    <Button.Root class="action" disabled={!draft.canRedo()} onclick={() => frame.onOutput('redo')}>Redo</Button.Root>
+    <Button.Root class="action" disabled={!graph.nodes.length} onclick={() => navigation.fit?.()}>Fit view</Button.Root>
     <DraftActions {draft} {requestReopen}/>
   </div>
   <section id="direction-comparison" class="comparison" hidden={!comparing} aria-label="Direction comparison">
@@ -88,16 +94,16 @@
       </article>
     {/each}
   </section>
-  <div class="canvas"><GraphViewport props={{ label: 'Creative canvas' }} nodeId="creative-canvas" occurrenceKey="creative-canvas"/></div>
+  <div class="canvas"><WorkspaceCanvas {active} label="Creative canvas" register={(value) => { navigation = value; }}/></div>
 {/snippet}
 
-<GraphWorkspaceV3 props={{ graph: draft.source, label: 'Creative graph' }}
+<GraphHost {draft}><GraphWorkspaceV3 props={{ graph: draft.source, label: 'Creative graph' }}
   io={{ emit: (name, value) => { if (name === 'graphChange') draft.edit(value);
     if (name === 'selectionChange') {
       const id = JSON.parse(value).nodes[0];
       if (id) onSelection?.(id);
     } }, scopedSlots: { content, body } }}
-  nodeId="creative" occurrenceKey="creative"/>
+  nodeId="creative" occurrenceKey="creative"/></GraphHost>
 
 <style>
   .commands { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; padding: 4px 14px; border-bottom: 1px solid var(--vict-color-border); }
@@ -108,6 +114,6 @@
   .comparison:not([hidden]) { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 12rem), 1fr)); }
   .comparison article { padding: 10px 14px; border: 1px solid var(--vict-color-border); background: var(--vict-color-surface); }
   .comparison p { color: var(--vict-color-muted); margin: 4px 0 0; overflow-wrap: anywhere; white-space: pre-wrap; }
-  .canvas :global(.graph-viewport) { height: max(24rem, calc(100dvh - 195px)) !important; --vict-color-surface: var(--vict-color-bg); }
+  .canvas { height: max(24rem, calc(100dvh - 195px)) !important; --vict-color-surface: var(--vict-color-bg); }
   .canvas :global(.svelte-flow__background) { --xy-background-pattern-color: #353537; }
 </style>

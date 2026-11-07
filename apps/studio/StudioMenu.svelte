@@ -22,8 +22,8 @@
           {/if}
         {:else}
           {#each menu.items as item (item.label)}
-            <Menubar.Item disabled={!item.run} onSelect={() => item.run?.()}>
-              {item.label}{#if item.hint}<kbd>{item.hint}</kbd>{/if}
+            <Menubar.Item aria-keyshortcuts={item.hint?.replace('Ctrl', 'Control')} disabled={!item.run} onSelect={() => item.run?.()}>
+              {item.label}{#if item.hint}<kbd aria-hidden="true">{item.hint}</kbd>{/if}
             </Menubar.Item>
           {/each}
         {/if}

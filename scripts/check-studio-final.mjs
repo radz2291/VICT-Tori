@@ -1,0 +1,114 @@
+import assert from 'node:assert/strict';
+import { pathToFileURL } from 'node:url';
+import { mkdir } from 'node:fs/promises';
+const [entry, chrome, url, evidence] = process.argv.slice(2);
+const { chromium } = await import(pathToFileURL(entry));
+const browser = await chromium.launch({ executablePath: chrome });
+try {
+  const page = await browser.newPage({ viewport: { width: 1280, height: 800 }, reducedMotion: 'reduce' });
+  const errors = [];
+  page.on('pageerror', error => errors.push(error.message));
+  const button = name => page.getByRole('button', { name, exact: true });
+  const menu = name => page.getByRole('menuitem', { name, exact: true });
+  const toolbar = page.getByRole('group', { name: 'Canvas navigation' });
+  const select = async (label, option) => {
+    await page.getByLabel(label, { exact: true }).click();
+    await page.getByRole('option', { name: option, exact: true }).click();
+  };
+  const capture = async name => {
+    if (!evidence) return;
+    await mkdir(evidence, { recursive: true });
+    await page.screenshot({ path: evidence + '/' + name + '.jpg', quality: 88 });
+  };
+  await page.goto(url);
+  assert.equal(await button('Undo').isDisabled(), true);
+  assert.equal(await button('Redo').isDisabled(), true);
+  await menu('Edit').click();
+  assert.equal(await menu('Undo').getAttribute('aria-disabled'), 'true');
+  await page.keyboard.press('Escape');
+  await button('Add agent').click();
+  const name = page.getByLabel('Agent name', { exact: true });
+  await name.fill('Saved agent');
+  await name.press('Tab');
+  await button('Save draft').click();
+  await name.fill('Unsaved recovered agent');
+  await page.reload();
+  await page.getByText('Unsaved edits recovered', { exact: true }).waitFor();
+  assert.equal(await name.inputValue(), 'Unsaved recovered agent');
+  assert.equal(await button('Undo').isDisabled(), true);
+  await toolbar.getByRole('button', { name: 'Delete selected object', exact: true }).click();
+  await page.getByRole('heading', { name: 'Start with an agent' }).waitFor();
+  await menu('Edit').click();
+  await menu('Undo').click();
+  await name.waitFor({ state: 'hidden' });
+  await button('Find agent').click();
+  await page.getByRole('menuitemradio', { name: 'Unsaved recovered agent' }).click();
+  await name.waitFor();
+  await toolbar.getByRole('button', { name: 'Reveal selected object' }).click();
+  await button('Zoom in').click();
+  await button('Zoom out').click();
+  await capture('agents');
+
+  await button('Workflows').click();
+  await button('Add node').click();
+  await page.reload();
+  await button('Workflows').click();
+  await page.getByText('Unsaved edits recovered', { exact: true }).waitFor();
+  const workflow = page.getByRole('region', { name: 'Workflow graph' });
+  assert.equal(await workflow.locator('[data-graph-node]').count(), 1);
+  await select('Node', 'Run agent');
+  await button('Add node').click();
+  await select('Node', 'Decision');
+  await button('Add node').click();
+  await select('Output', 'Request · Brief');
+  await select('Input', 'Decision · Proposal');
+  await button('Connect').click();
+  const alert = page.getByRole('alert');
+  await alert.filter({ hasText: 'Request · Brief (brief)' }).waitFor();
+  assert.match(await alert.innerText(), /Decision · Proposal \(proposal\)/);
+  await capture('workflow-error');
+  await select('Input', 'Run agent · Brief');
+  await button('Connect').click();
+  assert.equal(await alert.count(), 0);
+  await workflow.locator('.svelte-flow__edge').waitFor();
+
+  await button('Creative').click();
+  await page.getByLabel('Metallic notes', { exact: true }).fill('Recovered creative notes');
+  await page.reload();
+  await button('Creative').click();
+  await page.getByText('Unsaved edits recovered', { exact: true }).waitFor();
+  assert.equal(await page.getByLabel('Metallic notes', { exact: true }).inputValue(), 'Recovered creative notes');
+  await button('Library').click();
+  await page.getByRole('complementary', { name: 'Library' }).getByRole('button', { name: 'Architectural', exact: true }).click();
+  await page.setViewportSize({ width: 390, height: 844 });
+  await toolbar.getByRole('button', { name: 'Reveal selected object', exact: true }).click();
+  const card = page.getByRole('region', { name: 'Creative graph' }).locator('[data-graph-node]').filter({ hasText: 'Architectural' });
+  await page.waitForTimeout(200);
+  const bounds = await card.boundingBox();
+  assert.ok(bounds.x >= -1 && bounds.x + bounds.width <= 391, JSON.stringify(bounds));
+  assert.ok(bounds.width >= 160, JSON.stringify(bounds));
+  await capture('creative-phone');
+  await toolbar.getByRole('button', { name: 'Delete selected object', exact: true }).click();
+  await card.waitFor({ state: 'detached' });
+
+  for (const route of ['Sessions', 'Runs']) {
+    await button(route).click();
+    await page.getByText(/Simulation only/).waitFor();
+    assert.equal(await page.getByRole('group', { name: 'Workspace panels' }).count(), 0);
+    assert.equal(await page.evaluate(() => document.documentElement.scrollWidth), 390);
+    await capture(route.toLowerCase());
+  }
+  // Fresh mobile entry should show a readable object, without prior camera state.
+  const phone = await browser.newPage({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true, reducedMotion: 'reduce' });
+  phone.on('pageerror', error => errors.push(error.message));
+  await phone.goto(url);
+  await phone.getByRole('button', { name: 'Creative', exact: true }).click();
+  const first = phone.getByRole('region', { name: 'Creative graph' }).locator('[data-graph-node]').filter({ hasText: 'Metallic' });
+  await first.waitFor();
+  await phone.waitForTimeout(300);
+  assert.ok((await first.boundingBox()).width >= 160);
+  assert.deepEqual(errors, []);
+  console.log('PASS final repair checks: history readiness, recovery on all authored pages, Delete/Undo, endpoint guidance, mobile reveal and readable initial Creative.');
+} finally {
+  await browser.close();
+}

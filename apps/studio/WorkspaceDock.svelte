@@ -1,7 +1,6 @@
 <script>
   import { Slider } from '@victframework/ui-svelte/catalog/slider';
   import { Dialog } from '@victframework/ui-svelte/catalog/dialog';
-  import { Button } from '@victframework/ui-svelte/catalog/button';
 
   let { panel, narrow, resize, close, children } = $props();
 </script>
