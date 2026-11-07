@@ -26,6 +26,22 @@ The VICT column lists potential shared work to investigate, not preapproved edit
 
 Cross-stage entries retain their catalog timing: basic memory and trace begin in V1a; advanced operation follows in V1c; signals extend through V5. Connectors may arrive earlier if a slice requires them. Optional ACP remains optional. Quellight domain records and business functions stay in their owning application; TORI does not absorb them.
 
+## Mandatory pre-implementation capability readiness gate — owner decision, 7 November 2026
+
+**Capability-first, consumer-proven, then application implementation.** This is a required entry gate for each new functional slice, not optional preparation or a retrospective audit. The historical VICT–Mastra reasoning-visibility problem showed why an engine having a feature, or a UI library exporting a component, is insufficient: the relevant public VICT adapter/contract may not expose data or operations that TORI can consume.
+
+Before coding the app-facing behavior for that slice, the stage owner must:
+
+1. **Derive the complete needed-capability inventory from the intended user journey and test cases.** Include configuration, stream/events, state/persistence, control/authorization, failure/recovery, UI controls, and cross-view observability as applicable. Audit only the slice's real dependencies, not the entire future roadmap.
+2. **Inspect actual pinned packages and source contracts.** For each required capability, identify Mastra/provider support, VICT's relevant public export/adapter/event schema, any TORI reusable service, ownership, version/commit and whether the operation is actually permitted. Source features, private imports, UI examples or mock fixtures alone do not establish exposure.
+3. **Prove consumption before composition.** Run a minimal installed-public-package consumer/conformance probe at the intended boundary, including representative success and relevant unsupported/error cases. Demonstrate that TORI can receive and use the necessary operation or safe event, not merely that the upstream engine produced it.
+4. **Resolve deficits in architecture order.** Classify each capability as *ready/reuse*, *upstream extension required*, *TORI reusable composition required*, or *blocked*. If upstream VICT exposure is missing, design the smallest public, versioned and policy-safe contract/adapter improvement; obtain separate authorization before editing another repository; implement, verify, and pin the upstream artifact **before** implementing the dependent app behavior. Never bypass a missing public contract with an undisclosed Studio-local patch or duplicate provider bridge.
+5. **Gate the dependent UI implementation.** The app-facing feature starts only when its required consumer contracts are proven ready, or when the owner explicitly approves a narrower, honestly labeled scope. If a new dependency emerges midway, return that feature to this gate rather than silently patching around the architecture. Continue unaffected authorized work while a bounded dependency is being resolved.
+
+**Exit evidence:** A per-slice capability table and proof links in the stage handoff/Work discussion or repository evidence: required user task/test, provider/Mastra support, VICT public contract/export, installed consumer result, owning layer, missing behavior, authorization/dependency, exact versions/SHAs, readiness verdict, and next action. Mark required gaps **BLOCKED/HELD**, not PASS. A frontend demo, passing unit test or available UI control cannot substitute for public consumer proof.
+
+**Scope note:** This decision governs the *next and all subsequent slices* and any new capability discovered during current V1a. It does not retrospectively require restarting work already underway, authorize upstream writes, require unnecessary upgrades, or prevent independent UI/design work that has no blocked runtime dependency. Preserve the V1a owner's existing acceptance and permission boundaries.
+
 ## Required mapping before each runtime slice
 
 Before implementing V1a, and again for every later functional slice, record a concrete ownership decision in that slice's evidence directory. G0 records initial gaps and dependencies without delaying U0 for exhaustive future runtime probes.
