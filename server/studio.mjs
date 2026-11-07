@@ -163,7 +163,8 @@ export function createStudio({getAssembly,dataDirectory,turnDeadlineMs=90000,con
     const saved=state.drafts[0];const active=state.activations[0];
     return {graph:saved?.graph??null,revision:saved&&{id:saved.id,number:saved.number},
       activation:active&&{version:active.record.activationVersion,revision:active.revision,number:active.number,name:active.name,route:active.route},
-      sessions:state.sessions.map(s=>({...s,connectionReady:!!credential(s.route??'general')})),runs:state.runs,provider:!!credential(),route:selectedRoute()};
+      sessions:state.sessions.map(s=>({...s,connectionReady:s.fixture===fixture&&!!credential(s.route??'general'),
+        archivedFixture:!!s.fixture&&s.fixture!==fixture})),runs:state.runs,provider:!!credential(),route:selectedRoute()};
   };
   async function dispatch(path,input){
     if(path==='')return projection(snapshot());

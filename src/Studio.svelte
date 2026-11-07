@@ -276,7 +276,7 @@
       <main class="session-view">
         {#if session}
           <header class="session-header"><div><p class="eyebrow">{session.fixture?'SESSION · DETERMINISTIC FIXTURE':'SESSION · LIVE PROVIDER'}</p><h1>{session.name}</h1><p>Z.AI {session.route==='coding'?'Coding':'General'} · {modelName} · Activated r{session.number} · Conversation</p></div>
-            <StatusBadge value={sendActivity?.session===session.id?(sendActivity.phase==='answer'?'Writing answer':'Waiting for Z.AI'):session.interrupted?'Interrupted':session.connectionReady?'Ready':'Credential not connected'}/>
+            <StatusBadge value={sendActivity?.session===session.id?(sendActivity.phase==='answer'?'Writing answer':'Waiting for Z.AI'):session.archivedFixture?'Fixture history':session.interrupted?'Interrupted':session.connectionReady?'Ready':'Credential not connected'}/>
           </header>
           {#if state.sessions.length>1}<div class="session-picker"><label for="session-picker">Open Session</label><Select id="session-picker" name="session" value={activeSession} options={state.sessions.map(s=>({value:s.id,label:s.name+' · '+new Date(s.created).toLocaleString()}))} onChange={v=>{activeSession=v;includeContext=false;}}/></div>{/if}
           {#if session.context}
@@ -298,7 +298,7 @@
         {#if run}
           <label for="run-picker">Run</label><Select id="run-picker" name="run" value={activeRun} options={state.runs.map(r=>({value:r.id,label:new Date(r.started).toLocaleString()+' · '+r.status}))} onChange={v=>activeRun=v}/>
           {#if run.fixture}<p class="eyebrow">DETERMINISTIC FIXTURE</p>{/if}
-          <dl><dt>Status</dt><dd><StatusBadge value={run.status}/></dd><dt>Agent</dt><dd>{run.name} · r{run.number}</dd><dt>Activation</dt><dd class="hash">{run.activation}</dd><dt>Provider / model</dt><dd>{run.parentRun?'Offline fixture':'Z.AI '+(run.route==='coding'?'Coding':'General')} / {run.observedModel??run.model}</dd><dt>Output token limit</dt><dd>{run.tokens}{run.sentMaxOutputTokens===undefined?' - configured':' - sent '+run.sentMaxOutputTokens}</dd>{#if run.execution}
+          <dl><dt>Status</dt><dd><StatusBadge value={run.status}/></dd><dt>Agent</dt><dd>{run.name} · r{run.parentRun?run.revision:run.number}</dd><dt>Activation</dt><dd class="hash">{run.activation}</dd><dt>Provider / model</dt><dd>{run.parentRun?'Offline fixture':'Z.AI '+(run.route==='coding'?'Coding':'General')} / {run.observedModel??run.model}</dd><dt>Output token limit</dt><dd>{run.tokens}{run.sentMaxOutputTokens===undefined?' - configured':' - sent '+run.sentMaxOutputTokens}</dd>{#if run.execution}
           <dt>Sampling</dt><dd>Temperature {run.execution.temperature??'provider default'}{run.sentTemperature!==undefined?' · sent '+run.sentTemperature:''} / Top-p {run.execution.topP??'provider default'}{run.sentTopP!==undefined?' · sent '+run.sentTopP:''}</dd>
           <dt>Execution limits</dt><dd>{run.execution.maxSteps} steps · {run.execution.maxRetries} model retries · {run.execution.maxToolCalls} tool calls · {run.execution.deadlineMs/1000}s host deadline</dd>
           <dt>Provider attempts</dt><dd>{run.providerAttempts}</dd>
