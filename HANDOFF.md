@@ -1,5 +1,7 @@
 # TORI handoff
 
+**Agents alignment for owner review.** Candidate `c279e73` adds an inspectable governed child binding. The [two-example walkthrough](docs/evidence/v1a/INTEGRATED-PREVIEW.md#agents-alignment) records the saved-definition boundary. TORI-003 remains in Review.
+
 **Integrated V1a owner preview.** Radzi accepted A4 at `e94e2b7`. Candidate `ff130a6e657c3fac8f784c636538c7bf39b550b1` fixes the child revision display and supports the [integrated preview and walkthrough](docs/evidence/v1a/INTEGRATED-PREVIEW.md). Two live Coding turns passed alongside labeled fixture history. Integrated owner walkthrough remains open.
 
 **A4 builder candidate available.** The supplemental [A3 approval and refusal proof](docs/evidence/v1a/A3-APPROVAL.md) passed independently on unchanged `d5232a3` runtime and package bytes, satisfying the owner's conditional A3 acceptance and A4 authorization. [A4 evidence and fixture preview](docs/evidence/v1a/A4.md) cover pinned structured-output validation and one governed child at `e94e2b7`. The [independent A4 verdict](docs/evidence/v1a/A4-INDEPENDENT.md) is PASS with one minor presentation finding. Radzi subsequently accepted A4.
