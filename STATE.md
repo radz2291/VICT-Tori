@@ -1,6 +1,8 @@
 # TORI current state
 
-**A4 builder candidate available.** The supplemental [A3 approval and refusal proof](docs/evidence/v1a/A3-APPROVAL.md) passed independently on unchanged `d5232a3` runtime and package bytes, satisfying the owner's conditional A3 acceptance and A4 authorization. [A4 evidence and fixture preview](docs/evidence/v1a/A4.md) cover pinned structured-output validation and one governed child at `e94e2b7`. The [independent A4 verdict](docs/evidence/v1a/A4-INDEPENDENT.md) is PASS with one minor presentation finding. A4 remains in owner Review.
+**Integrated V1a owner preview.** Radzi accepted A4 at `e94e2b7`. Candidate `ff130a6e657c3fac8f784c636538c7bf39b550b1` fixes the child revision display and supports the [integrated preview and walkthrough](docs/evidence/v1a/INTEGRATED-PREVIEW.md). Two live Coding turns passed alongside labeled fixture history. Integrated owner walkthrough remains open.
+
+**A4 builder candidate available.** The supplemental [A3 approval and refusal proof](docs/evidence/v1a/A3-APPROVAL.md) passed independently on unchanged `d5232a3` runtime and package bytes, satisfying the owner's conditional A3 acceptance and A4 authorization. [A4 evidence and fixture preview](docs/evidence/v1a/A4.md) cover pinned structured-output validation and one governed child at `e94e2b7`. The [independent A4 verdict](docs/evidence/v1a/A4-INDEPENDENT.md) is PASS with one minor presentation finding. Radzi subsequently accepted A4.
 
 **A3 historical review evidence.** Radzi accepted bounded A2 at `02b6c21` and authorized A3. The independent fresh-install verdict for `d5232a3c31e457a4d0b3a55eeecd3e6351d5bb6b` is PASS for bounded A3. See [A3 evidence and running fixture Studio](docs/evidence/v1a/A3.md) for on-demand context, scoped memory, governed MCP and both EAC-05 step outcomes. The owner subsequently accepted A3 after the supplemental approval proof passed.
 
