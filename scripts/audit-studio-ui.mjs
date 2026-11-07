@@ -59,6 +59,7 @@ try {
   });
   assert.notEqual(results.focus.outline, 'none');
   const graphNode = page.locator('.svelte-flow__node:visible').first();
+  await page.keyboard.press('Tab');
   await graphNode.focus();
   assert.equal(await graphNode.evaluate(element => {
     const style = getComputedStyle(element);
