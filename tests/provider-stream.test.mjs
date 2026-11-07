@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { publicProviderStream } from '../server/provider-stream.mjs';
 
-test('provider activity exposes phase names without passing reasoning text downstream',async()=>{
+test('provider stream removes private reasoning without dropping public text or usage',async()=>{
   const chunks=[
     'data: {"choices":[{"delta":{"reasoning_con',
     'tent":"private text"}}]}\n\ndata: {"choices":[{"delta":{"content":"Public answer"}}]}\n\n',
@@ -13,11 +13,15 @@ test('provider activity exposes phase names without passing reasoning text downs
     for(const chunk of chunks)controller.enqueue(encoder.encode(chunk));
     controller.close();
   }}),{headers:{'Content-Type':'text/event-stream'}});
-  const phases=[];
-  const result=await publicProviderStream(response,phase=>phases.push(phase)).text();
-  assert.deepEqual(phases,['reasoning','answer']);
+  const result=await publicProviderStream(response).text();
   assert.doesNotMatch(result,/private text|reasoning_content/);
   assert.match(result,/Public answer/);
   assert.match(result,/"completion_tokens":42/);
   assert.match(result,/\[DONE\]/);
+});
+
+test('unexpected non-streaming provider replies fail closed',async()=>{
+  const response=publicProviderStream(Response.json({choices:[{message:{reasoning_content:'private text'}}]}));
+  assert.equal(response.status,502);
+  assert.doesNotMatch(await response.text(),/private text|reasoning_content/);
 });

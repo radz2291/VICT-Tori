@@ -1,4 +1,5 @@
 import { publicProviderStream } from './provider-stream.mjs';
+import { validateAgentStreamEvent } from '@victframework/contracts';
 import { randomUUID } from 'node:crypto';
 import { readFileSync, mkdirSync } from 'node:fs';
 import { homedir } from 'node:os';
@@ -54,7 +55,7 @@ function activationFor(revision,value,route,record) {
   if(!restored.ok)throw conflict('The original VICT activation could not be restored.');
   return restored.activation;
 }
-function providerModel(key, route, evidence, onPhase) {
+function providerModel(key, route, evidence) {
   const endpoint=endpoints[route];
   return createOpenAICompatible({
     name:provider,baseURL:endpoint,supportsStructuredOutputs:false,
@@ -74,7 +75,7 @@ function providerModel(key, route, evidence, onPhase) {
         return new Response(JSON.stringify({error:{message:'Z.AI rejected the request.',type:'provider_error',code:evidence.code}}),
           {status:reply.status,headers:{'Content-Type':'application/json'}});
       }
-      return publicProviderStream(reply,onPhase);
+      return publicProviderStream(reply);
     }
   }).chatModel(model);
 }
@@ -108,7 +109,7 @@ export function createStudio({getAssembly,dataDirectory}) {
     if(path==='')return projection(snapshot());
     if(path==='/activity'){
       if(!activeTurn||activeTurn.session!==input.session)return {phase:null};
-      return {phase:activeTurn.answerAt?'answer':activeTurn.reasoningAt?'reasoning':'waiting'};
+      return {phase:activeTurn.publicTextStarted?'answer':'waiting'};
     }
     const assembly=await getAssembly();
     const state=snapshot();
@@ -153,29 +154,25 @@ export function createStudio({getAssembly,dataDirectory}) {
       run.events.push({at:run.started,label:'Turn accepted by Studio'});
       session.messages.push({id:run.id+'-user',role:'user',text});
       state.runs.unshift(run);store(state);
-      activeTurn=run;
-      const observePhase=phase=>{
-        if(phase==='reasoning'&&!run.reasoningAt){
-          run.reasoningAt=now();
-          run.events.push({at:run.reasoningAt,label:'Z.AI · Reasoning activity observed'});
-        }else if(phase==='answer'&&!run.answerAt){
-          run.answerAt=now();
-          run.events.push({at:run.answerAt,label:'Z.AI · Answer generation observed'});
-        }
-      };
+      activeTurn={session:session.id,publicTextStarted:false};
       const evidence={};
       const eventTimes=new Map();
       try {
         storage??=await createDedicatedMastraStore({dataDir:dir,retention:{messagesMaxAgeMs:2592000000,threadsMaxAgeMs:2592000000,spansMaxAgeMs:86400000}});
-        const adapter=MastraProductAgent.create(activation,{store:storage.store,modelFactory:()=>providerModel(key,run.route,evidence,observePhase),
+        const adapter=MastraProductAgent.create(activation,{store:storage.store,modelFactory:()=>providerModel(key,run.route,evidence),
           threadCoordinator:threads,tracing:{sampling:{type:'never'}}});
         const outcome=await pinAgentTurnRunner(adapter,activation).runTurn({turnId:run.id,threadId:mastraThreadIdForConversation(session.id),actorId:actor,input:text},
-          {abortSignal:AbortSignal.timeout(90000),victRunId:run.id,onEvent:event=>{eventTimes.set(event.seq,now());}});
+          {abortSignal:AbortSignal.timeout(90000),victRunId:run.id,onEvent:event=>{
+            if(!validateAgentStreamEvent(event).ok)return;
+            eventTimes.set(event.seq,now());
+            if(event.kind==='text.delta'&&event.delta.length)activeTurn.publicTextStarted=true;
+          }});
         await adapter.flush();
         run.status=outcome.status==='completed'&&!outcome.text?.trim()?'failed':outcome.status;
         run.usage=outcome.usage;
         run.observedModel=evidence.http===200?outcome.providerModelIdentity:undefined;
         for(const event of outcome.events){
+          if(!eventTimes.has(event.seq))continue;
           if(['response.started','response.completed','response.failed','response.cancelled','usage.updated'].includes(event.kind))
             run.events.push({at:eventTimes.get(event.seq)??now(),label:'VICT · '+event.kind});
         }

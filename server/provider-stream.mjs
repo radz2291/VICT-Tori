@@ -1,7 +1,9 @@
 // The provider may return private reasoning in its protocol. Strip it before
 // Mastra can observe, retain or deliver it, while preserving text and usage.
-export function publicProviderStream(response, onPhase) {
-  if(!response.body || !response.headers.get('content-type')?.includes('text/event-stream'))return response;
+export function publicProviderStream(response) {
+  if(!response.body || !response.headers.get('content-type')?.includes('text/event-stream')){
+    return Response.json({error:{message:'Unsupported provider response format.'}},{status:502});
+  }
   let tail='';
   const decoder=new TextDecoder(),encoder=new TextEncoder();
   const redact=line=>{
@@ -12,8 +14,6 @@ export function publicProviderStream(response, onPhase) {
         const sanitize=value=>{
           if(!value)return value;
           const {reasoning_content,reasoning,thinking,...publicParts}=value;
-          if([reasoning_content,reasoning,thinking].some(part=>typeof part==='string'&&part.length))onPhase?.('reasoning');
-          if(typeof publicParts.content==='string'&&publicParts.content.length)onPhase?.('answer');
           return publicParts;
         };
         return {...c,...(c.delta?{delta:sanitize(c.delta)}:{}),...(c.message?{message:sanitize(c.message)}:{})};
