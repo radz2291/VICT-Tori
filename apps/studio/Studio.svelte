@@ -1,9 +1,10 @@
 <script>
   import { openProject, project, projectKey, projectLabel, resetSamples } from './project-storage.js';
   import ImportDraft from './ImportDraft.svelte';
-  import AgentRelationships from './AgentRelationships.svelte';
-  import AgentConfiguration from './AgentConfiguration.svelte';
-  import { agentFixtures, agentParameters, prepareAgentSource, workspaceContexts } from './agent-configuration.js';
+  import AgentSourceValue from './AgentSourceValue.svelte';
+  import Choice from './Choice.svelte';
+  import { agentFixtures, workspaceContexts } from './agent-configuration.js';
+  import { addAgentSource, agentBindings, agentEdge, agentInputs, agentNodeTypes, agentSource, prepareAgentSource } from './agent-graph.js';
   import StudioSettings from './StudioSettings.svelte';
   import Operations from './Operations.svelte';
   import SimulationDialog from './SimulationDialog.svelte';
@@ -15,34 +16,25 @@
   import StudioMenu from './StudioMenu.svelte';
   import GraphCommands from './GraphCommands.svelte';
   import { tick, untrack } from 'svelte';
-  import { GraphWorkspaceV3, emptyGraphV3, parseGraphV3 } from '@victframework/ui-flow-svelte';
+  import { GraphPortRow, GraphWorkspaceV3, parseGraphV3 } from '@victframework/ui-flow-svelte';
   import { Button } from '@victframework/ui-svelte/catalog/button';
   import { Feedback } from '@victframework/ui-svelte';
-  import { Input, Textarea } from '@victframework/ui-ai-svelte';
+  import { Input } from '@victframework/ui-ai-svelte';
   import { MediaIcon } from '@victframework/ui-media-svelte';
-  import AddAgent from './AddAgent.svelte';
   import AgentCanvas from './AgentCanvas.svelte';
   import WorkflowPreview from './WorkflowPreview.svelte';
   import CreativeCanvas from './CreativeCanvas.svelte';
   import { ControlScope } from '@victframework/ui-svelte/controls';
 
   const key = 'tori.studio.draft.v1';
-  const blank = () => JSON.stringify({
-    ...emptyGraphV3(),
-    allowCycles: true,
-    nodeTypes: [{
-      id: 'agent', label: 'Agent definition', ports: [],
-      parameters: agentParameters
-    }]
-  });
-  const agentDraft = new GraphDraft(key, blank(), prepareAgentSource);
+  const agentDraft = new GraphDraft(key, agentSource(), prepareAgentSource);
   let source = $derived(agentDraft.source);
   let savedSource = $derived(agentDraft.saved);
   let status = $derived(agentDraft.status);
   let draftError = $derived(agentDraft.error);
   let nameInput = $state(null);
-  let relationshipViews = $state({});
-  let expandedAgents = $state({});
+  let primitive = $state('text');
+  const primitiveOptions = agentNodeTypes.slice(1).map(type => ({ value: type.id, label: type.label }));
   let agentNavigation = $state.raw({});
   const preview = new URLSearchParams(window.location.search).get('preview');
   let view = $state(preview === 'sessions' ? 'Sessions' : preview === 'workflow' ? 'Workflows' : 'Agents');
@@ -75,7 +67,7 @@
     return () => narrowQuery.removeEventListener('change', update);
   });
   let agentWorkspace = $state.raw();
-  let addAgent = $state.raw();
+  const addAgent = () => addConfiguredAgent();
   let workflowCommands = $state.raw({});
   let creativeCommands = $state.raw({});
   let help = $state(false);
@@ -193,20 +185,20 @@
   let simulationOpen = $state(false);
   let simulationDefinition = $state(null);
   let agentValidation = $state(null);
-  let effectiveAgentContext = $derived(workspaceContexts[agent?.values.workspaceContext]);
+  let effectiveAgentContext = $derived(workspaceContexts[bindings.workspaceContext?.value]);
   function agentIssues() {
     const issues = [];
-    if (!agent?.values.instructions?.trim()) issues.push('Instructions are required for activation.');
-    if (agent?.values.budget && !/^[1-9]\d*$/.test(agent.values.budget)) issues.push('Step budget must be a positive whole number.');
+    if (!bindings.instructions?.value?.trim()) issues.push('Instructions are required for activation.');
+    if (bindings.budget?.value && !/^[1-9]\d*$/.test(bindings.budget.value)) issues.push('Step budget must be a positive whole number.');
     if (agent?.values.lifecycle === 'retired') issues.push('Restore the retired agent before activation.');
     return issues;
   }
   function openSimulation() {
-    if (!inspected || !currentWorkspace) return;
+    if (!canSimulate || !currentWorkspace) return;
     simulationDefinition = {
       page: view, id: inspected.id, label: inspected.label, type: inspected.type,
       revision: currentWorkspace.graph.revision,
-      ...(agent ? { model: agent.values.model, mode: agent.values.mode, policy: agent.values.policy, workspaceContext: effectiveAgentContext } : {}),
+      ...(agent ? { model: bindings.model?.value, mode: bindings.mode?.value, policy: bindings.policy?.value, workspaceContext: effectiveAgentContext, bindings: Object.fromEntries(Object.entries(bindings).map(([key, binding]) => [key, { sourceId: binding.node.id, value: binding.value }])) } : {}),
       ...commands.simulationContext?.(inspected),
       readiness: commands.readiness?.() ?? (agent ? agentIssues() : [])
     };
@@ -232,19 +224,72 @@
     view = 'Runs';
   }
 
-  async function addConfiguredAgent(label, values) {
+  async function addConfiguredAgent(label, values = {}) {
+    if (!agentWorkspace) return;
     const id = crypto.randomUUID();
-    const count = agentWorkspace.graph.nodes.length;
-    agentWorkspace.apply([
-      { type: 'addNode', id, nodeType: 'agent', position: { x: 48 + count % 3 * 310, y: 48 + Math.floor(count / 3) * 190 } },
-      { type: 'setLabel', nodeId: id, label },
-      ...Object.entries(values).map(([key, value]) => ({ type: 'setParameter', nodeId: id, key, value })),
-    ]);
-    await tick();
-    if (agentWorkspace.graph.nodes.some(node => node.id === id)) {
-      agentWorkspace.select({ nodes: [id], edges: [] });
-      void focusAddedAgent(id, count);
+    const count = agents.length;
+    if (!label) {
+      label = 'Agent definition';
+      let suffix = 2;
+      while (agents.some(node => node.label === label)) label = 'Agent definition ' + suffix++;
     }
+    const position = { x: 390 + count % 2 * 650, y: 72 + Math.floor(count / 2) * 840 };
+    const operations = [
+      { type: 'addNode', id, nodeType: 'agent', position },
+      { type: 'setLabel', nodeId: id, label },
+    ];
+    for (const [index, input] of agentInputs.filter(input => input.id === 'instructions' || values[input.id]).entries()) {
+      const source = addAgentSource(input, { x: position.x - 320, y: position.y + index * 170 }, values[input.id]);
+      operations.push(...source.operations, { type: 'connect', edge: agentEdge(crypto.randomUUID(), source.id, id, input.id) });
+    }
+    agentWorkspace.apply(operations);
+    await selectAgentObject(id, !narrow);
+    if (!narrow) nameInput?.focus();
+  }
+
+  async function selectAgentObject(id, fit = false) {
+    await tick();
+    if (!agentWorkspace.graph.nodes.some(node => node.id === id)) return;
+    agentWorkspace.select({ nodes: [id], edges: [] });
+    if (fit) void agentNavigation.fit?.();
+    else void agentNavigation.reveal?.(id);
+  }
+
+  function createSource(type, target, input = agentInputs.find(item => item.source === type)) {
+    if (!agentWorkspace || !input) return;
+    const count = agentWorkspace.graph.nodes.length;
+    const position = target
+      ? { x: target.position.x - 320, y: target.position.y }
+      : { x: 48 + count % 3 * 300, y: 48 + Math.floor(count / 3) * 180 };
+    while (agentWorkspace.graph.nodes.some(node => Math.abs(node.position.x - position.x) < 250 && Math.abs(node.position.y - position.y) < 160)) {
+      position.y += 170;
+    }
+    const source = addAgentSource(input, position);
+    if (target) source.operations.push({ type: 'connect', edge: agentEdge(crypto.randomUUID(), source.id, target.id, input.id) });
+    else source.operations[1].label = agentNodeTypes.find(node => node.id === type).label;
+    agentWorkspace.apply(source.operations);
+    void selectAgentObject(source.id, !narrow);
+  }
+
+  function rebind(input, sourceId) {
+    const existing = bindings[input.id]?.edge;
+    if (sourceId === 'unconnected') {
+      if (existing) agentWorkspace.apply([{ type: 'remove', selection: { nodes: [], edges: [existing.id] } }]);
+      return;
+    }
+    const sourceNode = graph.nodes.find(node => node.id === sourceId);
+    if (!sourceNode || existing?.source === sourceId) return;
+    const edge = agentEdge(crypto.randomUUID(), sourceId, agent.id, input.id, sourceNode.type === 'agent' ? 'agent' : 'value');
+    if (existing) {
+      const { id, ...connection } = edge;
+      agentWorkspace.apply([{ type: 'reconnect', edgeId: existing.id, connection }]);
+    } else agentWorkspace.apply([{ type: 'connect', edge }]);
+  }
+
+  function sourceOptions(input) {
+    return [{ value: 'unconnected', label: 'Unconnected' }, ...graph.nodes.filter(node =>
+      node.id !== agent.id && (node.type === input.source || (input.id === 'specialist' && node.type === 'agent'))
+    ).map(node => ({ value: node.id, label: objectLabel(node) }))];
   }
 
   async function convertCreative(snapshot) {
@@ -261,7 +306,7 @@
         .filter(([id]) => id !== project).map(([id, label]) => ({ label, run: () => openProject(id) })),
       ...(project === 'samples' ? [{ label: 'Reset sample project', run: () => confirmSampleReset = true }] : [])] },
     { name: 'Edit', items: [{ label: 'Undo', run: commands.undo, hint: 'Ctrl+Z' }, { label: 'Redo', run: commands.redo, hint: 'Ctrl+Shift+Z' }, { label: 'Delete selected object', run: hasSelection ? deleteSelected : undefined },
-      ...(agent ? [{ label: 'Clone agent', run: () => addConfiguredAgent(agent.label + ' copy', agent.values) },
+      ...(agent ? [{ label: 'Clone agent', run: () => addConfiguredAgent(agent.label + ' copy', Object.fromEntries(Object.entries(bindings).map(([key, binding]) => [key, binding.value]))) },
         { label: agent.values.lifecycle === 'retired' ? 'Restore agent' : 'Retire agent',
           run: () => edit('lifecycle', agent.values.lifecycle === 'retired' ? '' : 'retired') }] : [])] },
     { name: 'View', items: [
@@ -271,9 +316,10 @@
       { label: 'Zoom out', run: objects.length ? commands.navigation?.zoomOut : undefined }
     ] },
     { name: 'Insert', items: [{ label: commands.addLabel ?? 'Add agent', run: commands.add },
+      ...(view === 'Agents' ? [{ label: 'Add Text', run: () => createSource('text') }, { label: 'Add Number', run: () => createSource('number') }] : []),
       ...(view === 'Agents' ? Object.entries(agentFixtures).map(([label, values]) => ({ label: 'Add ' + label + ' fixture', run: () => addConfiguredAgent(label, values) })) : []),
       ...(commands.fixtures ?? []), ...(commands.branchLabel ? [{ label: commands.branchLabel, run: commands.branch }] : [])] },
-    { name: 'Run', items: [{ label: 'Start simulated run', run: view !== 'Creative' && inspected && agent?.values.lifecycle !== 'retired' ? openSimulation : undefined }, { label: 'Live execution unavailable in U0' }] },
+    { name: 'Run', items: [{ label: 'Start simulated run', run: canSimulate ? openSimulation : undefined }, { label: 'Live execution unavailable in U0' }] },
     { name: 'Window' },
     { name: 'Help', items: [{ label: 'About this workspace', run: () => help = !help }] }
   ]);
@@ -290,7 +336,10 @@
   }
   let parsed = $derived(parseGraphV3(source));
   let graph = $derived(parsed.ok ? parsed.graph : null);
-  let agent = $derived(view === 'Agents' ? inspected : undefined);
+  let agents = $derived(graph?.nodes.filter(node => node.type === 'agent') ?? []);
+  let agent = $derived(view === 'Agents' && inspected?.type === 'agent' ? inspected : undefined);
+  let bindings = $derived(agent ? agentBindings(graph, agent.id) : {});
+  let canSimulate = $derived(Boolean(inspected && (view === 'Workflows' || (agent && agent.values.lifecycle !== 'retired'))));
 
   function reopen() { agentDraft.reopen(); }
   function save() { agentDraft.save(); }
@@ -298,12 +347,6 @@
 
   function emit(name, value) {
     if (name === 'graphChange') agentDraft.edit(value);
-  }
-
-  async function focusAddedAgent(id, previousCount) {
-    if (previousCount > 0) void agentNavigation.reveal?.(id);
-    await tick();
-    nameInput?.focus();
   }
 
   function objectLabel(node) {
@@ -319,11 +362,18 @@
 
   function edit(key, value) {
     const operation = key === 'label'
-      ? { type: 'setLabel', nodeId: agent.id, label: value }
-      : { type: 'setParameter', nodeId: agent.id, key, value };
+      ? { type: 'setLabel', nodeId: inspected.id, label: value }
+      : { type: 'setParameter', nodeId: inspected.id, key, value };
     agentWorkspace?.apply([operation]);
   }
 </script>
+
+{#snippet sourceValue(nodeType, value, change, label)}
+  {@const input = agentInputs.find(item => item.source === nodeType)}
+  {#if input}
+    <AgentSourceValue {input} {value} {change} {label} settings={operations.data.settings} {agents} draft={agentDraft}/>
+  {/if}
+{/snippet}
 
 <svelte:window onkeydown={shortcuts} onstorage={() => operations.refresh()}/>
 <ControlScope class="studio"><div class="studio-shell" class:phone={narrow}>
@@ -365,7 +415,7 @@
       <Button.Root class="action" disabled={!objects.length} onclick={commands.navigation?.zoomIn}>Zoom in</Button.Root>
       <Button.Root class="action" disabled={!inspected} onclick={() => commands.navigation?.reveal(inspected.id)}>Reveal selected object</Button.Root>
       <Button.Root class="action" disabled={!hasSelection} onclick={deleteSelected}>Delete selected object</Button.Root>
-      {#if view !== 'Creative'}<Button.Root class="action" disabled={!inspected || agent?.values.lifecycle === 'retired'} onclick={openSimulation}>Start simulated run</Button.Root>{/if}
+      {#if view !== 'Creative'}<Button.Root class="action" disabled={!canSimulate} onclick={openSimulation}>Start simulated run</Button.Root>{/if}
     </div>
   {/if}
   <main>
@@ -380,54 +430,47 @@
       {/if}
       <div class="stage">
     {#snippet body(frame)}
-      <article class="node" data-tori-node={frame.props.nodeId}>
+      {@const type = agentNodeTypes.find(item => item.id === frame.props.nodeType)}
+      <article class="node" class:agent-node={frame.props.nodeType === 'agent'} data-tori-node={frame.props.nodeId}>
         <div class="node-heading vict-graph-drag-handle">
-          <span class="node-kind" aria-hidden="true">A</span>
+          <span class="node-kind" aria-hidden="true">{type.label.slice(0, 1)}</span>
           <strong>{frame.props.label}</strong>
         </div>
-        <label for={`node-instructions-${frame.props.nodeId}`}>Node instructions
-          <Textarea onfocus={() => agentDraft.beginEdit()} onblur={() => agentDraft.endEdit()} id={`node-instructions-${frame.props.nodeId}`} class="studio-field" placeholder="Describe what this agent should do"
-            value={String(frame.state.instructions ?? '')}
-            oninput={(event) => frame.onStateChange('instructions', event.currentTarget.value)}/>
-        </label>
-        <div class="nodrag nopan nowheel">
-          <Button.Root class="action" aria-expanded={Boolean(expandedAgents[frame.props.nodeId])}
-            onclick={() => expandedAgents[frame.props.nodeId] = !expandedAgents[frame.props.nodeId]}>
-            {expandedAgents[frame.props.nodeId] ? 'Hide agent bindings' : 'Show agent bindings'}
-          </Button.Root>
-          {#if expandedAgents[frame.props.nodeId]}
-            <AgentConfiguration state={frame.state} change={frame.onStateChange} settings={operations.data.settings}
-              agents={graph?.nodes ?? []} agentId={frame.props.nodeId} prefix="Node "/>
-          {/if}
-        </div>
+        {#if frame.props.nodeType !== 'agent'}
+          <p class="source-kind">{type.label}</p>
+          {@render sourceValue(frame.props.nodeType, frame.state.value, value => frame.onStateChange('value', value), frame.props.label + ' value')}
+        {/if}
+        {#each type.ports as port (port.id)}
+          <GraphPortRow props={{ id: port.id, showType: frame.props.nodeType !== 'agent' }} nodeId={port.id} occurrenceKey={port.id}/>
+        {/each}
       </article>
     {/snippet}
-    {#snippet content(frame)}
+    {#snippet content()}
       <GraphCommands register={(workspace) => { agentWorkspace = workspace; }}/>
       <div class="agent-page">
-          <div class="canvas">
-            <AgentCanvas active={view === 'Agents'} register={(value) => { agentNavigation = value; }}/>
-            {#if !graph?.nodes.length}
-              <div class="empty">
-
-                <h2>Start with an agent</h2>
-
-                <AddAgent primary onadd={focusAddedAgent} register={(action) => { addAgent = action; }}/>
-              </div>
-            {:else}
-              <div class="canvas-tools" role="group" aria-label="Canvas tools">
-                <AddAgent onadd={focusAddedAgent} register={(action) => { addAgent = action; }}/>
-              </div>
-            {/if}
-          </div>
-        <footer><span>{graph?.nodes.length ?? 0} agents</span><span>Execution simulation</span></footer>
+        <div class="canvas">
+          <AgentCanvas active={view === 'Agents'} register={(value) => { agentNavigation = value; }}/>
+          {#if !graph?.nodes.length}
+            <div class="empty">
+              <h2>Start with an agent</h2>
+              <Button.Root class="action primary" onclick={addAgent}><span aria-hidden="true">+</span> Add agent</Button.Root>
+            </div>
+          {:else}
+            <div class="canvas-tools" role="group" aria-label="Canvas tools">
+              <Button.Root class="action" onclick={addAgent}>Add agent</Button.Root>
+              <Choice portal label="Node type" value={primitive} options={primitiveOptions} change={value => primitive = value}/>
+              <Button.Root class="action" onclick={() => createSource(primitive)}>Add node</Button.Root>
+            </div>
+          {/if}
+        </div>
+        <footer><span>{agents.length} {agents.length === 1 ? 'agent' : 'agents'}</span><span>Execution simulation</span></footer>
       </div>
     {/snippet}
     <div class="authoring-page" hidden={view !== 'Agents'}>
       <GraphHost draft={agentDraft}><GraphWorkspaceV3 props={{ graph: source, label: 'Agent graph' }}
         io={{ emit, scopedSlots: { content, body } }} nodeId="agents" occurrenceKey="agents"/></GraphHost>
     </div>
-    <div class="authoring-page" hidden={view !== 'Workflows'}><WorkflowPreview active={view === 'Workflows'} agents={graph?.nodes ?? []} agentRevision={graph?.revision ?? 0} bind:status={workflowStatus} register={(value) => { workflowCommands = value; }}/></div>
+    <div class="authoring-page" hidden={view !== 'Workflows'}><WorkflowPreview active={view === 'Workflows'} {agents} agentRevision={graph?.revision ?? 0} bind:status={workflowStatus} register={(value) => { workflowCommands = value; }}/></div>
     <div class="authoring-page" hidden={view !== 'Creative'}><CreativeCanvas workspace={operations} openRun={runCreated} convertToWorkflow={convertCreative} active={view === 'Creative'} bind:status={creativeStatus} register={(value) => { creativeCommands = value; }}/></div>
     {#if view === 'Sessions' || view === 'Runs'}
       <Operations page={view} workspace={operations} bind:sessionId bind:runId navigate={(page) => view = page} {openDefinition}/>
@@ -437,16 +480,20 @@
         <WorkspaceDock panel={inspector} {narrow} resize={(width) => setPanel('Inspector', { width })} close={() => closeNarrowPanel('Inspector')}>
           {#if view === 'Agents' && agent}
               <label for="agent-name">Agent name <Input onfocus={() => agentDraft.beginEdit()} onblur={() => agentDraft.endEdit()} id="agent-name" class="studio-field" bind:ref={nameInput} value={agent.label} oninput={(event) => edit('label', event.currentTarget.value)} /></label>
-              <label for="agent-instructions">Agent instructions <Textarea onfocus={() => agentDraft.beginEdit()} onblur={() => agentDraft.endEdit()} id="agent-instructions" class="studio-field" aria-describedby="agent-readiness" placeholder="Describe what this agent should do" value={String(agent.values.instructions ?? '')}
-                oninput={(event) => edit('instructions', event.currentTarget.value)}/></label>
-              <AgentConfiguration state={agent.values} change={edit} settings={operations.data.settings} agents={graph?.nodes ?? []} agentId={agent.id}/>
-              <Button.Root class="action" aria-expanded={Boolean(relationshipViews[agent.id])}
-                onclick={() => relationshipViews[agent.id] = !relationshipViews[agent.id]}>
-                {relationshipViews[agent.id] ? 'Hide resource relationships' : 'Show resource relationships'}
-              </Button.Root>
-              {#if relationshipViews[agent.id]}
-                <AgentRelationships {agent} settings={operations.data.settings} agents={graph?.nodes ?? []}/>
-              {/if}
+              <h2 class="inputs-heading">Inputs</h2>
+              {#each agentInputs as input (input.id)}
+                <div class="agent-binding">
+                  <span>{input.label}</span>
+                  <Choice portal={!narrow} label={input.label + ' source'} value={bindings[input.id]?.node.id ?? 'unconnected'}
+                    options={sourceOptions(input)} change={id => rebind(input, id)}/>
+                  {#if bindings[input.id]}
+                    <Button.Root class="action" aria-label={'Open ' + input.label + ' source'}
+                      onclick={() => selectAgentObject(bindings[input.id].node.id)}>Open source</Button.Root>
+                  {:else}
+                    <Button.Root class="action" onclick={() => createSource(input.source, agent, input)}>Add {input.label.toLowerCase()} source</Button.Root>
+                  {/if}
+                </div>
+              {/each}
               {#if effectiveAgentContext}
                 <section aria-label={effectiveAgentContext.label}>
                   <h2>{effectiveAgentContext.label}</h2>
@@ -461,7 +508,12 @@
               {#if agentValidation?.id === agent.id && agentValidation.revision === graph.revision}
                 <Feedback message={agentValidation.issues.join(' ') || 'Draft validation passed. Live activation is unavailable in U0.'}/>
               {/if}
-              <p class="readiness" id="agent-readiness">{agent.values.lifecycle === 'retired' ? 'Retired agent' : agent.values.instructions ? 'Instructions configured' : 'Add instructions before running this agent. You can save it as a draft now.'}</p>
+              <p class="readiness" id="agent-readiness">{agent.values.lifecycle === 'retired' ? 'Retired agent' : bindings.instructions?.value ? 'System prompt connected' : 'Connect a text source before running this agent. You can save it as a draft now.'}</p>
+          {:else if view === 'Agents' && inspected}
+            <label for="agent-source-name">Node name <Input id="agent-source-name" class="studio-field" value={inspected.label}
+              onfocus={() => agentDraft.beginEdit()} onblur={() => agentDraft.endEdit()} oninput={event => edit('label', event.currentTarget.value)}/></label>
+            <p class="source-kind">{agentNodeTypes.find(type => type.id === inspected.type).label}</p>
+            {@render sourceValue(inspected.type, inspected.values.value, value => edit('value', value), 'Source value')}
           {:else if inspected}
             <dl><dt>Name</dt><dd>{objectLabel(inspected)}</dd><dt>Type</dt><dd>{currentWorkspace.graph.nodeTypes.find(type => type.id === inspected.type)?.label ?? inspected.type}</dd></dl>
             {#if commands.inspect}{@render commands.inspect(inspected)}{/if}
@@ -558,6 +610,14 @@
   .node:hover { background: #303032; }
   .node-heading { cursor: grab; display: flex; align-items: center; gap: 8px; }
   .node-heading strong { font-size: 15px; font-weight: 650; overflow-wrap: anywhere; }
+  .source-kind { color: var(--vict-color-muted); font-size: 12px; margin: 6px 0; }
+  .agent-node :global(.graph-port-row) { min-height: 24px; padding-block: 1px; }
+  .agent-binding { display: grid; gap: 4px; margin: 8px 0; }
+  .agent-binding > span { color: var(--vict-color-muted); font-size: 12px; }
+  .agent-binding :global(button) { justify-self: start; }
+  .inputs-heading { margin-top: 14px; }
+  .canvas-tools { align-items: center; gap: 4px; max-width: calc(100% - 16px); }
+  .canvas-tools :global([data-select-trigger]) { width: auto; min-width: 0; max-width: 45vw; }
   .node-kind { display: grid; place-items: center; width: 20px; height: 20px; flex: none; background: var(--vict-color-bg); font-size: 11px; color: var(--vict-color-muted); }
   label { display: grid; gap: 4px; margin-top: 10px; font-size: 12px; color: var(--vict-color-muted); }
   :global(.studio .studio-field) { color: var(--vict-color-text); border: 0; border-radius: 2px; background: var(--vict-color-bg); padding: 6px 8px; min-width: 0; width: 100%; }

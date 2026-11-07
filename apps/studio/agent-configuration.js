@@ -1,17 +1,3 @@
-export const agentParameters = Object.fromEntries([
-  ['instructions', 'Instructions'], ['model', 'Model'], ['mode', 'Mode'], ['memory', 'Memory'],
-  ['policy', 'Policy'], ['skill', 'Skill'], ['tool', 'Tool'], ['specialist', 'Delegated specialist'],
-  ['processor', 'Processor'], ['budget', 'Step budget'], ['workspaceContext', 'Workspace context'], ['lifecycle', 'Lifecycle'],
-].map(([id, label]) => [id, { type: 'string', default: '', label }]));
-
-export function prepareAgentSource(source) {
-  const graph = JSON.parse(source);
-  const agent = graph.nodeTypes.find(type => type.id === 'agent');
-  if (!agent || Object.keys(agentParameters).every(key => key in agent.parameters)) return source;
-  agent.parameters = { ...agentParameters, ...agent.parameters };
-  return JSON.stringify(graph);
-}
-
 export const agentFixtures = {
   'Authoring agent': {
     instructions: 'Plan a Studio edit, present a reviewable diff, and wait for approval.',
