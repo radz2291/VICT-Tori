@@ -10,11 +10,14 @@
     const id = crypto.randomUUID();
     const count = workspace.graph.nodes.length;
     const position = { x: 48 + (count % 3) * 310, y: 48 + Math.floor(count / 3) * 190 };
-    workspace.apply([{ type: 'addNode', id, nodeType: 'agent', position }]);
+    let label = 'Agent definition';
+    let suffix = 2;
+    while (workspace.graph.nodes.some(node => node.label === label)) label = 'Agent definition ' + suffix++;
+    workspace.apply([{ type: 'addNode', id, nodeType: 'agent', position }, { type: 'setLabel', nodeId: id, label }]);
     if (!workspace.graph.nodes.some(node => node.id === id)) return;
-    onadd(id, count);
     await tick();
     workspace.select({ nodes: [id], edges: [] });
+    onadd(id, count);
   }
   $effect(() => register(add));
 </script>

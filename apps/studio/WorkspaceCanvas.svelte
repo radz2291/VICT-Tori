@@ -1,8 +1,20 @@
 <script>
-  import { getContext, tick, untrack } from 'svelte';
+  import { getContext, setContext, tick, untrack } from 'svelte';
   import { GRAPH_WORKSPACE, GRAPH_EDITOR_HOST, GraphViewport, getViewportForBounds } from '@victframework/ui-flow-svelte';
   let { active = true, label, register = () => {} } = $props();
   const workspace = getContext(GRAPH_WORKSPACE);
+  // VICT forwards native selection from a renderer effect. Keep its workspace read
+  // out of that effect so external selection is projected before the native echo.
+  let projectingViewport = true;
+  setContext(GRAPH_WORKSPACE, Object.create(workspace, {
+    select: { value: selection => untrack(() => {
+      // A newly mounted viewport emits an empty selection before its node
+      // binding settles. The workspace still owns the current selection.
+      if (projectingViewport && !selection.nodes.length && !selection.edges.length) return;
+      workspace.select(selection);
+    }) }
+  }));
+  $effect(() => { void tick().then(() => { projectingViewport = false; }); });
   const host = getContext(GRAPH_EDITOR_HOST);
   let root = $state();
   let version = $state(0);
@@ -37,7 +49,10 @@
       viewport = getViewportForBounds({ x, y, width: right - x, height: bottom - y }, bounds.width, bounds.height, .1, 1, .15);
     }
     controller.set({ viewport, selection: workspace.selection });
+    projectingViewport = true;
     version += 1;
+    await tick();
+    projectingViewport = false;
   }
   $effect(() => {
     register({
@@ -78,6 +93,12 @@
   });
 
 </script>
+
+<svelte:window onkeydown={event => {
+  if (!active || event.key !== 'Escape' || event.defaultPrevented || !root?.contains(event.target)) return;
+  if (event.target instanceof Element && event.target.closest('input, textarea, [contenteditable], [role=combobox]')) return;
+  workspace.select({ nodes: [], edges: [] });
+}}/>
 
 <div class="canvas-frame" bind:this={root}>
   {#key version}<GraphViewport props={{ label }} nodeId="canvas" occurrenceKey={projectionKey}/>{/key}

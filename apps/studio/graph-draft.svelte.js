@@ -1,3 +1,4 @@
+import { projectKey } from './project-storage.js';
 import { parseGraphV3 } from '@victframework/ui-flow-svelte/model';
 
 // VICT validates authored operations. Its public host delegates document history here.
@@ -15,16 +16,18 @@ export class GraphDraft {
   beginEdit() { this.editing = true; this.editRecorded = false; }
   endEdit() { this.editing = false; this.editRecorded = false; }
 
-  constructor(key, initialSource) {
-    this.key = key;
+  constructor(key, initialSource, prepareSource = source => source) {
+    this.key = projectKey(key);
+    this.prepareSource = prepareSource;
+    this.supportedTypes = new Set(parseGraphV3(initialSource).graph.nodeTypes.map(type => type.id));
     this.source = initialSource;
     let retained;
-    try { retained = sessionStorage.getItem(key + '.recovery'); } catch { /* Storage may be unavailable. */ }
+    try { retained = sessionStorage.getItem(this.key + '.recovery'); } catch { /* Storage may be unavailable. */ }
     this.reopen();
     try {
       const recovery = JSON.parse(retained ?? 'null');
       if (recovery && (recovery.base === null || typeof recovery.base === 'string') && parseGraphV3(recovery.source).ok) {
-        this.source = recovery.source;
+        this.source = this.prepareSource(recovery.source);
         this.saved = recovery.base;
         this.status = 'Unsaved edits recovered';
         this.recover();
@@ -74,7 +77,8 @@ export class GraphDraft {
       const source = localStorage.getItem(this.key);
       if (source === null) return;
       if (!parseGraphV3(source).ok) throw new Error('Invalid graph');
-      this.source = this.saved = source;
+      this.saved = source;
+      this.source = this.prepareSource(source);
       this.past = [];
       this.future = [];
       this.status = 'Saved draft reopened';
@@ -98,6 +102,18 @@ export class GraphDraft {
     } catch {
       this.error = 'Could not save locally. Free browser storage and retry, or download your draft.';
     }
+  }
+  importSource(source) {
+    const parsed = parseGraphV3(source);
+    if (!parsed.ok) throw new Error('This file is not a valid VICT Flow v3 graph. The current draft was retained.');
+    if (parsed.graph.nodeTypes.some(type => !this.supportedTypes.has(type.id))) {
+      throw new Error('This graph belongs to a different workspace or uses unsupported node types.');
+    }
+    const graph = parseGraphV3(this.prepareSource(source));
+    if (!graph.ok) throw new Error('This graph could not be prepared for the current workspace.');
+    graph.graph.revision = parseGraphV3(this.source).graph.revision + 1;
+    this.endEdit();
+    this.edit(JSON.stringify(graph.graph));
   }
   download(filename) {
     const url = URL.createObjectURL(new Blob([this.source], { type: 'application/json' }));

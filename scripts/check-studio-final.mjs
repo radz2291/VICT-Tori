@@ -10,7 +10,7 @@ try {
   page.on('pageerror', error => errors.push(error.message));
   const button = name => page.getByRole('button', { name, exact: true });
   const menu = name => page.getByRole('menuitem', { name, exact: true });
-  const toolbar = page.getByRole('group', { name: 'Canvas navigation' });
+  const toolbar = page.getByRole('group', { name: 'Authoring commands' });
   const select = async (label, option) => {
     await page.getByLabel(label, { exact: true }).click();
     await page.getByRole('option', { name: option, exact: true }).click();
@@ -41,8 +41,8 @@ try {
   await menu('Edit').click();
   await menu('Undo').click();
   await name.waitFor({ state: 'hidden' });
-  await button('Find agent').click();
-  await page.getByRole('menuitemradio', { name: 'Unsaved recovered agent' }).click();
+  await button('Library').click();
+  await button('Unsaved recovered agent').click();
   await name.waitFor();
   await toolbar.getByRole('button', { name: 'Reveal selected object' }).click();
   await button('Zoom in').click();
@@ -61,14 +61,14 @@ try {
   await select('Node', 'Decision');
   await button('Add node').click();
   await button('Connect ports').click();
-  await select('Output', 'Request · Brief');
+  await select('Output', 'Request · Request brief');
   await select('Input', 'Decision · Proposal');
   await button('Connect').click();
   const alert = page.getByRole('alert');
-  await alert.filter({ hasText: 'Request · Brief (brief)' }).waitFor();
+  await alert.filter({ hasText: 'Request · Request brief (brief)' }).waitFor();
   assert.match(await alert.innerText(), /Decision · Proposal \(proposal\)/);
   await capture('workflow-error');
-  await select('Input', 'Run agent · Brief');
+  await select('Input', 'Run agent · Input brief');
   await button('Connect').click();
   assert.equal(await alert.count(), 0);
   await workflow.locator('.svelte-flow__edge').waitFor();

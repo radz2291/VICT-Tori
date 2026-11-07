@@ -16,6 +16,11 @@
     "@sveltejs/vite-plugin-svelte": "5.1.1",
     "zod": "3.25.76"
   },
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
   "name": "tori-vict-consumer",
   "type": "module",
   "private": true

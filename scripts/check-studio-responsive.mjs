@@ -81,7 +81,7 @@ try {
     await page.getByRole('menu').waitFor({ state: 'hidden' });
     if (route === 'Workflows') {
       await button('Connect ports').tap();
-      for (const [label, choice] of [['Output', 'Request · Brief'], ['Input', 'Run agent · Brief']]) {
+      for (const [label, choice] of [['Output', 'Request · Request brief'], ['Input', 'Run agent · Input brief']]) {
         await page.getByLabel(label, { exact: true }).tap();
         await page.getByRole('option', { name: choice, exact: true }).tap();
       }

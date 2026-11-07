@@ -42,7 +42,7 @@ try {
       await page.getByRole('option', { name: 'Run agent', exact: true }).click();
       await button('Add node').click();
       await button('Connect ports').click();
-      for (const [label, option] of [['Output', 'Request · Brief'], ['Input', 'Run agent · Brief']]) {
+      for (const [label, option] of [['Output', 'Request · Request brief'], ['Input', 'Run agent · Input brief']]) {
         await page.getByLabel(label, { exact: true }).click();
         await page.getByRole('option', { name: option, exact: true }).click();
       }
