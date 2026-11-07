@@ -45,10 +45,11 @@ async function withMcp(operation,signal,fixture) {
     }:{},
   });
   const client=new Client({name:'tori-studio',version:'1'});
+  const options={signal,timeout:15000};
   try {
     signal?.throwIfAborted();
-    await client.connect(transport,{signal,timeout:5000});
-    return await operation(client,{signal,timeout:5000});
+    await client.connect(transport,options);
+    return await operation(client,options);
   } finally {
     await client.close();
   }

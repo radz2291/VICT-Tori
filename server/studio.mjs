@@ -180,7 +180,11 @@ export function createStudio({getAssembly,dataDirectory,turnDeadlineMs=90000,con
       const route=selectedRoute();
       if(value.tool){
         if(!fixture)throw conflict('The allowlisted MCP test tool requires the deterministic A3 host.');
-        try{await discoverReadTool(fixture);}catch{throw conflict('The allowlisted MCP tool schema is unavailable or changed.');}
+        try{await discoverReadTool(fixture);}catch(error){
+          throw conflict(error?.message==='TORI_MCP_SCHEMA_DRIFT'
+            ? 'The allowlisted MCP tool schema changed.'
+            : 'The local MCP server did not complete discovery. Try activation again.');
+        }
         state=snapshot();
         if(state.drafts[0]?.id!==saved.id||selectedRoute()!==route)throw conflict('The draft or route changed during MCP discovery. Activate again.');
         if(state.activations[0]?.revision===saved.id&&state.activations[0]?.route===route)return projection(state);
