@@ -12,6 +12,7 @@ const errors=[];
 page.on('pageerror',error=>errors.push(error.message));
 const button=(label)=>page.getByRole('button',{name:label,exact:true});
 const field=(id)=>page.locator('#'+id);
+const edgeIds=()=>page.locator('.svelte-flow__edge[data-id]').evaluateAll(edges=>[...new Set(edges.map(edge=>edge.getAttribute('data-id')))].sort());
 const assertFit=()=>page.evaluate(()=>{
   const nav=document.querySelector('.tasks').getBoundingClientRect();
   const work=document.querySelector('main').getBoundingClientRect();
@@ -43,13 +44,13 @@ try {
   await page.mouse.up();
   await page.locator('.canvas-status [role="alert"]').waitFor();
   console.log('invalid edge',await page.locator('.canvas-status [role="alert"]').innerText());
-  assert.equal(await page.locator('.svelte-flow__edge[data-id]').count(),1);
+  assert.deepEqual(await edgeIds(),['instructions-to-instructions']);
   await button('Connect to Model').click();
-  assert.equal(await page.locator('.svelte-flow__edge[data-id]').count(),2);
+  assert.deepEqual(await edgeIds(),['instructions-to-instructions','model-to-model']);
   await button('Undo').click();
-  assert.equal(await page.locator('.svelte-flow__edge[data-id]').count(),1);
+  assert.deepEqual(await edgeIds(),['instructions-to-instructions']);
   await button('Redo').click();
-  assert.equal(await page.locator('.svelte-flow__edge[data-id]').count(),2);
+  assert.deepEqual(await edgeIds(),['instructions-to-instructions','model-to-model']);
   await button('Fit').click();
   assert.equal(await assertFit(),true);
   await screenshot('assembly-1531');

@@ -262,7 +262,7 @@
   <SvelteFlow bind:nodes {edges} nodeTypes={types} bind:viewport={view} oninit={()=>{if(mobile&&selection)void reveal(selection);else if(view.x===0&&view.y===0)void fit();}}
     onnodeclick={({node})=>selection=node.id} onpaneclick={()=>selection=''}
     onselectionchange={({nodes:selected})=>{if(selected.length)selection=selected[0].id;}}
-    onconnect={onConnection}
+    onbeforeconnect={(connection)=>{onConnection(connection);return false;}}
     onnodedragstop={({nodes:moved})=>commit([{type:'moveNodes',positions:Object.fromEntries(moved.map(n=>[n.id,n.position]))}])}
     nodesDraggable={!mobile} multiSelectionKey={null} deleteKey={null} minZoom={0.2} maxZoom={1.7} proOptions={{hideAttribution:true}}>
     <FlowAccess onready={(instance)=>flow=instance}/>
