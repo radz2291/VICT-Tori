@@ -2,6 +2,8 @@
 
 **7 November 2026 — V1a active, fresh implementation.** Radzi's [issue #3](https://github.com/radz2291/VICT-Tori/issues/3) supersedes the U0 acceptance dependency for this bounded slice. V1a is assigned in Rolladice Work as **TORI-003**. The implementation starts at documentation-only main `a9eaf445b9025dcb65dbf8a97446871e746dae25` in `codex/tori-v1a`. U0 is preserved on its own branches as reference evidence. See [V1a ownership](docs/evidence/v1a/OWNERSHIP.md) and [slice contract](docs/implementation/V1A.md).
 
+**Review repair:** Product `728cbc7283c5d3f7451b123461ef1b208c131cf8` adds [observed thinking activity](docs/evidence/v1a/REASONING-VISIBILITY.md) to the running preview. The original candidate and its evidence retain their separate attribution.
+
 V1a covers one Agent Assembly, explicit VICT activation, a real Z.AI Session and truthful turn evidence. The early hands-on candidate is `caa6411b31d0d32bb8cf7a7e2425a3288598f7a6`. [Builder evidence](docs/evidence/v1a/VERIFICATION.md) and the [independent UX challenge](docs/evidence/v1a/INDEPENDENT.md) record verified paths and remaining gaps. Owner visual/interaction acceptance remains open. VICT Studio, its current agent and paused Milestone 2 are outside this handoff.
 
 ## Historical bootstrap and U0 context
