@@ -2,6 +2,7 @@
   import { Button, Select, StatusBadge, Feedback } from '@victframework/ui-svelte';
   import { Input, Textarea } from '@victframework/ui-ai-svelte';
   import { binding, field, instructions, modelId, modelName, rootId, instructionId, modelNodeId, outputTokens, tokenSourceId, agentResources } from './assembly';
+  import { childRef, childName, delegateGrant, childTask, childResult, taskLengthLimit, resultLengthLimit } from './delegation-fixture.mjs';
   let {graph,route,id,area,edit,expose,exposeTokens,connect,disconnect,remove}=$props();
   let prefix=$derived(area+'-'+id);
   let name=$derived(String(field(graph,rootId,'name')??''));
@@ -18,6 +19,8 @@
     tool:[{value:'local-reference@1',label:'Local observatory Â· read only'}],
   };
   let modelWire=$derived(binding(graph,'model'));
+  let governedMode=$derived(binding(graph,'child')?'Governed delegation fixture':
+    binding(graph,'tool')?'Governed read-only MCP':'Conversation only');
 </script>
 
 {#if id===rootId}
@@ -31,7 +34,7 @@
     <Input id={prefix+'-steps'} class="tori-field" type="number" min={1} max={4} step={1} value={field(graph,id,'maxSteps')} oninput={(e)=>edit(id,'maxSteps',numeric(e.currentTarget.value))}/>
     <label for={prefix+'-retries'}>Max model retries</label>
     <Input id={prefix+'-retries'} class="tori-field" type="number" min={0} max={1} step={1} value={field(graph,id,'maxRetries')} oninput={(e)=>edit(id,'maxRetries',numeric(e.currentTarget.value))}/>
-    <p class="muted">Host deadline: 90 seconds. {binding(graph,'tool')?'One governed read allowed.':'Tool calls are disabled.'}</p>
+    <p class="muted">Host deadline: 90 seconds. {binding(graph,'child')||binding(graph,'tool')?'One governed capability call allowed.':'Tool calls are disabled.'}</p>
     <dl><dt>Model binding</dt><dd>{modelWire ? modelName : 'Not connected'}</dd><dt>Runtime</dt><dd>Conversation only Â· no tools</dd></dl>
   {/if}
 {:else if id===instructionId}
@@ -40,6 +43,18 @@
 {:else if resource}
   <label for={prefix+'-reference'}>{resource.label}</label>
   <div class="nodrag"><Select id={prefix+'-reference'} name="reference" value={String(field(graph,id,'reference'))} options={choices[resource.id]} onChange={v=>edit(id,'reference',v)}/></div>
+  {#if id==='child' && area==='inspector'}
+    <h4>Delegation binding</h4>
+    <StatusBadge value={binding(graph,'child')?'Connected · deterministic fixture':'Unconnected · deterministic fixture'}/>
+    <dl>
+      <dt>Child reference</dt><dd>{childName} · r{childRef.revision}<br/>{childRef.id}</dd>
+      <dt>Permitted scope</dt><dd>One read-only delegation. No child tool calls or further delegation.</dd>
+      <dt>Required grant</dt><dd>{delegateGrant}</dd>
+      <dt>Task</dt><dd>{childTask} Input is one nonblank task of up to {taskLengthLimit} characters.</dd>
+      <dt>Expected fixture result</dt><dd>Text of up to {resultLengthLimit} characters. The fixture returns “{childResult}”</dd>
+    </dl>
+    <p class="muted">Activation pins this child profile. It is a built-in fixture with no direct Session or independent Studio definition.</p>
+  {/if}
 {:else if id===tokenSourceId}
   <label for={prefix+'-tokens'}>Output limit value</label>
   <Input id={prefix+'-tokens'} class="tori-field nodrag" type="number" min={64} max={32768} step={1} value={Number(field(graph,id,'tokens'))} oninput={(e)=>edit(id,'tokens',Number(e.currentTarget.value))}/>

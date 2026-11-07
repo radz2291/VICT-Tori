@@ -210,7 +210,12 @@ try {
         await page.getByRole('menuitem',{name:label,exact:true}).click();
         await button('Connect '+label).click();
       }
+      await page.getByRole('heading',{name:'Delegation binding'}).waitFor();
+      await page.getByText('Connected · deterministic fixture',{exact:true}).waitFor();
+      await page.getByText('tori.child.reference-reviewer.invoke',{exact:true}).waitFor();
+      await page.getByText('Synthetic reference review completed.',{exact:false}).waitFor();
       await button('A1 Fixture Agent').click();
+      await field('inspector-agent-name').fill('Quellight · delegation fixture');
       await field('inspector-agent-steps').fill('2');
       await clickRequest('Save','save');
       await clickRequest('Activate','activate');
