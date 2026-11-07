@@ -142,7 +142,7 @@
   nodeId="workflow" occurrenceKey="workflow"/></GraphHost>
 
 <style>
-  :global(.studio .workflow-options) { min-width: min(14rem, calc(100vw - 20px)); width: max-content; max-width: calc(100vw - 20px); }
+  :global(.studio .workflow-options) { --vict-control-popup-width: min(18rem, calc(100vw - 32px)); }
   :global(.studio .workflow-options [role=option]) { white-space: nowrap; }
   .connection-feedback { flex-basis: 100%; }
   .commands :global(.workflow-picker) { width: auto; max-width: 100%; }

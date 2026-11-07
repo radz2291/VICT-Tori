@@ -70,6 +70,11 @@ try {
   await page.getByLabel('Node', { exact: true }).press('ArrowDown');
   const option = page.getByRole('option', { selected: true });
   await option.waitFor();
+  const listbox = page.getByRole('listbox');
+  assert.ok((await listbox.boundingBox()).width >= 200);
+  for (const item of await listbox.getByRole('option').all()) {
+    assert.equal(await item.evaluate(element => element.scrollWidth <= element.clientWidth), true);
+  }
   await capture('workflow-select');
   await page.keyboard.press('Escape');
   assert.equal(await page.getByLabel('Node', { exact: true }).evaluate(element => element === document.activeElement), true);
