@@ -21,7 +21,7 @@ const legacyDefinitions: GraphDocumentV3['nodeTypes'] = [
     ports:[{id:'value',label:'Model Reference',type:'model-reference',direction:'output'}] },
 ];
 
-const definitions: GraphDocumentV3['nodeTypes'] = [
+const a1Definitions: GraphDocumentV3['nodeTypes'] = [
   ...legacyDefinitions.map(node => node.id === 'model'
     ? {...node, ports:[...node.ports,{id:'tokens',label:'Max output tokens',type:'integer',direction:'input' as const,maxConnections:1}]}
     : node),
@@ -29,8 +29,17 @@ const definitions: GraphDocumentV3['nodeTypes'] = [
     ports:[{id:'value',label:'Integer',type:'integer',direction:'output'}]},
 ];
 
+export const executionBounds = {maxSteps:4,maxRetries:1,deadlineMs:90000} as const;
+const definitions = a1Definitions.map(node => {
+  if (node.id === rootId) return {...node,parameters:{...node.parameters,
+    maxSteps:{type:'number' as const,default:1},maxRetries:{type:'number' as const,default:0}}};
+  if (node.id === modelNodeId) return {...node,parameters:{...node.parameters,
+    temperature:{type:'number' as const,default:0},topP:{type:'number' as const,default:1}}};
+  return node;
+});
+
 function upgrade(graph:GraphDocumentV3):GraphDocumentV3 {
-  return JSON.stringify(graph.nodeTypes)===JSON.stringify(legacyDefinitions)
+  return [legacyDefinitions,a1Definitions].some(catalog=>JSON.stringify(graph.nodeTypes)===JSON.stringify(catalog))
     ? {...graph,nodeTypes:structuredClone(definitions)} : graph;
 }
 
@@ -69,19 +78,29 @@ export const outputTokens = (graph:GraphDocumentV3) =>
   Number(field(graph,binding(graph,'tokens')?tokenSourceId:modelNodeId,'tokens')??4096);
 
 export function resolved(graph:GraphDocumentV3) {
+  const modelValues=graph.nodes.find(node=>node.id===modelNodeId)?.values;
+  const temperature=modelValues?.temperature as number|undefined;
+  const topP=modelValues?.topP as number|undefined;
   return {name:String(field(graph,rootId,'name')??''),instructions:instructions(graph),
     model:binding(graph,'model') ? String(field(graph,modelNodeId,'model')??'') : '',
-    tokens:outputTokens(graph)};
+    tokens:outputTokens(graph),temperature,topP,
+    maxSteps:Number(field(graph,rootId,'maxSteps')??1),maxRetries:Number(field(graph,rootId,'maxRetries')??0)};
 }
-export function readiness(graph:GraphDocumentV3) {
+export function readiness(graph:GraphDocumentV3,route?:string) {
   const value=resolved(graph);
   return !graph.nodes.some(n=>n.id===rootId) ? 'Add an Agent Definition.' :
     !value.name.trim() ? 'Enter an agent name.' :
     !value.instructions.trim() ? 'Write system instructions.' :
     value.model!==modelId ? 'Select GLM-5.3 Flash and connect its Model Reference.' :
-    !Number.isInteger(value.tokens)||value.tokens<64||value.tokens>32768 ? 'Enter a whole output limit from 64 to 32,768 tokens.' : '';
+    route!==undefined && route!=='coding' && (value.temperature!==undefined||value.topP!==undefined) ? 'Clear sampling overrides or select the supported Coding route on the host.' :
+    !Number.isInteger(value.tokens)||value.tokens<64||value.tokens>32768 ? 'Enter a whole output limit from 64 to 32,768 tokens.' :
+    value.temperature!==undefined && (!Number.isFinite(value.temperature)||value.temperature<0||value.temperature>1) ? 'Enter a temperature from 0 to 1, or leave it blank.' :
+    value.topP!==undefined && (!Number.isFinite(value.topP)||value.topP<=0||value.topP>1) ? 'Enter a top-p greater than 0 and at most 1, or leave it blank.' :
+    !Number.isInteger(value.maxSteps)||value.maxSteps<1||value.maxSteps>executionBounds.maxSteps ? 'Enter a whole step limit from 1 to 4.' :
+    !Number.isInteger(value.maxRetries)||value.maxRetries<0||value.maxRetries>executionBounds.maxRetries ? 'Enter 0 or 1 model retries.' : '';
+
 }
-export const change = (nodeId:string,key:string,value:string|number):GraphOperationV3 => ({type:'setParameter',nodeId,key,value});
+export const change = (nodeId:string,key:string,value:string|number|undefined):GraphOperationV3 => value===undefined ? {type:'unsetParameter',nodeId,key} : {type:'setParameter',nodeId,key,value};
 export const add = (id:string):GraphOperationV3 => ({type:'addNode',id,nodeType:id==='instructions'?'text':id,
   position:id==='agent'?{x:390,y:140}:id==='model'?{x:55,y:351}:id===tokenSourceId?{x:-250,y:351}:{x:55,y:115}});
 export const wire = (source:string,targetPort:string):GraphOperationV3 => ({type:'connect',edge:{

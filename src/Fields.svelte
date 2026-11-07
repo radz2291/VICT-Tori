@@ -2,11 +2,13 @@
   import { Button, Select, StatusBadge, Feedback } from '@victframework/ui-svelte';
   import { Input, Textarea } from '@victframework/ui-ai-svelte';
   import { binding, field, instructions, modelId, modelName, rootId, instructionId, modelNodeId, outputTokens, tokenSourceId } from './assembly';
-  let {graph,id,area,edit,expose,exposeTokens,connect,disconnect,remove}=$props();
+  let {graph,route,id,area,edit,expose,exposeTokens,connect,disconnect,remove}=$props();
   let prefix=$derived(area+'-'+id);
   let name=$derived(String(field(graph,rootId,'name')??''));
   let textWire=$derived(binding(graph,'instructions'));
   let tokenWire=$derived(binding(graph,'tokens'));
+  const numeric=(value:string)=>value===''?undefined:Number(value);
+  let sampling=$derived(graph.nodes.find(n=>n.id===modelNodeId)?.values);
   let modelWire=$derived(binding(graph,'model'));
 </script>
 
@@ -17,6 +19,11 @@
   <Textarea id={prefix+'-text'} class="tori-field nodrag nowheel" rows={area==='node'?2:4} value={instructions(graph)} oninput={(e)=>edit(textWire?instructionId:rootId,textWire?'text':'instructions',e.currentTarget.value)}/>
   {#if area==='inspector'}
     <Button label={textWire?'Detach instruction source':'Show instructions as node'} variant="secondary" onclick={textWire?()=>disconnect('instructions'):expose}/>
+    <label for={prefix+'-steps'}>Max model steps</label>
+    <Input id={prefix+'-steps'} class="tori-field" type="number" min={1} max={4} step={1} value={field(graph,id,'maxSteps')} oninput={(e)=>edit(id,'maxSteps',numeric(e.currentTarget.value))}/>
+    <label for={prefix+'-retries'}>Max model retries</label>
+    <Input id={prefix+'-retries'} class="tori-field" type="number" min={0} max={1} step={1} value={field(graph,id,'maxRetries')} oninput={(e)=>edit(id,'maxRetries',numeric(e.currentTarget.value))}/>
+    <p class="muted">Host deadline: 90 seconds. Tool calls are disabled.</p>
     <dl><dt>Model binding</dt><dd>{modelWire ? modelName : 'Not connected'}</dd><dt>Runtime</dt><dd>Conversation only · no tools</dd></dl>
   {/if}
 {:else if id===instructionId}
@@ -32,6 +39,15 @@
   <Input id={prefix+'-tokens'} class="tori-field nodrag" type="number" min={64} max={32768} step={1} value={outputTokens(graph)} oninput={(e)=>edit(tokenWire?tokenSourceId:id,'tokens',Number(e.currentTarget.value))}/>
   {#if area==='inspector'}
     <Button label={tokenWire?'Detach output limit source':'Show output limit as node'} variant="secondary" onclick={tokenWire?()=>disconnect('tokens'):exposeTokens}/>
+  {/if}
+  {#if area==='inspector' && (route==='coding'||sampling?.temperature!==undefined||sampling?.topP!==undefined)}
+    <label for={prefix+'-temperature'}>Temperature</label>
+    <Input id={prefix+'-temperature'} class="tori-field" type="number" min={0} max={1} step="any" placeholder="Provider default" value={sampling?.temperature??''} oninput={(e)=>edit(id,'temperature',numeric(e.currentTarget.value))}/>
+    <label for={prefix+'-top-p'}>Top-p</label>
+    <Input id={prefix+'-top-p'} class="tori-field" type="number" min={0} max={1} step="any" placeholder="Provider default" value={sampling?.topP??''} oninput={(e)=>edit(id,'topP',numeric(e.currentTarget.value))}/>
+    <p class="muted">Leave blank to use the provider default.</p>
+  {:else if area==='inspector'}
+    <p class="muted">Sampling overrides are available on the Coding route.</p>
   {/if}
   {#if area==='inspector'}<p class="muted">Reasoning effort uses the provider default. This VICT activation contract cannot pin an override.</p>{/if}
 {/if}

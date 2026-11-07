@@ -12,6 +12,7 @@ const directory = await mkdtemp(join(tmpdir(),'tori-a1-fixture-'));
 const capture = join(directory,'capture.jsonl');
 const port = process.env.TORI_A1_PORT ?? '48769';
 const url = 'http://127.0.0.1:'+port;
+const a2=process.env.TORI_BROWSER_A2==='1';
 let server, browser, log = '';
 async function launch() {
   log = '';
@@ -70,6 +71,12 @@ try {
     assert.equal(run.fixture,'a1-request-capture');
     assert.equal(run.tokens,expectedTokens);
     assert.equal(run.sentMaxOutputTokens,expectedTokens);
+    if(a2){
+      assert.equal(run.sentTemperature,expectedTokens===2048?0.4:undefined);
+      assert.equal(run.sentTopP,expectedTokens===2048?0.8:undefined);
+      assert.equal(run.execution.maxSteps,expectedTokens===2048?2:1);
+      assert.equal(run.execution.maxRetries,expectedTokens===2048?1:0);
+    }
     await page.getByText('Deterministic A1 fixture answer.',{exact:true}).last().waitFor();
   }
 
@@ -100,6 +107,14 @@ try {
   assert.equal(await field('inspector-model-tokens').inputValue(),'2048');
   await button('Show output limit as node').click();
   assert.equal(await field('inspector-output-limit-tokens').inputValue(),'2048');
+  if(a2){
+    await button('GLM-5.3 Flash').click();
+    await field('inspector-model-temperature').fill('0.4');
+    await field('inspector-model-top-p').fill('0.8');
+    await button('A1 Fixture Agent').click();
+    await field('inspector-agent-steps').fill('2');
+    await field('inspector-agent-retries').fill('1');
+  }
   await clickRequest('Save','save');
   await clickRequest('Activate','activate');
   const next=(await clickRequest('Start Session','sessions')).sessions[0];
@@ -108,6 +123,7 @@ try {
   await button('Inspect runs').click();
   await page.getByText('2048 - sent 2048',{exact:true}).waitFor();
   await page.getByText('DETERMINISTIC FIXTURE',{exact:true}).waitFor();
+  if(a2)await page.getByText('Temperature 0.4 · sent 0.4 / Top-p 0.8 · sent 0.8',{exact:true}).waitFor();
   await page.screenshot({path:join(directory,'fixture-run.png'),animations:'disabled'});
 
   await button('Agents').click();

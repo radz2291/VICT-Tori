@@ -17,7 +17,7 @@
   let canUndo=$state(false),canRedo=$state(false);
   function historyState(){canUndo=journal.canUndo;canRedo=journal.canRedo;}
   let state=$state.raw<any>({revision:null,activation:null,sessions:[],runs:[],provider:false});
-  let ready=$derived(readiness(graph));
+  let ready=$derived(readiness(graph,state.route));
   let dirty=$derived(baseline!==authoringBytes(graph));
   let selection=$state('');
   let page=$state('Agents');
@@ -68,7 +68,7 @@
     const g=graph,s=selection;
     nodes=g.nodes.map(n=>({id:n.id,type:'assembly',position:n.position,selected:s===n.id,
       data:{title:objectTitle(n.id),subtitle:n.id==='agent'?(binding(g,'model')?modelName:'Model unbound'):n.id==='model'?'Z.AI · text generation':n.id===tokenSourceId?'Reusable output limit':'Reusable system instructions',
-        fields:{graph:g,edit,expose,exposeTokens,connect,disconnect,remove}}}));
+        fields:{graph:g,route:state.route,edit,expose,exposeTokens,connect,disconnect,remove}}}));
   });
   let edges=$derived(graph.edges.map(e=>({id:e.id,source:e.source,target:e.target,sourceHandle:e.sourcePort,targetHandle:e.targetPort,selectable:false,
     style:e.targetPort==='model'?'stroke:#a3b4e6;stroke-width:2;stroke-dasharray:6 4':'stroke:#a3b4e6;stroke-width:2'})));
@@ -77,7 +77,7 @@
     if(!result.ok){graphError=result.issues.map(i=>i.message).join(' ');return false;}
     graph=result.graph;graphError='';historyState();return true;
   }
-  function edit(id:string,key:string,value:string|number){if(field(graph,id,key)!==value)commit([change(id,key,value)]);}
+  function edit(id:string,key:string,value:string|number|undefined){if(graph.nodes.find(n=>n.id===id)?.values[key]!==value)commit([change(id,key,value)]);}
   function travel(direction:'undo'|'redo'){
     const result=journal[direction]();if(!result.ok)return;graph=result.graph;graphError='';historyState();
     if(!graph.nodes.some(n=>n.id===selection))selection='';
@@ -190,7 +190,7 @@
   {#if !mobile}<h2>Inspector</h2>{/if}
   {#if selection && graph.nodes.some(n=>n.id===selection)}
     <p class="eyebrow">SELECTED OBJECT</p><h3>{objectTitle(selection)}</h3>
-    <Fields {graph} id={selection} area="inspector" {edit} {expose} {exposeTokens} {connect} {disconnect} {remove}/>
+    <Fields {graph} route={state.route} id={selection} area="inspector" {edit} {expose} {exposeTokens} {connect} {disconnect} {remove}/>
   {:else}<Feedback kind="empty" message="Select a node to inspect its configuration."/>
   {/if}
 {/snippet}
@@ -283,7 +283,11 @@
         {#if run}
           <label for="run-picker">Run</label><Select id="run-picker" name="run" value={activeRun} options={state.runs.map(r=>({value:r.id,label:new Date(r.started).toLocaleString()+' · '+r.status}))} onChange={v=>activeRun=v}/>
           {#if run.fixture}<p class="eyebrow">DETERMINISTIC FIXTURE</p>{/if}
-          <dl><dt>Status</dt><dd><StatusBadge value={run.status}/></dd><dt>Agent</dt><dd>{run.name} · r{run.number}</dd><dt>Activation</dt><dd class="hash">{run.activation}</dd><dt>Provider / model</dt><dd>Z.AI {run.route==='coding'?'Coding':'General'} / {run.observedModel??run.model}</dd><dt>Output token limit</dt><dd>{run.tokens}{run.sentMaxOutputTokens===undefined?' - configured':' - sent '+run.sentMaxOutputTokens}</dd><dt>Usage</dt><dd>{run.usage?run.usage.inputTokens+' input / '+run.usage.outputTokens+' output':'Not reported'}</dd><dt>Thinking</dt><dd>{run.reasoningAt?'Earlier provider observation; not a public VICT reasoning event.':'No public reasoning events or summary are available for this run.'}</dd><dt>Context</dt><dd>Pinned instructions and up to 100 recent messages. No JIT sources or tools.</dd></dl>
+          <dl><dt>Status</dt><dd><StatusBadge value={run.status}/></dd><dt>Agent</dt><dd>{run.name} · r{run.number}</dd><dt>Activation</dt><dd class="hash">{run.activation}</dd><dt>Provider / model</dt><dd>Z.AI {run.route==='coding'?'Coding':'General'} / {run.observedModel??run.model}</dd><dt>Output token limit</dt><dd>{run.tokens}{run.sentMaxOutputTokens===undefined?' - configured':' - sent '+run.sentMaxOutputTokens}</dd>{#if run.execution}
+          <dt>Sampling</dt><dd>Temperature {run.execution.temperature??'provider default'}{run.sentTemperature!==undefined?' · sent '+run.sentTemperature:''} / Top-p {run.execution.topP??'provider default'}{run.sentTopP!==undefined?' · sent '+run.sentTopP:''}</dd>
+          <dt>Execution limits</dt><dd>{run.execution.maxSteps} steps · {run.execution.maxRetries} model retries · {run.execution.maxToolCalls} tool calls · {run.execution.deadlineMs/1000}s host deadline</dd>
+          <dt>Provider attempts</dt><dd>{run.providerAttempts}</dd>
+          {/if}<dt>Usage</dt><dd>{run.usage?run.usage.inputTokens+' input / '+run.usage.outputTokens+' output':'Not reported'}</dd><dt>Thinking</dt><dd>{run.reasoningAt?'Earlier provider observation; not a public VICT reasoning event.':'No public reasoning events or summary are available for this run.'}</dd><dt>Context</dt><dd>Pinned instructions and up to 100 recent messages. No JIT sources or tools.</dd></dl>
           {#if run.message}<Feedback kind="error" message={run.message}/>{/if}
           <h2>Timeline</h2><ol class="timeline">{#each run.events as event}<li><time>{new Date(event.at).toLocaleTimeString()}</time><span>{event.label}</span></li>{/each}</ol>
           <Button label="Open Session" variant="secondary" onclick={()=>{activeSession=run.session;page='Sessions';}}/>

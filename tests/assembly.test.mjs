@@ -40,6 +40,10 @@ test('output limit upgrades older graphs, rejects wrong wires and checks numeric
   const {emptyAssembly,history,add,change,wire,readiness,resolved,modelId,tokenSourceId}=assembly;
   const graph=emptyAssembly();
   graph.nodeTypes=graph.nodeTypes.filter(node=>node.id!==tokenSourceId);
+  delete graph.nodeTypes.find(node=>node.id==='agent').parameters.maxSteps;
+  delete graph.nodeTypes.find(node=>node.id==='agent').parameters.maxRetries;
+  delete graph.nodeTypes.find(node=>node.id==='model').parameters.temperature;
+  delete graph.nodeTypes.find(node=>node.id==='model').parameters.topP;
   graph.nodeTypes.find(node=>node.id==='model').ports=
     graph.nodeTypes.find(node=>node.id==='model').ports.filter(port=>port.id!=='tokens');
   const draft=history(graph);
