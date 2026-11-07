@@ -140,9 +140,10 @@ try {
   }
   assert.deepEqual(await readCapture(),[4096,2048]);
 
+  await page.goto('about:blank');
   await stop();
   await launch();
-  await page.reload({timeout:120000});
+  await page.goto(url,{timeout:120000});
   await button('Sessions').click();
   await field('session-picker').selectOption(old.id);
   await turn(old,4096);
