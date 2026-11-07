@@ -1,4 +1,5 @@
 <script>
+  import { Input } from '@victframework/ui-ai-svelte';
   import Choice from './Choice.svelte';
   import { fixtureResources } from './agent-configuration.js';
 
@@ -17,6 +18,7 @@
     { key: 'mode', label: 'Mode', values: settings.modes.filter(item => item.enabled).map(item => ({ value: item.id, label: item.name })) },
     { key: 'memory', label: 'Memory', values: options(['Current session', 'Synthetic project'].map(value => [value, value])) },
     { key: 'policy', label: 'Policy', values: options(['Read only', 'Review required'].map(value => [value, value])) },
+    { key: 'processor', label: 'Processor', values: options([['source-review', 'Source review'], ['structured-output', 'Structured output']]) },
     { key: 'specialist', label: 'Delegated specialist', values: [
       ...options(fixtureResources.specialist),
       ...agents.filter(agent => agent.id !== agentId).map(agent => ({ value: agent.id, label: agent.label })),
@@ -38,6 +40,11 @@
         change={value => change(field.key, value === 'unconfigured' ? '' : value)}/>
     </div>
   {/each}
+  <div>
+    <span>Step budget</span>
+    <Input type="number" min="1" step="1" aria-label={prefix + 'Step budget'}
+      value={state.budget || ''} oninput={event => change('budget', event.currentTarget.value)}/>
+  </div>
 </div>
 
 <style>

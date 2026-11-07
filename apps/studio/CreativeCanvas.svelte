@@ -124,7 +124,7 @@
       <Choice label="Explicit context source" value={frame.state.context || 'none'}
         options={[{ value: 'none', label: 'No bound context' }, ...options(binding.references)]}
         change={value => frame.onStateChange('context', value === 'none' ? '' : value)}/>
-      {#if binding.invalid}<Feedback kind="warning" message="Bound reference is missing. Rebind or clear it."/>
+      {#if binding.invalid}<Feedback message="Bound reference is missing. Rebind or clear it."/>
       {:else if binding.snapshot}<p>Context preview: {binding.snapshot.notes}</p>{/if}
       {#if frame.state.branchOf}
         <p>Branched from {frame.state.branchOf} at revision {frame.state.branchRevision}.</p>
@@ -206,6 +206,7 @@
 
 <style>
   .commands { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; padding: 4px 14px; border-bottom: 1px solid var(--vict-color-border); }
+  :global(.phone) .commands { flex-wrap: nowrap; overflow-x: auto; padding-inline: 8px; gap: 4px; }
   h2 { font-size: 13px; margin: 0; }
   .direction { width: 190px; background: var(--studio-raised); padding: 10px; }
   .direction strong { display: block; margin-bottom: 8px; cursor: grab; }

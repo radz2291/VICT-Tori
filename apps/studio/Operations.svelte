@@ -16,7 +16,14 @@
   let modeOptions = $derived(workspace.data.settings.modes.filter(item => item.enabled)
     .map(item => ({ value: item.id, label: item.name })));
   let effectiveMode = $derived(modeOptions.some(item => item.value === mode) ? mode : modeOptions[0]?.value);
-  let activeEvent = $derived(run?.events.flatMap(event => [event, ...event.children]).find(event => event.id === eventId));
+  function findEvent(events, id) {
+    for (const event of events) {
+      if (event.id === id) return event;
+      const nested = findEvent(event.children ?? [], id);
+      if (nested) return nested;
+    }
+  }
+  let activeEvent = $derived(findEvent(run?.events ?? [], eventId));
 
   function send(event) {
     event.preventDefault();
@@ -31,6 +38,17 @@
     navigate('Runs');
   }
 </script>
+
+{#snippet eventList(events)}
+  <ol>
+    {#each events as event (event.id)}
+      <li>
+        <Button.Root class="action" aria-pressed={eventId === event.id} onclick={() => eventId = event.id}>{event.name}</Button.Root>
+        {#if event.children?.length}{@render eventList(event.children)}{/if}
+      </li>
+    {/each}
+  </ol>
+{/snippet}
 
 <section class="operations" aria-label={page === 'Sessions' ? 'Conversation' : 'Execution trace'}>
   <header><h1>{page === 'Sessions' ? 'Conversation' : 'Execution trace'}</h1><Feedback message="U0 | Simulation only"/></header>
@@ -55,6 +73,7 @@
           <Message.Root class="message">
             <strong>{item.role} · {item.mode}</strong>
             <Message.Content>{item.text}</Message.Content>
+            {#if item.status}<Message.Footer>{item.status === 'waiting' ? 'Background status · Waiting for review' : 'Adapter status · ' + item.status}</Message.Footer>{/if}
             {#if item.origin === 'simulation'}<Button.Root class="action" onclick={() => openRun(item.runId)}>Inspect simulated run</Button.Root>{/if}
           </Message.Root>
         {:else}
@@ -92,6 +111,13 @@
           <Button.Root class="action" onclick={() => { sessionId = run.sessionId; navigate('Sessions'); }}>Open linked session</Button.Root>
           {#if run.definition}<Button.Root class="action" onclick={() => openDefinition(run.definition)}>Open definition</Button.Root>{/if}
         </div>
+        {#if run.definition?.sourceArtifactId}
+          {@const sourceRun = workspace.data.runs.find(item => item.id + ':artifact' === run.definition.sourceArtifactId)}
+          {#if sourceRun}
+            <p>Source artifact {run.definition.sourceArtifactId}</p>
+            <Button.Root class="action" onclick={() => openRun(sourceRun.id)}>Open source artifact run</Button.Root>
+          {/if}
+        {/if}
         {#if run.definition?.creative}
           <section aria-label="Creative artifact provenance">
             <h3>Creative artifact</h3>
@@ -111,22 +137,11 @@
             <pre>{JSON.stringify(run.definition.creative.input, null, 2)}</pre>
           </section>
         {/if}
-        <Trace.Root><ol>
-          {#each run.events as event (event.id)}
-            <li>
-              <Button.Root class="action" aria-pressed={eventId === event.id} onclick={() => eventId = event.id}>{event.name}</Button.Root>
-              <ol>
-                {#each event.children as child (child.id)}
-                  <li><Button.Root class="action" aria-pressed={eventId === child.id} onclick={() => eventId = child.id}>{child.name}</Button.Root></li>
-                {/each}
-              </ol>
-            </li>
-          {/each}
-        </ol></Trace.Root>
+        <Trace.Root>{@render eventList(run.events)}</Trace.Root>
         {#if activeEvent}
           <section aria-label="Event inspection">
             <h3>{activeEvent.name}</h3>
-            <p>{activeEvent.status} · {activeEvent.origin}</p>
+            <p>{activeEvent.status} · {activeEvent.origin}{activeEvent.recordedAt ? ' · ' + activeEvent.recordedAt : ''}</p>
             {#if activeEvent.input}<h4>Input</h4><pre>{JSON.stringify(activeEvent.input, null, 2)}</pre>{/if}
             {#if activeEvent.output}<h4>Output</h4><p>{activeEvent.output}</p>{/if}
             {#if activeEvent.error}<Feedback kind="error" message={activeEvent.error}/>

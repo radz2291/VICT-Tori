@@ -1,6 +1,7 @@
 <script>
   import { openProject, project, projectKey, projectLabel, resetSamples } from './project-storage.js';
   import ImportDraft from './ImportDraft.svelte';
+  import AgentRelationships from './AgentRelationships.svelte';
   import AgentConfiguration from './AgentConfiguration.svelte';
   import { agentFixtures, agentParameters, prepareAgentSource } from './agent-configuration.js';
   import StudioSettings from './StudioSettings.svelte';
@@ -40,6 +41,7 @@
   let status = $derived(agentDraft.status);
   let draftError = $derived(agentDraft.error);
   let nameInput = $state(null);
+  let relationshipViews = $state({});
   let expandedAgents = $state({});
   let agentNavigation = $state.raw({});
   const preview = new URLSearchParams(window.location.search).get('preview');
@@ -125,8 +127,10 @@
     else setPanel(name, { open: !panel.open });
   }
   function resetLayout() {
-    delete layouts[view];
-    persistPageLayout(null);
+    const selectionPreference = inspected ? { inspectedId: inspected.id } : null;
+    if (selectionPreference) layouts[view] = selectionPreference;
+    else delete layouts[view];
+    persistPageLayout(selectionPreference);
   }
   let commands = $derived(view === 'Agents' ? {
     draft: agentDraft, save, reopen, dirty: agentDraft.dirty, canReopen: Boolean(savedSource),
@@ -143,19 +147,26 @@
   let hasSelection = $derived(Boolean(selection?.nodes.length || selection?.edges.length));
   let library = $derived(panels.find(panel => panel.name === 'Library'));
   let inspector = $derived(panels.find(panel => panel.name === 'Inspector'));
-  const restoredSelection = new Set();
+  const restoringSelection = new Set();
+  let restoredSelection = $state({});
   $effect(() => {
-    if (!currentWorkspace || !objects.length || restoredSelection.has(view)) return;
-    restoredSelection.add(view);
-    untrack(() => {
-      const saved = layouts[view]?.inspectedId;
-      if (saved && !hasSelection && objects.some(node => node.id === saved)) {
-        currentWorkspace.select({ nodes: [saved], edges: [] });
+    if (!currentWorkspace || !objects.length || restoringSelection.has(view)) return;
+    const page = view;
+    const workspace = currentWorkspace;
+    restoringSelection.add(page);
+    // Let the renderer finish adopting the loaded source before restoring a
+    // semantic selection. Persist only after restoration has settled.
+    void tick().then(() => {
+      const saved = layouts[page]?.inspectedId;
+      const { nodes, edges } = workspace.selection;
+      if (saved && !nodes.length && !edges.length && workspace.graph.nodes.some(node => node.id === saved)) {
+        workspace.select({ nodes: [saved], edges: [] });
       }
+      restoredSelection[page] = true;
     });
   });
   $effect(() => {
-    if (!currentWorkspace || !restoredSelection.has(view)) return;
+    if (!currentWorkspace || !restoredSelection[view]) return;
     const id = inspected?.id ?? null;
     untrack(() => {
       if ((layouts[view]?.inspectedId ?? null) !== id) changeLayout({ inspectedId: id });
@@ -420,6 +431,13 @@
               <label for="agent-instructions">Agent instructions <Textarea onfocus={() => agentDraft.beginEdit()} onblur={() => agentDraft.endEdit()} id="agent-instructions" class="studio-field" aria-describedby="agent-readiness" placeholder="Describe what this agent should do" value={String(agent.values.instructions ?? '')}
                 oninput={(event) => edit('instructions', event.currentTarget.value)}/></label>
               <AgentConfiguration state={agent.values} change={edit} settings={operations.data.settings} agents={graph?.nodes ?? []} agentId={agent.id}/>
+              <Button.Root class="action" aria-expanded={Boolean(relationshipViews[agent.id])}
+                onclick={() => relationshipViews[agent.id] = !relationshipViews[agent.id]}>
+                {relationshipViews[agent.id] ? 'Hide resource relationships' : 'Show resource relationships'}
+              </Button.Root>
+              {#if relationshipViews[agent.id]}
+                <AgentRelationships {agent} settings={operations.data.settings} agents={graph?.nodes ?? []}/>
+              {/if}
               <p class="readiness" id="agent-readiness">{agent.values.lifecycle === 'retired' ? 'Retired agent' : agent.values.instructions ? 'Instructions configured' : 'Add instructions before running this agent. You can save it as a draft now.'}</p>
           {:else if inspected}
             <dl><dt>Name</dt><dd>{objectLabel(inspected)}</dd><dt>Type</dt><dd>{currentWorkspace.graph.nodeTypes.find(type => type.id === inspected.type)?.label ?? inspected.type}</dd></dl>

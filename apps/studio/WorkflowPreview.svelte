@@ -275,7 +275,7 @@
         {#if !graph.nodes.length}
           <Feedback kind="empty" message="Add a workflow node to validate its configuration."/>
         {:else if diagnostics.length}
-          <Feedback kind="warning" message="Incomplete draft. Saving is available."/>
+          <Feedback message="Incomplete draft. Saving is available."/>
           <ul>{#each diagnostics as issue}<li>{issue}</li>{/each}</ul>
         {:else}
           <Feedback message="The draft has no missing fields or connections in this U0 check."/>
@@ -304,7 +304,7 @@
   .workflow-fields p { overflow-wrap: anywhere; }
   :global(.validation-dialog) { max-height: 90dvh; overflow: auto; }
   .canvas { flex: 1; min-height: 180px; --vict-color-surface: var(--vict-color-bg); }
-  :global(.phone) .commands { padding-inline: 8px; gap: 4px; }
+  :global(.phone) .commands { flex-wrap: nowrap; overflow-x: auto; padding-inline: 8px; gap: 4px; }
   .canvas :global(.svelte-flow__background) { --xy-background-pattern-color: #353537; }
   article { width: 178px; background: var(--studio-raised); padding: 10px; }
   strong { cursor: grab; }

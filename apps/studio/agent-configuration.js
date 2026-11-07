@@ -1,7 +1,7 @@
 export const agentParameters = Object.fromEntries([
   ['instructions', 'Instructions'], ['model', 'Model'], ['mode', 'Mode'], ['memory', 'Memory'],
   ['policy', 'Policy'], ['skill', 'Skill'], ['tool', 'Tool'], ['specialist', 'Delegated specialist'],
-  ['lifecycle', 'Lifecycle'],
+  ['processor', 'Processor'], ['budget', 'Step budget'], ['lifecycle', 'Lifecycle'],
 ].map(([id, label]) => [id, { type: 'string', default: '', label }]));
 
 export function prepareAgentSource(source) {

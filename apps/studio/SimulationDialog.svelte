@@ -12,7 +12,9 @@
   let intent = $state('Run definition');
   const intents = ['Run definition', 'Run Node', 'Run To', 'Run From'].map(value => ({ value, label: value }));
   let protectedAction = $derived(definition?.type === 'quellight-action');
+  let unsupportedIntent = $derived(intent === 'Run To' || intent === 'Run From');
   function run() {
+    if (unsupportedIntent) return;
     const result = workspace.simulate({
       definition, input: input.trim() || definition.label,
       outcome: protectedAction ? 'denied' : outcome, mode: definition.mode || 'assist', intent,
@@ -30,13 +32,16 @@
     <label for="simulation-input">Run input</label>
     <Textarea id="simulation-input" class="studio-field" bind:value={input}/>
     <Choice label="Run intent" value={intent} options={intents} change={value => intent = value}/>
+    {#if unsupportedIntent}
+      <Feedback message="This adapter cannot plan a safe dependency closure for the selected partial run. Choose Run definition or Run Node."/>
+    {/if}
     {#if protectedAction}
-      <Feedback kind="warning" message="Protected action replay is refused. The run will record the denial."/>
+      <Feedback kind="denied" message="Protected action replay is refused. The run will record the denial."/>
     {:else}
       <Choice label="Simulation outcome" value={outcome} options={simulationOutcomes} change={value => outcome = value}/>
     {/if}
     {#if workspace.error}<Feedback kind="error" message={workspace.error}/>{/if}
-    <Button.Root class="action primary" onclick={run}>Create simulated run</Button.Root>
+    <Button.Root class="action primary" disabled={unsupportedIntent} onclick={run}>Create simulated run</Button.Root>
     <Dialog.Close>Cancel</Dialog.Close>
   </Dialog.Content>
 </Dialog.Root>

@@ -135,6 +135,14 @@ try {
   await page.getByLabel('Node Tool', { exact: true }).getByText('Browser tool').waitFor();
   await button('Hide agent bindings').click();
   await page.getByLabel('Tool', { exact: true }).getByText('Browser tool').waitFor();
+  await button('Show resource relationships').click();
+  const projection = page.getByRole('region', { name: 'Agent relationship projection' });
+  await projection.getByRole('term').filter({ hasText: 'Specialist delegation' }).waitFor();
+  await projection.locator('.svelte-flow__edge').nth(3).waitFor();
+  assert.equal(await projection.locator('.svelte-flow__edge').count(), 4);
+  await button('Hide resource relationships').click();
+  await projection.waitFor({ state: 'hidden' });
+  await page.getByLabel('Tool', { exact: true }).getByText('Browser tool').waitFor();
   await button('Save draft').click();
   await menu('File', 'Reset sample project');
   await button('Reset samples').click();

@@ -1,12 +1,33 @@
 # TORI Studio
 
-Build and pack the pinned VICT checkout by following the [G0 instructions](../../docs/evidence/g0/DEPENDENCIES.md). The consumer probe prints the directory containing the tarballs. Copy its `packs` directory into this directory, then use Node 24.15.0 and npm 11.19.1.
+Use Node 24.15.0 and npm 11.19.1. Build and pack the pinned VICT checkout by following the [G0 instructions](../../docs/evidence/g0/DEPENDENCIES.md). Copy the probe's verified `packs` directory into `apps/studio`. The lockfile expects those tarballs.
 
-```powershell
+From `apps/studio`, run the same commands on Windows or a POSIX shell.
+
+```text
 npm ci --no-audit --no-fund
-node node_modules/vite/bin/vite.js --host 127.0.0.1 --port 48743 --strictPort
+npm run build
+npm run preview -- --host 127.0.0.1 --port 48746 --strictPort
 ```
 
-Open [TORI Studio](http://127.0.0.1:48743/). The [owner walkthroughs](../../docs/evidence/u0/OWNER-REVIEWS.md) list the authoring actions to try. Agents, Workflows and Creative each store a separate draft in browser local storage for this origin. Switching to a different port or browser profile gives you a different set of drafts.
+Open [TORI Studio](http://127.0.0.1:48746/). For active development, substitute `npm run dev` for `npm run preview`.
 
-The browser check takes the absolute Playwright ESM entry path, Chrome executable, Studio URL, consumer URL, Studio directory, and consumer directory. The last two arguments start temporary Vite servers. The consumer directory must already contain the production build from the G0 probe.
+Drafts and simulated records live in this browser profile and origin. **File → Open blank project** starts with empty graphs and operations. **File → Open sample project** opens an isolated workspace with the seeded Creative directions. **File → Reset sample project** restores that workspace after confirmation. Use **File → Export graph draft** to back up the active graph and **Import graph draft** to load a compatible Flow v3 graph as an undoable edit. Graph exports contain the graph and node layout. Session history, run records and Studio settings remain in browser storage. A separate port or browser profile opens separate data.
+
+See the [integrated U0 walkthrough](../../docs/evidence/u0/integration/README.md) for review paths and simulation limits.
+
+## Browser checks
+
+Run the scripts from the repository root against a running Studio. The browser opens a fresh profile for each suite.
+
+```text
+node scripts/check-studio-integration.mjs <playwright-entry> <chrome> <studio-url>
+node scripts/check-studio-workflow-fixtures.mjs <playwright-entry> <chrome> <studio-url>
+node scripts/check-studio-creative.mjs <playwright-entry> <chrome> <studio-url>
+node scripts/check-studio-docks.mjs <playwright-entry> <chrome> <studio-url>
+node scripts/check-studio-final.mjs <playwright-entry> <chrome> <studio-url>
+node scripts/check-studio-responsive.mjs <playwright-entry> <chrome> <studio-url>
+node scripts/audit-studio-ui.mjs <playwright-entry> <chrome> <studio-url> <output-directory>
+```
+
+`check-studio-browser.mjs` takes the same first three arguments and accepts an optional G0 consumer URL as its fourth argument. Its fifth and sixth arguments can start temporary Vite servers from an absolute Studio directory and a prebuilt consumer directory.

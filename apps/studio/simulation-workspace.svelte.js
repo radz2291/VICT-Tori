@@ -23,7 +23,8 @@ function read() {
 
 function record(outcome, input, definition, sessionId, intent) {
   const id = crypto.randomUUID();
-  const event = (suffix, data) => ({ id: id + ':' + suffix, origin, ...data });
+  const recordedAt = new Date().toISOString();
+  const event = (suffix, data) => ({ id: id + ':' + suffix, origin, recordedAt, ...data });
   const details = {
     succeeded: ['Completed simulation', 'Synthetic result is ready.'],
     waiting: ['Waiting for human review', 'Review is pending.'],
@@ -33,14 +34,18 @@ function record(outcome, input, definition, sessionId, intent) {
     interrupted: ['Interrupted fixture', 'The simulated worker stopped before completing.'],
   }[outcome];
   return {
-    id, sessionId, definition, origin, intent, status: outcome, cost: null,
+    id, sessionId, definition, origin, intent, status: outcome, cost: null, recordedAt,
     events: [event('request', {
       name: 'Request accepted by U0 adapter', status: 'succeeded', input,
-      children: [event('result', {
+      children: [event('step', {
+        name: definition?.coordinator ? 'Workflow step fixture' : 'Session adapter fixture', status: outcome,
+        input: { target: definition?.id ?? null, revision: definition?.revision ?? null, capability: definition?.aiStep ?? 'Deterministic adapter' },
+        children: [event('result', {
         name: details[0], status: outcome,
         output: outcome === 'succeeded' ? details[1] : null,
         error: ['failed', 'denied', 'interrupted'].includes(outcome) ? details[1] : null,
-        detail: details[1],
+          detail: details[1],
+        })],
       })],
     })],
   };
@@ -88,15 +93,23 @@ export class SimulationWorkspace {
         state.sessions.push(session);
       }
       const protectedEffect = session.definition?.protectedEffect || session.definition?.type === 'quellight-action';
+      let runDefinition = session.definition;
+      if (sessionId && runDefinition?.creative) {
+        const { creative, ...identity } = runDefinition;
+        runDefinition = {
+          ...identity,
+          sourceArtifactId: creative.reusedArtifactId || (creative.artifact ? session.messages[0]?.runId + ':artifact' : null),
+        };
+      }
       const run = record(protectedEffect ? 'denied' : outcome, {
         text: input, mode,
         ...(session.definition?.coordinator ? { coordinator: session.definition.coordinator } : {}),
         ...(session.definition?.branch ? { branch: session.definition.branch } : {}),
-      }, session.definition, session.id, intent);
-      const result = run.events[0].children[0];
+      }, runDefinition, session.id, intent);
+      const result = run.events[0].children[0].children[0];
       session.messages.push(
         { id: run.id + ':input', runId: run.id, role: 'You', text: input, mode, origin: 'authored' },
-        { id: run.id + ':reply', runId: run.id, role: 'Simulation', text: result.detail, mode, origin }
+        { id: run.id + ':reply', runId: run.id, role: 'Simulation', text: result.detail, status: run.status, mode, origin }
       );
       state.runs.push(run);
       return run;
