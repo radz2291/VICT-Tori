@@ -63,7 +63,7 @@ export function readiness(graph:GraphDocumentV3) {
 }
 export const change = (nodeId:string,key:string,value:string|number):GraphOperationV3 => ({type:'setParameter',nodeId,key,value});
 export const add = (id:string):GraphOperationV3 => ({type:'addNode',id,nodeType:id==='instructions'?'text':id,
-  position:id==='agent'?{x:390,y:140}:id==='model'?{x:55,y:325}:{x:55,y:115}});
+  position:id==='agent'?{x:390,y:140}:id==='model'?{x:55,y:351}:{x:55,y:115}});
 export const wire = (source:string,targetPort:string):GraphOperationV3 => ({type:'connect',edge:{
   id:source+'-to-'+targetPort,source,sourcePort:'value',target:'agent',targetPort,
 }});

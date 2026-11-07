@@ -73,6 +73,13 @@ try {
   await page.getByText('Saved · r1',{exact:true}).waitFor();
   await page.reload({timeout:90000});
   await field('inspector-model-model').waitFor({timeout:30000});
+  const originalTokens=await field('inspector-model-tokens').inputValue();
+  await field('inspector-model-tokens').fill('2048');
+  await page.getByText('Unsaved',{exact:true}).waitFor();
+  await button('Undo').click();
+  await page.getByText('Saved · r1',{exact:true}).waitFor();
+  assert.equal(await field('inspector-model-tokens').inputValue(),originalTokens);
+  assert.equal(await button('Save').isDisabled(),true);
   await button('Activate').click();
   await button('Start Session').click({timeout:30000});
   await page.getByRole('heading',{name:'Research Assistant',exact:true}).waitFor();

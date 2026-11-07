@@ -203,8 +203,8 @@
         {#if !mobile&&library}<aside class="library">{@render libraryBody()}</aside>{/if}
         <section class="stage" aria-label="Agent assembly canvas">
           <div class="canvas-tools">
-            <Button label="Library" variant="secondary" expanded={!mobile&&library} onclick={(event)=>toggle('Library',event.currentTarget as HTMLElement)}/>
-            <Button label="Inspector" variant="secondary" expanded={!mobile&&inspector} onclick={(event)=>toggle('Inspector',event.currentTarget as HTMLElement)}/>
+            <Button label="Library" variant="secondary" expanded={mobile?mobileOpen&&sheet==='Library':library} onclick={(event)=>toggle('Library',event.currentTarget as HTMLElement)}/>
+            <Button label="Inspector" variant="secondary" expanded={mobile?mobileOpen&&sheet==='Inspector':inspector} onclick={(event)=>toggle('Inspector',event.currentTarget as HTMLElement)}/>
             <span class="spacer"></span>
             {#if graph.nodes.length}
               {#if !graph.nodes.some(n=>n.id==='model')}<Button label="Add model" variant="secondary" onclick={()=>create('model')}/>{/if}
