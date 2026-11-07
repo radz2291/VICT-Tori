@@ -1,0 +1,122 @@
+{
+  "view": "clean browser reopened after two synthetic turns",
+  "contrast": {
+    "background": "rgb(46, 55, 76)",
+    "color": "rgb(233, 239, 255)",
+    "ratio": 10.331230236405824
+  },
+  "revision": {
+    "id": "786cf5dc-fac7-4eac-8f96-34b6318bdc6f",
+    "number": 1
+  },
+  "activation": {
+    "version": "v1_623c8e21a36564915983d63a372d16e02c0c537afa0b1386b8ae50a84ec734fc",
+    "revision": "786cf5dc-fac7-4eac-8f96-34b6318bdc6f",
+    "number": 1,
+    "name": "Research Assistant",
+    "route": "coding"
+  },
+  "session": {
+    "id": "05c167d5-3274-4b9c-952f-afb9c6503e20",
+    "activation": "v1_623c8e21a36564915983d63a372d16e02c0c537afa0b1386b8ae50a84ec734fc",
+    "turns": 2
+  },
+  "runs": [
+    {
+      "id": "aad0993e-80eb-4ce4-a349-07ffb9958b85",
+      "session": "05c167d5-3274-4b9c-952f-afb9c6503e20",
+      "activation": "v1_623c8e21a36564915983d63a372d16e02c0c537afa0b1386b8ae50a84ec734fc",
+      "revision": "786cf5dc-fac7-4eac-8f96-34b6318bdc6f",
+      "number": 1,
+      "name": "Research Assistant",
+      "provider": "zai",
+      "model": "glm-5.3-flash",
+      "route": "coding",
+      "tokens": 4096,
+      "started": "2026-11-07T13:04:38.154Z",
+      "status": "completed",
+      "events": [
+        {
+          "at": "2026-11-07T13:04:38.154Z",
+          "label": "Turn accepted by Studio"
+        },
+        {
+          "at": "2026-11-07T13:04:38.163Z",
+          "label": "VICT · response.started"
+        },
+        {
+          "at": "2026-11-07T13:04:39.415Z",
+          "label": "VICT · usage.updated"
+        },
+        {
+          "at": "2026-11-07T13:04:39.690Z",
+          "label": "VICT · response.completed"
+        },
+        {
+          "at": "2026-11-07T13:04:39.971Z",
+          "label": "Z.AI HTTP 200"
+        },
+        {
+          "at": "2026-11-07T13:04:39.971Z",
+          "label": "Turn completed"
+        }
+      ],
+      "usage": {
+        "inputTokens": 76,
+        "outputTokens": 30,
+        "totalTokens": 106
+      },
+      "observedModel": "zai.chat/glm-5.3-flash",
+      "sentMaxOutputTokens": 4096,
+      "ended": "2026-11-07T13:04:39.971Z"
+    },
+    {
+      "id": "89f6b85e-8f1d-4af4-884a-2f8558c38b84",
+      "session": "05c167d5-3274-4b9c-952f-afb9c6503e20",
+      "activation": "v1_623c8e21a36564915983d63a372d16e02c0c537afa0b1386b8ae50a84ec734fc",
+      "revision": "786cf5dc-fac7-4eac-8f96-34b6318bdc6f",
+      "number": 1,
+      "name": "Research Assistant",
+      "provider": "zai",
+      "model": "glm-5.3-flash",
+      "route": "coding",
+      "tokens": 4096,
+      "started": "2026-11-07T13:04:34.722Z",
+      "status": "completed",
+      "events": [
+        {
+          "at": "2026-11-07T13:04:34.722Z",
+          "label": "Turn accepted by Studio"
+        },
+        {
+          "at": "2026-11-07T13:04:34.854Z",
+          "label": "VICT · response.started"
+        },
+        {
+          "at": "2026-11-07T13:04:37.496Z",
+          "label": "VICT · usage.updated"
+        },
+        {
+          "at": "2026-11-07T13:04:37.774Z",
+          "label": "VICT · response.completed"
+        },
+        {
+          "at": "2026-11-07T13:04:38.055Z",
+          "label": "Z.AI HTTP 200"
+        },
+        {
+          "at": "2026-11-07T13:04:38.055Z",
+          "label": "Turn completed"
+        }
+      ],
+      "usage": {
+        "inputTokens": 45,
+        "outputTokens": 78,
+        "totalTokens": 123
+      },
+      "observedModel": "zai.chat/glm-5.3-flash",
+      "sentMaxOutputTokens": 4096,
+      "ended": "2026-11-07T13:04:38.055Z"
+    }
+  ]
+}
