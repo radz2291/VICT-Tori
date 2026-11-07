@@ -55,7 +55,10 @@
       const input = endpoints('input').find(port => port.value === to);
       const sourceType = workspaceContext.ports(graph.nodes.find(node => node.id === source)).find(port => port.id === sourcePort).type;
       const targetType = workspaceContext.ports(graph.nodes.find(node => node.id === target)).find(port => port.id === targetPort).type;
-      connectionError = output.label + ' (' + sourceType + ') to ' + input.label + ' (' + targetType + '): ' + issue.message + ' Choose a compatible input, or change the output.';
+      const recovery = sourceType === targetType
+        ? ' Review existing connections or choose another port.'
+        : ' Choose a compatible input, or change the output.';
+      connectionError = output.label + ' (' + sourceType + ') to ' + input.label + ' (' + targetType + '): ' + issue.message + recovery;
       return;
     }
     apply(frame, { type: 'connect', edge });

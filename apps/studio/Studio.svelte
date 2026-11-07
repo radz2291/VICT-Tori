@@ -479,6 +479,10 @@
   .menu-current { color: var(--vict-color-accent); width: 14px; flex: none; }
   :global(.studio textarea.studio-field) { min-height: 3.5rem; resize: vertical; }
   :global(.studio #agent-instructions) { min-height: 7rem; }
+  :global(.studio .graph-viewport .svelte-flow__node:focus-visible) {
+    outline: 3px solid var(--vict-color-focusRing);
+    outline-offset: 4px;
+  }
   :global(.studio .studio-field::placeholder) { color: var(--vict-color-muted); }
   .readiness { margin: 8px 0 0; }
   footer { justify-content: space-between; padding: 3px 14px; border-top: 1px solid var(--vict-color-border); }
