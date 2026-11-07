@@ -2,7 +2,7 @@
 
 **4 November 2026 — G0 dependency proof recorded, U0-R1 accepted, and U0-R2 offered for owner walkthrough.** The active implementation branch is `codex/tori-ui-foundation`. See [installed VICT evidence](docs/evidence/g0/DEPENDENCIES.md), [owner checkpoints](docs/evidence/u0/OWNER-REVIEWS.md), and the [R2 control audit](docs/evidence/u0/VICT-CONTROL-AUDIT.md). TORI-001 governs the current assignment. R3 and final U0 engineering verification and acceptance are open.
 
-**TORI-002 ownership:** The separate Studio UX realignment is coordinated in Rolladice Work. TORI-002 owns the shell and presented UI in `codex/tori-002-studio-realignment`; TORI-001 retains the R2 walkthrough, U0 functional contracts and verification, and runtime boundaries. See the [interim walkthrough and independent evidence](docs/evidence/u0/tori-002/README.md). Final visual acceptance remains open.
+**TORI-002 ownership:** The separate Studio UX realignment is coordinated in Rolladice Work. TORI-002 owns the shell and presented UI in `codex/tori-002-studio-realignment`; TORI-001 retains the R2 walkthrough, U0 functional contracts and verification, and runtime boundaries. See the [interim walkthrough and independent evidence](docs/evidence/u0/tori-002/README.md). Radzi accepted the Sessions layout direction on 7 November 2026 and authorized the shared dock rollout. The [rollout candidate](docs/evidence/u0/tori-002/docks/README.md) uses contextual availability and persisted per-page visibility and widths. Final visual acceptance remains open.
 
 ## Historical bootstrap snapshot
 

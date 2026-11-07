@@ -2,7 +2,7 @@
 
 **Current implementation handoff (4 November 2026).** R1 is accepted. The R2 walkthrough on `codex/tori-ui-foundation` uses the [N1 five-page shell](docs/specs/STUDIO-DESIGN-CONSTITUTION.md#product-experience-and-navigation). See [the owner walkthrough](docs/evidence/u0/OWNER-REVIEWS.md) for launch, tested interactions and remaining gaps. Read the live TORI-001 handoff for assignment and review status. Final U0 UI acceptance remains a separate owner decision.
 
-**TORI-002 ownership:** The separate Studio UX realignment is coordinated in Rolladice Work. TORI-002 owns the shell and presented UI in `codex/tori-002-studio-realignment`; TORI-001 retains the R2 walkthrough, U0 functional contracts and verification, and runtime boundaries. See the [interim walkthrough and independent evidence](docs/evidence/u0/tori-002/README.md). Final visual acceptance remains open.
+**TORI-002 ownership:** The separate Studio UX realignment is coordinated in Rolladice Work. TORI-002 owns the shell and presented UI in `codex/tori-002-studio-realignment`; TORI-001 retains the R2 walkthrough, U0 functional contracts and verification, and runtime boundaries. See the [interim walkthrough and independent evidence](docs/evidence/u0/tori-002/README.md). Radzi accepted the Sessions layout direction on 7 November 2026 and authorized the shared dock rollout. The [rollout candidate](docs/evidence/u0/tori-002/docks/README.md) uses contextual availability and persisted per-page visibility and widths. Final visual acceptance remains open.
 
 ## Current bootstrap authority
 
