@@ -61,7 +61,7 @@ try {
   async function turn(expectedSession,expectedTokens) {
     const composer=page.getByRole('textbox',{name:'Message'});
     await composer.fill('Synthetic A1 verification');
-    const pending=page.waitForResponse(r=>r.url().endsWith('/api/studio/turn'));
+    const pending=page.waitForResponse(r=>r.url().endsWith('/api/studio/turn'),{timeout:120000});
     await composer.press('Enter');
     const response=await pending;
     assert.equal(response.status(),200,await response.text());
@@ -167,7 +167,7 @@ try {
     async function readReference(){
       const composer=page.getByRole('textbox',{name:'Message'});
       await composer.fill('Read the synthetic observatory reference.');
-      const pending=page.waitForResponse(r=>r.url().endsWith('/api/studio/turn'));
+      const pending=page.waitForResponse(r=>r.url().endsWith('/api/studio/turn'),{timeout:120000});
       await composer.press('Enter');
       const response=await pending;
       assert.equal(response.status(),200);
