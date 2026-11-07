@@ -38,7 +38,7 @@ try {
     await page.locator('.authoring-page:visible .svelte-flow__node.selected').waitFor({ state: 'hidden' });
   }
 
-  await page.goto(url);
+  await page.goto(url, { timeout: 30000 });
   await button('Add agent').click();
   await page.getByLabel('Agent name').fill('Review assistant');
   await page.getByLabel('Agent instructions', { exact: true }).fill('Summarize the synthetic brief.');
@@ -143,6 +143,15 @@ try {
   await button('Hide resource relationships').click();
   await projection.waitFor({ state: 'hidden' });
   await page.getByLabel('Tool', { exact: true }).getByText('Browser tool').waitFor();
+  await page.getByRole('region', { name: 'Quellight synthetic workspace' }).getByText('Living Book', { exact: false }).waitFor();
+  await menu('Insert', 'Add Coding workspace fixture');
+  await waitSelected('Coding workspace');
+  await page.getByRole('region', { name: 'Coding synthetic workspace' }).getByText('Sample test report', { exact: false }).waitFor();
+  await menu('Insert', 'Add Authoring agent fixture');
+  await waitSelected('Authoring agent');
+  await page.getByLabel('Tool', { exact: true }).getByText('Governed edit').waitFor();
+  await button('Validate agent').click();
+  await page.getByText('Draft validation passed. Live activation is unavailable in U0.').waitFor();
   await button('Save draft').click();
   await menu('File', 'Reset sample project');
   await button('Reset samples').click();

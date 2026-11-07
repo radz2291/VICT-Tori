@@ -11,7 +11,7 @@
   import GraphCommands from './GraphCommands.svelte';
   import Choice from './Choice.svelte';
   import CreativeSimulation from './CreativeSimulation.svelte';
-  import { creativeContext, creativeInput, creativeSource, newCreativeSource, referenceEdge } from './creative-graph.js';
+  import { artifactId, creativeContext, creativeInput, creativeSource, newCreativeSource, referenceEdge, sameCreativeInputs } from './creative-graph.js';
 
   let { status = $bindable(), register = () => {}, active, workspace, openRun, convertToWorkflow } = $props();
   let graphWorkspace = $state.raw();
@@ -85,6 +85,12 @@
   function select(id) {
     graphWorkspace.select({ nodes: [id], edges: [] });
     void navigation.reveal?.(id);
+  }
+
+  function convert() {
+    const artifact = workspace.data.runs.findLast(run => run.definition?.creative?.artifact
+      && run.status === 'succeeded' && sameCreativeInputs(run.definition.creative.input, simulationInput));
+    convertToWorkflow({ ...simulationInput, artifactId: artifact ? artifactId(artifact) : '' });
   }
 </script>
 
@@ -160,7 +166,7 @@
     }}>Link references</Button.Root>
     <Button.Root class="action" disabled={!selected} onclick={() => simulating = true}>Simulate selected direction</Button.Root>
     <Button.Root class="action" disabled={!selected || !convertToWorkflow || context?.invalid || !simulationInput?.notes.trim()}
-      onclick={() => convertToWorkflow(simulationInput)}>Create workflow from selection</Button.Root>
+      onclick={convert}>Create workflow from selection</Button.Root>
   </div>
   <section id="direction-comparison" class="comparison" hidden={!comparing} aria-label="Direction comparison">
     {#each directions as node (node.id)}
@@ -207,6 +213,7 @@
 <style>
   .commands { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; padding: 4px 14px; border-bottom: 1px solid var(--vict-color-border); }
   :global(.phone) .commands { flex-wrap: nowrap; overflow-x: auto; padding-inline: 8px; gap: 4px; }
+  :global(.phone) .commands > :global(*) { flex: none; }
   h2 { font-size: 13px; margin: 0; }
   .direction { width: 190px; background: var(--studio-raised); padding: 10px; }
   .direction strong { display: block; margin-bottom: 8px; cursor: grab; }

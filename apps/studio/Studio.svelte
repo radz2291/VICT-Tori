@@ -3,7 +3,7 @@
   import ImportDraft from './ImportDraft.svelte';
   import AgentRelationships from './AgentRelationships.svelte';
   import AgentConfiguration from './AgentConfiguration.svelte';
-  import { agentFixtures, agentParameters, prepareAgentSource } from './agent-configuration.js';
+  import { agentFixtures, agentParameters, prepareAgentSource, workspaceContexts } from './agent-configuration.js';
   import StudioSettings from './StudioSettings.svelte';
   import Operations from './Operations.svelte';
   import SimulationDialog from './SimulationDialog.svelte';
@@ -192,14 +192,23 @@
   let settingsOpen = $state(false);
   let simulationOpen = $state(false);
   let simulationDefinition = $state(null);
+  let agentValidation = $state(null);
+  let effectiveAgentContext = $derived(workspaceContexts[agent?.values.workspaceContext]);
+  function agentIssues() {
+    const issues = [];
+    if (!agent?.values.instructions?.trim()) issues.push('Instructions are required for activation.');
+    if (agent?.values.budget && !/^[1-9]\d*$/.test(agent.values.budget)) issues.push('Step budget must be a positive whole number.');
+    if (agent?.values.lifecycle === 'retired') issues.push('Restore the retired agent before activation.');
+    return issues;
+  }
   function openSimulation() {
     if (!inspected || !currentWorkspace) return;
     simulationDefinition = {
       page: view, id: inspected.id, label: inspected.label, type: inspected.type,
       revision: currentWorkspace.graph.revision,
-      ...(agent ? { model: agent.values.model, mode: agent.values.mode, policy: agent.values.policy } : {}),
+      ...(agent ? { model: agent.values.model, mode: agent.values.mode, policy: agent.values.policy, workspaceContext: effectiveAgentContext } : {}),
       ...commands.simulationContext?.(inspected),
-      readiness: commands.readiness?.() ?? (agent && !agent.values.instructions ? ['Instructions are required for activation.'] : [])
+      readiness: commands.readiness?.() ?? (agent ? agentIssues() : [])
     };
     simulationOpen = true;
   }
@@ -437,6 +446,20 @@
               </Button.Root>
               {#if relationshipViews[agent.id]}
                 <AgentRelationships {agent} settings={operations.data.settings} agents={graph?.nodes ?? []}/>
+              {/if}
+              {#if effectiveAgentContext}
+                <section aria-label={effectiveAgentContext.label}>
+                  <h2>{effectiveAgentContext.label}</h2>
+                  <dl>
+                    {#each effectiveAgentContext.records as [id, label, detail] (id)}
+                      <dt>{label} · {id}</dt><dd>{detail}</dd>
+                    {/each}
+                  </dl>
+                </section>
+              {/if}
+              <Button.Root class="action" onclick={() => agentValidation = { id: agent.id, revision: graph.revision, issues: agentIssues() }}>Validate agent</Button.Root>
+              {#if agentValidation?.id === agent.id && agentValidation.revision === graph.revision}
+                <Feedback message={agentValidation.issues.join(' ') || 'Draft validation passed. Live activation is unavailable in U0.'}/>
               {/if}
               <p class="readiness" id="agent-readiness">{agent.values.lifecycle === 'retired' ? 'Retired agent' : agent.values.instructions ? 'Instructions configured' : 'Add instructions before running this agent. You can save it as a draft now.'}</p>
           {:else if inspected}

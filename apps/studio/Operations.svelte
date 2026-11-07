@@ -69,6 +69,9 @@
         <p>Participant: You · TORI simulation adapter</p>
         <p>Model: Deterministic fixture · Activation: {session.definition ? 'Draft revision ' + session.definition.revision : 'Standalone session'}</p>
         {#if session.definition}<Button.Root class="action" onclick={() => openDefinition(session.definition)}>Open definition</Button.Root>{/if}
+        {#each session.definition?.creativeSources ?? [] as source}
+          <p>Creative source {source.id} · revision {source.revision}{source.artifactId ? ' · artifact ' + source.artifactId : ''}</p>
+        {/each}
         {#each session.messages as item (item.id)}
           <Message.Root class="message">
             <strong>{item.role} · {item.mode}</strong>
@@ -118,6 +121,9 @@
             <Button.Root class="action" onclick={() => openRun(sourceRun.id)}>Open source artifact run</Button.Root>
           {/if}
         {/if}
+        {#each run.definition?.creativeSources ?? [] as source}
+          <p>Creative source {source.id} · revision {source.revision}</p>
+        {/each}
         {#if run.definition?.creative}
           <section aria-label="Creative artifact provenance">
             <h3>Creative artifact</h3>

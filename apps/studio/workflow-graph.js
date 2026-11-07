@@ -9,7 +9,7 @@ const field = (label, value = '') => ({ type: 'string', default: value, label })
 export const workflowNodeTypes = [
   { id: 'request', label: 'Request', parameters: {
     brief: field('Request brief'), creativeSource: field('Creative source'), creativeRevision: field('Creative revision'),
-    creativeContext: field('Creative context'),
+    creativeContext: field('Creative context'), creativeArtifact: field('Source artifact'),
   }, ports: [port('Brief', 'output', 'brief', 'Request brief')] },
   {
     id: 'run-agent', label: 'Run agent',
@@ -147,6 +147,7 @@ export function creativeWorkflowOperations(snapshot, graph) {
     { type: 'setParameter', nodeId: request, key: 'creativeSource', value: snapshot.id },
     { type: 'setParameter', nodeId: request, key: 'creativeRevision', value: String(snapshot.revision) },
     { type: 'setParameter', nodeId: request, key: 'creativeContext', value: context },
+    { type: 'setParameter', nodeId: request, key: 'creativeArtifact', value: snapshot.artifactId || '' },
     { type: 'addNode', id: operation, nodeType: 'run-agent', position: { x: x + 245, y: 48 } },
     { type: 'setLabel', nodeId: operation, label: workflowLabel('Develop ' + snapshot.label, taken) },
     { type: 'connect', edge: { id: crypto.randomUUID(), source: request, sourcePort: 'Brief', target: operation, targetPort: 'Brief' } },
@@ -186,6 +187,24 @@ export function workflowReadiness(graph, agents, agentRevision) {
     }
   }
   return issues;
+}
+
+export function workflowCreativeSources(graph, targetId) {
+  const pending = [targetId];
+  const seen = new Set();
+  const sources = [];
+  while (pending.length) {
+    const id = pending.pop();
+    if (seen.has(id)) continue;
+    seen.add(id);
+    const values = graph.nodes.find(node => node.id === id)?.values;
+    if (values?.creativeSource) sources.push({
+      id: values.creativeSource, revision: values.creativeRevision,
+      context: values.creativeContext, artifactId: values.creativeArtifact,
+    });
+    for (const edge of graph.edges) if (edge.target === id) pending.push(edge.source);
+  }
+  return sources;
 }
 
 export function previewDecision(node, input, graph) {

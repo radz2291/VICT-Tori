@@ -12,7 +12,7 @@
   import GraphCommands from './GraphCommands.svelte';
   import {
     creativeWorkflowOperations, newWorkflowSource, previewDecision, sampleWorkflowOperations,
-    upgradeWorkflowSource, workflowLabel, workflowNodeTypes, workflowReadiness, workflowSamples,
+    upgradeWorkflowSource, workflowCreativeSources, workflowLabel, workflowNodeTypes, workflowReadiness, workflowSamples,
   } from './workflow-graph.js';
 
   let { agents, agentRevision, status = $bindable(), register = () => {}, active } = $props();
@@ -84,11 +84,14 @@
   }
 
   function simulationContext(node) {
+    const creativeSources = workflowCreativeSources(graph, node.id);
     return {
       coordinator: 'VICT business workflow (U0 mapping)',
       aiStep: 'Mastra agent capability (U0 mapping)',
       approvalOwner: 'VICT',
       protectedEffect: node.type === 'quellight-action',
+      creativeSources,
+      sourceArtifactId: creativeSources.length === 1 ? creativeSources[0].artifactId : '',
       branch: node.type === 'decision' ? {
         strategy: node.values.routing || 'exclusive',
         noMatch: node.values.noMatch || 'wait',
@@ -173,6 +176,7 @@
       {#if location === 'inspector' && frame.state.creativeSource}
         <p>Creative source {frame.state.creativeSource} · revision {frame.state.creativeRevision}</p>
         <p>{frame.state.creativeContext || 'No creative context bound.'}</p>
+        {#if frame.state.creativeArtifact}<p>Source artifact {frame.state.creativeArtifact}</p>{/if}
       {/if}
     {:else if frame.props.nodeType === 'run-agent'}
       {@render picker('Agent reference', frame.state.resource || 'unconfigured', agentOptions(frame.state.resource), value => bindAgent(frame, value), location === 'inspector')}
@@ -305,6 +309,7 @@
   :global(.validation-dialog) { max-height: 90dvh; overflow: auto; }
   .canvas { flex: 1; min-height: 180px; --vict-color-surface: var(--vict-color-bg); }
   :global(.phone) .commands { flex-wrap: nowrap; overflow-x: auto; padding-inline: 8px; gap: 4px; }
+  :global(.phone) .commands > :global(*) { flex: none; }
   .canvas :global(.svelte-flow__background) { --xy-background-pattern-color: #353537; }
   article { width: 178px; background: var(--studio-raised); padding: 10px; }
   strong { cursor: grab; }

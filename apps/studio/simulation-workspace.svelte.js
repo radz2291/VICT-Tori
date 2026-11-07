@@ -41,9 +41,9 @@ function record(outcome, input, definition, sessionId, intent) {
         name: definition?.coordinator ? 'Workflow step fixture' : 'Session adapter fixture', status: outcome,
         input: { target: definition?.id ?? null, revision: definition?.revision ?? null, capability: definition?.aiStep ?? 'Deterministic adapter' },
         children: [event('result', {
-        name: details[0], status: outcome,
-        output: outcome === 'succeeded' ? details[1] : null,
-        error: ['failed', 'denied', 'interrupted'].includes(outcome) ? details[1] : null,
+          name: details[0], status: outcome,
+          output: outcome === 'succeeded' ? details[1] : null,
+          error: ['failed', 'denied', 'interrupted'].includes(outcome) ? details[1] : null,
           detail: details[1],
         })],
       })],
@@ -105,6 +105,7 @@ export class SimulationWorkspace {
         text: input, mode,
         ...(session.definition?.coordinator ? { coordinator: session.definition.coordinator } : {}),
         ...(session.definition?.branch ? { branch: session.definition.branch } : {}),
+        ...(session.definition?.workspaceContext ? { workspaceContext: session.definition.workspaceContext } : {}),
       }, runDefinition, session.id, intent);
       const result = run.events[0].children[0].children[0];
       session.messages.push(

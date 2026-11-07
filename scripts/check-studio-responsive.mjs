@@ -66,6 +66,12 @@ try {
     assert.deepEqual(await cards.evaluateAll(nodes => nodes.map(node => node.dataset.toriNode)), ids);
     const after = await canvas.boundingBox();
     assert.ok(after.height >= 650, JSON.stringify(after));
+    if (route !== 'Agents') {
+      const row = page.locator('.authoring-page:not([hidden]) .commands').first();
+      const clipped = await row.getByRole('button').evaluateAll(items =>
+        items.filter(item => item.scrollWidth > item.clientWidth).map(item => item.textContent.trim()));
+      assert.deepEqual(clipped, [], 'Toolbar buttons retain the width of their labels');
+    }
     assert.equal(await page.evaluate(() => document.documentElement.scrollWidth), phone.width);
     assert.equal(await page.getByRole('menubar').count(), 0);
     assert.equal(await button('Fit view').isVisible(), true);

@@ -1,7 +1,7 @@
 <script>
   import { Input } from '@victframework/ui-ai-svelte';
   import Choice from './Choice.svelte';
-  import { fixtureResources } from './agent-configuration.js';
+  import { fixtureResources, workspaceContexts } from './agent-configuration.js';
 
   let { state, change, settings, agents, agentId, prefix = '' } = $props();
   const unconfigured = { value: 'unconfigured', label: 'Unconfigured' };
@@ -19,6 +19,7 @@
     { key: 'memory', label: 'Memory', values: options(['Current session', 'Synthetic project'].map(value => [value, value])) },
     { key: 'policy', label: 'Policy', values: options(['Read only', 'Review required'].map(value => [value, value])) },
     { key: 'processor', label: 'Processor', values: options([['source-review', 'Source review'], ['structured-output', 'Structured output']]) },
+    { key: 'workspaceContext', label: 'Workspace context', values: options(Object.entries(workspaceContexts).map(([id, context]) => [id, context.label])) },
     { key: 'specialist', label: 'Delegated specialist', values: [
       ...options(fixtureResources.specialist),
       ...agents.filter(agent => agent.id !== agentId).map(agent => ({ value: agent.id, label: agent.label })),

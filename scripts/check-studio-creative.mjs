@@ -70,6 +70,13 @@ try {
   await choice('Creative simulation intent', 'Generate another variation');
   await button('Create simulated run').click();
   await page.getByRole('heading', { name: 'Generate another variation · succeeded' }).waitFor();
+  const artifact = (await page.getByText(/^Artifact ID /).textContent()).slice('Artifact ID '.length);
+  await button('Open linked session').click();
+  await page.getByLabel('Message', { exact: true }).fill('Continue the source artifact in this session.');
+  await button('Send simulated message').click();
+  await button('Inspect simulated run').last().click();
+  await page.getByText('Source artifact ' + artifact, { exact: true }).waitFor();
+  assert.equal(await page.getByText(/^Artifact ID /).count(), 0);
   await page.reload();
   await button('Creative').click();
   await button('Simulate selected direction').click();
@@ -89,10 +96,16 @@ try {
   }
   await page.getByText('Creative source metallic', { exact: false }).waitFor();
   await page.getByText('"id":"creative-idea"', { exact: false }).waitFor();
+  await page.getByText('Source artifact ' + artifact, { exact: true }).waitFor();
   await button('Save draft').click();
   await page.reload();
   await button('Workflows').click();
   assert.equal(await request.getByRole('textbox', { name: 'Request brief', exact: true }).inputValue(), 'Synthetic brass');
+  await button('Start simulated run').click();
+  await button('Create simulated run').click();
+  await page.getByText('Source artifact ' + artifact, { exact: true }).waitFor();
+  await button('Open linked session').click();
+  await page.getByText(new RegExp('Creative source metallic.*' + artifact)).waitFor();
   assert.deepEqual(errors, []);
   console.log('PASS Creative adapter unsupported cases, version reuse, staleness, variations, conversion, and reload.');
 } finally { await browser.close(); }
