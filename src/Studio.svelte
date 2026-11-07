@@ -12,18 +12,20 @@
   const initial=emptyAssembly();
   let graph=$state.raw(initial);
   let journal=history(initial);
-  let baseline=$state(JSON.stringify(initial));
+  const authoringBytes=({revision,...content}:typeof initial)=>JSON.stringify(content);
+  let baseline=$state(authoringBytes(initial));
   let canUndo=$state(false),canRedo=$state(false);
   function historyState(){canUndo=journal.canUndo;canRedo=journal.canRedo;}
   let state=$state.raw<any>({revision:null,activation:null,sessions:[],runs:[],provider:false});
   let ready=$derived(readiness(graph));
-  let dirty=$derived(baseline!==JSON.stringify(graph));
+  let dirty=$derived(baseline!==authoringBytes(graph));
   let selection=$state('');
   let page=$state('Agents');
   let view=$state({x:0,y:0,zoom:1});
   let flow=$state<any>();
   let library=$state(true), inspector=$state(true);
   let mobile=$state(false), sheet=$state(''), mobileOpen=$state(false);
+  let sheetInvoker:HTMLElement|null=null;
   let loaded=$state(false), pending=$state(false), sending=$state(false);
   let error=$state(''), graphError=$state('');
   let activeSession=$state(''), activeRun=$state('');
@@ -46,7 +48,7 @@
   function applyState(next:any){state=next;if(!activeSession)activeSession=next.sessions[0]?.id??'';if(!activeRun)activeRun=next.runs[0]?.id??'';}
   function reopen(next:any) {
     const g=next.graph??emptyAssembly();
-    journal=history(g); graph=journal.graph; baseline=JSON.stringify(graph);historyState();
+    journal=history(g); graph=journal.graph; baseline=authoringBytes(graph);historyState();
     if(!graph.nodes.some(n=>n.id===selection)) selection='';
   }
   onMount(()=>{
@@ -103,7 +105,7 @@
     connect(c.source,c.targetHandle);
   }
   async function action(work:()=>Promise<void>){if(pending)return;pending=true;error='';try{await work();}catch(e){error=(e as Error).message;}finally{pending=false;}}
-  const save=()=>action(async()=>{const snapshot=graph;applyState(await request('/save',{graph:snapshot,expected:state.revision}));baseline=JSON.stringify(snapshot);});
+  const save=()=>action(async()=>{const snapshot=graph;applyState(await request('/save',{graph:snapshot,expected:state.revision}));baseline=authoringBytes(snapshot);});
   const reload=()=>action(async()=>{const next=await request();applyState(next);reopen(next);});
   const activate=()=>action(async()=>{applyState(await request('/activate',{revision:state.revision}));});
   const start=()=>action(async()=>{const next=await request('/sessions',{activation:state.activation.version});activeSession=next.sessions[0].id;applyState(next);page='Sessions';});
@@ -120,8 +122,8 @@
     }catch(e){return {ok:false,message:(e as Error).message};}
     finally{sending=false;}
   }
-  function toggle(panel:string){
-    if(mobile){sheet=panel;mobileOpen=true;}
+  function toggle(panel:string,invoker:HTMLElement|null=null){
+    if(mobile){sheetInvoker=invoker??document.getElementById('window-menu-trigger');sheet=panel;mobileOpen=true;}
     else if(panel==='Library')library=!library;
     else inspector=!inspector;
   }
@@ -136,7 +138,7 @@
     {name:'View',items:[{label:'Fit canvas',fn:fit,disabled:page!=='Agents'||!graph.nodes.length}]},
     {name:'Insert',items:[{label:'Agent Definition',fn:()=>create('agent'),disabled:!!graph.nodes.length},{label:'Instruction Text',fn:expose,disabled:!graph.nodes.length||!!binding(graph,'instructions')},{label:'Model Reference',fn:()=>create('model'),disabled:!graph.nodes.length||!!graph.nodes.find(n=>n.id==='model')}]},
     {name:'Run',items:[{label:'Activate saved revision',fn:activate,disabled:activateDisabled},{label:'Start Session',fn:start,disabled:!state.activation||pending}]},
-    {name:'Window',items:[{label:mobile?'Library':(library?'Hide':'Show')+' Library',fn:()=>toggle('Library'),disabled:page!=='Agents'},{label:mobile?'Inspector':(inspector?'Hide':'Show')+' Inspector',fn:()=>toggle('Inspector'),disabled:page!=='Agents'},{label:layoutWidth==='Wide'?'Use standard panels':'Use wider panels',fn:()=>layoutWidth=layoutWidth==='Wide'?'Standard':'Wide',disabled:mobile||page!=='Agents'},{label:'Reset layout',fn:()=>{layoutWidth='Standard';library=true;inspector=true;},disabled:mobile||page!=='Agents'}]},
+    {name:'Window',items:[{label:'Library',checked:mobile?undefined:library,fn:()=>toggle('Library'),disabled:page!=='Agents'},{label:'Inspector',checked:mobile?undefined:inspector,fn:()=>toggle('Inspector'),disabled:page!=='Agents'},{label:layoutWidth==='Wide'?'Use standard panels':'Use wider panels',fn:()=>layoutWidth=layoutWidth==='Wide'?'Standard':'Wide',disabled:mobile||page!=='Agents'},{label:'Reset layout',fn:()=>{layoutWidth='Standard';library=true;inspector=true;},disabled:mobile||page!=='Agents'}]},
     {name:'Help',items:[{label:'V1a · Assembly, Sessions and Runs',fn:()=>{},disabled:true}]},
   ]);
 </script>
@@ -166,9 +168,17 @@
       <div class="menuline"><span class="brand"><i aria-hidden="true"></i>TORI <span>STUDIO</span></span>
       <Menubar.Root class="app-menu">
         {#each menu as family}
-          <Menubar.Menu><Menubar.Trigger class="menu-trigger">{family.name}</Menubar.Trigger>
+          <Menubar.Menu><Menubar.Trigger class="menu-trigger" id={family.name==='Window'?'window-menu-trigger':undefined}>{family.name}</Menubar.Trigger>
           <Menubar.Portal><Menubar.Content class="menu-content" align="start">
-            {#each family.items as item}<Menubar.Item class="menu-item" disabled={item.disabled} onSelect={item.fn}>{item.label}</Menubar.Item>{/each}
+            {#each family.items as item}
+              {#if 'checked' in item && item.checked!==undefined}
+                <Menubar.CheckboxItem class="menu-item panel-check" checked={item.checked} disabled={item.disabled} onSelect={item.fn}>
+                  <span aria-hidden="true">{item.checked?'✓':' '}</span>{item.label}
+                </Menubar.CheckboxItem>
+              {:else}
+                <Menubar.Item class="menu-item" disabled={item.disabled} onSelect={item.fn}>{item.label}</Menubar.Item>
+              {/if}
+            {/each}
           </Menubar.Content></Menubar.Portal></Menubar.Menu>
         {/each}
       </Menubar.Root><span class="local">LOCAL STUDIO</span></div>
@@ -193,8 +203,8 @@
         {#if !mobile&&library}<aside class="library">{@render libraryBody()}</aside>{/if}
         <section class="stage" aria-label="Agent assembly canvas">
           <div class="canvas-tools">
-            <Button label="Library" variant="secondary" expanded={!mobile&&library} onclick={()=>toggle('Library')}/>
-            <Button label="Inspector" variant="secondary" expanded={!mobile&&inspector} onclick={()=>toggle('Inspector')}/>
+            <Button label="Library" variant="secondary" expanded={!mobile&&library} onclick={(event)=>toggle('Library',event.currentTarget as HTMLElement)}/>
+            <Button label="Inspector" variant="secondary" expanded={!mobile&&inspector} onclick={(event)=>toggle('Inspector',event.currentTarget as HTMLElement)}/>
             <span class="spacer"></span>
             {#if graph.nodes.length}
               {#if !graph.nodes.some(n=>n.id==='model')}<Button label="Add model" variant="secondary" onclick={()=>create('model')}/>{/if}
@@ -251,7 +261,7 @@
       {/each}
     </nav>
   </div>
-  <Dialog.Root bind:open={mobileOpen}><Dialog.Portal><Dialog.Overlay class="sheet-shade"/><Dialog.Content class="mobile-sheet">
+  <Dialog.Root bind:open={mobileOpen}><Dialog.Portal><Dialog.Overlay class="sheet-shade"/><Dialog.Content class="mobile-sheet" onCloseAutoFocus={(event)=>{if(sheetInvoker?.isConnected){event.preventDefault();sheetInvoker.focus({preventScroll:true});}}}>
     <div class="sheet-top"><Dialog.Title>{sheet}</Dialog.Title><Dialog.Close class="menu-trigger">Close</Dialog.Close></div>
     <Dialog.Description>Inspect the current assembly.</Dialog.Description>
     {#if sheet==='Library'}{@render libraryBody()}{:else}{@render inspectorBody()}{/if}
