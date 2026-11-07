@@ -7,7 +7,7 @@
   import AssemblyNode from './AssemblyNode.svelte';
   import FlowAccess from './FlowAccess.svelte';
   import Fields from './Fields.svelte';
-  import {add,binding,change,emptyAssembly,field,history,instructions,modelName,readiness,resolved,wire} from './assembly';
+  import {add,binding,change,emptyAssembly,field,history,instructions,modelName,readiness,resolved,wire,outputTokens,tokenSourceId} from './assembly';
 
   const initial=emptyAssembly();
   let graph=$state.raw(initial);
@@ -38,7 +38,7 @@
   let types={assembly:AssemblyNode};
   let nodes=$state.raw<any[]>([]);
   const pages=['Agents','Workflows','Creative','Sessions','Runs'];
-  const objectTitle=(id:string)=>id==='agent' ? resolved(graph).name||'Untitled agent':id==='model'?(field(graph,id,'model')?modelName:'Unassigned model'):'System prompt';
+  const objectTitle=(id:string)=>id==='agent' ? resolved(graph).name||'Untitled agent':id==='model'?(field(graph,id,'model')?modelName:'Unassigned model'):id===tokenSourceId?'Output limit Integer':'System prompt';
 
   async function request(path='',data?:any) {
     const response=await fetch('/api/studio'+path, data===undefined?{}:{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)});
@@ -67,8 +67,8 @@
   $effect(()=>{
     const g=graph,s=selection;
     nodes=g.nodes.map(n=>({id:n.id,type:'assembly',position:n.position,selected:s===n.id,
-      data:{title:objectTitle(n.id),subtitle:n.id==='agent'?(binding(g,'model')?modelName:'Model unbound'):n.id==='model'?'Z.AI · text generation':'Reusable system instructions',
-        fields:{graph:g,edit,expose,connect,disconnect,remove}}}));
+      data:{title:objectTitle(n.id),subtitle:n.id==='agent'?(binding(g,'model')?modelName:'Model unbound'):n.id==='model'?'Z.AI · text generation':n.id===tokenSourceId?'Reusable output limit':'Reusable system instructions',
+        fields:{graph:g,edit,expose,exposeTokens,connect,disconnect,remove}}}));
   });
   let edges=$derived(graph.edges.map(e=>({id:e.id,source:e.source,target:e.target,sourceHandle:e.sourcePort,targetHandle:e.targetPort,selectable:false,
     style:e.targetPort==='model'?'stroke:#a3b4e6;stroke-width:2;stroke-dasharray:6 4':'stroke:#a3b4e6;stroke-width:2'})));
@@ -85,12 +85,13 @@
   function connect(id:string,port:string){if(binding(graph,port)?.source!==id)commit([wire(id,port)]);}
   function disconnect(port:string){
     const edge=binding(graph,port);if(!edge)return;
-    commit([...(port==='instructions'?[change('agent','instructions',instructions(graph))]:[]),{type:'remove',selection:{nodes:[],edges:[edge.id]}}]);
+    commit([...(port==='instructions'?[change('agent','instructions',instructions(graph))]:port==='tokens'?[change('model','tokens',outputTokens(graph))]:[]),{type:'remove',selection:{nodes:[],edges:[edge.id]}}]);
   }
   function remove(id:string){
     if(id==='agent')return;
     const ops:any[]=[];
     if(id==='instructions'&&binding(graph,'instructions'))ops.push(change('agent','instructions',instructions(graph)));
+    if(id===tokenSourceId&&binding(graph,'tokens'))ops.push(change('model','tokens',outputTokens(graph)));
     if(commit([...ops,{type:'remove',selection:{nodes:[id],edges:[]}}])&&selection===id)selection='';
   }
   async function fit(){await tick();await flow?.fitView({padding:0.18,maxZoom:1});}
@@ -101,8 +102,16 @@
     const exists=graph.nodes.some(n=>n.id==='instructions');
     if(commit([...(exists?[]:[add('instructions'),change('instructions','text',instructions(graph))]),wire('instructions','instructions')]))void reveal('instructions');
   }
+  function exposeTokens(){
+    if(binding(graph,'tokens'))return;
+    const exists=graph.nodes.some(n=>n.id===tokenSourceId);
+    if(commit([...(exists?[]:[add(tokenSourceId)]),change(tokenSourceId,'tokens',outputTokens(graph)),wire(tokenSourceId,'tokens')]))
+      void reveal(tokenSourceId);
+  }
   function onConnection(c:any){
-    if(c.target!=='agent'||c.sourceHandle!=='value'){graphError='Connect a source output to an input on the Agent Definition.';return;}
+    const validTarget=c.target==='agent' ? ['instructions','model'].includes(c.targetHandle) :
+      c.target==='model' && c.targetHandle==='tokens';
+    if(!validTarget||c.sourceHandle!=='value'){graphError='Connect a compatible source output to an Agent or Model input.';return;}
     connect(c.source,c.targetHandle);
   }
   async function action(work:()=>Promise<void>){if(pending)return;pending=true;error='';try{await work();}catch(e){error=(e as Error).message;}finally{pending=false;}}
@@ -181,7 +190,7 @@
   {#if !mobile}<h2>Inspector</h2>{/if}
   {#if selection && graph.nodes.some(n=>n.id===selection)}
     <p class="eyebrow">SELECTED OBJECT</p><h3>{objectTitle(selection)}</h3>
-    <Fields {graph} id={selection} area="inspector" {edit} {expose} {connect} {disconnect} {remove}/>
+    <Fields {graph} id={selection} area="inspector" {edit} {expose} {exposeTokens} {connect} {disconnect} {remove}/>
   {:else}<Feedback kind="empty" message="Select a node to inspect its configuration."/>
   {/if}
 {/snippet}
@@ -256,7 +265,7 @@
     {:else if page==='Sessions'}
       <main class="session-view">
         {#if session}
-          <header class="session-header"><div><p class="eyebrow">SESSION · LIVE PROVIDER</p><h1>{session.name}</h1><p>Z.AI {session.route==='coding'?'Coding':'General'} · {modelName} · Activated r{session.number} · Conversation</p></div>
+          <header class="session-header"><div><p class="eyebrow">{session.fixture?'SESSION · DETERMINISTIC FIXTURE':'SESSION · LIVE PROVIDER'}</p><h1>{session.name}</h1><p>Z.AI {session.route==='coding'?'Coding':'General'} · {modelName} · Activated r{session.number} · Conversation</p></div>
             <StatusBadge value={sendActivity?.session===session.id?(sendActivity.phase==='answer'?'Writing answer':'Waiting for Z.AI'):session.interrupted?'Interrupted':session.connectionReady?'Ready':'Credential not connected'}/>
           </header>
           {#if state.sessions.length>1}<div class="session-picker"><label for="session-picker">Open Session</label><Select id="session-picker" name="session" value={activeSession} options={state.sessions.map(s=>({value:s.id,label:s.name+' · '+new Date(s.created).toLocaleString()}))} onChange={v=>activeSession=v}/></div>{/if}
@@ -273,6 +282,7 @@
         <p class="eyebrow">EXECUTION EVIDENCE</p><h1>Runs</h1>
         {#if run}
           <label for="run-picker">Run</label><Select id="run-picker" name="run" value={activeRun} options={state.runs.map(r=>({value:r.id,label:new Date(r.started).toLocaleString()+' · '+r.status}))} onChange={v=>activeRun=v}/>
+          {#if run.fixture}<p class="eyebrow">DETERMINISTIC FIXTURE</p>{/if}
           <dl><dt>Status</dt><dd><StatusBadge value={run.status}/></dd><dt>Agent</dt><dd>{run.name} · r{run.number}</dd><dt>Activation</dt><dd class="hash">{run.activation}</dd><dt>Provider / model</dt><dd>Z.AI {run.route==='coding'?'Coding':'General'} / {run.observedModel??run.model}</dd><dt>Output token limit</dt><dd>{run.tokens}{run.sentMaxOutputTokens===undefined?' - configured':' - sent '+run.sentMaxOutputTokens}</dd><dt>Usage</dt><dd>{run.usage?run.usage.inputTokens+' input / '+run.usage.outputTokens+' output':'Not reported'}</dd><dt>Thinking</dt><dd>{run.reasoningAt?'Earlier provider observation; not a public VICT reasoning event.':'No public reasoning events or summary are available for this run.'}</dd><dt>Context</dt><dd>Pinned instructions and up to 100 recent messages. No JIT sources or tools.</dd></dl>
           {#if run.message}<Feedback kind="error" message={run.message}/>{/if}
           <h2>Timeline</h2><ol class="timeline">{#each run.events as event}<li><time>{new Date(event.at).toLocaleTimeString()}</time><span>{event.label}</span></li>{/each}</ol>

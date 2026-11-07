@@ -36,6 +36,25 @@ test('typed links, shared edit and history retain the last valid graph',()=>{
   assert.equal(instructions(session.graph),'Edited from Inspector');
 });
 
+test('output limit upgrades older graphs, rejects wrong wires and checks numeric boundaries',()=>{
+  const {emptyAssembly,history,add,change,wire,readiness,resolved,modelId,tokenSourceId}=assembly;
+  const graph=emptyAssembly();
+  graph.nodeTypes=graph.nodeTypes.filter(node=>node.id!==tokenSourceId);
+  graph.nodeTypes.find(node=>node.id==='model').ports=
+    graph.nodeTypes.find(node=>node.id==='model').ports.filter(port=>port.id!=='tokens');
+  const draft=history(graph);
+  assert.equal(draft.apply([add('agent'),add('model'),add('instructions'),add(tokenSourceId),
+    change('agent','instructions','Synthetic instructions'),change('model','model',modelId),wire('model','model')]).ok,true);
+  assert.equal(resolved(draft.graph).tokens,4096);
+  assert.equal(draft.apply([wire('instructions','tokens')]).ok,false);
+  assert.equal(draft.apply([wire(tokenSourceId,'tokens')]).ok,true);
+  for(const cap of [64,32768]){
+    assert.equal(draft.apply([change(tokenSourceId,'tokens',cap)]).ok,true);
+    assert.equal(readiness(draft.graph),'');
+    assert.equal(resolved(draft.graph).tokens,cap);
+  }
+});
+
 test('save incomplete, reject stale writes, pin and restore activation after restart',async()=>{
   const {emptyAssembly,history,add,change,wire,modelId}=assembly;
   const author=history(emptyAssembly());

@@ -6,7 +6,9 @@ export const rootId = 'agent';
 export const instructionId = 'instructions';
 export const modelNodeId = 'model';
 
-const definitions: GraphDocumentV3['nodeTypes'] = [
+export const tokenSourceId = 'output-limit';
+
+const legacyDefinitions: GraphDocumentV3['nodeTypes'] = [
   { id:'agent', label:'Agent Definition', parameters:{
     name:{type:'string',default:'Untitled agent'}, instructions:{type:'string',default:''},
   }, ports:[
@@ -19,39 +21,57 @@ const definitions: GraphDocumentV3['nodeTypes'] = [
     ports:[{id:'value',label:'Model Reference',type:'model-reference',direction:'output'}] },
 ];
 
+const definitions: GraphDocumentV3['nodeTypes'] = [
+  ...legacyDefinitions.map(node => node.id === 'model'
+    ? {...node, ports:[...node.ports,{id:'tokens',label:'Max output tokens',type:'integer',direction:'input' as const,maxConnections:1}]}
+    : node),
+  {id:tokenSourceId,label:'Output limit Integer',parameters:{tokens:{type:'number',default:4096}},
+    ports:[{id:'value',label:'Integer',type:'integer',direction:'output'}]},
+];
+
+function upgrade(graph:GraphDocumentV3):GraphDocumentV3 {
+  return JSON.stringify(graph.nodeTypes)===JSON.stringify(legacyDefinitions)
+    ? {...graph,nodeTypes:structuredClone(definitions)} : graph;
+}
+
 export function emptyAssembly():GraphDocumentV3 {
   return {schema:'vict.flow-graph@3',revision:0,nodeTypes:structuredClone(definitions),nodes:[],edges:[]};
 }
 
 export function assemblyIssues(graph:GraphDocumentV3) {
-  const expected:Record<string,string> = {agent:'agent',instructions:'text',model:'model'};
+  const expected:Record<string,string> = {agent:'agent',instructions:'text',model:'model',[tokenSourceId]:tokenSourceId};
   if (JSON.stringify(graph.nodeTypes)!==JSON.stringify(definitions) ||
       graph.nodes.some(node => expected[node.id]!==node.type) ||
-      graph.edges.some(edge => edge.sourcePort!=='value' || edge.target!=='agent' ||
-        !((edge.source==='instructions' && edge.targetPort==='instructions') || (edge.source==='model' && edge.targetPort==='model')))) {
+      graph.edges.some(edge => edge.sourcePort!=='value' || !(
+        (edge.target===rootId && ((edge.source===instructionId && edge.targetPort==='instructions') ||
+          (edge.source===modelNodeId && edge.targetPort==='model'))) ||
+        (edge.target===modelNodeId && edge.source===tokenSourceId && edge.targetPort==='tokens')))) {
     return [{code:'TORI_ASSEMBLY_SHAPE',path:'graph',message:'Connect Instruction Text to Instructions and Model Reference to Model.'}];
   }
   return [];
 }
 export function checkedAssembly(input:unknown) {
   const result = validateGraphV3(input);
-  if (!result.ok || assemblyIssues(result.graph).length) throw new Error('This document is not a supported Agent Assembly.');
-  return result.graph;
+  if (!result.ok || assemblyIssues(upgrade(result.graph)).length) throw new Error('This document is not a supported Agent Assembly.');
+  return upgrade(result.graph);
 }
 export function history(graph:GraphDocumentV3) {
-  return new GraphSessionV3(graph,{validate:assemblyIssues});
+  return new GraphSessionV3(upgrade(graph),{validate:assemblyIssues});
 }
 export function field(graph:GraphDocumentV3,id:string,key:string) {
   const node = graph.nodes.find(n=>n.id===id);
   return node?.values[key] ?? graph.nodeTypes.find(n=>n.id===node?.type)?.parameters[key]?.default;
 }
-export const binding = (graph:GraphDocumentV3,port:string) => graph.edges.find(e=>e.target==='agent' && e.targetPort===port);
+export const binding = (graph:GraphDocumentV3,port:string) => graph.edges.find(e=>e.target===(port==='tokens'?modelNodeId:rootId) && e.targetPort===port);
 export const instructions = (graph:GraphDocumentV3) => String(binding(graph,'instructions') ?
   field(graph,instructionId,'text')??'' : field(graph,rootId,'instructions')??'');
+export const outputTokens = (graph:GraphDocumentV3) =>
+  Number(field(graph,binding(graph,'tokens')?tokenSourceId:modelNodeId,'tokens')??4096);
+
 export function resolved(graph:GraphDocumentV3) {
   return {name:String(field(graph,rootId,'name')??''),instructions:instructions(graph),
     model:binding(graph,'model') ? String(field(graph,modelNodeId,'model')??'') : '',
-    tokens:Number(field(graph,modelNodeId,'tokens')??4096)};
+    tokens:outputTokens(graph)};
 }
 export function readiness(graph:GraphDocumentV3) {
   const value=resolved(graph);
@@ -63,7 +83,7 @@ export function readiness(graph:GraphDocumentV3) {
 }
 export const change = (nodeId:string,key:string,value:string|number):GraphOperationV3 => ({type:'setParameter',nodeId,key,value});
 export const add = (id:string):GraphOperationV3 => ({type:'addNode',id,nodeType:id==='instructions'?'text':id,
-  position:id==='agent'?{x:390,y:140}:id==='model'?{x:55,y:351}:{x:55,y:115}});
+  position:id==='agent'?{x:390,y:140}:id==='model'?{x:55,y:351}:id===tokenSourceId?{x:-250,y:351}:{x:55,y:115}});
 export const wire = (source:string,targetPort:string):GraphOperationV3 => ({type:'connect',edge:{
-  id:source+'-to-'+targetPort,source,sourcePort:'value',target:'agent',targetPort,
+  id:source+'-to-'+targetPort,source,sourcePort:'value',target:targetPort==='tokens'?modelNodeId:rootId,targetPort,
 }});

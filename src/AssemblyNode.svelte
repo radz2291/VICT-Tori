@@ -8,7 +8,7 @@
 
 <article class="graph-node" class:root class:selected data-kind={id}>
   <header>
-    <span class="node-type">{root?'Agent definition':id==='model'?'Model reference':'Instruction text'}</span>
+    <span class="node-type">{root?'Agent definition':id==='model'?'Model reference':id==='output-limit'?'Integer':'Instruction text'}</span>
     <strong>{data.title}</strong>
     <span class="node-detail">{data.subtitle}</span>
   </header>
@@ -17,6 +17,7 @@
     <div class="node-port input-port"><Handle type="target" position={Position.Left} id="instructions"/><span>Instructions</span><small>Text</small></div>
     <div class="node-port input-port"><Handle type="target" position={Position.Left} id="model"/><span>Model</span><small>Reference</small></div>
   {:else}
-    <div class="node-port output-port"><span>{id==='model'?'Model Reference':'Text'}</span><Handle type="source" position={Position.Right} id="value"/></div>
+    {#if id==='model'}<div class="node-port input-port"><Handle type="target" position={Position.Left} id="tokens"/><span>Output limit</span><small>Integer</small></div>{/if}
+    <div class="node-port output-port"><span>{id==='model'?'Model Reference':id==='output-limit'?'Integer':'Text'}</span><Handle type="source" position={Position.Right} id="value"/></div>
   {/if}
 </article>

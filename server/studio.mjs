@@ -81,6 +81,8 @@ function providerModel(key, route, evidence) {
 }
 
 export function createStudio({getAssembly,dataDirectory}) {
+  const fixture=process.env.TORI_EXECUTION_FIXTURE==='a1-request-capture' &&
+    process.env.TORI_ZAI_API_KEY==='synthetic-a1-fixture' ? 'a1-request-capture' : undefined;
   const dir=resolve(dataDirectory);mkdirSync(dir,{recursive:true});
   const db=new DatabaseSync(join(dir,'studio.sqlite'));
   db.exec("PRAGMA journal_mode=WAL; CREATE TABLE IF NOT EXISTS project (id INTEGER PRIMARY KEY, value TEXT NOT NULL)");
@@ -134,11 +136,13 @@ export function createStudio({getAssembly,dataDirectory}) {
     } else if(path==='/sessions'){
       const activation=state.activations.find(a=>a.record.activationVersion===input.activation);
       if(!activation)throw conflict('Activate a saved Agent first.');
-      state.sessions.unshift({id:randomUUID(),created:now(),name:activation.name,number:activation.number,route:activation.route,activation:input.activation,messages:[]});
+      state.sessions.unshift({id:randomUUID(),created:now(),name:activation.name,number:activation.number,route:activation.route,activation:input.activation,messages:[],
+        ...(fixture?{fixture}:{})});
     } else if(path==='/turn'){
       const session=state.sessions.find(s=>s.id===input.session);
       const key=credential(session?.route);
       if(!session)throw new StudioError(404,'This Session was not found.');
+      if(session.fixture!==fixture)throw conflict('This Session belongs to a different execution environment.');
       if(session.interrupted)throw conflict('This Session was interrupted. Open a new Session to avoid replaying an uncertain turn.');
       if(!key)throw conflict("Connect a Z.AI credential for this Session's pinned route on the local server.");
       if(activeTurn)throw conflict('A turn is already running. Wait for it to finish.');
@@ -150,7 +154,7 @@ export function createStudio({getAssembly,dataDirectory}) {
       const value=assembly.resolved(revision.graph);
       const activation=activationFor(revision,value,pin.route??'general',pin.record);
       const run={id:randomUUID(),session:session.id,activation:session.activation,revision:revision.id,number:revision.number,name:session.name,
-        provider,model,route:pin.route??'general',tokens:value.tokens,started:now(),status:'running',events:[]};
+        provider,model,route:pin.route??'general',tokens:value.tokens,started:now(),status:'running',events:[],...(fixture?{fixture}:{})};
       run.events.push({at:run.started,label:'Turn accepted by Studio'});
       session.messages.push({id:run.id+'-user',role:'user',text});
       state.runs.unshift(run);store(state);
@@ -185,7 +189,7 @@ export function createStudio({getAssembly,dataDirectory}) {
       }
       run.sentMaxOutputTokens=evidence.sentMaxOutputTokens;
       run.ended=now();
-      if(evidence.http)run.events.push({at:run.ended,label:'Z.AI HTTP '+evidence.http+(evidence.code?' · '+evidence.code:'')});
+      if(evidence.http)run.events.push({at:run.ended,label:(fixture?'Fixture HTTP ':'Z.AI HTTP ')+evidence.http+(evidence.code?' · '+evidence.code:'')});
       run.events.push({at:run.ended,label:'Turn '+run.status});
       run.events.sort((a,b)=>a.at.localeCompare(b.at));
       activeTurn=undefined;
