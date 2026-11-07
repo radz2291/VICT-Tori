@@ -71,6 +71,8 @@ function providerModel(key, route, evidence, maxRetries) {
       if(body.model!==model || body.tools?.length)throw new Error('TORI_PROVIDER_MODEL_DENIED');
       if(evidence.providerAttempts>=1+maxRetries)throw new Error('TORI_PROVIDER_ATTEMPT_LIMIT');
       evidence.providerAttempts++;
+      evidence.http=undefined;
+      evidence.code=undefined;
       evidence.sentTemperature=body.temperature;
       evidence.sentTopP=body.top_p;
       let reply;

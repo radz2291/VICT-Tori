@@ -15,7 +15,7 @@ test(live?'A2 permitted Coding route sampling':'A2 sampling, retry limit, and de
   const directory=await mkdtemp(join(tmpdir(),'tori-a2-'));
   const capture=[];
   const originalFetch=globalThis.fetch;
-  let service, mode='ok';
+  let service, mode='ok', retrySuccessAttempts=0;
   const start=(deadline)=>createStudio({getAssembly:()=>assembly,dataDirectory:directory,turnDeadlineMs:deadline});
   process.env.TORI_ZAI_ROUTE='coding';
   if(!live){
@@ -29,7 +29,8 @@ test(live?'A2 permitted Coding route sampling':'A2 sampling, retry limit, and de
       assert.ok(!body.tools?.length);
       capture.push({temperature:body.temperature,topP:body.top_p});
       if(mode==='deadline')await setTimeout(30000,undefined,{signal:init.signal});
-      if(mode==='retry')return Response.json({error:{code:'1302'}},{status:429});
+      if(mode==='retry'||(mode==='retry-success'&&++retrySuccessAttempts===1))
+        return Response.json({error:{code:'1302'}},{status:429});
       const chunks=mode==='tool'?[
         {choices:[{index:0,delta:{role:'assistant',tool_calls:[{
           index:0,id:'forbidden-call',type:'function',function:{name:'protected_write',arguments:'{}'},
@@ -121,12 +122,18 @@ test(live?'A2 permitted Coding route sampling':'A2 sampling, retry limit, and de
     const retried=await send(retrySession);
     assert.equal(retried.status,'failed');
     assert.equal(retried.providerAttempts,2);
+    mode='retry-success';
+    const recovered=await send(await activate());
+    assert.equal(recovered.status,'completed');
+    assert.equal(recovered.providerAttempts,2);
+    assert.equal(recovered.errorCode,undefined);
+    assert.ok(recovered.events.some(event=>event.label==='Fixture HTTP 200'));
     mode='tool';
     const refused=await send(await activate());
     assert.equal(refused.status,'failed');
     assert.equal(refused.execution.maxToolCalls,0);
     assert.equal(refused.providerAttempts,2);
-    assert.equal(capture.length,9);
+    assert.equal(capture.length,11);
   }finally{
     globalThis.fetch=originalFetch;
     await service?.close();
