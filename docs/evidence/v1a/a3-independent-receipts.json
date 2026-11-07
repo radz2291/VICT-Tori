@@ -1,0 +1,114 @@
+[
+  {
+    "fixture": "a1-request-capture",
+    "status": "failed",
+    "errorCode": "TORI_MODEL_STEP_LIMIT",
+    "activation": "v1_3db79d74b5fa0cad1e34254ce66a32e09ccd7ad9a0ca1e0f763c1d2fc8985018",
+    "stepLimit": 1,
+    "retries": 1,
+    "modelSteps": 1,
+    "providerAttempts": 1,
+    "mcpCalls": 1,
+    "governedDisposition": "completed",
+    "context": {
+      "source": "reference@1",
+      "trigger": "explicit-turn-demand",
+      "budgetBytes": 512,
+      "reads": 0,
+      "status": "omitted",
+      "reason": "no-demand"
+    },
+    "timeline": [
+      {
+        "label": "Turn accepted by Studio"
+      },
+      {
+        "label": "VICT · response.started",
+        "kind": "response.started"
+      },
+      {
+        "label": "VICT · tool.requested",
+        "kind": "tool.requested"
+      },
+      {
+        "label": "VICT · tool.started",
+        "kind": "tool.started"
+      },
+      {
+        "label": "VICT · tool.completed",
+        "kind": "tool.completed"
+      },
+      {
+        "label": "VICT · usage.updated",
+        "kind": "usage.updated"
+      },
+      {
+        "label": "VICT stream ended before a final answer",
+        "kind": "response.completed"
+      },
+      {
+        "label": "Model step limit reached"
+      },
+      {
+        "label": "Fixture HTTP 200"
+      },
+      {
+        "label": "Turn failed"
+      }
+    ]
+  },
+  {
+    "fixture": "a1-request-capture",
+    "status": "completed",
+    "activation": "v1_4461959576f1b16d5084ab244e809db8fe673e02516702709f9c071c4bad38c1",
+    "stepLimit": 2,
+    "retries": 1,
+    "modelSteps": 2,
+    "providerAttempts": 2,
+    "mcpCalls": 1,
+    "governedDisposition": "completed",
+    "context": {
+      "source": "reference@1",
+      "trigger": "explicit-turn-demand",
+      "budgetBytes": 512,
+      "reads": 1,
+      "status": "admitted",
+      "bytes": 77
+    },
+    "timeline": [
+      {
+        "label": "Turn accepted by Studio"
+      },
+      {
+        "label": "VICT · response.started",
+        "kind": "response.started"
+      },
+      {
+        "label": "VICT · tool.requested",
+        "kind": "tool.requested"
+      },
+      {
+        "label": "VICT · tool.started",
+        "kind": "tool.started"
+      },
+      {
+        "label": "VICT · tool.completed",
+        "kind": "tool.completed"
+      },
+      {
+        "label": "VICT · usage.updated",
+        "kind": "usage.updated"
+      },
+      {
+        "label": "VICT · response.completed",
+        "kind": "response.completed"
+      },
+      {
+        "label": "Fixture HTTP 200"
+      },
+      {
+        "label": "Turn completed"
+      }
+    ]
+  }
+]
