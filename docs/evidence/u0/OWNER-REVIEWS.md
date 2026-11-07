@@ -44,3 +44,7 @@ Open [Studio](http://127.0.0.1:48743/) on the feature branch. The five pages fol
 [Saved workflow](studio-r2-workflow-reopened.png) · [Invalid connection feedback](studio-r2-workflow-validation.png) · [Creative comparison](studio-r2-creative-comparison.png) · [VICT control audit](VICT-CONTROL-AUDIT.md)
 
 Creative uses synthetic text directions. Artifact comparison, preferred-result selection and workflow conversion remain open. Sessions and Runs show labelled simulation placeholders. The walkthrough covers the amended R2 interactions and leaves full fixture, cross-view execution identity and independent U0 verification open.
+
+## U0-R3 · offered
+
+Review the [integrated preview](http://127.0.0.1:48746/) at `990bd3453fb6f416492e1b52b32d437e704edba6`. The [walkthrough](integration/README.md) covers simulated runs, nested trace inspection, session continuation, settings persistence and phone access. The TORI-002 selection, command and viewport changes are included in this same candidate. The [verification report](integration/VERIFICATION.md) retains the earlier findings and the repair checks. Owner feedback and final U0 acceptance are pending.

@@ -1,5 +1,9 @@
 # TORI current state
 
+**7 November 2026 — Integrated U0 candidate offered for hands-on review.** TORI-001 is the single integration stage and carries the TORI-002 changes-requested repairs. Product `990bd3453fb6f416492e1b52b32d437e704edba6` on `codex/tori-ui-foundation` passed all eight installed-browser suites in the fresh independent checkout. The [integrated evidence](docs/evidence/u0/integration/VERIFICATION.md) records scoped passes, retained failures, unresolved coverage and the exact preview. Final owner U0 acceptance and the remaining full-criterion proof are open.
+
+## Historical responsive checkpoint
+
 **7 November 2026 — TORI-002 responsive candidate ready for owner review.** Radzi held final UX acceptance after reviewing the earlier phone evidence. Candidate `7f8b4513142b1a630a197b7e523c188b2ea465f5` adds a compact phone menu, narrow canvas recovery for saved objects, contextual connection controls and quieter dock sizing. See the [matched screenshots, checks and walkthrough](docs/evidence/u0/tori-002/responsive/README.md). The [previous engineering candidate](docs/evidence/u0/tori-002/final/README.md) retains its original attribution. Final visual acceptance remains with Radzi. TORI-001 retains the broader U0 functional stage and runtime boundary.
 
 **TORI-002 ownership:** The separate Studio UX realignment is coordinated in Rolladice Work. TORI-002 owns the shell and presented UI in `codex/tori-002-studio-realignment`; TORI-001 retains the R2 walkthrough, U0 functional contracts and verification, and runtime boundaries. See the [interim walkthrough and independent evidence](docs/evidence/u0/tori-002/README.md). Radzi accepted the Sessions layout direction on 7 November 2026 and authorized the shared dock rollout. The [rollout candidate](docs/evidence/u0/tori-002/docks/README.md) uses contextual availability and persisted per-page visibility and widths. Final visual acceptance remains open.
