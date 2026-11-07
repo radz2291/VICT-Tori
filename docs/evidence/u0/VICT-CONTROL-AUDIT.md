@@ -1,5 +1,7 @@
 # Public VICT control audit
 
+**Historical R2 evidence.** The [TORI-002 final inventory and rendered audit](tori-002/final/CONTROL-AUDIT.md) supersedes this inventory for the realigned Studio. The original statements below describe the R2 candidate and remain for attribution.
+
 Scope is the five-page N1 shell and amended R2 walkthrough. The installed VICT packages come from the [pinned G0 artifacts](../g0/DEPENDENCIES.md).
 
 | Role | TORI source | Public implementation |

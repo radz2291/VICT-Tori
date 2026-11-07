@@ -1,0 +1,214 @@
+{
+  "surfaces": [
+    {
+      "route": "Agents",
+      "buttons": [
+        "",
+        "",
+        "Zoom out",
+        "Zoom in",
+        "Reveal selected object",
+        "Delete selected object",
+        "",
+        "",
+        "",
+        "",
+        "+ Add agent",
+        "Fit view",
+        "Find agent",
+        "Reveal selected object",
+        "Delete this object",
+        "Agents",
+        "Workflows",
+        "Creative",
+        "Sessions",
+        "Runs"
+      ],
+      "visibleControlRoles": 23
+    },
+    {
+      "route": "Workflows",
+      "buttons": [
+        "",
+        "Zoom out",
+        "Zoom in",
+        "Reveal selected object",
+        "Delete selected object",
+        "",
+        "",
+        "Run agent",
+        "Add node",
+        "Undo",
+        "Redo",
+        "Fit view",
+        "Request · Brief",
+        "Run agent · Brief",
+        "Connect",
+        "",
+        "Unconfigured",
+        "",
+        "",
+        "Agents",
+        "Workflows",
+        "Creative",
+        "Sessions",
+        "Runs"
+      ],
+      "visibleControlRoles": 22
+    },
+    {
+      "route": "Creative",
+      "buttons": [
+        "",
+        "Zoom out",
+        "Zoom in",
+        "Reveal selected object",
+        "Delete selected object",
+        "Compare directions",
+        "Undo",
+        "Redo",
+        "Fit view",
+        "",
+        "",
+        "Agents",
+        "Workflows",
+        "Creative",
+        "Sessions",
+        "Runs"
+      ],
+      "visibleControlRoles": 20
+    },
+    {
+      "route": "Sessions",
+      "buttons": [
+        "Agents",
+        "Workflows",
+        "Creative",
+        "Sessions",
+        "Runs"
+      ],
+      "visibleControlRoles": 7
+    },
+    {
+      "route": "Runs",
+      "buttons": [
+        "Agents",
+        "Workflows",
+        "Creative",
+        "Sessions",
+        "Runs"
+      ],
+      "visibleControlRoles": 6
+    }
+  ],
+  "menus": [
+    {
+      "name": "File",
+      "items": [
+        "Save draftCtrl+S",
+        "Reopen saved draft"
+      ]
+    },
+    {
+      "name": "Edit",
+      "items": [
+        "UndoCtrl+Z",
+        "RedoCtrl+Shift+Z",
+        "Delete selected object"
+      ]
+    },
+    {
+      "name": "View",
+      "items": [
+        "Fit view",
+        "Reveal selected object",
+        "Zoom in",
+        "Zoom out"
+      ]
+    },
+    {
+      "name": "Insert",
+      "items": [
+        "Add agent"
+      ]
+    },
+    {
+      "name": "Run",
+      "items": [
+        "Live execution unavailable in U0"
+      ]
+    },
+    {
+      "name": "Window",
+      "items": [
+        "Reset layout"
+      ]
+    },
+    {
+      "name": "Help",
+      "items": [
+        "About this workspace"
+      ]
+    }
+  ],
+  "contrast": [
+    {
+      "name": "agent-name",
+      "foreground": "rgb(239, 239, 240)",
+      "background": "rgb(24, 24, 25)",
+      "ratio": 15.441107816480518
+    },
+    {
+      "name": "agent-instructions",
+      "foreground": "rgb(239, 239, 240)",
+      "background": "rgb(24, 24, 25)",
+      "ratio": 15.441107816480518
+    },
+    {
+      "name": "svelte-1ycwfri",
+      "foreground": "rgb(239, 239, 240)",
+      "background": "rgb(41, 41, 43)",
+      "ratio": 12.635321727967831
+    },
+    {
+      "name": "agent-readiness",
+      "foreground": "rgb(170, 170, 176)",
+      "background": "rgb(32, 32, 33)",
+      "ratio": 7.043527877207969
+    },
+    {
+      "name": "svelte-1ycwfri",
+      "foreground": "rgb(239, 239, 240)",
+      "background": "rgb(32, 32, 33)",
+      "ratio": 14.166874218451357
+    }
+  ],
+  "errors": [],
+  "graphColors": {
+    "stroke": "rgb(170, 170, 176)",
+    "width": "2px",
+    "ports": [
+      {
+        "color": "rgb(239, 239, 240)",
+        "background": "rgba(0, 0, 0, 0)",
+        "border": "rgb(239, 239, 240)"
+      },
+      {
+        "color": "rgb(239, 239, 240)",
+        "background": "rgba(0, 0, 0, 0)",
+        "border": "rgb(239, 239, 240)"
+      },
+      {
+        "color": "rgb(239, 239, 240)",
+        "background": "rgba(0, 0, 0, 0)",
+        "border": "rgb(239, 239, 240)"
+      }
+    ]
+  },
+  "focus": {
+    "outline": "solid",
+    "width": "3px",
+    "color": "rgb(178, 164, 255)",
+    "offset": "3px"
+  }
+}
