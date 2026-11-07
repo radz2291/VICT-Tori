@@ -66,5 +66,5 @@ dt{color:#a4adbb}dd{margin:0;overflow-wrap:anywhere}.hash{font:11px/1.5 ui-monos
 .vict-controls select.vict-select{background:#181b21;color:#e5eaf2;min-height:32px;padding:5px 8px}
 .tori-scope .vict-ai{--vict-ai-background:#191c20;--vict-ai-foreground:#e5e7eb;--vict-ai-primary:#a8baf1}
 
-.tori-scope .vict-ai [data-slot="bubble"][data-variant="muted"]{background:#2e374c;color:#e9efff}
+.tori-scope .vict-ai [data-participant="user"] [data-slot="bubble-content"]{background:#2e374c;color:#e9efff}
 .tori-scope .vict-btn.vict-btn--danger{background:#54313a;border-color:#75444f;color:#ffdbdf}
