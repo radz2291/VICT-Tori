@@ -1,7 +1,7 @@
 <script lang="ts">
   import { Button, Select, StatusBadge, Feedback } from '@victframework/ui-svelte';
   import { Input, Textarea } from '@victframework/ui-ai-svelte';
-  import { binding, field, instructions, modelId, modelName, rootId, instructionId, modelNodeId, outputTokens, tokenSourceId, a3Resources } from './assembly';
+  import { binding, field, instructions, modelId, modelName, rootId, instructionId, modelNodeId, outputTokens, tokenSourceId, agentResources } from './assembly';
   let {graph,route,id,area,edit,expose,exposeTokens,connect,disconnect,remove}=$props();
   let prefix=$derived(area+'-'+id);
   let name=$derived(String(field(graph,rootId,'name')??''));
@@ -9,10 +9,12 @@
   let tokenWire=$derived(binding(graph,'tokens'));
   const numeric=(value:string)=>value===''?undefined:Number(value);
   let sampling=$derived(graph.nodes.find(n=>n.id===modelNodeId)?.values);
-  let resource=$derived(a3Resources.find(item=>item.id===id));
+  let resource=$derived(agentResources.find(item=>item.id===id));
   const choices={
     context:[{value:'reference@1',label:'Observatory reference · r1'},{value:'reference@2',label:'Observatory reference · r2'}],
     memory:[{value:'recent-10@1',label:'Last 10 messages'},{value:'recent-100@1',label:'Last 100 messages'}],
+    output:[{value:'finding@1',label:'Finding JSON · r1'}],
+    child:[{value:'reference-reviewer@1',label:'Reference reviewer · r1 (fixture)'}],
     tool:[{value:'local-reference@1',label:'Local observatory · read only'}],
   };
   let modelWire=$derived(binding(graph,'model'));

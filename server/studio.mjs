@@ -1,3 +1,4 @@
+import { childRef, createChildCapability, delegationRef, outputArtifact, outputRef, registerChild } from './a4-runtime.mjs';
 import { contextPolicy, discoverReadTool, governedReadTurn, loadContext, toolRef } from './a3-runtime.mjs';
 import { createSqliteAgentControlStores, createSqliteAgentGovernanceStore } from '@victframework/store-sqlite';
 import { publicProviderStream } from './provider-stream.mjs';
@@ -42,25 +43,31 @@ function credential(routeName=selectedRoute()) {
   }catch{return undefined;}
 }
 function activationFor(revision,value,route,record) {
-  const registry=new AgentProfileRegistry({resolveCapabilityRevision:(id,rev)=>id===toolRef.id&&rev===toolRef.revision});
+  const registry=new AgentProfileRegistry({resolveCapabilityRevision:(id,rev)=>[toolRef,delegationRef].some(ref=>id===ref.id&&rev===ref.revision)});
   const instructionRef={id:'tori-instructions',revision:revision.id};
   const memoryRef={id:'tori-conversation-memory',revision:value.memory??'1'};
   registry.installArtifacts([
     {kind:'instructions',...instructionRef,text:value.instructions},
     {kind:'memory-policy',...memoryRef,config:{lastMessages:value.memory==='recent-10@1'?10:100,workingMemory:{enabled:false},semanticRecall:false}},
   ]);
+  const child=value.child?registerChild(registry,{memoryPolicy:memoryRef},MASTRA_ADAPTER_COMPATIBILITY):undefined;
+  if(value.output)registry.installArtifacts([outputArtifact]);
   registry.registerProfile({schema:'vict.agent-profile@1',id:'tori-local-agent',revision:revision.id,
     instructions:instructionRef,memoryPolicy:memoryRef,modelProfile:{id:'zai-glm-flash',revision:'1-'+route,routerModel:provider+'/'+model,provider},
     generation:{maxOutputTokens:value.tokens,maxRetries:value.maxRetries,
       ...(value.temperature!==undefined?{temperature:value.temperature}:{}),
       ...(value.topP!==undefined?{topP:value.topP}:{})},
-    turnPolicy:{maxSteps:value.maxSteps,maxToolCalls:value.tool?1:0,onLimit:'fail-closed'},
-    ...(value.tool?{capabilities:[{id:toolRef.id,revision:toolRef.revision}]}:{}),
+    turnPolicy:{maxSteps:value.maxSteps,maxToolCalls:value.tool||value.child?1:0,onLimit:'fail-closed'},
+    ...(value.tool||value.child?{capabilities:[
+      ...(value.tool?[{id:toolRef.id,revision:toolRef.revision}]:[]),...(value.child?[delegationRef]:[]),
+    ]}:{}),
+    ...(value.child?{subagents:[childRef]}:{}),
+    ...(value.output?{structuredOutput:{contract:outputRef}}:{}),
     adapter:MASTRA_ADAPTER_COMPATIBILITY});
-  if(!record)return registry.activateAgentProfile({id:'tori-local-agent',revision:revision.id});
+  if(!record)return {activation:registry.activateAgentProfile({id:'tori-local-agent',revision:revision.id}),child};
   const restored=registry.restoreActivation(record);
   if(!restored.ok)throw conflict('The original VICT activation could not be restored.');
-  return restored.activation;
+  return {activation:restored.activation,child};
 }
 function providerModel(key, route, evidence, settings) {
   const endpoint=endpoints[route];
@@ -178,6 +185,7 @@ export function createStudio({getAssembly,dataDirectory,turnDeadlineMs=90000,con
       if(state.activations[0]?.revision===saved.id&&state.activations[0]?.route===selectedRoute())return projection(state);
       const value=assembly.resolved(saved.graph);
       const route=selectedRoute();
+      if(value.child&&!fixture)throw conflict('The allowlisted child requires the deterministic fixture host.');
       if(value.tool){
         if(!fixture)throw conflict('The allowlisted MCP test tool requires the deterministic A3 host.');
         try{await discoverReadTool(fixture);}catch(error){
@@ -189,17 +197,17 @@ export function createStudio({getAssembly,dataDirectory,turnDeadlineMs=90000,con
         if(state.drafts[0]?.id!==saved.id||selectedRoute()!==route)throw conflict('The draft or route changed during MCP discovery. Activate again.');
         if(state.activations[0]?.revision===saved.id&&state.activations[0]?.route===route)return projection(state);
       }
-      const activation=activationFor(saved,value,route);
+      const {activation,child}=activationFor(saved,value,route);
       const record={recordSchema:'vict.agent-activation-record@1',activationVersion:activation.activationVersion,
         agentProfileVersion:activation.agentProfileVersion,agentId:'tori-local-agent',agentRevision:saved.id,
         canonicalManifest:activation.canonicalManifestJson,artifacts:activation.artifactList,createdAt:activation.createdAt};
       if(!validateAgentActivationRecord(record).ok)throw conflict('VICT rejected the activation record.');
       state.activations.unshift({record,route,context:value.context,contextPolicy:contextPolicy(value.context),
-        memory:value.memory,tool:value.tool?toolRef:undefined,revision:saved.id,number:saved.number,name:value.name});
+        memory:value.memory,tool:value.tool?toolRef:undefined,child:child?.activationVersion,output:value.output?outputRef:undefined,revision:saved.id,number:saved.number,name:value.name});
     } else if(path==='/sessions'){
       const activation=state.activations.find(a=>a.record.activationVersion===input.activation);
       if(!activation)throw conflict('Activate a saved Agent first.');
-      state.sessions.unshift({id:randomUUID(),created:now(),name:activation.name,number:activation.number,route:activation.route,activation:input.activation,context:activation.context,memory:activation.memory,tool:!!activation.tool,messages:[],
+      state.sessions.unshift({id:randomUUID(),created:now(),name:activation.name,number:activation.number,route:activation.route,activation:input.activation,context:activation.context,memory:activation.memory,tool:!!activation.tool,child:!!activation.child,output:activation.output,messages:[],
         ...(fixture?{fixture}:{})});
     } else if(path==='/delete-session'){
       if(activeTurn)throw conflict('Wait for the current turn to finish.');
@@ -226,12 +234,13 @@ export function createStudio({getAssembly,dataDirectory,turnDeadlineMs=90000,con
       const revision=state.drafts.find(d=>d.id===pin?.revision);
       if(!revision)throw conflict('The pinned revision is unavailable.');
       const value=assembly.resolved(revision.graph);
-      const activation=activationFor(revision,value,pin.route??'general',pin.record);
-      const execution={maxSteps:value.maxSteps,maxRetries:value.maxRetries,maxToolCalls:value.tool?1:0,deadlineMs:turnDeadlineMs,
+      const {activation,child}=activationFor(revision,value,pin.route??'general',pin.record);
+      if(child?.activationVersion!==pin.child)throw conflict('The pinned child activation could not be restored.');
+      const execution={maxSteps:value.maxSteps,maxRetries:value.maxRetries,maxToolCalls:value.tool||value.child?1:0,deadlineMs:turnDeadlineMs,
         temperature:value.temperature,topP:value.topP};
       const run={id:randomUUID(),session:session.id,activation:session.activation,revision:revision.id,number:revision.number,name:session.name,
         memory:pin.memory??'recent-100@1',
-        provider,model,route:pin.route??'general',tokens:value.tokens,execution,started:now(),status:'running',events:[],...(fixture?{fixture}:{})};
+        provider,model,route:pin.route??'general',tokens:value.tokens,outputContract:pin.output,execution,started:now(),status:'running',events:[],...(fixture?{fixture}:{})};
       run.events.push({at:run.started,label:'Turn accepted by Studio'});
       session.messages.push({id:run.id+'-user',role:'user',text});
       state.runs.unshift(run);store(state);
@@ -244,7 +253,7 @@ export function createStudio({getAssembly,dataDirectory,turnDeadlineMs=90000,con
         if(!snapshot().sessions.some(item=>item.id===session.id))throw new Error('TORI_SESSION_DELETED');
         const context=await loadContext(pin.context,input.includeContext,contextReader,pin.contextPolicy??null);
         run.context=context.receipt;
-        const agentConfig={store:storage.store,modelFactory:()=>providerModel(key,run.route,evidence,{...value,context:context.content}),
+        const agentConfig={store:storage.store,modelFactory:()=>providerModel(key,run.route,evidence,{...value,tool:value.tool||value.child,context:context.content}),
           threadCoordinator:threads,tracing:{sampling:{type:'never'}}};
         const onEvent=event=>{
           if(!validateAgentStreamEvent(event).ok)return;
@@ -253,10 +262,18 @@ export function createStudio({getAssembly,dataDirectory,turnDeadlineMs=90000,con
         };
         const threadId=mastraThreadIdForConversation(session.id);
         let outcome;
-        if(pin.tool){
+        if(pin.tool||pin.child){
           if(!fixture)throw new Error('TORI_MCP_FIXTURE_REQUIRED');
           if(!await controlStores.actors.get(actor))await controlStores.actors.upsert({actorId:actor,status:'active',roles:['developer'],createdAt:Date.now()});
-          outcome=await governedReadTurn({activation,stores:controlStores,agentConfig,actorId:actor,threadId,input:text,deadline,fixture,onEvent});
+          const childCapability=child&&createChildCapability({activation,child,parentRun:run,agentConfig,persist:childRun=>{
+            run.childStatus=childRun.status;
+            const current=snapshot();
+            const index=current.runs.findIndex(item=>item.id===childRun.id);
+            if(index<0)current.runs.unshift(childRun);
+            else current.runs[index]=childRun;
+            store(current);
+          }});
+          outcome=await governedReadTurn({activation,stores:controlStores,agentConfig,actorId:actor,threadId,input:text,deadline,fixture,onEvent,childCapability});
           run.governance=outcome.governance;
         }else{
           const adapter=MastraProductAgent.create(activation,agentConfig);
@@ -267,7 +284,7 @@ export function createStudio({getAssembly,dataDirectory,turnDeadlineMs=90000,con
         run.status=outcome.status==='completed'&&!outcome.text?.trim()?'failed':outcome.status;
         run.usage=outcome.usage;
         run.observedModel=evidence.http===200?outcome.providerModelIdentity:undefined;
-        const stepLimit=pin.tool&&(evidence.stepBlocked||(outcome.status==='completed'&&
+        const stepLimit=(pin.tool||pin.child)&&(evidence.stepBlocked||(outcome.status==='completed'&&
           evidence.modelSteps>=value.maxSteps&&evidence.finishReason==='tool_calls'&&
           run.governance?.invocations.some(item=>item.status==='completed')));
         for(const event of outcome.events){
@@ -288,6 +305,25 @@ export function createStudio({getAssembly,dataDirectory,turnDeadlineMs=90000,con
           run.errorCode=run.governance.disposition==='denied'?'TORI_MCP_SCOPE_DENIED':'TORI_MCP_SCHEMA_DRIFT';
           run.message=run.governance.disposition==='denied'?'The MCP read is no longer permitted.':'The MCP tool schema changed.';
         }
+        if(run.governance?.disposition==='child-denied'){
+          run.status='failed';
+          run.errorCode='TORI_CHILD_SCOPE_DENIED';
+          run.message='The pinned child is no longer permitted.';
+        }
+        if(run.childStatus&&run.childStatus!=='completed'&&!deadline.aborted){
+          run.status='failed';
+          run.errorCode='TORI_CHILD_INCOMPLETE';
+          run.message='The child Run did not complete.';
+        }
+        if(run.outputContract){
+          run.outputValidation=run.status==='completed'?'accepted':outcome.errorCode==='VICT_AGENT_STRUCTURED_OUTPUT_REJECTED'?'rejected':'not-validated';
+          if(run.outputValidation==='rejected'){
+            run.message='The response did not match the pinned output contract. Open a new Session to continue.';
+            // The pinned adapter may already have saved a model step to memory.
+            // Fence this Session from feeding unaccepted output back to the model.
+            session.interrupted=true;
+          }
+        }
         if(run.status==='completed')session.messages.push({id:run.id+'-agent',role:'assistant',text:outcome.text});
         else run.message??=codes[evidence.code]??'The provider response did not complete. Inspect this run before sending again.';
         run.errorCode??=evidence.code??outcome.errorCode;
@@ -302,7 +338,7 @@ export function createStudio({getAssembly,dataDirectory,turnDeadlineMs=90000,con
         session.interrupted=true;
       }
       run.providerAttempts=evidence.providerAttempts;
-      if(pin.tool)run.modelSteps=evidence.modelSteps;
+      if(pin.tool||pin.child)run.modelSteps=evidence.modelSteps;
       run.sentTemperature=evidence.sentTemperature;
       run.sentTopP=evidence.sentTopP;
       run.sentMaxOutputTokens=evidence.sentMaxOutputTokens;
@@ -312,7 +348,7 @@ export function createStudio({getAssembly,dataDirectory,turnDeadlineMs=90000,con
       run.events.sort((a,b)=>a.at.localeCompare(b.at));
       activeTurn=undefined;
       const latest=snapshot();
-      latest.runs=latest.runs.map(r=>r.id===run.id?run:r);
+      latest.runs=[run,...latest.runs.filter(r=>r.id!==run.id)];
       latest.sessions=latest.sessions.map(s=>s.id===session.id?session:s);
       store(latest);
       return projection(latest);

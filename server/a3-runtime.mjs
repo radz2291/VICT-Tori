@@ -5,6 +5,7 @@ import { Client } from '@modelcontextprotocol/client';
 import { StdioClientTransport } from '@modelcontextprotocol/client/stdio';
 import { AgentStreamHub, authenticatedActorContext, gateCapabilityInvoke } from '@victframework/runtime';
 import { composeMastraTurnExecutor } from '@victframework/mastra';
+import { delegateGrant, delegationRef } from './a4-runtime.mjs';
 import { contextBudget, inputSchema, readGrant, schemaDigest, sources, toolRef } from './a3-catalog.mjs';
 
 export { toolRef };
@@ -74,7 +75,7 @@ const objectContract=(id,test,descriptiveJsonSchema)=>({
   parse(value){return test(value)?{ok:true,value}:{ok:false,issues:[{code:'INVALID',path:'$',message:'Invalid reference contract.'}]};},
 });
 
-export async function governedReadTurn({activation,stores,agentConfig,actorId,threadId,input,deadline,fixture,onEvent}) {
+export async function governedReadTurn({activation,stores,agentConfig,actorId,threadId,input,deadline,fixture,onEvent,childCapability}) {
   const hub=new AgentStreamHub({ledger:stores.streamLedger});
   const streamId=randomUUID();
   const governance={calls:0,disposition:undefined};
@@ -102,11 +103,14 @@ export async function governedReadTurn({activation,stores,agentConfig,actorId,th
     stores,activation,hub,agentConfig,
     ids:{turnId:id,streamId:()=>streamId,invocationId:id,approvalId:id,idempotencyKey:id,cancelId:id},
     capabilityBridge:{
-      resolveCapability:(capId,rev)=>capId===definition.id&&rev===definition.revision?definition:undefined,
+      resolveCapability:(capId,rev)=>capId===definition.id&&rev===definition.revision?definition:
+        capId===childCapability?.id&&rev===childCapability?.revision?childCapability:undefined,
       invoke:(cap,args,context)=>{
-        const granted=context.victActorId===actorId&&requester.scopes.includes('agent.turn.start')&&process.env.TORI_MCP_REVOKED!=='1';
-        if(!granted)governance.disposition='denied';
-        return gateCapabilityInvoke(cap,{grants:granted?[readGrant]:[]})(args,context);
+        const child=cap.id===delegationRef.id;
+        const granted=context.victActorId===actorId&&requester.scopes.includes('agent.turn.start')&&
+          (child?process.env.TORI_CHILD_REVOKED!=='1':process.env.TORI_MCP_REVOKED!=='1');
+        if(!granted)governance.disposition=child?'child-denied':'denied';
+        return gateCapabilityInvoke(cap,{grants:granted?[child?delegateGrant:readGrant]:[]})(args,context);
       },
       recordInvocationIntent:command=>service.recordToolInvocationIntent(command),
       updateInvocationStatus:command=>stores.invocations.updateInvocationStatus(command),
@@ -125,7 +129,7 @@ export async function governedReadTurn({activation,stores,agentConfig,actorId,th
   let cancel, cancellation;
   try{
     deadline.throwIfAborted();
-    const {turn,outcomePromise}=await service.startTurn(requester,{threadId,input,inputSummary:'TORI governed read turn'});
+    const {turn,outcomePromise}=await service.startTurn(requester,{threadId,input,inputSummary:'TORI governed turn'});
     cancel=()=>{cancellation=service.cancelTurn(requester,{turnId:turn.turnId,reasonCode:'TORI_TURN_DEADLINE'}).catch(()=>undefined);};
     deadline.addEventListener('abort',cancel,{once:true});
     if(deadline.aborted)cancel();

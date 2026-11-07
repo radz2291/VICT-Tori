@@ -1,11 +1,11 @@
 <script lang="ts">
   import { Handle, Position } from '@victframework/ui-flow-svelte';
   import { Button } from '@victframework/ui-svelte';
-  import { a3Resources } from './assembly';
+  import { agentResources } from './assembly';
   import Fields from './Fields.svelte';
   let {id,data,selected}=$props();
   let root=$derived(id==='agent');
-  let resource=$derived(a3Resources.find(item=>item.id===id));
+  let resource=$derived(agentResources.find(item=>item.id===id));
 </script>
 
 <article class="graph-node" class:root class:selected data-kind={id}>
@@ -18,7 +18,7 @@
   {#if root}
     <div class="node-port input-port"><Handle type="target" position={Position.Left} id="instructions"/><span>Instructions</span><small>Text</small></div>
     <div class="node-port input-port"><Handle type="target" position={Position.Left} id="model"/><span>Model</span><small>Reference</small></div>
-    {#each a3Resources as item}
+    {#each agentResources as item}
       <div class="node-port input-port"><Handle type="target" position={Position.Left} id={item.id}/><span>{item.label}</span><small>Reference</small></div>
     {/each}
   {:else}

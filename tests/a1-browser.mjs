@@ -14,6 +14,7 @@ const port = process.env.TORI_A1_PORT ?? '48769';
 const url = 'http://127.0.0.1:'+port;
 const a2=process.env.TORI_BROWSER_A2==='1';
 const a3=process.env.TORI_BROWSER_A3==='1';
+const a4=process.env.TORI_BROWSER_A4==='1';
 let server, browser, log = '';
 async function launch() {
   log = '';
@@ -200,6 +201,32 @@ try {
     await page.getByRole('dialog').getByText('Delete this Session?').waitFor();
     await clickRequest('Confirm delete Session','delete-session');
     assert.ok(!(await api()).sessions.some(session=>session.id===low.session));
+    if(a4){
+      await button('Agents').click();
+      await button('Read-only MCP Tool').click();
+      await button('Detach Read-only MCP Tool').click();
+      for(const label of ['Output Contract','Child Agent']){
+        await page.getByRole('menuitem',{name:'Insert',exact:true}).click();
+        await page.getByRole('menuitem',{name:label,exact:true}).click();
+        await button('Connect '+label).click();
+      }
+      await button('A1 Fixture Agent').click();
+      await field('inspector-agent-steps').fill('2');
+      await clickRequest('Save','save');
+      await clickRequest('Activate','activate');
+      await clickRequest('Start Session','sessions');
+      const parent=await readReference();
+      assert.equal(parent.status,'completed');
+      assert.equal(parent.outputValidation,'accepted');
+      await button('Inspect runs').click();
+      await page.getByText('tori.output.finding · r1 · accepted',{exact:true}).waitFor();
+      await button('Open child Run · completed').click();
+      await page.getByText(parent.id,{exact:true}).waitFor();
+      await page.screenshot({path:join(directory,'a4-child.png'),animations:'disabled'});
+      await button('Open parent Run').click();
+      await page.getByText('tori.output.finding · r1 · accepted',{exact:true}).scrollIntoViewIfNeeded();
+      await page.screenshot({path:join(directory,'a4-parent.png'),animations:'disabled'});
+    }
   }
   assert.deepEqual(errors,[]);
   console.log(JSON.stringify({mode:'deterministic fixture only',requests:await readCapture(),
