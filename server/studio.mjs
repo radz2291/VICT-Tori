@@ -268,10 +268,11 @@ export function createStudio({getAssembly,dataDirectory,turnDeadlineMs=90000,con
           run.governance?.invocations.some(item=>item.status==='completed')));
         for(const event of outcome.events){
           if(!eventTimes.has(event.seq))continue;
-          if(['response.started','response.completed','response.failed','response.cancelled','usage.updated','tool.requested','tool.started','tool.completed','tool.failed'].includes(event.kind))
+          if(['response.started','response.completed','response.failed','response.cancelled','usage.updated','tool.requested','tool.started','tool.completed','tool.failed'].includes(event.kind)){
             const label=stepLimit&&event.kind==='response.completed'
               ? 'VICT stream ended before a final answer' : 'VICT · '+event.kind;
             run.events.push({at:eventTimes.get(event.seq)??now(),label,kind:event.kind});
+          }
         }
         if(stepLimit&&!deadline.aborted){
           run.status='failed';
