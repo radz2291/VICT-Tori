@@ -1,8 +1,9 @@
 <script>
   import { AlertDialog } from '@victframework/ui-svelte/catalog/alert-dialog';
+  import WorkspaceDock from './WorkspaceDock.svelte';
   import StudioMenu from './StudioMenu.svelte';
   import GraphCommands from './GraphCommands.svelte';
-  import { tick } from 'svelte';
+  import { tick, untrack } from 'svelte';
   import { GraphWorkspaceV3, emptyGraphV3, parseGraphV3 } from '@victframework/ui-flow-svelte';
   import { Button } from '@victframework/ui-svelte/catalog/button';
   import { DropdownMenu } from '@victframework/ui-svelte/catalog/dropdown-menu';
@@ -30,15 +31,38 @@
   let status = $state('New local draft');
   let draftError = $state('');
   let nameInput = $state(null);
-  let inspectorOpen = $state(false);
-  let inspectorDismissed = $state(false);
   let viewportVersion = $state(0);
   const preview = new URLSearchParams(window.location.search).get('preview');
   let view = $state(preview === 'sessions' ? 'Sessions' : preview === 'workflow' ? 'Workflows' : 'Agents');
   let workflowStatus = $state('New local draft');
   let creativeStatus = $state('New local draft');
   const pages = ['Agents', 'Workflows', 'Creative', 'Sessions', 'Runs'];
-  let layouts = $state({});
+  const layoutKey = 'tori.studio.docks.v1';
+  function readLayouts() {
+    try {
+      const stored = JSON.parse(localStorage.getItem(layoutKey));
+      return stored && typeof stored === 'object' && !Array.isArray(stored) ? stored : {};
+    } catch { return {}; }
+  }
+  let layouts = $state(readLayouts());
+  let inspectedNodes = $state({});
+  function persistPageLayout(pageLayout) {
+    try {
+      const stored = readLayouts();
+      if (pageLayout) stored[view] = pageLayout;
+      else delete stored[view];
+      localStorage.setItem(layoutKey, JSON.stringify(stored));
+    } catch { /* Keep this session usable. */ }
+  }
+  const narrowQuery = window.matchMedia('(max-width: 620px)');
+  let narrow = $state(narrowQuery.matches);
+  $effect(() => {
+    function update(event) {
+      narrow = event.matches;
+    }
+    narrowQuery.addEventListener('change', update);
+    return () => narrowQuery.removeEventListener('change', update);
+  });
   let agentWorkspace = $state.raw();
   let addAgent = $state.raw();
   let workflowCommands = $state.raw({});
@@ -52,22 +76,47 @@
     reopenAction = commands.reopen;
     confirmReopen = true;
   }
-  // Availability gates rendering and commands independently of visibility intent.
-  const dockRoles = ['Library', 'Inspector', 'Activity'];
-  const panelAvailability = { Sessions: [] };
-  let panels = $derived((panelAvailability[view] ?? dockRoles).map(name => ({
-    name, open: name === 'Inspector' && view === 'Agents' ? inspectorOpen : Boolean(layouts[view]?.[name])
-  })));
-  const panelOpen = name => panels.some(panel => panel.name === name && panel.open);
+  const dockRoles = [
+    { name: 'Library', width: 220, icon: 'folder' },
+    { name: 'Inspector', width: 264, icon: 'sliders-horizontal' }
+  ];
+  let panels = $derived(dockRoles.filter(({ name }) => name === 'Library' ? objects.length : inspected)
+    .map(role => {
+      const preference = layouts[view]?.[role.name];
+      return {
+        ...role,
+        width: Number.isInteger(preference?.width) && preference.width >= 180 && preference.width <= 360
+          ? preference.width : role.width,
+        open: narrow ? layouts[view]?.narrowPanel === role.name : typeof preference?.open === 'boolean'
+          ? preference.open : view === 'Agents' && role.name === 'Inspector'
+      };
+    }));
+  function changeLayout(change) {
+    const pageLayout = { ...(layouts[view] ?? {}), ...change };
+    layouts[view] = pageLayout;
+    persistPageLayout(pageLayout);
+  }
+  function setPanel(name, change) {
+    changeLayout({ [name]: { ...layouts[view]?.[name], ...change } });
+  }
+  async function closeNarrowPanel(name) {
+    if (layouts[view]?.narrowPanel !== name) return;
+    changeLayout({ narrowPanel: null });
+    await tick();
+    document.getElementById('dock-toggle-' + name)?.focus();
+  }
   function togglePanel(name) {
-    if (!panels.some(panel => panel.name === name)) return;
-    if (name === 'Inspector' && view === 'Agents') return toggleInspector(!inspectorOpen);
-    layouts[view] = { ...layouts[view], [name]: !layouts[view]?.[name] };
+    const panel = panels.find(item => item.name === name);
+    if (!panel) return;
+    if (narrow) {
+      if (panel.open) void closeNarrowPanel(name);
+      else changeLayout({ narrowPanel: name });
+    }
+    else setPanel(name, { open: !panel.open });
   }
   function resetLayout() {
-    if (!panels.length) return;
-    layouts[view] = {};
-    if (view === 'Agents') toggleInspector(Boolean(agent));
+    delete layouts[view];
+    persistPageLayout(null);
   }
   let commands = $derived(view === 'Agents' ? {
     save, reopen, dirty: status === 'Unsaved edits', canReopen: Boolean(savedSource), undo: agentWorkspace && (() => agentWorkspace.undo()),
@@ -76,7 +125,30 @@
   } : view === 'Workflows' ? workflowCommands : view === 'Creative' ? creativeCommands : {});
   let currentWorkspace = $derived(view === 'Agents' ? agentWorkspace : commands.workspace);
   let objects = $derived(currentWorkspace?.graph.nodes ?? []);
-  let selectedObject = $derived(objects.find(node => currentWorkspace?.selection.nodes.includes(node.id)));
+  let selectedObject = $derived(objects.find(node => node.id === inspectedNodes[view]));
+  let inspected = $derived(view === 'Agents' ? agent : selectedObject);
+  let library = $derived(panels.find(panel => panel.name === 'Library'));
+  let inspector = $derived(panels.find(panel => panel.name === 'Inspector'));
+  // Restore an inspectable object only when reopening a saved layout for the first time.
+  const restoredSelection = new Set();
+  $effect(() => {
+    if (!currentWorkspace || !objects.length || restoredSelection.has(view)) return;
+    restoredSelection.add(view);
+    untrack(() => {
+      const saved = layouts[view]?.inspectedId;
+      if (!saved || !objects.some(node => node.id === saved)) return;
+      if (view === 'Agents') selected = saved;
+      else inspectedNodes[view] = saved;
+      currentWorkspace.select({ nodes: [saved], edges: [] });
+    });
+  });
+  $effect(() => {
+    if (!inspector?.open || !inspected) return;
+    const id = inspected.id;
+    untrack(() => {
+      if (layouts[view]?.inspectedId !== id) changeLayout({ inspectedId: id });
+    });
+  });
   let menus = $derived([
     { name: 'File', items: [{ label: 'Save draft', run: commands.save, hint: 'Ctrl+S' }, { label: 'Reopen saved draft', run: commands.canReopen ? requestReopen : undefined }] },
     { name: 'Edit', items: [{ label: 'Undo', run: commands.undo, hint: 'Ctrl+Z' }, { label: 'Redo', run: commands.redo, hint: 'Ctrl+Shift+Z' }] },
@@ -105,8 +177,8 @@
       if (!result.ok) throw new Error('The saved graph is invalid.');
       source = stored;
       savedSource = stored;
-      selected = result.graph.nodes[0]?.id ?? null;
-      inspectorOpen = selected !== null;
+      const preferred = layouts.Agents?.inspectedId;
+      selected = result.graph.nodes.find(node => node.id === preferred)?.id ?? result.graph.nodes[0]?.id ?? null;
       status = 'Saved draft reopened';
       draftError = '';
     } catch {
@@ -148,30 +220,22 @@
       const node = JSON.parse(value).nodes[0];
       if (node) {
         selected = node;
-        if (!inspectorDismissed) inspectorOpen = true;
       }
     }
   }
 
   async function focusAddedAgent(id, previousCount) {
     selected = id;
-    inspectorDismissed = false;
-    inspectorOpen = true;
     if (previousCount > 0) viewportVersion += 1;
     await tick();
     nameInput?.focus();
   }
 
-  function toggleInspector(open) {
-    inspectorDismissed = !open;
-    inspectorOpen = open;
-  }
-
-  function edit(frame, key, value) {
+  function edit(key, value) {
     const operation = key === 'label'
       ? { type: 'setLabel', nodeId: agent.id, label: value }
       : { type: 'setParameter', nodeId: agent.id, key, value };
-    frame.onOutput('operation', JSON.stringify([operation]));
+    agentWorkspace?.apply([operation]);
   }
 </script>
 
@@ -182,7 +246,10 @@
     <div class="project"><strong>Untitled project</strong><span aria-hidden="true">/</span><span>{view}</span></div>
     {#if panels.length}<div class="panel-controls" role="group" aria-label="Workspace panels">
       {#each panels as panel (panel.name)}
-        <Button.Root class="action panel-toggle" aria-pressed={panel.open} onclick={() => togglePanel(panel.name)}>{panel.name}</Button.Root>
+        <Button.Root class="action panel-toggle icon-action" id={'dock-toggle-' + panel.name} aria-label={panel.name} title={panel.name}
+          aria-pressed={panel.open} onclick={() => togglePanel(panel.name)}>
+          <MediaIcon props={{ name: panel.icon, size: 16 }} nodeId={panel.name} occurrenceKey={panel.name}/>
+        </Button.Root>
       {/each}
     </div>{/if}
     {#if view !== 'Sessions'}<div class="save-state">
@@ -201,17 +268,18 @@
   {#if help}<div class="draft-feedback"><Feedback message="TORI Studio · U0 local drafts. Live execution and provider access are unavailable."/><Button.Root class="action" onclick={() => help = false}>Dismiss</Button.Root></div>{/if}
   <main class:conversation-workspace={view === 'Sessions'}>
     <div class="desk">
-      {#if panelOpen('Library')}
-        <aside class="dock library" aria-label="Library">
-          <h2>Library</h2>
-          {#if objects.length}
-            {#each objects as node (node.id)}
-              <Button.Root class="action library-row" aria-pressed={selectedObject?.id === node.id} onclick={() => currentWorkspace?.select({ nodes: [node.id], edges: [] })}>{node.label}</Button.Root>
-            {/each}
-          {:else}
-            <Feedback kind="empty" message={view === 'Agents' ? 'Add an agent to populate this library.' : 'No library items for this workspace.'}/>
-          {/if}
-        </aside>
+      {#if library}
+        <WorkspaceDock panel={library} {narrow} resize={(width) => setPanel('Library', { width })} close={() => closeNarrowPanel('Library')}>
+          {#each objects as node (node.id)}
+            <Button.Root class="action library-row" aria-pressed={(view === 'Agents' ? selected : selectedObject?.id) === node.id}
+              onclick={() => {
+                if (view === 'Agents') selected = node.id;
+                else inspectedNodes[view] = node.id;
+                currentWorkspace?.select({ nodes: [node.id], edges: [] });
+                if (narrow) void closeNarrowPanel('Library');
+              }}>{node.label}</Button.Root>
+          {/each}
+        </WorkspaceDock>
       {/if}
       <div class="stage">
     {#snippet body(frame)}
@@ -251,7 +319,6 @@
             </div>
           </div>
         </div>
-        <div class="workspace" class:inspecting={inspectorOpen}>
           <div class="canvas">
             <AgentCanvas active={view === 'Agents'} version={viewportVersion} onclear={() => selected = null}/>
             {#if !graph?.nodes.length}
@@ -271,11 +338,10 @@
                     <DropdownMenu.Content class="agent-menu" align="start" sideOffset={4}>
                       <DropdownMenu.RadioGroup value={selected ?? ''} onValueChange={(id) => {
                         selected = id;
-                        if (!inspectorDismissed) inspectorOpen = true;
                       }}>
                         {#each graph.nodes as node, index (node.id)}
                           <DropdownMenu.RadioItem class="agent-menu-item" value={node.id} textValue={node.label}>
-                            <span class="agent-menu-label">{node.label}{graph.nodes.filter(item => item.label === node.label).length > 1 ? ` Â· ${index + 1}` : ''}</span>
+                            <span class="agent-menu-label">{node.label}{graph.nodes.filter(item => item.label === node.label).length > 1 ? ` · ${index + 1}` : ''}</span>
                             <span class="menu-current" aria-hidden="true">
                               {#if selected === node.id}
                                 <MediaIcon props={{ name: 'check', size: 14 }} nodeId={node.id} occurrenceKey={node.id}/>
@@ -290,20 +356,6 @@
               </div>
             {/if}
           </div>
-          {#if inspectorOpen}
-            <aside aria-label="Inspector">
-              <div class="inspector-heading">
-                <h2>Inspector</h2>
-              </div>
-              {#if agent}
-              <label for="agent-name">Agent name <Input id="agent-name" class="studio-field" bind:ref={nameInput} value={agent.label} onchange={(event) => edit(frame, 'label', event.currentTarget.value)} /></label>
-              <label for="agent-instructions">Agent instructions <Textarea id="agent-instructions" class="studio-field" aria-describedby="agent-readiness" placeholder="Describe what this agent should do" value={String(agent.values.instructions ?? '')}
-                onchange={(event) => edit(frame, 'instructions', event.currentTarget.value)}/></label>
-              <p class="readiness" id="agent-readiness">{agent.values.instructions ? 'Instructions configured' : 'Add instructions before running this agent. You can save it as a draft now.'}</p>
-              {:else}<Feedback kind="empty" message="Select an agent to inspect." />{/if}
-            </aside>
-          {/if}
-        </div>
         <footer><span>{graph?.nodes.length ?? 0} agents</span><span>Execution simulation</span></footer>
       </div>
     {/snippet}
@@ -311,8 +363,8 @@
       <GraphWorkspaceV3 props={{ graph: source, label: 'Agent graph' }}
         io={{ emit, scopedSlots: { content, body } }} nodeId="agents" occurrenceKey="agents"/>
     </div>
-    <div hidden={view !== 'Workflows'}><WorkflowPreview {requestReopen} agents={graph?.nodes ?? []} bind:status={workflowStatus} register={(value) => { workflowCommands = value; }}/></div>
-    <div hidden={view !== 'Creative'}><CreativeCanvas {requestReopen} bind:status={creativeStatus} register={(value) => { creativeCommands = value; }}/></div>
+    <div hidden={view !== 'Workflows'}><WorkflowPreview onSelection={(id) => { inspectedNodes.Workflows = id; }} {requestReopen} agents={graph?.nodes ?? []} bind:status={workflowStatus} register={(value) => { workflowCommands = value; }}/></div>
+    <div hidden={view !== 'Creative'}><CreativeCanvas onSelection={(id) => { inspectedNodes.Creative = id; }} {requestReopen} bind:status={creativeStatus} register={(value) => { creativeCommands = value; }}/></div>
     {#if view === 'Sessions'}
       <section class="conversation" aria-labelledby="conversation-title">
         <div class="conversation-heading">
@@ -334,21 +386,20 @@
       </section>
     {/if}
       </div>
-      {#if view !== 'Agents' && panelOpen('Inspector')}
-        <aside class="dock" aria-label="Inspector">
-          <h2>Inspector</h2>
-          {#if selectedObject}
-            <dl><dt>Name</dt><dd>{selectedObject.label}</dd><dt>Type</dt><dd>{currentWorkspace.graph.nodeTypes.find(type => type.id === selectedObject.type)?.label ?? selectedObject.type}</dd></dl>
+      {#if inspector}
+        <WorkspaceDock panel={inspector} {narrow} resize={(width) => setPanel('Inspector', { width })} close={() => closeNarrowPanel('Inspector')}>
+          {#if view === 'Agents' && agent}
+              <label for="agent-name">Agent name <Input id="agent-name" class="studio-field" bind:ref={nameInput} value={agent.label} onchange={(event) => edit('label', event.currentTarget.value)} /></label>
+              <label for="agent-instructions">Agent instructions <Textarea id="agent-instructions" class="studio-field" aria-describedby="agent-readiness" placeholder="Describe what this agent should do" value={String(agent.values.instructions ?? '')}
+                onchange={(event) => edit('instructions', event.currentTarget.value)}/></label>
+              <p class="readiness" id="agent-readiness">{agent.values.instructions ? 'Instructions configured' : 'Add instructions before running this agent. You can save it as a draft now.'}</p>
+          {:else if inspected}
+            <dl><dt>Name</dt><dd>{inspected.label}</dd><dt>Type</dt><dd>{currentWorkspace.graph.nodeTypes.find(type => type.id === inspected.type)?.label ?? inspected.type}</dd></dl>
             <p class="readiness">Edit this object on the canvas.</p>
-          {:else}
-            <Feedback kind="empty" message={currentWorkspace ? 'Select an object on the canvas.' : 'There is no record to inspect.'}/>
           {/if}
-        </aside>
+        </WorkspaceDock>
       {/if}
     </div>
-    {#if panelOpen('Activity')}
-      <section class="activity" aria-label="Activity"><h2>Activity</h2><Feedback message="No execution activity. Live execution is unavailable in U0."/></section>
-    {/if}
   </main>
   <AlertDialog.Root bind:open={confirmReopen}>
     <AlertDialog.Overlay/>
@@ -387,12 +438,13 @@
     min-height: 100dvh;
     display: flex; flex-direction: column; color: var(--vict-color-text);
   }
-  header, .workbar, .tools, .group, nav, .project, .inspector-heading, footer { display: flex; align-items: center; gap: .5rem; }
+  header, .workbar, .tools, .group, nav, .project, footer { display: flex; align-items: center; gap: .5rem; }
   header { min-height: 44px; padding: 4px 14px; justify-content: space-between; flex-wrap: wrap; border-bottom: 1px solid var(--vict-color-border); background: var(--vict-color-surface); }
   .project { gap: 12px; }
   .project strong { font-weight: 500; }
   .wordmark { font-size: 11px; font-weight: 700; letter-spacing: .15em; border-right: 1px solid var(--vict-color-border); padding-right: 12px; }
   .save-state, footer, .readiness { color: var(--vict-color-muted); font-size: 11px; }
+  .save-state { min-width: 0; }
   .save-state :global(.vict-state) { margin: 0; padding: 0; border: 0; background: transparent; color: inherit; }
   .draft-feedback :global(.vict-alert) { margin: 0; padding: 0 0 0 8px; border-width: 0 0 0 2px; border-radius: 0; }
   .draft-feedback { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; padding: 6px 14px; border-bottom: 1px solid var(--vict-color-border); }
@@ -407,8 +459,6 @@
   :global(.studio .icon-action[aria-pressed='true']) { background: var(--studio-raised); color: var(--vict-color-text); }
   :global(.studio .tab[aria-current]) { color: var(--vict-color-accent); box-shadow: inset 0 -1px var(--vict-color-accent); }
   :global(.studio .primary) { background: var(--studio-raised); color: var(--vict-color-text); padding: 5px 11px; }
-  .workspace { display: grid; grid-template-columns: minmax(0, 1fr); }
-  .workspace.inspecting { grid-template-columns: minmax(0, 1fr) 264px; }
   .canvas { position: relative; height: max(25rem, calc(100dvh - 183px)); overflow: hidden; }
   .canvas :global(.graph-viewport) { height: 100% !important; --vict-color-surface: var(--vict-color-bg); }
   .canvas :global(.svelte-flow__background) { --xy-background-pattern-color: #353537; }
@@ -416,8 +466,6 @@
   .empty :global(button) { pointer-events: auto; }
   .empty h2 { color: var(--vict-color-muted); font-weight: 400; }
   .canvas-tools { position: absolute; top: 8px; left: 8px; display: flex; background: var(--vict-color-surface); }
-  aside { padding: 12px; background: var(--vict-color-surface); border-left: 1px solid var(--vict-color-border); }
-  .inspector-heading { justify-content: space-between; border-bottom: 1px solid var(--vict-color-border); padding-bottom: 6px; }
   .node { width: 15rem; background: var(--studio-raised); border-radius: 3px; box-shadow: 0 5px 16px #0005; padding: 10px; }
   .node.active { box-shadow: 0 0 0 1px var(--vict-color-accent), 0 5px 16px #0005; }
   .node:not(.active):hover { background: #303032; }
@@ -434,26 +482,23 @@
   .agent-menu-label { min-width: 0; overflow-wrap: anywhere; }
   .menu-current { color: var(--vict-color-accent); width: 14px; flex: none; }
   :global(.studio textarea.studio-field) { min-height: 3.5rem; resize: vertical; }
-  aside :global(textarea.studio-field) { min-height: 7rem; }
+  :global(.studio #agent-instructions) { min-height: 7rem; }
   :global(.studio .studio-field::placeholder) { color: var(--vict-color-muted); }
   .readiness { margin: 8px 0 0; }
   footer { justify-content: space-between; padding: 3px 14px; border-top: 1px solid var(--vict-color-border); }
   .dialog-actions { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 8px; }
   .menu-strip { display: flex; align-items: center; gap: 8px; padding: 3px 14px; border-bottom: 1px solid var(--vict-color-border); background: var(--vict-color-surface); }
   .project span { color: var(--vict-color-muted); }
-  .panel-controls { display: flex; gap: 4px; }
+  .panel-controls { display: flex; gap: 2px; margin-left: auto; }
   .panel-controls :global(.panel-toggle[aria-pressed=true]) { color: var(--vict-color-accent); background: var(--studio-raised); }
   main { flex: 1; min-width: 0; }
   .desk { display: flex; align-items: stretch; min-height: 0; }
   .stage { flex: 1; min-width: 0; }
-  .dock { width: 220px; flex: 0 0 220px; box-sizing: border-box; }
-  .dock dl { font-size: 12px; }
-  .dock dt { color: var(--vict-color-muted); margin-top: 8px; }
-  .dock dd { margin: 2px 0 0; overflow-wrap: anywhere; }
-  .library { border-left: 0; border-right: 1px solid var(--vict-color-border); }
-  .library :global(.library-row) { display: block; width: 100%; text-align: left; margin-top: 8px; overflow: hidden; text-overflow: ellipsis; }
-  .library :global(.library-row[aria-pressed=true]) { color: var(--vict-color-accent); background: var(--studio-raised); }
-  .activity { padding: 10px 14px; border-top: 1px solid var(--vict-color-border); background: var(--vict-color-surface); }
+  dl { font-size: 12px; }
+  dt { color: var(--vict-color-muted); margin-top: 8px; }
+  dd { margin: 2px 0 0; overflow-wrap: anywhere; }
+  :global(.studio .library-row) { display: block; width: 100%; text-align: left; margin-top: 8px; overflow: hidden; text-overflow: ellipsis; }
+  :global(.studio .library-row[aria-pressed=true]) { color: var(--vict-color-accent); background: var(--studio-raised); }
   .conversation-workspace, .conversation-workspace .stage { display: flex; flex-direction: column; }
   .conversation-workspace .desk, .conversation { flex: 1; }
   .conversation { display: flex; flex-direction: column; min-width: 0; }
@@ -473,14 +518,10 @@
   .page-dock :global(.tab) { min-height: 36px; min-width: min(7rem, 19vw); padding-inline: 3px; }
   .page-dock :global(.tab[aria-current]) { background: var(--studio-raised); box-shadow: inset 0 2px var(--vict-color-accent); }
   @media (max-width: 790px) {
-    .desk { flex-direction: column; }
-    .dock { width: auto; flex: auto; border: 0; border-bottom: 1px solid var(--vict-color-border); }
     .menu-strip { padding-inline: 6px; }
   }
   @media (max-width: 690px) {
-    .workspace.inspecting { grid-template-columns: 1fr; }
     .canvas { height: 50dvh; }
-    aside { border-left: 0; border-top: 1px solid var(--vict-color-border); }
   }
   @media (pointer: coarse) {
     :global(.studio .action), :global(.studio .tab) { min-height: 44px; min-width: 44px; }

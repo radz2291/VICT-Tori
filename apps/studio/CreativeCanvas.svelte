@@ -8,7 +8,7 @@
   import DraftActions from './DraftActions.svelte';
   import GraphCommands from './GraphCommands.svelte';
 
-  let { status = $bindable(), register = () => {}, requestReopen } = $props();
+  let { status = $bindable(), register = () => {}, requestReopen, onSelection } = $props();
   let comparing = $state(false);
   const directions = [
     ['metallic', 'Metallic', 'Reflective aluminum, machined edges and hard directional light.'],
@@ -92,7 +92,11 @@
 {/snippet}
 
 <GraphWorkspaceV3 props={{ graph: draft.source, label: 'Creative graph' }}
-  io={{ emit: (name, value) => { if (name === 'graphChange') draft.edit(value); }, scopedSlots: { content, body } }}
+  io={{ emit: (name, value) => { if (name === 'graphChange') draft.edit(value);
+    if (name === 'selectionChange') {
+      const id = JSON.parse(value).nodes[0];
+      if (id) onSelection?.(id);
+    } }, scopedSlots: { content, body } }}
   nodeId="creative" occurrenceKey="creative"/>
 
 <style>

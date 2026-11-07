@@ -8,7 +8,7 @@
   import GraphCommands from './GraphCommands.svelte';
   import { newWorkflowSource, workflowNodeTypes } from './workflow-graph.js';
 
-  let { agents, status = $bindable(), register = () => {}, requestReopen } = $props();
+  let { agents, status = $bindable(), register = () => {}, requestReopen, onSelection } = $props();
   const draft = new GraphDraft('tori.studio.workflow.v1', newWorkflowSource());
   $effect(() => { status = draft.status; });
   let kind = $state(workflowNodeTypes[0].id);
@@ -113,7 +113,11 @@
   </div>
 {/snippet}
 <GraphWorkspaceV3 props={{ graph: draft.source, label: 'Workflow graph' }}
-  io={{ emit: (name, value) => { if (name === 'graphChange') draft.edit(value); }, scopedSlots: { content, body } }}
+  io={{ emit: (name, value) => { if (name === 'graphChange') draft.edit(value);
+    if (name === 'selectionChange') {
+      const id = JSON.parse(value).nodes[0];
+      if (id) onSelection?.(id);
+    } }, scopedSlots: { content, body } }}
   nodeId="workflow" occurrenceKey="workflow"/>
 
 <style>
