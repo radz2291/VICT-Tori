@@ -1,0 +1,71 @@
+{
+  "mode": "deterministic verifier interception",
+  "beforeEdit": {
+    "session": "272a4987-f01a-458c-a9e8-5fedeef60b1a",
+    "activation": "v1_04c83012413dffd8dfe1d4f870106332af20491b1440192914bcd6d87fd40f2c",
+    "revision": "05247194-c7fa-4c2a-9391-c8316e5dd60a",
+    "endpoint": "https://api.z.ai/api/coding/paas/v4/chat/completions",
+    "model": "glm-5.3-flash",
+    "system": [
+      "A1 independent fixture revision one."
+    ],
+    "maxOutputTokens": 4096
+  },
+  "afterEdit": {
+    "session": "06f49eeb-d6de-462d-b9b2-c8e9b3a53db1",
+    "activation": "v1_a39b49d9cc0796facc0be058d424f8dd9fed137c3b95d286ce709782322f4bca",
+    "revision": "e559b1db-32d3-4e29-b0e7-68eb72dfc25a",
+    "endpoint": "https://api.z.ai/api/coding/paas/v4/chat/completions",
+    "model": "glm-5.3-flash",
+    "system": [
+      "A1 independent fixture revision two."
+    ],
+    "maxOutputTokens": 2048
+  },
+  "oldAfterRestart": {
+    "session": "272a4987-f01a-458c-a9e8-5fedeef60b1a",
+    "activation": "v1_04c83012413dffd8dfe1d4f870106332af20491b1440192914bcd6d87fd40f2c",
+    "revision": "05247194-c7fa-4c2a-9391-c8316e5dd60a",
+    "endpoint": "https://api.z.ai/api/coding/paas/v4/chat/completions",
+    "model": "glm-5.3-flash",
+    "system": [
+      "A1 independent fixture revision one."
+    ],
+    "maxOutputTokens": 4096
+  },
+  "newAfterRestart": {
+    "session": "06f49eeb-d6de-462d-b9b2-c8e9b3a53db1",
+    "activation": "v1_a39b49d9cc0796facc0be058d424f8dd9fed137c3b95d286ce709782322f4bca",
+    "revision": "e559b1db-32d3-4e29-b0e7-68eb72dfc25a",
+    "endpoint": "https://api.z.ai/api/coding/paas/v4/chat/completions",
+    "model": "glm-5.3-flash",
+    "system": [
+      "A1 independent fixture revision two."
+    ],
+    "maxOutputTokens": 2048
+  },
+  "missingCredential": {
+    "label": "missing credential",
+    "hostRoute": "coding",
+    "hostCredentialPresent": false,
+    "session": "272a4987-f01a-458c-a9e8-5fedeef60b1a",
+    "pinnedRoute": "coding",
+    "activation": "v1_04c83012413dffd8dfe1d4f870106332af20491b1440192914bcd6d87fd40f2c",
+    "status": 409,
+    "message": "Connect a Z.AI credential for this Session's pinned route on the local server.",
+    "newRuns": 0,
+    "additionalFetchAttempts": 0
+  },
+  "routeMismatch": {
+    "label": "route mismatch",
+    "hostRoute": "general",
+    "hostCredentialPresent": true,
+    "session": "272a4987-f01a-458c-a9e8-5fedeef60b1a",
+    "pinnedRoute": "coding",
+    "activation": "v1_04c83012413dffd8dfe1d4f870106332af20491b1440192914bcd6d87fd40f2c",
+    "status": 409,
+    "message": "Connect a Z.AI credential for this Session's pinned route on the local server.",
+    "newRuns": 0,
+    "additionalFetchAttempts": 0
+  }
+}
