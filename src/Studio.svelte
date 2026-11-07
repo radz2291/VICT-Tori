@@ -127,8 +127,18 @@
     else if(panel==='Library')library=!library;
     else inspector=!inspector;
   }
+  async function persistKeyboardMove(){
+    await tick();
+    const positions=Object.fromEntries(nodes.filter(node=>{
+      const previous=graph.nodes.find(n=>n.id===node.id)?.position;
+      return previous && (previous.x!==node.position.x || previous.y!==node.position.y);
+    }).map(node=>[node.id,node.position]));
+    if(Object.keys(positions).length)commit([{type:'moveNodes',positions}]);
+  }
   function keys(e:KeyboardEvent){
-    if(!(e.ctrlKey||e.metaKey)||page!=='Agents')return;
+    if(page!=='Agents')return;
+    if(e.key.startsWith('Arrow')&&(e.target as HTMLElement)?.matches?.('.svelte-flow__node'))void persistKeyboardMove();
+    if(!(e.ctrlKey||e.metaKey))return;
     if(e.key.toLowerCase()==='s'){e.preventDefault();if(dirty&&!pending)void save();}
     if(e.key.toLowerCase()==='z'&&!['INPUT','TEXTAREA'].includes((e.target as HTMLElement)?.tagName)){e.preventDefault();travel(e.shiftKey?'redo':'undo');}
   }
