@@ -25,6 +25,7 @@ export default defineConfig({
           const parsed=new URL(req.url,'http://localhost');
           const path=parsed.pathname.replace(/\/$/,'');
           // Activity projects only the validated public VICT response lifecycle.
+          if(req.method==='GET'&&!path)body={definition:parsed.searchParams.get('definition')??undefined};
           if(req.method==='GET'&&path==='/activity')body={session:parsed.searchParams.get('session')};
           if((req.method==='GET')!==(!path||path==='/activity'))return send(405,{message:'Unsupported Studio method.'});
           service??=import('./server/studio.mjs').then(({createStudio})=>createStudio({

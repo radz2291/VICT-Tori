@@ -12,6 +12,8 @@ export const toolRef = Object.freeze({
   id:'tori.reference.read', revision:'1-'+schemaDigest(inputSchema), server:'local-reference@1', name:toolName,
 });
 export const sources = Object.freeze({
+  'project-knowledge@1':{file:new URL('../fixtures/v1a/a3-context-v1.txt',import.meta.url),
+    digest:'d00176ebf046ed4cfc71acf3e215015b297bbe75afeeab8a80b66ee17308cd1c'},
   'reference@1':{file:new URL('../fixtures/v1a/a3-context-v1.txt',import.meta.url),
     digest:'d00176ebf046ed4cfc71acf3e215015b297bbe75afeeab8a80b66ee17308cd1c'},
   'reference@2':{file:new URL('../fixtures/v1a/a3-context-v2.txt',import.meta.url),

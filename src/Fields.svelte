@@ -3,7 +3,7 @@
   import { Input, Textarea } from '@victframework/ui-ai-svelte';
   import { binding, field, instructions, modelId, modelName, rootId, instructionId, modelNodeId, outputTokens, tokenSourceId, agentResources } from './assembly';
   import { childRef, childName, delegateGrant, childTask, childResult, taskLengthLimit, resultLengthLimit } from './delegation-fixture.mjs';
-  let {graph,route,id,area,edit,expose,exposeTokens,connect,disconnect,remove}=$props();
+  let {graph,route,id,area,childRevisions=[],pinnedChild,edit,expose,exposeTokens,connect,disconnect,remove}=$props();
   let prefix=$derived(area+'-'+id);
   let name=$derived(String(field(graph,rootId,'name')??''));
   let textWire=$derived(binding(graph,'instructions'));
@@ -12,12 +12,15 @@
   let sampling=$derived(graph.nodes.find(n=>n.id===modelNodeId)?.values);
   let resource=$derived(agentResources.find(item=>item.id===id));
   const choices={
-    context:[{value:'reference@1',label:'Observatory reference · r1'},{value:'reference@2',label:'Observatory reference · r2'}],
+    context:[{value:'project-knowledge@1',label:'Project Knowledge r1'},{value:'reference@1',label:'Observatory reference · r1'},{value:'reference@2',label:'Observatory reference · r2'}],
     memory:[{value:'recent-10@1',label:'Last 10 messages'},{value:'recent-100@1',label:'Last 100 messages'}],
     output:[{value:'finding@1',label:'Finding JSON · r1'}],
     child:[{value:'reference-reviewer@1',label:'Reference reviewer · r1 (fixture)'}],
     tool:[{value:'local-reference@1',label:'Local observatory · read only'}],
   };
+  let selectedChild=$derived(childRevisions.find(item=>'saved:'+item.id===field(graph,id,'reference')));
+  let activeChild=$derived(childRevisions.find(item=>item.id===pinnedChild));
+  let childChoices=$derived([...choices.child,...childRevisions.map(item=>({value:'saved:'+item.id,label:item.name+' · r'+item.number}))]);
   let modelWire=$derived(binding(graph,'model'));
   let governedMode=$derived(binding(graph,'child')?'Governed delegation fixture':
     binding(graph,'tool')?'Governed read-only MCP':'Conversation only');
@@ -35,25 +38,36 @@
     <label for={prefix+'-retries'}>Max model retries</label>
     <Input id={prefix+'-retries'} class="tori-field" type="number" min={0} max={1} step={1} value={field(graph,id,'maxRetries')} oninput={(e)=>edit(id,'maxRetries',numeric(e.currentTarget.value))}/>
     <p class="muted">Host deadline: 90 seconds. {binding(graph,'child')||binding(graph,'tool')?'One governed capability call allowed.':'Tool calls are disabled.'}</p>
-    <dl><dt>Model binding</dt><dd>{modelWire ? modelName : 'Not connected'}</dd><dt>Runtime</dt><dd>Conversation only · no tools</dd></dl>
+    <dl><dt>Model binding</dt><dd>{modelWire ? modelName : 'Not connected'}</dd><dt>Draft runtime</dt><dd>{governedMode}</dd></dl>
   {/if}
 {:else if id===instructionId}
   <label for={prefix+'-value'}>Text value</label>
   <Textarea id={prefix+'-value'} class="tori-field nodrag nowheel" rows={area==='node'?2:4} value={String(field(graph,id,'text')??'')} oninput={(e)=>edit(id,'text',e.currentTarget.value)}/>
 {:else if resource}
   <label for={prefix+'-reference'}>{resource.label}</label>
-  <div class="nodrag"><Select id={prefix+'-reference'} name="reference" value={String(field(graph,id,'reference'))} options={choices[resource.id]} onChange={v=>edit(id,'reference',v)}/></div>
+  <div class="nodrag"><Select id={prefix+'-reference'} name="reference" value={String(field(graph,id,'reference'))} options={id==='child'?childChoices:choices[resource.id]} onChange={v=>edit(id,'reference',v)}/></div>
   {#if id==='child' && area==='inspector'}
     <h4>Delegation binding</h4>
-    <StatusBadge value={binding(graph,'child')?'Connected � deterministic fixture':'Unconnected � deterministic fixture'}/>
+    <StatusBadge value={binding(graph,'child')?'Connected · deterministic fixture':'Unconnected · deterministic fixture'}/>
+    {#if selectedChild}
+      <dl>
+        <dt>Selected saved revision</dt><dd>{selectedChild.name} r{selectedChild.number}</dd>
+        <dt>Active pin</dt><dd>{activeChild?activeChild.name+' r'+activeChild.number:'Activate to pin this revision.'}</dd>
+        <dt>Selected revision scope</dt><dd>{selectedChild.context==='project-knowledge@1'?'Project Knowledge r1 on demand. ':selectedChild.context?'Pinned context on demand. ':''}{selectedChild.tool?'One governed read-only observatory call. ':'No tool calls. '}Further delegation is disabled.</dd>
+        <dt>Required grant</dt><dd>{delegateGrant}</dd>
+        <dt>Task</dt><dd>Review the supplied research task. Quellight can request the pinned context.</dd>
+        <dt>Expected result</dt><dd>A short text finding of up to {resultLengthLimit} characters.</dd>
+      </dl>
+    {:else}
     <dl>
-      <dt>Child reference</dt><dd>{childName} � r{childRef.revision}<br/>{childRef.id}</dd>
+      <dt>Child reference</dt><dd>{childName} · r{childRef.revision}<br/>{childRef.id}</dd>
       <dt>Permitted scope</dt><dd>One read-only delegation. No child tool calls or further delegation.</dd>
       <dt>Required grant</dt><dd>{delegateGrant}</dd>
       <dt>Task</dt><dd>{childTask} Input is one nonblank task of up to {taskLengthLimit} characters.</dd>
-      <dt>Expected fixture result</dt><dd>Text of up to {resultLengthLimit} characters. The fixture returns �{childResult}�</dd>
+      <dt>Expected fixture result</dt><dd>Text of up to {resultLengthLimit} characters. The fixture returns “{childResult}”</dd>
     </dl>
     <p class="muted">Activation pins this child profile. It is a built-in fixture with no direct Session or independent Studio definition.</p>
+    {/if}
   {/if}
 {:else if id===tokenSourceId}
   <label for={prefix+'-tokens'}>Output limit value</label>

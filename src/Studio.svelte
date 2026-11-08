@@ -42,8 +42,9 @@
   const pages=['Agents','Workflows','Creative','Sessions','Runs'];
   const objectTitle=(id:string)=>id==='agent' ? resolved(graph).name||'Untitled agent':id==='model'?(field(graph,id,'model')?modelName:'Unassigned model'):id===tokenSourceId?'Output limit Integer':agentResources.find(item=>item.id===id)?.label??'System prompt';
 
-  async function request(path='',data?:any) {
-    const response=await fetch('/api/studio'+path, data===undefined?{}:{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)});
+  async function request(path='',data?:any,definition=state.definition) {
+    const suffix=data===undefined&&definition?'?definition='+encodeURIComponent(definition):'';
+    const response=await fetch('/api/studio'+path+suffix, data===undefined?{}:{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({...data,definition})});
     const result=await response.json();
     if(!response.ok) throw new Error(result.message||'Studio could not complete this action.');
     return result;
@@ -70,7 +71,7 @@
     const g=graph,s=selection;
     nodes=g.nodes.map(n=>({id:n.id,type:'assembly',position:n.position,selected:s===n.id,
       data:{title:objectTitle(n.id),subtitle:n.id==='agent'?(binding(g,'model')?modelName:'Model unbound'):n.id==='model'?'Z.AI · text generation':n.id===tokenSourceId?'Reusable output limit':agentResources.some(item=>item.id===n.id)?'Revisioned resource':'Reusable system instructions',
-        fields:{graph:g,route:state.route,edit,expose,exposeTokens,connect,disconnect,remove}}}));
+        fields:{graph:g,route:state.route,childRevisions:state.childRevisions,edit,expose,exposeTokens,connect,disconnect,remove}}}));
   });
   let edges=$derived(graph.edges.map(e=>({id:e.id,source:e.source,target:e.target,sourceHandle:e.sourcePort,targetHandle:e.targetPort,selectable:false,
     style:e.targetPort==='model'?'stroke:#a3b4e6;stroke-width:2;stroke-dasharray:6 4':'stroke:#a3b4e6;stroke-width:2'})));
@@ -118,6 +119,11 @@
   }
   async function action(work:()=>Promise<void>){if(pending)return;pending=true;error='';try{await work();}catch(e){error=(e as Error).message;}finally{pending=false;}}
   const save=()=>action(async()=>{const snapshot=graph;applyState(await request('/save',{graph:snapshot,expected:state.revision}));baseline=authoringBytes(snapshot);});
+  async function switchDefinition(next:any){
+    applyState(next);selection='';query='';graphError='';reopen(next);await fit();
+  }
+  const openDefinition=(id:string)=>action(async()=>switchDefinition(await request('',undefined,id)));
+  const newDefinition=()=>action(async()=>switchDefinition(await request('/definitions',{})));
   const reload=()=>action(async()=>{const next=await request();applyState(next);reopen(next);});
   const activate=()=>action(async()=>{applyState(await request('/activate',{revision:state.revision}));});
   const start=()=>action(async()=>{const next=await request('/sessions',{activation:state.activation.version});activeSession=next.sessions[0].id;includeContext=false;applyState(next);page='Sessions';});
@@ -189,6 +195,13 @@
 <svelte:window onkeydown={keys}/>
 {#snippet libraryBody()}
   {#if !mobile}<h2>Library</h2>{/if}
+  {#if loaded && state.definitions?.length}
+    <label for="definition-picker">Agent Definition</label>
+    <Select id="definition-picker" name="definition" value={state.definition} disabled={dirty||pending||sending}
+      options={state.definitions.map(item=>({value:item.id,label:item.name}))} onChange={openDefinition}/>
+    <Button label="New Agent Definition" variant="secondary" disabled={dirty||pending||sending} onclick={newDefinition}/>
+    {#if dirty}<p class="muted">Save this draft before switching definitions.</p>{/if}
+  {/if}
   {#if graph.nodes.length}<Input class="tori-field" aria-label="Search assembly objects" placeholder="Find a node" bind:value={query}/>{/if}
   <p class="eyebrow library-heading">ASSEMBLY OBJECTS</p>
   {#each graph.nodes.filter(n=>objectTitle(n.id).toLowerCase().includes(query.trim().toLowerCase())) as n (n.id)}
@@ -200,7 +213,7 @@
   {#if !mobile}<h2>Inspector</h2>{/if}
   {#if selection && graph.nodes.some(n=>n.id===selection)}
     <p class="eyebrow">SELECTED OBJECT</p><h3>{objectTitle(selection)}</h3>
-    <Fields {graph} route={state.route} id={selection} area="inspector" {edit} {expose} {exposeTokens} {connect} {disconnect} {remove}/>
+    <Fields {graph} childRevisions={state.childRevisions} pinnedChild={state.activation?.childRevision} route={state.route} id={selection} area="inspector" {edit} {expose} {exposeTokens} {connect} {disconnect} {remove}/>
   {:else}<Feedback kind="empty" message="Select a node to inspect its configuration."/>
   {/if}
 {/snippet}
@@ -298,16 +311,17 @@
         {#if run}
           <label for="run-picker">Run</label><Select id="run-picker" name="run" value={activeRun} options={state.runs.map(r=>({value:r.id,label:new Date(r.started).toLocaleString()+' · '+r.status}))} onChange={v=>activeRun=v}/>
           {#if run.fixture}<p class="eyebrow">DETERMINISTIC FIXTURE</p>{/if}
-          <dl><dt>Status</dt><dd><StatusBadge value={run.status}/></dd><dt>Agent</dt><dd>{run.name} · r{run.parentRun?run.revision:run.number}</dd><dt>Activation</dt><dd class="hash">{run.activation}</dd><dt>Provider / model</dt><dd>{run.parentRun?'Offline fixture':'Z.AI '+(run.route==='coding'?'Coding':'General')} / {run.observedModel??run.model}</dd><dt>Output token limit</dt><dd>{run.tokens}{run.sentMaxOutputTokens===undefined?' - configured':' - sent '+run.sentMaxOutputTokens}</dd>{#if run.execution}
+          <dl><dt>Status</dt><dd><StatusBadge value={run.status}/></dd><dt>Agent</dt><dd>{run.name} · r{run.number??run.revision}</dd><dt>Activation</dt><dd class="hash">{run.activation}</dd><dt>Provider / model</dt><dd>{run.parentRun?'Offline fixture':'Z.AI '+(run.route==='coding'?'Coding':'General')} / {run.observedModel??run.model}</dd><dt>Output token limit</dt><dd>{run.tokens}{run.sentMaxOutputTokens===undefined?' - configured':' - sent '+run.sentMaxOutputTokens}</dd>{#if run.execution}
           <dt>Sampling</dt><dd>Temperature {run.execution.temperature??'provider default'}{run.sentTemperature!==undefined?' · sent '+run.sentTemperature:''} / Top-p {run.execution.topP??'provider default'}{run.sentTopP!==undefined?' · sent '+run.sentTopP:''}</dd>
           <dt>Execution limits</dt><dd>{run.execution.maxSteps} steps · {run.execution.maxRetries} model retries · {run.execution.maxToolCalls} tool calls · {run.execution.deadlineMs/1000}s host deadline</dd>
           <dt>Provider attempts</dt><dd>{run.providerAttempts}</dd>
-          {/if}<dt>Usage</dt><dd>{run.usage?run.usage.inputTokens+' input / '+run.usage.outputTokens+' output':'Not reported'}</dd><dt>Thinking</dt><dd>{run.reasoningAt?'Earlier provider observation; not a public VICT reasoning event.':'No public reasoning events or summary are available for this run.'}</dd><dt>Context</dt><dd>{run.context?run.context.source+' · '+run.context.status+(run.context.reason?' · '+run.context.reason:''):'No on-demand source admitted'}</dd>
+          {/if}<dt>Usage</dt><dd>{run.usage?run.usage.inputTokens+' input / '+run.usage.outputTokens+' output':'Not reported'}</dd><dt>Thinking</dt><dd>{run.reasoningAt?'Earlier provider observation; not a public VICT reasoning event.':'No public reasoning events or summary are available for this run.'}</dd><dt>Context</dt><dd>{run.context?run.context.source+' · '+run.context.status+(run.context.reason?' · '+run.context.reason:run.context.reads?' · '+run.context.reads+' read':''):'No on-demand source admitted'}</dd>
           {#if run.outputContract}<dt>Output validation</dt><dd>{run.outputContract.id} · r{run.outputContract.revision} · {run.outputValidation??'not validated'}</dd>{/if}
           {#if run.parentRun}<dt>Parent Run</dt><dd class="hash">{run.parentRun}</dd>
           <dt>Parent invocation</dt><dd class="hash">{run.parentInvocation}</dd>{/if}
           {#if run.memory}<dt>Scoped memory</dt><dd>{run.memory==='recent-10@1'?'Last 10 messages':'Last 100 messages'} · this Session</dd>{/if}
           {#if run.governance}<dt>Governed tool</dt><dd>{run.governance.calls} MCP calls · {run.governance.disposition??'not called'}</dd>
+          {#if run.governance.scope}<dt>Tool scope</dt><dd>{run.name} · r{run.number} · read-only observatory</dd>{/if}
           <dt>VICT turn</dt><dd class="hash">{run.governance.turnId}</dd>
           <dt>Observed model steps</dt><dd>{run.modelSteps}</dd>{/if}</dl>
           {#if run.message}<Feedback kind="error" message={run.message}/>{/if}

@@ -10,12 +10,13 @@ globalThis.fetch = async (url, init) => {
   appendFileSync(process.env.TORI_A1_CAPTURE, JSON.stringify({maxOutputTokens:body.max_tokens})+'\n');
   const lastUser=body.messages.findLastIndex(message=>message.role==='user');
   const childTool=body.tools?.find(tool=>tool.function.name.includes('delegate'));
+  const savedChild=childTool?.function.parameters?.properties?.includeContext;
   const requestTool=(process.env.TORI_BROWSER_A3==='1'||process.env.TORI_BROWSER_A4==='1')&&body.tools?.length&&
     !body.messages.slice(lastUser+1).some(message=>message.role==='tool');
   const content=childTool?'{"finding":"Synthetic child review accepted."}':'Deterministic A1 fixture answer.';
   const chunks = requestTool ? [
     {choices:[{index:0,delta:{role:'assistant',tool_calls:[{index:0,id:'a3-browser-read',type:'function',
-      function:{name:body.tools[0].function.name,arguments:childTool?'{"task":"Review the synthetic reference."}':'{"key":"observatory"}'}}]},finish_reason:null}]},
+      function:{name:body.tools[0].function.name,arguments:savedChild?'{"task":"Review the project knowledge and observatory tool.","includeContext":true}':childTool?'{"task":"Review the synthetic reference."}':'{"key":"observatory"}'}}]},finish_reason:null}]},
     {choices:[{index:0,delta:{},finish_reason:'tool_calls'}]},
   ] : [
     {choices:[{index:0,delta:{role:'assistant',content},finish_reason:null}]},

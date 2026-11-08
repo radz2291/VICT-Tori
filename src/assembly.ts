@@ -114,10 +114,10 @@ export function readiness(graph:GraphDocumentV3,route?:string) {
     !value.name.trim() ? 'Enter an agent name.' :
     !value.instructions.trim() ? 'Write system instructions.' :
     value.model!==modelId ? 'Select GLM-5.3 Flash and connect its Model Reference.' :
-    value.context!==undefined && !['reference@1','reference@2'].includes(String(value.context)) ? 'Select a supported Context Source revision.' :
+    value.context!==undefined && !['reference@1','reference@2','project-knowledge@1'].includes(String(value.context)) ? 'Select a supported Context Source revision.' :
     value.memory!==undefined && !['recent-10@1','recent-100@1'].includes(String(value.memory)) ? 'Select a supported Memory Policy.' :
     value.output!==undefined && value.output!=='finding@1' ? 'Select the supported Output Contract.' :
-    value.child!==undefined && value.child!=='reference-reviewer@1' ? 'Select the allowlisted Child Agent.' :
+    value.child!==undefined && value.child!=='reference-reviewer@1' && !/^saved:[0-9a-f-]{36}$/.test(String(value.child)) ? 'Select the allowlisted Child Agent.' :
     value.tool!==undefined && value.tool!=='local-reference@1' ? 'Select the allowlisted read-only MCP Tool.' :
     route!==undefined && route!=='coding' && (value.temperature!==undefined||value.topP!==undefined) ? 'Clear sampling overrides or select the supported Coding route on the host.' :
     !Number.isInteger(value.tokens)||value.tokens<64||value.tokens>32768 ? 'Enter a whole output limit from 64 to 32,768 tokens.' :

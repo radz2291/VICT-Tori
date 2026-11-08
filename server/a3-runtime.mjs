@@ -75,7 +75,7 @@ const objectContract=(id,test,descriptiveJsonSchema)=>({
   parse(value){return test(value)?{ok:true,value}:{ok:false,issues:[{code:'INVALID',path:'$',message:'Invalid reference contract.'}]};},
 });
 
-export async function governedReadTurn({activation,stores,agentConfig,actorId,threadId,input,deadline,fixture,onEvent,childCapability}) {
+export async function governedReadTurn({activation,stores,agentConfig,actorId,threadId,input,deadline,fixture,onEvent,childCapability,allowRead=true}) {
   const hub=new AgentStreamHub({ledger:stores.streamLedger});
   const streamId=randomUUID();
   const governance={calls:0,disposition:undefined};
@@ -108,7 +108,7 @@ export async function governedReadTurn({activation,stores,agentConfig,actorId,th
       invoke:(cap,args,context)=>{
         const child=cap.id===delegationRef.id;
         const granted=context.victActorId===actorId&&requester.scopes.includes('agent.turn.start')&&
-          (child?process.env.TORI_CHILD_REVOKED!=='1':process.env.TORI_MCP_REVOKED!=='1');
+          (child?process.env.TORI_CHILD_REVOKED!=='1':allowRead&&process.env.TORI_MCP_REVOKED!=='1');
         if(!granted)governance.disposition=child?'child-denied':'denied';
         return gateCapabilityInvoke(cap,{grants:granted?[child?delegateGrant:readGrant]:[]})(args,context);
       },

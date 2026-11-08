@@ -42,17 +42,25 @@ function credential(routeName=selectedRoute()) {
     return typeof key==='string'&&/^[A-Za-z0-9._-]{12,500}$/.test(key)?key:undefined;
   }catch{return undefined;}
 }
-function activationFor(revision,value,route,record) {
-  const registry=new AgentProfileRegistry({resolveCapabilityRevision:(id,rev)=>[toolRef,delegationRef].some(ref=>id===ref.id&&rev===ref.revision)});
+const defaultDefinition='tori-local-agent';
+const definitionOf=item=>item.definition??defaultDefinition;
+const newest=(items,definition)=>items.find(item=>definitionOf(item)===definition);
+const profileRef=revision=>({id:definitionOf(revision),revision:revision.id});
+function registerProfile(registry,artifacts,revision,value,route,subagent) {
   const instructionRef={id:'tori-instructions',revision:revision.id};
   const memoryRef={id:'tori-conversation-memory',revision:value.memory??'1'};
-  registry.installArtifacts([
+  const required=[
     {kind:'instructions',...instructionRef,text:value.instructions},
     {kind:'memory-policy',...memoryRef,config:{lastMessages:value.memory==='recent-10@1'?10:100,workingMemory:{enabled:false},semanticRecall:false}},
-  ]);
-  const child=value.child?registerChild(registry,{memoryPolicy:memoryRef},MASTRA_ADAPTER_COMPATIBILITY):undefined;
-  if(value.output)registry.installArtifacts([outputArtifact]);
-  registry.registerProfile({schema:'vict.agent-profile@1',id:'tori-local-agent',revision:revision.id,
+    ...(value.output?[outputArtifact]:[]),
+  ];
+  for(const artifact of required){
+    const key=JSON.stringify([artifact.kind,artifact.id,artifact.revision]);
+    if(artifacts.has(key))continue;
+    registry.installArtifacts([artifact]);
+    artifacts.add(key);
+  }
+  registry.registerProfile({schema:'vict.agent-profile@1',...profileRef(revision),
     instructions:instructionRef,memoryPolicy:memoryRef,modelProfile:{id:'zai-glm-flash',revision:'1-'+route,routerModel:provider+'/'+model,provider},
     generation:{maxOutputTokens:value.tokens,maxRetries:value.maxRetries,
       ...(value.temperature!==undefined?{temperature:value.temperature}:{}),
@@ -61,10 +69,20 @@ function activationFor(revision,value,route,record) {
     ...(value.tool||value.child?{capabilities:[
       ...(value.tool?[{id:toolRef.id,revision:toolRef.revision}]:[]),...(value.child?[delegationRef]:[]),
     ]}:{}),
-    ...(value.child?{subagents:[childRef]}:{}),
+    ...(subagent?{subagents:[subagent]}:{}),
     ...(value.output?{structuredOutput:{contract:outputRef}}:{}),
     adapter:MASTRA_ADAPTER_COMPATIBILITY});
-  if(!record)return {activation:registry.activateAgentProfile({id:'tori-local-agent',revision:revision.id}),child};
+  return memoryRef;
+}
+function activationFor(revision,value,route,record,delegated) {
+  const registry=new AgentProfileRegistry({resolveCapabilityRevision:(id,rev)=>[toolRef,delegationRef].some(ref=>id===ref.id&&rev===ref.revision)});
+  const reference=delegated?profileRef(delegated.revision):value.child?childRef:undefined;
+  const artifacts=new Set();
+  const memoryPolicy=registerProfile(registry,artifacts,revision,value,route,reference);
+  if(delegated)registerProfile(registry,artifacts,delegated.revision,delegated.value,route);
+  const child=delegated?registry.activateAgentProfile(reference):
+    reference?registerChild(registry,{memoryPolicy},MASTRA_ADAPTER_COMPATIBILITY):undefined;
+  if(!record)return {activation:registry.activateAgentProfile(profileRef(revision)),child};
   const restored=registry.restoreActivation(record);
   if(!restored.ok)throw conflict('The original VICT activation could not be restored.');
   return {activation:restored.activation,child};
@@ -159,35 +177,62 @@ export function createStudio({getAssembly,dataDirectory,turnDeadlineMs=90000,con
     })();
     await recovered;
   };
-  const projection=(state)=>{
-    const saved=state.drafts[0];const active=state.activations[0];
-    return {graph:saved?.graph??null,revision:saved&&{id:saved.id,number:saved.number},
-      activation:active&&{version:active.record.activationVersion,revision:active.revision,number:active.number,name:active.name,route:active.route},
+  const projection=(state,definition=defaultDefinition)=>{
+    const saved=newest(state.drafts,definition);const active=newest(state.activations,definition);
+    const definitions=[defaultDefinition,...(state.definitions??[])].map(id=>{
+      const latest=newest(state.drafts,id);
+      return {id,name:latest?.graph.nodes.find(node=>node.id==='agent')?.values.name||'Untitled agent'};
+    });
+    return {definition,definitions,childRevisions:state.drafts.filter(d=>definitionOf(d)!==definition).map(d=>({
+      id:d.id,definition:definitionOf(d),number:d.number,context:d.graph.nodes.find(node=>node.id==='context'&&d.graph.edges.some(edge=>edge.source===node.id))?.values.reference,
+      tool:d.graph.edges.some(edge=>edge.targetPort==='tool'),name:d.graph.nodes.find(node=>node.id==='agent')?.values.name||'Untitled agent',
+    })),graph:saved?.graph??null,revision:saved&&{id:saved.id,number:saved.number},
+      activation:active&&{version:active.record.activationVersion,revision:active.revision,number:active.number,name:active.name,route:active.route,childRevision:active.childRevision},
       sessions:state.sessions.map(s=>({...s,connectionReady:s.fixture===fixture&&!!credential(s.route??'general'),
         archivedFixture:!!s.fixture&&s.fixture!==fixture})),runs:state.runs,provider:!!credential(),route:selectedRoute()};
   };
   async function dispatch(path,input){
-    if(path==='')return projection(snapshot());
+
     if(path==='/activity'){
       if(!activeTurn||activeTurn.session!==input.session)return {phase:null};
       return {phase:activeTurn.publicTextStarted?'answer':'waiting'};
     }
-    const assembly=await getAssembly();
     let state=snapshot();
-    const saved=state.drafts[0];
+    let definition=input.definition??defaultDefinition;
+    if(definition!==defaultDefinition&&!state.definitions?.includes(definition))throw new StudioError(404,'Agent Definition not found.');
+    if(path==='')return projection(state,definition);
+    if(path==='/definitions'){
+      definition=randomUUID();
+      state.definitions=[...(state.definitions??[]),definition];
+      store(state);
+      return projection(state,definition);
+    }
+    const assembly=await getAssembly();
+    state=snapshot();
+    const saved=newest(state.drafts,definition);
+    const resolveChild=(reference,pin,parent=saved,route=selectedRoute())=>{
+      if(typeof reference!=='string'||!reference.startsWith('saved:'))return undefined;
+      const revision=state.drafts.find(d=>d.id===reference.slice(6));
+      if(!revision||definitionOf(revision)===definitionOf(parent??{}))throw conflict('Select an exact revision of another saved Agent Definition.');
+      const value=assembly.resolved(revision.graph);
+      const issue=assembly.readiness(revision.graph,route);
+      if(issue||value.child)throw conflict('The child revision must be ready and have no further delegation.');
+      return {revision,value,contextPolicy:pin===undefined?contextPolicy(value.context):pin};
+    };
     if(path==='/save'){
       if((input.expected?.id??null)!==(saved?.id??null))throw conflict('A newer draft exists. Reload it before saving again.');
       let graph;
       try{graph=assembly.checkedAssembly(input.graph);}catch{throw new StudioError(400,'The graph contains an unsupported node or connection.');}
-      state.drafts.unshift({id:randomUUID(),number:(saved?.number??0)+1,graph});
+      state.drafts.unshift({id:randomUUID(),number:(saved?.number??0)+1,definition,graph});
     } else if(path==='/activate'){
       if(!saved||input.revision?.id!==saved.id)throw conflict('Save and reopen the current revision before activation.');
       const issue=assembly.readiness(saved.graph,selectedRoute());if(issue)throw conflict(issue);
-      if(state.activations[0]?.revision===saved.id&&state.activations[0]?.route===selectedRoute())return projection(state);
+      if(newest(state.activations,definition)?.revision===saved.id&&newest(state.activations,definition)?.route===selectedRoute())return projection(state,definition);
       const value=assembly.resolved(saved.graph);
       const route=selectedRoute();
       if(value.child&&!fixture)throw conflict('The allowlisted child requires the deterministic fixture host.');
-      if(value.tool){
+      const delegated=resolveChild(value.child);
+      if(value.tool||delegated?.value.tool){
         if(!fixture)throw conflict('The allowlisted MCP test tool requires the deterministic A3 host.');
         try{await discoverReadTool(fixture);}catch(error){
           throw conflict(error?.message==='TORI_MCP_SCHEMA_DRIFT'
@@ -195,15 +240,15 @@ export function createStudio({getAssembly,dataDirectory,turnDeadlineMs=90000,con
             : 'The local MCP server did not complete discovery. Try activation again.');
         }
         state=snapshot();
-        if(state.drafts[0]?.id!==saved.id||selectedRoute()!==route)throw conflict('The draft or route changed during MCP discovery. Activate again.');
-        if(state.activations[0]?.revision===saved.id&&state.activations[0]?.route===route)return projection(state);
+        if(newest(state.drafts,definition)?.id!==saved.id||selectedRoute()!==route)throw conflict('The draft or route changed during MCP discovery. Activate again.');
+        if(newest(state.activations,definition)?.revision===saved.id&&newest(state.activations,definition)?.route===route)return projection(state,definition);
       }
-      const {activation,child}=activationFor(saved,value,route);
+      const {activation,child}=activationFor(saved,value,route,undefined,delegated);
       const record={recordSchema:'vict.agent-activation-record@1',activationVersion:activation.activationVersion,
-        agentProfileVersion:activation.agentProfileVersion,agentId:'tori-local-agent',agentRevision:saved.id,
+        agentProfileVersion:activation.agentProfileVersion,agentId:definition,agentRevision:saved.id,
         canonicalManifest:activation.canonicalManifestJson,artifacts:activation.artifactList,createdAt:activation.createdAt};
       if(!validateAgentActivationRecord(record).ok)throw conflict('VICT rejected the activation record.');
-      state.activations.unshift({record,route,context:value.context,contextPolicy:contextPolicy(value.context),
+      state.activations.unshift({record,route,definition,childRevision:delegated?.revision.id,childContext:delegated?.contextPolicy??null,context:value.context,contextPolicy:contextPolicy(value.context),
         memory:value.memory,tool:value.tool?toolRef:undefined,child:child?.activationVersion,output:value.output?outputRef:undefined,revision:saved.id,number:saved.number,name:value.name});
     } else if(path==='/sessions'){
       const activation=state.activations.find(a=>a.record.activationVersion===input.activation);
@@ -219,7 +264,7 @@ export function createStudio({getAssembly,dataDirectory,turnDeadlineMs=90000,con
         await openMemory();
         const deletion=await lifecycle.deleteConversation({conversationId:session.id,actorId:actor});
         if(deletion.status!=='completed')throw conflict('Session deletion is pending recovery.');
-        return {...projection(snapshot()),deletion};
+        return {...projection(snapshot(),definition),deletion};
       }finally{activeTurn=undefined;}
     } else if(path==='/turn'){
       const session=state.sessions.find(s=>s.id===input.session);
@@ -235,7 +280,9 @@ export function createStudio({getAssembly,dataDirectory,turnDeadlineMs=90000,con
       const revision=state.drafts.find(d=>d.id===pin?.revision);
       if(!revision)throw conflict('The pinned revision is unavailable.');
       const value=assembly.resolved(revision.graph);
-      const {activation,child}=activationFor(revision,value,pin.route??'general',pin.record);
+      const delegated=resolveChild(value.child,pin.childContext??null,revision,pin.route??'general');
+      if(delegated?.revision.id!==pin.childRevision)throw conflict('The pinned child revision could not be restored.');
+      const {activation,child}=activationFor(revision,value,pin.route??'general',pin.record,delegated);
       if(child?.activationVersion!==pin.child)throw conflict('The pinned child activation could not be restored.');
       const execution={maxSteps:value.maxSteps,maxRetries:value.maxRetries,maxToolCalls:value.tool||value.child?1:0,deadlineMs:turnDeadlineMs,
         temperature:value.temperature,topP:value.topP};
@@ -266,7 +313,28 @@ export function createStudio({getAssembly,dataDirectory,turnDeadlineMs=90000,con
         if(pin.tool||pin.child){
           if(!fixture)throw new Error('TORI_MCP_FIXTURE_REQUIRED');
           if(!await controlStores.actors.get(actor))await controlStores.actors.upsert({actorId:actor,status:'active',roles:['developer'],createdAt:Date.now()});
-          const childCapability=child&&createChildCapability({activation,child,parentRun:run,agentConfig,persist:childRun=>{
+          const childCapability=child&&createChildCapability({activation,child,parentRun:run,agentConfig,delegated,
+            runDelegated:async(childRun,task,includeContext,signal,childThread)=>{
+              signal.throwIfAborted();
+              const settings=delegated.value;
+              const context=await loadContext(settings.context,includeContext,contextReader,delegated.contextPolicy);
+              childRun.context=context.receipt;
+              const childEvidence={providerAttempts:0,modelSteps:0};
+              const result=await governedReadTurn({activation:child,stores:controlStores,actorId:actor,
+                threadId:childThread,input:task,deadline:signal,fixture,onEvent:()=>{},
+                allowRead:process.env.TORI_CHILD_MCP_REVOKED!=='1',
+                agentConfig:{...agentConfig,modelFactory:()=>providerModel(key,run.route,childEvidence,{...settings,context:context.content})}});
+              childRun.governance={...result.governance,scope:profileRef(delegated.revision)};
+              childRun.sentMaxOutputTokens=childEvidence.sentMaxOutputTokens;
+              childRun.modelSteps=childEvidence.modelSteps;
+              if(result.governance.disposition==='denied'){
+                childRun.message='Research’s pinned MCP read was denied before contacting the tool.';
+                return {...result,status:'failed',errorCode:'TORI_MCP_SCOPE_DENIED'};
+              }
+              if(result.governance.disposition==='schema-mismatch')return {...result,status:'failed',errorCode:'TORI_MCP_SCHEMA_DRIFT'};
+              if(childEvidence.stepBlocked||childEvidence.finishReason==='tool_calls')return {...result,status:'failed',errorCode:'TORI_MODEL_STEP_LIMIT'};
+              return result;
+            },persist:childRun=>{
             run.childStatus=childRun.status;
             const current=snapshot();
             const index=current.runs.findIndex(item=>item.id===childRun.id);
@@ -352,10 +420,10 @@ export function createStudio({getAssembly,dataDirectory,turnDeadlineMs=90000,con
       latest.runs=[run,...latest.runs.filter(r=>r.id!==run.id)];
       latest.sessions=latest.sessions.map(s=>s.id===session.id?session:s);
       store(latest);
-      return projection(latest);
+      return projection(latest,definition);
     } else throw new StudioError(404,'Unknown Studio operation.');
     store(state);
-    return projection(state);
+    return projection(state,definition);
   }
   return {dispatch,close:async()=>{await storage?.close();controlStores?.close();governanceStore?.close();db.close();}};
 }
