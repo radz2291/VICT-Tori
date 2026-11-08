@@ -1,5 +1,22 @@
 # Integrated V1a owner preview
 
+## Saved Research review
+
+Candidate `496d90bb07bbc309e2d8c36c05e2a6991a47005f` on `codex/tori-v1a-a4` extends the earlier alignment candidate. [Quellight and Research Studio](http://127.0.0.1:48794/) uses deterministic model responses and a real local read-only MCP server over stdio. The [live single-agent Studio](http://127.0.0.1:48789/) is available on its existing Z.AI host.
+
+1. In **Agents → Library → Agent Definition**, select **Research Agent**. Its latest saved draft is r3. Edit its instructions, **Save**, **Activate**, and **Start Session**. Select **Include pinned context on next turn**, send “Research the observatory.”, and open **Inspect runs**. Research owns the Project Knowledge and read-only MCP bindings.
+2. Return to **Agents** and select **Quellight** in the same picker. Select **Child Agent** to inspect the active pin to **Research Agent r1**. Start a Session and send “Delegate the observatory research.” Open **Inspect runs → Open child Run → Open parent Run**. The child receipt shows one admitted Project Knowledge read and one MCP call in Research r1 scope.
+
+To test the latest Research revision through both paths, select that exact revision in Quellight's **Child Agent** picker, save and activate Quellight, and start a new Session.
+
+The browser saved and activated Research r3, completed its direct Run `4c9a8e8b-4084-4356-8ecd-7feceb98c710`, and followed both Run links for Quellight `2cf08079-4669-4375-9b93-031298f0ca1c` and Research r1 `e8b65fe7-8be5-4bb0-8bb8-f3d91d0c21cd`. The standalone test also ran r1 directly and confirmed that its activation ID matched the delegated r1 activation after Research r2 was saved and the host restarted. It captured r1 instructions, Project Knowledge and the MCP response in the deterministic model request. Revoking only the child MCP grant produced `TORI_MCP_SCOPE_DENIED`, zero calls in the child receipt and no increase in the MCP server's own call capture.
+
+The test uses the installed public `AgentProfileRegistry` from `@victframework/runtime@0.4.0-rc.1` and `composeMastraTurnExecutor` from `@victframework/mastra@0.4.0-rc.1`. The child executor runs its own activation and temporary conversation thread. Context admission uses TORI's pinned source loader before dispatch. VICT's capability bridge exposes only the activation's bound capabilities, and `gateCapabilityInvoke` applies the scope check before the MCP transport. The targeted test is reproducible with `node --test tests/saved-research.test.mjs`. The first probe hit VICT's duplicate artifact protection for the shared memory policy. Studio now installs each exact artifact once per registry, preserving the existing policy identities.
+
+The new definition and revision pickers use public VICT Select. Creation and opening Sessions and Run links use VICT Button. Inspector status and errors use StatusBadge and Feedback. The canvas, fields, conversation, menus, and dialogs retain the installed control inventory listed below. Browser verification covered switching between saved agents, the picker disabled while editing, saved and active revision labels, child scope and both Run links.
+
+The production build, 12 sequential Node tests and A1–A4 fixture browser suite passed. The first browser regression run reached the A4 inspector and timed out on a legacy fixture label encoded differently from the normalized UI label. The corrected assertion passed on rerun.
+
 Radzi accepted bounded A4 at `e94e2b7c903263bc62a7c2ae0bc52edaa56638fd`. The [integrated Studio preview](http://127.0.0.1:48789/) runs `ff130a6e657c3fac8f784c636538c7bf39b550b1`. Its isolated review database contains the new live Session and labeled historical fixture Runs. The child Run now displays `Reference reviewer · r1`, verified in the browser by opening it from the parent and returning to the parent. [Child revision screenshot](integrated-child-revision.png)
 
 In **Agents**, open **V1a Live Review Agent** and inspect the connected Model Reference, Context Source and Memory Policy. Edit the instructions, then **Save** and **Activate** to create a new pinned revision. Choose **Start Session** to send on that revision. The prepared Session is available from **Sessions** if you want to inspect the verified turns first. **Inspect runs** opens the selected Session's receipt. In **Runs**, the historical parent/child and governed read Runs are marked **Deterministic fixture**. Their historical Sessions open as **Fixture history**.
