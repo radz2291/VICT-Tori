@@ -1004,7 +1004,7 @@
     ]},
     {name:'Insert',items:componentGroups.flatMap(group=>group.items)},
     {name:'Run',items:[{label:'Activate saved revision',fn:activate,disabled:activateDisabled},{label:'Start Session',fn:showSessionLauncher,disabled:!loaded||pending||sending}]},
-    {name:'Window',items:[...(executionPage?[{label:inspectorLabel,checked:inspectorVisible,fn:()=>toggle('Inspector')}]:page==='Agents'?[{label:'Authoring Agent',checked:dockOpen('Authoring Agent'),fn:()=>toggle('Authoring Agent')},{label:'Assembly / Selection',checked:dockOpen('Assembly / Selection'),fn:()=>toggle('Assembly / Selection')}]:[]),{label:layoutWidth==='Wide'?'Use standard panels':'Use wider panels',fn:()=>layoutWidth=layoutWidth==='Wide'?'Standard':'Wide',disabled:mobile||(page!=='Agents'&&!executionPage)},{label:'Reset layout',fn:resetLayout,disabled:mobile||(page!=='Agents'&&!executionPage)}]},
+    {name:'Window',items:[...(executionPage?[{label:inspectorLabel,checked:dockOpen('Inspector'),fn:()=>toggle('Inspector')}]:page==='Agents'?[{label:'Authoring Agent',checked:dockOpen('Authoring Agent'),fn:()=>toggle('Authoring Agent')},{label:'Assembly / Selection',checked:dockOpen('Assembly / Selection'),fn:()=>toggle('Assembly / Selection')}]:[]),{label:layoutWidth==='Wide'?'Use standard panels':'Use wider panels',fn:()=>layoutWidth=layoutWidth==='Wide'?'Standard':'Wide',disabled:mobile||(page!=='Agents'&&!executionPage)},{label:'Reset layout',fn:resetLayout,disabled:mobile||(page!=='Agents'&&!executionPage)}]},
     {name:'Help',items:[{label:'V1a · Assembly, Sessions and Runs',fn:()=>{},disabled:true}]},
   ]);
 </script>

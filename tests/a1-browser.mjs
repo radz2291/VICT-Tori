@@ -508,6 +508,21 @@ try {
   assert.equal(mismatched.status(),409);
   assert.equal((await api()).sessions[0].id,historical.sessions[0].id);
 
+  await page.setViewportSize({width:390,height:844});
+  for(const view of ['Sessions','Runs']){
+    await task(view).click();
+    const sidebar=button(view+' sidebar');
+    assert.equal(await sidebar.getAttribute('aria-expanded'),'false');
+    await page.getByRole('menuitem',{name:'Window',exact:true}).click();
+    const command=page.getByRole('menuitemcheckbox',{name:view+' sidebar',exact:true});
+    assert.equal(await command.getAttribute('aria-checked'),'false');
+    await command.click();
+    const drawer=page.getByRole('dialog',{name:view,exact:true});
+    await drawer.waitFor();
+    assert.equal(await sidebar.getAttribute('aria-expanded'),'true');
+    await drawer.getByRole('button',{name:'Close',exact:true}).click();
+    assert.equal(await sidebar.getAttribute('aria-expanded'),'false');
+  }
   assert.deepEqual(errors,[]);
   console.log(JSON.stringify({mode:'deterministic fixture only',requests:await readCapture(),
     invalidDrafts:['63','64.5','32769'],restartIsolation:true,sessionTitles:true,activeAgentPicker:true,evidenceDirectory:directory}));
