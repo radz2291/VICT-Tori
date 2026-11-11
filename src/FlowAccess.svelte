@@ -1,7 +1,8 @@
 <script lang="ts">
   import { onMount } from 'svelte';
-  import { useSvelteFlow } from '@victframework/ui-flow-svelte';
+  import { useSvelteFlow, useStore } from '@victframework/ui-flow-svelte';
   let {onready}=$props();
   const flow=useSvelteFlow();
-  onMount(()=>{onready(flow);});
+  const store=useStore();
+  onMount(()=>{onready(flow,()=>store.clickConnectStartHandle=null);});
 </script>

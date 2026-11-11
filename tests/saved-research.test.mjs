@@ -53,6 +53,8 @@ test('saved Research uses the same activation directly and through a pinned, gov
     assert.equal(direct.runs[0].status,'completed',JSON.stringify(direct.runs[0]));
     assert.equal(direct.runs[0].context.status,'admitted');
     assert.equal(direct.runs[0].governance.calls,1);
+    assert.ok(requests[0].messages.some(message=>message.role==='system'&&
+      message.content==='Research instructions r1. Use the admitted project context and one observatory read.'));
     assert.equal(await countCalls(),1);
     const parent=agent('Quellight','Delegate the supplied research task, then return a finding.');
     edit(parent,add('child'),change('child','reference','saved:'+researchR1.id),wire('child','child'),

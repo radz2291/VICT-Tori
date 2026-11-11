@@ -114,7 +114,7 @@ try {
       assert.match(data.sessions[0].messages.at(-1).text,/Tern Observatory/i);
       console.log('live follow-up verified');
     }
-    await button('Open Session').click();
+    await button('Open turn').click();
   }
   await page.setViewportSize({width:390,height:844});
   assert.equal(await assertFit(),true);

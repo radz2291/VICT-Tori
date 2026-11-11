@@ -177,19 +177,47 @@ export function createStudio({getAssembly,dataDirectory,turnDeadlineMs=90000,con
     })();
     await recovered;
   };
+  const activationSummary=active=>active&&{
+    definition:definitionOf(active),version:active.record.activationVersion,revision:active.revision,
+    number:active.number,name:active.name,route:active.route,childRevision:active.childRevision,
+  };
   const projection=(state,definition=defaultDefinition)=>{
     const saved=newest(state.drafts,definition);const active=newest(state.activations,definition);
+    const sessionDefinitions=new Map(state.activations.map(activation=>[activation.record.activationVersion,definitionOf(activation)]));
     const definitions=[defaultDefinition,...(state.definitions??[])].map(id=>{
       const latest=newest(state.drafts,id);
-      return {id,name:latest?.graph.nodes.find(node=>node.id==='agent')?.values.name||'Untitled agent'};
+      return {id,name:latest?.graph.nodes.find(node=>node.id==='agent')?.values.name||'Untitled agent',
+        ...(latest?{savedRevision:latest.number}:{})};
     });
-    return {definition,definitions,childRevisions:state.drafts.filter(d=>definitionOf(d)!==definition).map(d=>({
+    const activationHistory=new Map();
+    for(const entry of state.activations){
+      const summary=activationSummary(entry);
+      if(!activationHistory.has(summary.definition))activationHistory.set(summary.definition,new Map());
+      const versions=activationHistory.get(summary.definition);
+      if(!versions.has(summary.version))versions.set(summary.version,summary);
+    }
+    const activeAgents=definitions.flatMap(({id})=>{
+      const revisions=[...(activationHistory.get(id)?.values()??[])];
+      return revisions.length?[{...revisions[0],revisions}]:[];
+    });
+    const activity=new Map();
+    for(const run of state.runs){
+      const time=run.ended??run.started;
+      if(time&&(time>(activity.get(run.session)??'')))activity.set(run.session,time);
+    }
+    return {definition,definitions,activeAgents,hostDeadlineMs:turnDeadlineMs,fixture:!!fixture,childRevisions:state.drafts.filter(d=>definitionOf(d)!==definition).map(d=>({
       id:d.id,definition:definitionOf(d),number:d.number,context:d.graph.nodes.find(node=>node.id==='context'&&d.graph.edges.some(edge=>edge.source===node.id))?.values.reference,
       tool:d.graph.edges.some(edge=>edge.targetPort==='tool'),name:d.graph.nodes.find(node=>node.id==='agent')?.values.name||'Untitled agent',
     })),graph:saved?.graph??null,revision:saved&&{id:saved.id,number:saved.number},
-      activation:active&&{version:active.record.activationVersion,revision:active.revision,number:active.number,name:active.name,route:active.route,childRevision:active.childRevision},
-      sessions:state.sessions.map(s=>({...s,connectionReady:s.fixture===fixture&&!!credential(s.route??'general'),
-        archivedFixture:!!s.fixture&&s.fixture!==fixture})),runs:state.runs,provider:!!credential(),route:selectedRoute()};
+      activation:activationSummary(active),
+      sessions:state.sessions.map(s=>{
+        const firstMessage=s.title?null:s.messages.find(message=>message.role==='user')?.text;
+        const excerpt=firstMessage?.trim().replace(/\s+/gu,' ')??'';
+        const characters=Array.from(excerpt);
+        const title=s.title||(characters.length>80?characters.slice(0,79).join('')+'…':excerpt)||'New Session';
+        return {...s,title,lastActivityAt:activity.get(s.id)??s.created,definition:sessionDefinitions.get(s.activation),
+          connectionReady:s.fixture===fixture&&!!credential(s.route??'general'),archivedFixture:!!s.fixture&&s.fixture!==fixture};
+      }),runs:state.runs,provider:!!credential(),route:selectedRoute()};
   };
   async function dispatch(path,input){
 
@@ -204,6 +232,28 @@ export function createStudio({getAssembly,dataDirectory,turnDeadlineMs=90000,con
     if(path==='/definitions'){
       definition=randomUUID();
       state.definitions=[...(state.definitions??[]),definition];
+      store(state);
+      return projection(state,definition);
+    }
+    if(path==='/sessions'){
+      const activation=state.activations.find(a=>a.record.activationVersion===input.activation);
+      if(!activation)throw conflict('Activate a saved Agent first.');
+      if(input.sessionDefinition!==undefined&&definitionOf(activation)!==input.sessionDefinition)
+        throw conflict('The selected revision belongs to a different Agent.');
+      if(input.activeDefinition!==undefined&&newest(state.activations,input.activeDefinition)!==activation)
+        throw conflict('The active revision changed. Reopen New Session to choose again.');
+      state.sessions.unshift({id:randomUUID(),created:now(),name:activation.name,number:activation.number,route:activation.route,activation:input.activation,context:activation.context,memory:activation.memory,tool:!!activation.tool,child:!!activation.child,output:activation.output,messages:[],
+        ...(fixture?{fixture}:{})});
+      store(state);
+      return projection(state,definition);
+    }
+    if(path==='/rename-session'){
+      if(activeTurn)throw conflict('Wait for the current turn to finish.');
+      const session=state.sessions.find(item=>item.id===input.session);
+      if(!session)throw new StudioError(404,'This Session was not found.');
+      const title=typeof input.title==='string'?input.title.trim().replace(/\s+/gu,' '):'';
+      if(!title||Array.from(title).length>80)throw new StudioError(400,'Enter a title between 1 and 80 characters.');
+      session.title=title;
       store(state);
       return projection(state,definition);
     }
@@ -250,11 +300,6 @@ export function createStudio({getAssembly,dataDirectory,turnDeadlineMs=90000,con
       if(!validateAgentActivationRecord(record).ok)throw conflict('VICT rejected the activation record.');
       state.activations.unshift({record,route,definition,childRevision:delegated?.revision.id,childContext:delegated?.contextPolicy??null,context:value.context,contextPolicy:contextPolicy(value.context),
         memory:value.memory,tool:value.tool?toolRef:undefined,child:child?.activationVersion,output:value.output?outputRef:undefined,revision:saved.id,number:saved.number,name:value.name});
-    } else if(path==='/sessions'){
-      const activation=state.activations.find(a=>a.record.activationVersion===input.activation);
-      if(!activation)throw conflict('Activate a saved Agent first.');
-      state.sessions.unshift({id:randomUUID(),created:now(),name:activation.name,number:activation.number,route:activation.route,activation:input.activation,context:activation.context,memory:activation.memory,tool:!!activation.tool,child:!!activation.child,output:activation.output,messages:[],
-        ...(fixture?{fixture}:{})});
     } else if(path==='/delete-session'){
       if(activeTurn)throw conflict('Wait for the current turn to finish.');
       const session=state.sessions.find(item=>item.id===input.session);

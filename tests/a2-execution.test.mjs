@@ -103,8 +103,10 @@ test(live?'A2 permitted Coding route sampling':'A2 sampling, retry limit, and de
     assert.deepEqual(capture.at(-1),{temperature:0.4,topP:0.8});
     await service.close();
     service=start(1500);
+    assert.equal((await service.dispatch('',{})).hostDeadlineMs,1500);
     const restored=await send(original);
     assert.equal(restored.activation,original.activation);
+    assert.equal(restored.execution.deadlineMs,1500);
     assert.deepEqual(capture.at(-1),{temperature:undefined,topP:undefined});
     mode='deadline';
     const cancelled=await send(updated);

@@ -7,6 +7,20 @@ export const instructionId = 'instructions';
 export const modelNodeId = 'model';
 
 export const tokenSourceId = 'output-limit';
+export const optionalBindings=[
+  {id:modelNodeId,label:'Model Reference'},
+  {id:instructionId,label:'System prompt'},
+  {id:tokenSourceId,label:'Output limit Integer'},
+  {id:'memory',label:'Memory Policy'},
+  {id:'output',label:'Output Contract'},
+] as const;
+export const isOptionalBinding=(id:string)=>optionalBindings.some(item=>item.id===id);
+
+export function nodeVisibilityLabel(title:string,shown:boolean,connected:boolean) {
+  if(!connected)return (shown?'Hide node from Canvas: ':'Show node on Canvas: ')+title;
+  return (shown?'Hide separate binding node: ':'Show binding as a separate node: ')+title;
+}
+
 
 const legacyDefinitions: GraphDocumentV3['nodeTypes'] = [
   { id:'agent', label:'Agent Definition', parameters:{
@@ -29,7 +43,7 @@ const a1Definitions: GraphDocumentV3['nodeTypes'] = [
     ports:[{id:'value',label:'Integer',type:'integer',direction:'output'}]},
 ];
 
-export const executionBounds = {maxSteps:4,maxRetries:1,deadlineMs:90000} as const;
+export const executionBounds = {minSteps:1,maxSteps:4,minRetries:0,maxRetries:1,deadlineMs:90000} as const;
 const a2Definitions = a1Definitions.map(node => {
   if (node.id === rootId) return {...node,parameters:{...node.parameters,
     maxSteps:{type:'number' as const,default:1},maxRetries:{type:'number' as const,default:0}}};
@@ -55,6 +69,17 @@ export const agentResources=[...a3Resources,
   {id:'output',label:'Output Contract',type:'output-reference',defaultValue:'finding@1'},
   {id:'child',label:'Child Agent',type:'agent-reference',defaultValue:'reference-reviewer@1'},
 ] as const;
+export const resourceChoices={
+  context:[{value:'project-knowledge@1',label:'Project Knowledge r1'},{value:'reference@1',label:'Observatory reference · r1'},{value:'reference@2',label:'Observatory reference · r2'}],
+  memory:[{value:'recent-10@1',label:'Last 10 messages'},{value:'recent-100@1',label:'Last 100 messages'}],
+  output:[{value:'finding@1',label:'Finding JSON · r1'}],
+  child:[{value:'reference-reviewer@1',label:'Reference reviewer · r1 (fixture)'}],
+  tool:[{value:'local-reference@1',label:'Local observatory · read only'}],
+};
+export const inlineAgentSettings=[
+  {id:'memory',label:'Memory window',options:[{value:'default',label:'Last 100 messages (default)'},...resourceChoices.memory]},
+  {id:'output',label:'Output format',options:[{value:'default',label:'Text (default)'},...resourceChoices.output]},
+] as const;
 const a3Definitions=resourceCatalog(a3Resources);
 const definitions=resourceCatalog(agentResources);
 
@@ -67,15 +92,18 @@ export function emptyAssembly():GraphDocumentV3 {
   return {schema:'vict.flow-graph@3',revision:0,nodeTypes:structuredClone(definitions),nodes:[],edges:[]};
 }
 
+export function canWire(source:string,sourcePort:string|null,target:string,targetPort:string|null) {
+  if(sourcePort!=='value')return false;
+  if(target===modelNodeId)return source===tokenSourceId&&targetPort==='tokens';
+  return target===rootId&&source===targetPort&&
+    (source===instructionId||source===modelNodeId||agentResources.some(resource=>resource.id===source));
+}
+
 export function assemblyIssues(graph:GraphDocumentV3) {
   const expected:Record<string,string> = {agent:'agent',instructions:'text',model:'model',[tokenSourceId]:tokenSourceId,...Object.fromEntries(agentResources.map(item=>[item.id,item.id]))};
   if (JSON.stringify(graph.nodeTypes)!==JSON.stringify(definitions) ||
       graph.nodes.some(node => expected[node.id]!==node.type) ||
-      graph.edges.some(edge => edge.sourcePort!=='value' || !(
-        (edge.target===rootId && ((edge.source===instructionId && edge.targetPort==='instructions') ||
-          (edge.source===modelNodeId && edge.targetPort==='model') ||
-          agentResources.some(resource=>edge.source===resource.id&&edge.targetPort===resource.id))) ||
-        (edge.target===modelNodeId && edge.source===tokenSourceId && edge.targetPort==='tokens')))) {
+      graph.edges.some(edge => !canWire(edge.source,edge.sourcePort,edge.target,edge.targetPort))) {
     return [{code:'TORI_ASSEMBLY_SHAPE',path:'graph',message:'Connect Instruction Text to Instructions and Model Reference to Model.'}];
   }
   return [];
@@ -123,8 +151,10 @@ export function readiness(graph:GraphDocumentV3,route?:string) {
     !Number.isInteger(value.tokens)||value.tokens<64||value.tokens>32768 ? 'Enter a whole output limit from 64 to 32,768 tokens.' :
     value.temperature!==undefined && (!Number.isFinite(value.temperature)||value.temperature<0||value.temperature>1) ? 'Enter a temperature from 0 to 1, or leave it blank.' :
     value.topP!==undefined && (!Number.isFinite(value.topP)||value.topP<=0||value.topP>1) ? 'Enter a top-p greater than 0 and at most 1, or leave it blank.' :
-    !Number.isInteger(value.maxSteps)||value.maxSteps<1||value.maxSteps>executionBounds.maxSteps ? 'Enter a whole step limit from 1 to 4.' :
-    !Number.isInteger(value.maxRetries)||value.maxRetries<0||value.maxRetries>executionBounds.maxRetries ? 'Enter 0 or 1 model retries.' : '';
+    !Number.isInteger(value.maxSteps)||value.maxSteps<executionBounds.minSteps||value.maxSteps>executionBounds.maxSteps ?
+      `Enter a whole step limit from ${executionBounds.minSteps} to ${executionBounds.maxSteps}.` :
+    !Number.isInteger(value.maxRetries)||value.maxRetries<executionBounds.minRetries||value.maxRetries>executionBounds.maxRetries ?
+      `Enter ${executionBounds.minRetries} or ${executionBounds.maxRetries} model retries.` : '';
 
 }
 export const change = (nodeId:string,key:string,value:string|number|undefined):GraphOperationV3 => value===undefined ? {type:'unsetParameter',nodeId,key} : {type:'setParameter',nodeId,key,value};

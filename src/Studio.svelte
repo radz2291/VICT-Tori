@@ -1,15 +1,21 @@
 <script lang="ts">
-  import { onMount, tick } from 'svelte';
-  import { Button, ControlScope, Feedback, Select, StatusBadge } from '@victframework/ui-svelte';
-  import { Button as ControlButton, Dialog, Menubar } from '@victframework/ui-svelte/primitives';
-  import { Checkbox } from '@victframework/ui-svelte/catalog/checkbox';
-  import { Conversation, Input } from '@victframework/ui-ai-svelte';
-  import { SvelteFlow, SvelteFlowProvider, Background } from '@victframework/ui-flow-svelte';
-  import AssemblyNode from './AssemblyNode.svelte';
+  import { onMount, tick, untrack, type Snippet } from 'svelte';
+  import { Button, ControlScope, Feedback, StatusBadge } from '@victframework/ui-svelte';
+  import { Button as ControlButton, Dialog, Menubar, Tooltip } from '@victframework/ui-svelte/primitives';
+  import { DropdownMenu } from '@victframework/ui-svelte/catalog/dropdown-menu';
+  import { Accordion } from '@victframework/ui-svelte/catalog/accordion';
+  import { Toggle } from '@victframework/ui-svelte/catalog/toggle';
+  import { Badge, Conversation, Input, Patterns, type ConversationMessage } from '@victframework/ui-ai-svelte';
+  import { SvelteFlow, SvelteFlowProvider, Background, connectionIssueForTopology, type Connection, type Edge, type IsValidConnection } from '@victframework/ui-flow-svelte';
+  import AssemblyNode, { promptWidths, promptHeights } from './AssemblyNode.svelte';
+  import AssemblyWire, { type AssemblyWireEdge } from './AssemblyWire.svelte';
+  import AssemblyGlyph from './AssemblyGlyph.svelte';
   import FlowAccess from './FlowAccess.svelte';
   import Fields from './Fields.svelte';
-  import {add,binding,change,emptyAssembly,field,history,instructions,modelName,readiness,resolved,wire,outputTokens,tokenSourceId,agentResources} from './assembly';
+  import RunDetails from './RunDetails.svelte';
+  import {add,binding,canWire,change,emptyAssembly,field,history,instructions,modelName,readiness,resolved,wire,outputTokens,tokenSourceId,agentResources,resourceChoices,optionalBindings,isOptionalBinding,nodeVisibilityLabel} from './assembly';
 
+  type DockPanel='Library'|'Nodes'|'Inspector';
   const initial=emptyAssembly();
   let graph=$state.raw(initial);
   let journal=history(initial);
@@ -21,26 +27,240 @@
   let ready=$derived(readiness(graph,state.route));
   let dirty=$derived(baseline!==authoringBytes(graph));
   let selection=$state('');
+  let agentSearch=$state('');
+  let componentQuery=$state('');
   let page=$state('Agents');
   let view=$state({x:0,y:0,zoom:1});
   let flow=$state<any>();
-  let library=$state(true), inspector=$state(true);
-  let mobile=$state(false), sheet=$state(''), mobileOpen=$state(false);
+  let library=$state(false), layers=$state(true);
+  let wireSource=$state('');
+  let selectedWire='';
+  let wireDrag:{id:string;graph:typeof initial;event:MouseEvent|TouchEvent;cancelled:boolean}|undefined;
+  let cancelFlowClick: (()=>void)|undefined;
+  let delegationOpen=$state(false);
+  let delegationInvoker:HTMLElement|string|null=null;
+  let mobile=$state(false), sheet=$state<DockPanel|''>(''), mobileOpen=$state(false);
   let sheetInvoker:HTMLElement|null=null;
   let loaded=$state(false), pending=$state(false), sending=$state(false);
   let sendActivity=$state<{session:string;phase:string}|null>(null);
   let error=$state(''), graphError=$state('');
   let activeSession=$state(''), activeRun=$state('');
-  let includeContext=$state(false), deleteOpen=$state(false);
+  let sessionDrafts=$state<Record<string,string>>({});
+  let sessionContext=$state<Record<string,boolean>>({});
+  let turnErrors=$state<Record<string,string>>({});
+  let deleteTarget=$state<{id:string;title:string}|null>(null),deleteError=$state('');
+  let renameTarget=$state(''),renameTitle=$state(''),renameError=$state('');
+  let historyOptionsButton:HTMLButtonElement|null=$state(null);
+  let sessionActionInvoker:HTMLElement|null=null;
+  let sessionActionGroup:HTMLElement|null=null;
+  let launchOpen=$state(false),launchError=$state(''),launchQuery=$state('');
+  let sessionLauncherButton:HTMLButtonElement|null=$state(null);
+  type AgentActivation={definition:string;version:string;number:number;name:string;route?:string};
+  type ActiveAgent=AgentActivation&{revisions:AgentActivation[]};
+  type AgentDefinitionSummary={id:string;name:string;savedRevision?:number};
+  let activeAgents:ActiveAgent[]=$derived(state.activeAgents??[]);
+  const agentDefinitions:AgentDefinitionSummary[]=$derived(state.definitions??[]);
+  const activeDefinitionIds=$derived(new Set(activeAgents.map(agent=>agent.definition)));
+  const agentsNeedingActivation=$derived(agentDefinitions.filter(agent=>agent.savedRevision!==undefined&&!activeDefinitionIds.has(agent.id)));
+  const matchingActiveAgents=$derived(activeAgents.filter(agent=>matchesSearch(agent.name,agent.revisions.map(revision=>'r'+revision.number).join(' '),launchQuery)));
+  const matchingInactiveAgents=$derived(agentsNeedingActivation.filter(agent=>matchesSearch(agent.name,'r'+agent.savedRevision,launchQuery)));
+  let sessionSidebar=$state(true),showSessionDescriptions=$state(true);
+  let runSidebar=$state(true),showRunDescriptions=$state(true);
+  let sessionQuery=$state(''),runQuery=$state('');
+  let sessionSearchOpen=$state(false),launchSearchOpen=$state(false);
+  let sessionFilter=$state('all'),sessionGrouping=$state('agent');
+  let sessionGroupChoice=$state<string>();
+  const sessionGroupings=[{value:'agent',label:'Agent'},{value:'date',label:'Activity date'}];
+  const sessionFilters=[{value:'all',label:'All Sessions'},{value:'live',label:'Live'},{value:'fixture',label:'Fixture'}];
+  let runScopePreference=$state<'session'|'all'>('all');
+  let inspectSessionScope=$state(false);
+  let runScope=$derived(inspectSessionScope?'session':runScopePreference);
+  let runReturnSession=$state('');
+  let runSearchOpen=$state(false),runGrouping=$state('session');
+  let runGroupChoice=$state<string>();
+  let runPane:HTMLElement|undefined=$state();
+  let conversationPane:HTMLDivElement|undefined=$state();
+  let runTitle:HTMLHeadingElement|undefined=$state();
+  let sessionTitle:HTMLHeadingElement|undefined=$state();
+  const readingPositions=new Map<string,number>();
+  let executionPage=$derived(page==='Sessions'||page==='Runs');
+  let libraryVisible=$derived(page==='Agents'&&library);
+  let inspectorVisible=$derived(page==='Sessions'?sessionSidebar:page==='Runs'&&runSidebar);
+  let inspectorLabel=$derived(executionPage?page+' sidebar':'Inspector');
   let session=$derived(state.sessions.find((s)=>s.id===activeSession));
   let run=$derived(state.runs.find((r)=>r.id===activeRun));
+  let sessionRuns=$derived(state.runs.filter(r=>r.session===activeSession));
+  let sessionRun=$derived(sessionRuns.find(item=>item.id===activeRun)??sessionRuns.find(item=>!item.parentRun)??sessionRuns[0]);
+  const interruptedRun=$derived(session?.interrupted?sessionRuns.find(item=>!item.parentRun&&['failed','cancelled','interrupted'].includes(item.status)):undefined);
+  let runReturnTarget=$derived(state.sessions.find(item=>item.id===runReturnSession));
+  let runSession=$derived(state.sessions.find(item=>item.id===run?.session));
+  const recordIdentity=(record:any)=>record.name+' · r'+(record.number??record.revision);
+  const recordMode=(record:any)=>record.archivedFixture?'Fixture history':record.fixture?'Fixture':'Live';
+  const runStatus=(status:string)=>status.charAt(0).toUpperCase()+status.slice(1);
+  const secondsFormat=new Intl.NumberFormat(undefined,{minimumFractionDigits:1,maximumFractionDigits:3});
+  const timelineSecondsFormat=new Intl.NumberFormat(undefined,{minimumFractionDigits:3,maximumFractionDigits:3});
+  const timelineClockFormat=new Intl.DateTimeFormat(undefined,{hour:'numeric',minute:'2-digit',second:'2-digit',fractionalSecondDigits:3});
+  function elapsed(start:string,end?:string,format=secondsFormat){
+    if(!end)return undefined;
+    const milliseconds=Date.parse(end)-Date.parse(start);
+    return Number.isFinite(milliseconds)&&milliseconds>=0?format.format(milliseconds/1000)+' s':undefined;
+  }
+  const tokenCount=(value:unknown)=>typeof value==='number'&&Number.isSafeInteger(value)&&value>=0?value.toLocaleString():undefined;
+  let runDuration=$derived(run?.status==='completed'?elapsed(run.started,run.ended):undefined);
+  let runTokenUsage=$derived.by(()=>{
+    if(run?.status!=='completed')return '';
+    const input=tokenCount(run.usage?.inputTokens);
+    const output=tokenCount(run.usage?.outputTokens);
+    return [input!==undefined?input+' input':undefined,output!==undefined?output+' output':undefined].filter(Boolean).join(' / ');
+  });
+  const eventNames:Record<string,string>={
+    'response.started':'Model response started',
+    'response.completed':'Model response completed',
+    'response.failed':'Model response failed',
+    'response.cancelled':'Model response cancelled',
+    'usage.updated':'Token usage reported',
+    'tool.requested':'Tool requested',
+    'tool.started':'Tool started',
+    'tool.completed':'Tool completed',
+    'tool.failed':'Tool failed',
+  };
+  function eventLabel(event:{kind?:string;label:string}){
+    return event.kind&&event.label==='VICT · '+event.kind?eventNames[event.kind]??event.label:event.label;
+  }
+  const historyDate=(timestamp:string)=>new Date(timestamp).toLocaleString(undefined,{dateStyle:'medium',timeStyle:'medium'});
+  const matchesSearch=(name:string,subtitle:string,query:string)=>(name+' '+subtitle).toLowerCase().includes(query.trim().toLowerCase());
+  const activityDate=(timestamp:string)=>new Date(timestamp).toLocaleString(undefined,{dateStyle:'medium',timeStyle:'short'});
+  const localCalendarDay=(date:Date)=>Date.UTC(date.getFullYear(),date.getMonth(),date.getDate())/86_400_000;
+  let today=$state(localCalendarDay(new Date()));
+  function activityGroupLabel(date:Date,fullDate:string){
+    const daysAgo=today-localCalendarDay(date);
+    if(daysAgo===0)return 'Today';
+    if(daysAgo===1)return 'Yesterday';
+    if(daysAgo>=2&&daysAgo<7)return date.toLocaleDateString(undefined,{weekday:'long'});
+    return fullDate;
+  }
+  type SessionHistoryItem={id:string;title:string;name:string;number:number;lastActivityAt:string;definition?:string;fixture?:string;archivedFixture?:boolean};
+  let sessionHistory=$derived.by(()=>{
+    const names=new Map<string,string>((state.definitions??[]).map(item=>[item.id,item.name]));
+    const sessions:SessionHistoryItem[]=state.sessions
+      .filter(item=>(sessionFilter==='all'||sessionFilter===(item.fixture?'fixture':'live'))&&
+        matchesSearch(item.title,[recordIdentity(item),names.get(item.definition),activityDate(item.lastActivityAt),recordMode(item)].join(' '),sessionQuery))
+      .sort((a,b)=>b.lastActivityAt.localeCompare(a.lastActivityAt));
+    const groups=new Map<string,{key:string;label:string;fullDate?:string;sessions:SessionHistoryItem[]}>();
+    for(const item of sessions){
+      const date=sessionGrouping==='date'?new Date(item.lastActivityAt):undefined;
+      const key=date?date.toDateString():item.definition?'agent:'+item.definition:'name:'+item.name;
+      let group=groups.get(key);
+      if(!group){
+        const fullDate=date?.toLocaleDateString(undefined,{dateStyle:'long'});
+        const label=date&&fullDate?activityGroupLabel(date,fullDate):names.get(item.definition??'')??item.name;
+        group={key,label,fullDate,sessions:[]};
+        groups.set(key,group);
+      }
+      group.sessions.push(item);
+    }
+    return [...groups.values()];
+  });
+  let openSessionHistoryGroup=$derived.by(()=>{
+    if(sessionGroupChoice===''||sessionHistory.some(group=>group.key===sessionGroupChoice))return sessionGroupChoice??'';
+    return sessionQuery.trim()?sessionHistory[0]?.key??'':'';
+  });
+  type RunHistoryItem={id:string;session:string;name:string;number?:number;revision:string;started:string;ended?:string;status:string;parentRun?:string;fixture?:string;archivedFixture?:boolean};
+  type RunHistoryRow=RunHistoryItem&{sequence:number;messagePreview?:string};
+  let messagesBySession=$derived.by(()=>new Map<string,Map<string,ConversationMessage>>(
+    state.sessions.map(session=>[session.id,new Map((session.messages??[]).map(message=>[message.id,message]))])
+  ));
+  function runMessage(item:RunHistoryItem,role:'user'|'assistant'){
+    if(item.parentRun)return undefined;
+    const message=messagesBySession.get(item.session)?.get(item.id+(role==='user'?'-user':'-agent'));
+    return message?.role===role?message:undefined;
+  }
+  let selectedPrompt=$derived(run?runMessage(run,'user'):undefined);
+  let selectedReply=$derived(selectedPrompt&&run.status==='completed'?runMessage(run,'assistant'):undefined);
+  const runActivity=(item:RunHistoryItem)=>item.ended??item.started;
+  const runHistoryTime=(item:RunHistoryItem)=>new Date(runActivity(item)).toLocaleString(undefined,
+    runGrouping==='date'?{timeStyle:'short'}:{month:'short',day:'numeric',hour:'numeric',minute:'2-digit'});
+  let runSequences=$derived.by(()=>{
+    const counts=new Map<string,number>();
+    const sequences=new Map<string,number>();
+    const runs:RunHistoryItem[]=[...state.runs].reverse();
+    for(const item of runs.sort((a,b)=>a.started.localeCompare(b.started))){
+      const sequence=(counts.get(item.session)??0)+1;
+      counts.set(item.session,sequence);
+      sequences.set(item.id,sequence);
+    }
+    return sequences;
+  });
+  let runHistory=$derived.by(()=>{
+    const sessions=new Map<string,SessionHistoryItem>(state.sessions.map(item=>[item.id,item]));
+    const runs:RunHistoryItem[]=state.runs.filter(item=>runScope==='all'||item.session===activeSession);
+    const groups=new Map<string,{key:string;label:string;title:string;runs:RunHistoryRow[];sequenceDigits:number}>();
+    for(const item of runs.sort((a,b)=>runGrouping==='date'?runActivity(b).localeCompare(runActivity(a)):b.started.localeCompare(a.started))){
+      const sessionLabel=sessions.get(item.session)?.title??'Session unavailable';
+      const message=runMessage(item,'user')?.text.trim().replace(/\s+/gu,' ');
+      const characters=message?Array.from(message):[];
+      const messagePreview=characters.length>100?characters.slice(0,99).join('')+'…':message||undefined;
+      if(runQuery.trim()&&!matchesSearch(recordIdentity(item),[messagePreview,sessionLabel,historyDate(runActivity(item)),recordMode(item),item.status,item.id].join(' '),runQuery))continue;
+      const date=runGrouping==='date'?new Date(runActivity(item)):undefined;
+      const key=date?date.toDateString():item.session;
+      let group=groups.get(key);
+      if(!group){
+        const fullDate=date?.toLocaleDateString(undefined,{dateStyle:'long'});
+        const label=date&&fullDate?activityGroupLabel(date,fullDate):sessionLabel;
+        group={key,label,title:fullDate??label,runs:[],sequenceDigits:2};
+        groups.set(key,group);
+      }
+      const sequence=runSequences.get(item.id)!;
+      group.sequenceDigits=Math.max(group.sequenceDigits,String(sequence).length);
+      group.runs.push({...item,messagePreview,sequence});
+    }
+    return [...groups.values()];
+  });
+  let openRunHistoryGroup=$derived.by(()=>{
+    if(runGroupChoice===''||runHistory.some(group=>group.key===runGroupChoice))return runGroupChoice??'';
+    return runHistory.find(group=>group.runs.some(item=>item.id===activeRun))?.key??(runQuery.trim()?runHistory[0]?.key??'':'');
+  });
   let layoutWidth=$state('Standard');
-  let query=$state('');
-  let activateDisabled=$derived(!loaded||!!ready||dirty||!state.revision||pending||(state.activation?.revision===state.revision?.id&&state.activation?.route===state.route));
+  let layerQuery=$state('');
+  let agentView=$state<'Settings'|'Canvas'>('Settings');
+  const layersVisible=$derived(page==='Agents'&&agentView==='Canvas'&&layers);
+  const activationMatchesSaved=$derived(!!state.revision&&state.activation?.revision===state.revision.id&&state.activation?.route===state.route);
+  const activateDisabled=$derived(!loaded||!!ready||dirty||!state.revision||pending||sending||activationMatchesSaved);
+  const agentRevisionStatus=$derived([
+    dirty?'Unsaved changes':undefined,
+    state.revision?'Saved r'+state.revision.number:'No saved revision',
+    state.activation?'Active r'+state.activation.number:'No active revision',
+  ].filter(Boolean).join(' · '));
   let types={assembly:AssemblyNode};
   let nodes=$state.raw<any[]>([]);
   const pages=['Agents','Workflows','Creative','Sessions','Runs'];
-  const objectTitle=(id:string)=>id==='agent' ? resolved(graph).name||'Untitled agent':id==='model'?(field(graph,id,'model')?modelName:'Unassigned model'):id===tokenSourceId?'Output limit Integer':agentResources.find(item=>item.id===id)?.label??'System prompt';
+  let shownBindings=$state.raw<string[]>([]);
+  const visibilityByDefinition=new Map<string,string[]>();
+  const canvasNodes=$derived(graph.nodes.filter(node=>!isOptionalBinding(node.id)||shownBindings.includes(node.id)));
+  const canvasIds=$derived(new Set(canvasNodes.map(node=>node.id)));
+  const defaultPromptSize={width:promptWidths.min,height:promptHeights.min};
+  let promptSize=$state.raw(defaultPromptSize);
+  const promptSizeKey=(definition:string,axis:'width'|'height')=>'tori-canvas-prompt-'+axis+':'+definition;
+  function promptDimension(value:number,{min,max}:{min:number;max:number}){
+    return Number.isFinite(value)?Math.max(min,Math.min(max,Math.round(value))):min;
+  }
+  const defaultNodeTitle=(id:string)=>id==='agent'?'Agent Definition':id==='model'?'Model Reference':
+    id===tokenSourceId?'Output limit Integer':agentResources.find(item=>item.id===id)?.label??'System prompt';
+  function customNodeTitle(id:string){
+    const node=graph.nodes.find(item=>item.id===id);
+    const original=graph.nodeTypes.find(type=>type.id===node?.type)?.label;
+    return node?.label!==original?node?.label:undefined;
+  }
+  const objectTitle=(id:string)=>id==='agent' ? resolved(graph).name||'Untitled agent' : customNodeTitle(id)??defaultNodeTitle(id);
+  function resizePrompt({width=promptSize.width,height=promptSize.height}:Partial<typeof defaultPromptSize>){
+    promptSize={width:promptDimension(width,promptWidths),height:promptDimension(height,promptHeights)};
+    if(state.definition){
+      try{
+        for(const axis of ['width','height'] as const)
+          localStorage.setItem(promptSizeKey(state.definition,axis),String(promptSize[axis]));
+      }catch{}
+    }
+  }
 
   async function request(path='',data?:any,definition=state.definition) {
     const suffix=data===undefined&&definition?'?definition='+encodeURIComponent(definition):'';
@@ -49,46 +269,173 @@
     if(!response.ok) throw new Error(result.message||'Studio could not complete this action.');
     return result;
   }
-  function applyState(next:any){state=next;if(!activeSession)activeSession=next.sessions[0]?.id??'';if(!activeRun)activeRun=next.runs[0]?.id??'';}
+  function applyState(next:any){
+    if(next.definition!==state.definition){
+      promptSize=defaultPromptSize;
+      shownBindings=visibilityByDefinition.get(next.definition)??[];
+      if(next.definition){
+        try{
+          promptSize={
+            width:promptDimension(Number(localStorage.getItem(promptSizeKey(next.definition,'width'))),promptWidths),
+            height:promptDimension(Number(localStorage.getItem(promptSizeKey(next.definition,'height'))),promptHeights),
+          };
+        }catch{}
+      }
+    }
+    state=next;
+    if(!next.sessions.some(item=>item.id===activeSession))activeSession=next.sessions[0]?.id??'';
+    if(page==='Runs')syncRunSelection();
+    else if(!next.runs.some(item=>item.id===activeRun))activeRun=next.runs[0]?.id??'';
+  }
   function reopen(next:any) {
+    cancelWire();
     const g=next.graph??emptyAssembly();
     journal=history(g); graph=journal.graph; baseline=authoringBytes(graph);historyState();
-    if(!graph.nodes.some(n=>n.id===selection)) selection='';
+    if(!graph.nodes.some(node=>node.id===selection))selection='';
   }
   onMount(()=>{
     const mq=matchMedia('(max-width: 720px)');
-    const measure=()=>mobile=mq.matches; measure(); mq.addEventListener('change',measure);
+    const measure=()=>{
+      mobile=mq.matches;
+      if(!mobile&&mobileOpen){
+        mobileOpen=false;
+        if(sheet)setDesktopDock(sheet,true);
+      }
+    };
+    measure();
+    mq.addEventListener('change',measure);
     try{
       const prefs=JSON.parse(localStorage.getItem('tori-v1a-layout')??'{}');
-      library=prefs.library??true;inspector=prefs.inspector??true;layoutWidth=prefs.width??'Standard';
+      layoutWidth=prefs.width??'Standard';
+      layers=prefs.layers??true;
       selection=prefs.selection??'';
+      sessionSidebar=prefs.sessionSidebar??prefs.sessionLibrary??true;
+      showSessionDescriptions=prefs.showSessionDescriptions??prefs.showSessionRevision??true;
+      runSidebar=prefs.runSidebar??true;
+      showRunDescriptions=prefs.showRunDescriptions??true;
+      runGrouping=prefs.runGrouping==='date'?'date':'session';
+      runScopePreference=prefs.runScopePreference==='session'?'session':'all';
     }catch{}
     request().then(next=>{applyState(next);reopen(next);}).catch(e=>error=e.message).finally(()=>loaded=true);
-    return ()=>mq.removeEventListener('change',measure);
+    const dayCheck=setInterval(()=>today=localCalendarDay(new Date()),60_000);
+    return ()=>{
+      mq.removeEventListener('change',measure);
+      clearInterval(dayCheck);
+    };
   });
-  $effect(()=>{if(loaded)localStorage.setItem('tori-v1a-layout',JSON.stringify({library,inspector,width:layoutWidth,selection}));});
+  $effect(()=>{if(loaded)localStorage.setItem('tori-v1a-layout',JSON.stringify({library,layers,width:layoutWidth,selection,sessionSidebar,showSessionDescriptions,runSidebar,showRunDescriptions,runGrouping,runScopePreference}));});
   $effect(()=>{
-    const g=graph,s=selection;
-    nodes=g.nodes.map(n=>({id:n.id,type:'assembly',position:n.position,selected:s===n.id,
-      data:{title:objectTitle(n.id),subtitle:n.id==='agent'?(binding(g,'model')?modelName:'Model unbound'):n.id==='model'?'Z.AI · text generation':n.id===tokenSourceId?'Reusable output limit':agentResources.some(item=>item.id===n.id)?'Revisioned resource':'Reusable system instructions',
-        fields:{graph:g,route:state.route,childRevisions:state.childRevisions,edit,expose,exposeTokens,connect,disconnect,remove}}}));
+    const g=graph;
+    const selected=untrack(()=>selection);
+    nodes=canvasNodes.map(n=>{
+      const resource=agentResources.find(item=>item.id===n.id);
+      const reference=resource?field(g,n.id,'reference'):undefined;
+      const preview=n.id==='child'?childTitle(reference):
+        resource?resourceChoices[resource.id].find(option=>option.value===reference)?.label??reference:undefined;
+      return {id:n.id,type:'assembly',position:n.position,selected:selected===n.id,deletable:false,
+        ...(n.id==='instructions'?promptSize:{}),
+        data:{graph:g,preview,activePin:n.id==='child'?state.childRevisions?.find(item=>item.id===state.activation?.childRevision):undefined,
+          title:objectTitle(n.id),customTitle:customNodeTitle(n.id),defaultTitle:defaultNodeTitle(n.id),mobile,promptSize,canvasIds,route:state.route,hostDeadlineMs:state.hostDeadlineMs,
+          wireSource,
+          fields:{childRevisions:state.childRevisions,edit,configure,connect,disconnect,remove,inspectDelegation,
+            focus:focusCanvasNode,rename:renameNode,resizePrompt,
+            showOptionalNode,hideOptionalNode,createAndConnectSettingNode}}};
+    });
   });
-  let edges=$derived(graph.edges.map(e=>({id:e.id,source:e.source,target:e.target,sourceHandle:e.sourcePort,targetHandle:e.targetPort,selectable:false,
-    style:e.targetPort==='model'?'stroke:#a3b4e6;stroke-width:2;stroke-dasharray:6 4':'stroke:#a3b4e6;stroke-width:2'})));
+  $effect(()=>{
+    const selected=selection;
+    untrack(()=>{
+      // Flow may already have applied pointer selection. Keep its measured nodes in that case.
+      if(!nodes.some(node=>!!node.selected!==(node.id===selected)))return;
+      nodes=nodes.map(node=>!!node.selected===(node.id===selected)?node:{...node,selected:node.id===selected});
+    });
+  });
+  const edgeTypes={assembly:AssemblyWire};
+  let edges:AssemblyWireEdge[]=$derived(graph.edges.filter(e=>canvasIds.has(e.source)&&canvasIds.has(e.target)).map(e=>{
+    const label=graph.nodeTypes.find(type=>type.id===e.target)?.ports.find(port=>port.id===e.targetPort)?.label??e.targetPort;
+    const delegation=e.source==='child'&&e.targetPort==='child';
+    return {id:e.id,type:'assembly',source:e.source,target:e.target,sourceHandle:e.sourcePort,targetHandle:e.targetPort,
+      ariaLabel:objectTitle(e.source)+' to '+label,interactionWidth:22,
+      class:delegation?'delegation-wire':undefined,
+      style:delegation?'stroke-dasharray:3 4':e.targetPort==='model'?'stroke-dasharray:6 4':undefined};
+  }));
   function commit(operations:any[]){
     const result=journal.apply(operations,graph.revision);
     if(!result.ok){graphError=result.issues.map(i=>i.message).join(' ');return false;}
     graph=result.graph;graphError='';historyState();return true;
   }
   function edit(id:string,key:string,value:string|number|undefined){if(graph.nodes.find(n=>n.id===id)?.values[key]!==value)commit([change(id,key,value)]);}
+  function renameNode(id:string,label:string){
+    const node=graph.nodes.find(item=>item.id===id);
+    if(!node)return false;
+    const name=label.trim();
+    if(id==='agent')return field(graph,id,'name')===name||commit([change(id,'name',name)]);
+    const original=graph.nodeTypes.find(type=>type.id===node.type)?.label;
+    if(!original)return false;
+    const nextLabel=name||original;
+    return node.label===nextLabel||commit([{type:'setLabel',nodeId:id,label:nextLabel}]);
+  }
+  function childTitle(reference:any){
+    const child=state.childRevisions?.find(item=>'saved:'+item.id===reference);
+    return (child?child.name+' \u00b7 r'+child.number:undefined)??(reference==='reference-reviewer@1'?'Reference reviewer':'Saved revision unavailable');
+  }
+  function configure(id:string,key:string,value:string|number){
+    const operations=[];
+    if(!graph.nodes.some(node=>node.id===id))operations.push(add(id));
+    if(key)operations.push(change(id,key,value));
+    if(binding(graph,id)?.source!==id)operations.push(wire(id,id));
+    return operations.length===0||commit(operations);
+  }
   function travel(direction:'undo'|'redo'){
     const result=journal[direction]();if(!result.ok)return;graph=result.graph;graphError='';historyState();
-    if(!graph.nodes.some(n=>n.id===selection))selection='';
+    if(!graph.nodes.some(node=>node.id===selection))selection='';
   }
   function connect(id:string,port:string){if(binding(graph,port)?.source!==id)commit([wire(id,port)]);}
   function disconnect(port:string){
-    const edge=binding(graph,port);if(!edge)return;
-    commit([...(port==='instructions'?[change('agent','instructions',instructions(graph))]:port==='tokens'?[change('model','tokens',outputTokens(graph))]:[]),{type:'remove',selection:{nodes:[],edges:[edge.id]}}]);
+    const edge=binding(graph,port);
+    if(edge)disconnectWire(edge.id);
+  }
+  function disconnectWire(id:string){
+    const edge=graph.edges.find(link=>link.id===id);
+    if(!edge)return;
+    const operations=retainInlineValue(edge);
+    const activeElement=document.activeElement;
+    const restoreFocus=activeElement===document.body||activeElement?.closest('.svelte-flow__edge');
+    if(commit([...operations,{type:'remove',selection:{nodes:[],edges:[id]}}])&&restoreFocus){
+      void tick().then(()=>document.querySelector<HTMLElement>('.flow .svelte-flow__node[data-id="'+edge.target+'"]')?.focus({preventScroll:true}));
+    }
+  }
+  function retainInlineValue(edge:{target:string;targetPort:string}){
+    if(edge.target==='agent'&&edge.targetPort==='instructions')return [change('agent','instructions',instructions(graph))];
+    if(edge.target==='model'&&edge.targetPort==='tokens')return [change('model','tokens',outputTokens(graph))];
+    return [];
+  }
+  function inspectDelegation(invoker:HTMLElement|string|null){
+    delegationInvoker=invoker;
+    delegationOpen=true;
+  }
+  function canvasWire(id:string){
+    return document.querySelector<SVGElement>('.flow .svelte-flow__edge[data-id="'+CSS.escape(id)+'"]');
+  }
+  function inspectDelegationWire(event:MouseEvent){
+    const target=event.target instanceof Element?event.target:null;
+    const id=target?.closest('.delegation-wire')?.getAttribute('data-id');
+    if(!id)return;
+    event.preventDefault();
+    event.stopPropagation();
+    inspectDelegation(id);
+  }
+  function restoreDelegationFocus(event:Event){
+    const invoker=typeof delegationInvoker==='string'?canvasWire(delegationInvoker):delegationInvoker;
+    if(invoker?.isConnected){
+      event.preventDefault();
+      invoker.focus({preventScroll:true});
+    }
+    delegationInvoker=null;
+  }
+  function cancelWire(){
+    cancelFlowClick?.();
+    wireSource='';
   }
   function remove(id:string){
     if(id==='agent')return;
@@ -98,44 +445,342 @@
     if(commit([...ops,{type:'remove',selection:{nodes:[id],edges:[]}}])&&selection===id)selection='';
   }
   async function fit(){await tick();await flow?.fitView({padding:0.18,maxZoom:1});}
-  async function reveal(id:string){selection=id;await tick();await flow?.fitView({nodes:[{id}],padding:0.28,maxZoom:1});}
-  function create(id:string){if(commit([add(id)]))void reveal(id);}
-  function expose(){
-    if(binding(graph,'instructions'))return;
-    const exists=graph.nodes.some(n=>n.id==='instructions');
-    if(commit([...(exists?[]:[add('instructions'),change('instructions','text',instructions(graph))]),wire('instructions','instructions')]))void reveal('instructions');
+  function selectCanvas(id:string){
+    selection=id;
   }
-  function exposeTokens(){
-    if(binding(graph,'tokens'))return;
-    const exists=graph.nodes.some(n=>n.id===tokenSourceId);
-    if(commit([...(exists?[]:[add(tokenSourceId)]),change(tokenSourceId,'tokens',outputTokens(graph)),wire(tokenSourceId,'tokens')]))
-      void reveal(tokenSourceId);
+  async function focusCanvasNode(id:string,alsoShow?:string){
+    selectCanvas(id);
+    if(agentView!=='Canvas')return;
+    await tick();
+    // Let Flow measure the canvas after the panel layout settles.
+    await new Promise<void>(resolve=>requestAnimationFrame(()=>requestAnimationFrame(()=>resolve())));
+    if(agentView==='Canvas'&&selection===id){
+      const visible=[{id},...(alsoShow&&canvasIds.has(alsoShow)?[{id:alsoShow}]:[])];
+      await flow?.fitView({nodes:visible,padding:0.28,maxZoom:1});
+    }
   }
-  function onConnection(c:any){
-    const validTarget=c.target==='agent' ? ['instructions','model',...agentResources.map(item=>item.id)].includes(c.targetHandle) :
-      c.target==='model' && c.targetHandle==='tokens';
-    if(!validTarget||c.sourceHandle!=='value'){graphError='Connect a compatible source output to an Agent or Model input.';return;}
-    connect(c.source,c.targetHandle);
+  function setBindingVisible(id:string,visible:boolean){
+    if(!isOptionalBinding(id))return;
+    cancelWire();
+    const next=new Set(shownBindings);
+    if(visible){
+      next.add(id);
+      if(id===tokenSourceId)next.add('model');
+    }else{
+      next.delete(id);
+      if(id==='model')next.delete(tokenSourceId);
+    }
+    shownBindings=[...next];
+    if(state.definition)visibilityByDefinition.set(state.definition,shownBindings);
+  }
+  function create(id:string){
+    if(commit([add(id)])){
+      setBindingVisible(id,true);
+      void focusCanvasNode(id,id===tokenSourceId?'model':id==='agent'?undefined:'agent');
+    }
+  }
+  async function showOptionalNode(id:string){
+    if(!isOptionalBinding(id)||!graph.nodes.some(node=>node.id===id))return;
+    setBindingVisible(id,true);
+    await tick();
+    await new Promise<void>(resolve=>requestAnimationFrame(()=>requestAnimationFrame(()=>resolve())));
+    if(agentView==='Canvas')await fit();
+  }
+  function hideOptionalNode(id:string){
+    setBindingVisible(id,false);
+  }
+  async function createAndConnectSettingNode(id:'instructions'|typeof tokenSourceId){
+    if(graph.nodes.some(node=>node.id===id))return;
+    if(id===tokenSourceId&&!graph.nodes.some(node=>node.id==='model'))return;
+    const operations=id==='instructions'
+      ? [add(id),change(id,'text',instructions(graph)),wire(id,'instructions')]
+      : [add(id),change(id,'tokens',outputTokens(graph)),wire(id,'tokens')];
+    if(commit(operations))await showOptionalNode(id);
+  }
+  function connectionEndpoints({source,sourceHandle,target,targetHandle}:Connection|Edge){
+    if(!sourceHandle||!targetHandle)return;
+    return {source,sourcePort:sourceHandle,target,targetPort:targetHandle};
+  }
+  function isCurrentWireDrag(id:string){
+    return wireDrag?.id===id&&!wireDrag.cancelled&&wireDrag.graph===graph&&page==='Agents'&&agentView==='Canvas';
+  }
+  const isValidConnection:IsValidConnection=connection=>{
+    if(wireDrag&&!isCurrentWireDrag(wireDrag.id))return false;
+    const ends=connectionEndpoints(connection);
+    return !!ends&&canWire(ends.source,ends.sourcePort,ends.target,ends.targetPort)&&
+      !connectionIssueForTopology(graph,{id:wireDrag?.id??'',...ends});
+  };
+  function onConnection(connection:Connection):false{
+    if(connection.targetHandle&&isValidConnection(connection))connect(connection.source,connection.targetHandle);
+    return false;
+  }
+  function reconnectWire(next:AssemblyWireEdge,previous:AssemblyWireEdge):false{
+    if(!isCurrentWireDrag(previous.id)||!isValidConnection(next))return false;
+    const edge=graph.edges.find(link=>link.id===previous.id);
+    const ends=connectionEndpoints(next);
+    if(!edge||!ends)return false;
+
+    const sameTarget=edge.target===ends.target&&edge.targetPort===ends.targetPort;
+    if(!sameTarget||edge.source!==ends.source||edge.sourcePort!==ends.sourcePort){
+      const operations=sameTarget?[]:retainInlineValue(edge);
+      commit([...operations,{type:'reconnect',edgeId:edge.id,connection:ends}]);
+    }
+    // The canvas redraws from the graph history entry after validation.
+    return false;
+  }
+  function finishWireDrag(event:MouseEvent|TouchEvent,id:string,hasTarget:boolean){
+    if(wireDrag?.id!==id)return;
+    const shouldDisconnect=!hasTarget&&isCurrentWireDrag(id);
+    wireDrag=undefined;
+    if(!shouldDisconnect)return;
+    const pointer='changedTouches' in event?event.changedTouches[0]:event;
+    if(!pointer)return;
+    const surface=document.elementFromPoint(pointer.clientX,pointer.clientY);
+    if(surface?.matches('.flow .svelte-flow__pane, .flow .svelte-flow__viewport'))disconnectWire(id);
   }
   async function action(work:()=>Promise<void>){if(pending)return;pending=true;error='';try{await work();}catch(e){error=(e as Error).message;}finally{pending=false;}}
   const save=()=>action(async()=>{const snapshot=graph;applyState(await request('/save',{graph:snapshot,expected:state.revision}));baseline=authoringBytes(snapshot);});
   async function switchDefinition(next:any){
-    applyState(next);selection='';query='';graphError='';reopen(next);await fit();
+    applyState(next);selection='';layerQuery='';componentQuery='';graphError='';reopen(next);
+    view={x:0,y:0,zoom:1};
+    // A blank definition unmounts the canvas. Fitting must never block authoring.
+    if(agentView==='Canvas'&&graph.nodes.length)void fit();
   }
   const openDefinition=(id:string)=>action(async()=>switchDefinition(await request('',undefined,id)));
-  const newDefinition=()=>action(async()=>switchDefinition(await request('/definitions',{})));
+  const newDefinition=()=>action(async()=>{
+    await switchDefinition(await request('/definitions',{}));
+    create('agent');
+  });
   const reload=()=>action(async()=>{const next=await request();applyState(next);reopen(next);});
   const activate=()=>action(async()=>{applyState(await request('/activate',{revision:state.revision}));});
-  const start=()=>action(async()=>{const next=await request('/sessions',{activation:state.activation.version});activeSession=next.sessions[0].id;includeContext=false;applyState(next);page='Sessions';});
+  function changePage(next:string){
+    launchOpen=false;
+    mobileOpen=false;
+    if(next!=='Agents'){cancelWire();selectedWire='';if(wireDrag)wireDrag.cancelled=true;}
+    if(next!=='Runs')closeRunInspection();
+    page=next;
+  }
+  async function toggleSessionSearch(){
+    if(launchOpen){
+      launchSearchOpen=!launchSearchOpen;
+      if(!launchSearchOpen)launchQuery='';
+    }else{
+      sessionSearchOpen=!sessionSearchOpen;
+      if(!sessionSearchOpen){sessionQuery='';sessionGroupChoice=undefined;}
+    }
+    await tick();
+    document.getElementById(launchOpen?'session-agent-search':'session-history-search')?.focus({preventScroll:true});
+  }
+  function focusSessionLauncher(){
+    document.getElementById('new-session-picker-title')?.focus({preventScroll:true});
+  }
+  async function showSessionLauncher(){
+    if(page!=='Sessions')changePage('Sessions');
+    if(mobile){
+      if(!mobileOpen||sheet!=='Inspector')toggle('Inspector');
+    }else sessionSidebar=true;
+    launchError='';
+    launchQuery='';
+    launchSearchOpen=false;
+    launchOpen=true;
+    await tick();
+    focusSessionLauncher();
+  }
+  async function closeSessionLauncher(){
+    if(pending)return;
+    launchOpen=false;
+    await tick();
+    sessionLauncherButton?.focus({preventScroll:true});
+  }
+  async function openAgentForActivation(definition:string){
+    if(pending||sending||(dirty&&state.definition!==definition))return;
+    if(state.definition!==definition){
+      await openDefinition(definition);
+      if(state.definition!==definition)return;
+    }
+    selection='agent';
+    agentView='Settings';
+    if(mobile)sheetInvoker=null;
+    changePage('Agents');
+    await focusAgentRevision();
+  }
+  async function focusAgentRevision(){
+    await tick();
+    if(page==='Agents')document.getElementById('agent-revision-status')?.focus({preventScroll:true});
+  }
+  async function start(agent:AgentActivation,fromEditor=false){
+    if(pending||sending)return;
+    pending=true;
+    launchError='';
+    if(fromEditor)error='';
+    try{
+      const next=await request('/sessions',{
+        activation:agent.version,sessionDefinition:agent.definition,
+        ...(fromEditor?{activeDefinition:agent.definition}:{}),
+      });
+      applyState(next);
+      if(fromEditor?page==='Agents':page==='Sessions'&&launchOpen){
+        if(mobile)sheetInvoker=null;
+        await openSession(next.sessions[0].id,true);
+      }
+    }catch(e){
+      if(fromEditor)error=(e as Error).message;
+      else launchError=(e as Error).message;
+      try{applyState(await request());}catch{/* Preserve the creation error if refreshing also fails. */}
+    }finally{pending=false;}
+  }
+  async function openSession(id:string,focus=false,messageId?:string){
+    if(activeSession!==id&&runScopePreference==='session'){
+      runQuery='';
+      runGroupChoice=undefined;
+    }
+    activeSession=id;
+    changePage('Sessions');
+    if(focus){
+      await tick();
+      if(messageId){
+        // Let the Conversation viewport finish restoring its reading position first.
+        await new Promise<void>(resolve=>requestAnimationFrame(()=>requestAnimationFrame(()=>resolve())));
+      }
+      if(page!=='Sessions'||activeSession!==id)return;
+      const target=messageId?conversationPane?.querySelector<HTMLElement>('[data-message-id="'+CSS.escape(messageId)+'"]'):undefined;
+      if(target){
+        target.tabIndex=-1;
+        target.focus({preventScroll:true});
+        target.scrollIntoView({block:'start',inline:'nearest'});
+      }else sessionTitle?.focus({preventScroll:true});
+    }
+  }
+  async function openRun(id:string,focus=false){
+    const changed=activeRun!==id;
+    if(changed&&focus)runGroupChoice=undefined;
+    activeRun=id;
+    if(focus&&mobileOpen)sheetInvoker=null;
+    mobileOpen=false;
+    await tick();
+    if(page==='Runs'&&activeRun===id){
+      if(changed&&runPane)runPane.scrollTop=0;
+      if(focus)runTitle?.focus({preventScroll:true});
+    }
+  }
+  function syncRunSelection(){
+    const selected=runScope==='session'?sessionRun:run??state.runs[0];
+    const id=selected?.id??'';
+    if(id===activeRun)return;
+    activeRun=id;
+    if(runPane)runPane.scrollTop=0;
+  }
+  function setRunScope(value:'session'|'all'){
+    runScopePreference=value;
+    inspectSessionScope=false;
+    runGroupChoice=undefined;
+    syncRunSelection();
+  }
+  function closeRunInspection(){
+    if(!runReturnSession)return;
+    runReturnSession='';
+    inspectSessionScope=false;
+    runQuery='';
+    runGroupChoice=undefined;
+  }
+  function openRuns(){
+    closeRunInspection();
+    syncRunSelection();
+    changePage('Runs');
+  }
+  async function toggleRunSearch(){
+    runSearchOpen=!runSearchOpen;
+    if(!runSearchOpen){runQuery='';runGroupChoice=undefined;}
+    await tick();
+    document.getElementById('run-history-search')?.focus({preventScroll:true});
+  }
+  function inspectSessionRuns(runId=sessionRun?.id){
+    if(!runId)return;
+    inspectSessionScope=true;
+    runReturnSession=activeSession;
+    runQuery='';
+    runGroupChoice=undefined;
+    if(mobileOpen)sheetInvoker=null;
+    changePage('Runs');
+    void openRun(runId,true);
+  }
+  function rememberReadingPosition(node:HTMLElement,id:string){
+    const offset=readingPositions.get(id);
+    let restoring=offset!==undefined;
+    let frame=0;
+    const remember=(event:Event)=>{
+      const feed=event.target;
+      if(restoring||!(feed instanceof HTMLElement)||!feed.matches('.vict-conversation'))return;
+      if(feed.scrollHeight-feed.clientHeight-feed.scrollTop<=1)readingPositions.delete(id);
+      else readingPositions.set(id,feed.scrollTop);
+    };
+    node.addEventListener('scroll',remember,true);
+    if(restoring){
+      // Let the public Conversation viewport finish positioning its messages on mount.
+      frame=requestAnimationFrame(()=>{frame=requestAnimationFrame(()=>{
+        const feed=node.querySelector<HTMLElement>('.vict-conversation');
+        if(feed)feed.scrollTop=offset!;
+        restoring=false;
+      });});
+    }
+    return {destroy(){
+      cancelAnimationFrame(frame);
+      node.removeEventListener('scroll',remember,true);
+    }};
+  }
+  const sessionActionId=(id:string)=>'session-row-actions-'+id;
+  function rememberSessionAction(id:string){
+    sessionActionInvoker=document.getElementById(sessionActionId(id));
+    sessionActionGroup=sessionActionInvoker?.closest('[data-accordion-item]')?.querySelector('[data-accordion-trigger]')??null;
+  }
+  function restoreSessionActionFocus(event:Event){
+    const target=[sessionActionInvoker,sessionActionGroup,historyOptionsButton].find(element=>element?.isConnected);
+    if(target){
+      event.preventDefault();
+      target.focus({preventScroll:true});
+    }
+  }
+  function openRename(item:SessionHistoryItem){
+    rememberSessionAction(item.id);
+    renameTarget=item.id;
+    renameTitle=item.title;
+    renameError='';
+  }
+  function openDelete(item:SessionHistoryItem){
+    rememberSessionAction(item.id);
+    deleteTarget={id:item.id,title:item.title};
+    deleteError='';
+  }
+  async function renameSession(event:SubmitEvent){
+    event.preventDefault();
+    if(pending||sending||!renameTitle.trim())return;
+    pending=true;
+    renameError='';
+    try{
+      applyState(await request('/rename-session',{session:renameTarget,title:renameTitle}));
+      renameTarget='';
+    }catch(e){renameError=(e as Error).message;}
+    finally{pending=false;}
+  }
   const deleteSession=()=>action(async()=>{
-    const next=await request('/delete-session',{session:activeSession});
-    activeSession=next.sessions[0]?.id??'';
-    applyState(next);
-    deleteOpen=false;
+    if(!deleteTarget)return;
+    const {id}=deleteTarget;
+    deleteError='';
+    try{
+      const next=await request('/delete-session',{session:id});
+      delete sessionDrafts[id];
+      delete sessionContext[id];
+      delete turnErrors[id];
+      readingPositions.delete(id);
+      applyState(next);
+      deleteTarget=null;
+    }catch(e){deleteError=(e as Error).message;}
   });
-  async function send(input:string,accepted?:()=>void){
+  async function send(input:string){
     const id=activeSession;
+    if(sending||pending||!session?.connectionReady||session.interrupted)return;
     sending=true;
+    delete turnErrors[id];
     sendActivity={session:id,phase:'waiting'};
     const activityAbort=new AbortController();
     const poll=async()=>{
@@ -150,20 +795,91 @@
     };
     void poll();
     try{
-      const next=await request('/turn',{session:id,input,includeContext});
-      includeContext=false;
+      const next=await request('/turn',{session:id,input,includeContext:!!sessionContext[id]});
+      sessionContext[id]=false;
+      if(sessionDrafts[id]?.trim()===input)delete sessionDrafts[id];
       applyState(next);
-      activeRun=next.runs[0]?.id??'';
-      accepted?.();
-      const last=next.runs[0];
-      return last?.status==='completed'?{ok:true}:{ok:false,message:last?.message??'The response did not complete. See Runs.'};
-    }catch(e){return {ok:false,message:(e as Error).message};}
+      const last=next.runs.find(item=>item.session===id&&!item.parentRun);
+      if(last?.status!=='completed')turnErrors[id]=last?.message??'The response did not complete. See Runs.';
+    }catch(e){turnErrors[id]=(e as Error).message;}
     finally{activityAbort.abort();sendActivity=null;sending=false;}
   }
-  function toggle(panel:string,invoker:HTMLElement|null=null){
-    if(mobile){sheetInvoker=invoker??document.getElementById('window-menu-trigger');sheet=panel;mobileOpen=true;}
-    else if(panel==='Library')library=!library;
-    else inspector=!inspector;
+  type LayerBranch={id:string;title:string;connection?:string;children:LayerBranch[]};
+  const layerRoots=$derived.by(()=>{
+    const branches=new Map<string,LayerBranch>();
+    for(const node of graph.nodes){
+      branches.set(node.id,{id:node.id,title:objectTitle(node.id),children:[]});
+    }
+    const childIds=new Set<string>();
+    for(const edge of graph.edges){
+      const child=branches.get(edge.source), parent=branches.get(edge.target);
+      if(!child||!parent)continue;
+      const target=graph.nodes.find(node=>node.id===edge.target);
+      const input=graph.nodeTypes.find(type=>type.id===target?.type)?.ports.find(port=>port.id===edge.targetPort);
+      child.connection='Connected to '+parent.title+' / '+(input?.label??edge.targetPort);
+      parent.children.push(child);
+      childIds.add(child.id);
+    }
+    const query=layerQuery.trim().toLowerCase();
+    function filterBranch(branch:LayerBranch):LayerBranch|undefined{
+      const children=branch.children.map(filterBranch).filter(child=>child!==undefined);
+      if(children.length||branch.title.toLowerCase().includes(query))return {...branch,children};
+    }
+    return [...branches.values()].filter(branch=>!childIds.has(branch.id))
+      .map(filterBranch).filter(branch=>branch!==undefined);
+  });
+  const agentLayer=$derived(layerRoots.find(branch=>branch.id==='agent'));
+  const unconnectedLayers=$derived(layerRoots.filter(branch=>branch.id!=='agent'));
+  function chooseLayer(id:string){
+    if(!canvasIds.has(id)){
+      selectCanvas(id);
+      return;
+    }
+    mobileOpen=false;
+    void focusCanvasNode(id);
+  }
+  function setLayerVisibility(id:string,visible:boolean){
+    setBindingVisible(id,visible);
+    if(visible)void focusCanvasNode(id,id===tokenSourceId?'model':'agent');
+  }
+  function setDesktopDock(panel:DockPanel,open:boolean){
+    if(page==='Sessions'){
+      if(panel==='Inspector'){
+        sessionSidebar=open;
+        if(!open)launchOpen=false;
+      }
+    }else if(page==='Runs'){
+      if(panel==='Inspector')runSidebar=open;
+    }else if(panel==='Library')library=open;
+    else if(panel==='Nodes')layers=open;
+  }
+  function dockOpen(panel:DockPanel){
+    return mobile?mobileOpen&&sheet===panel:panel==='Library'?libraryVisible:panel==='Nodes'?layersVisible:inspectorVisible;
+  }
+  function toggle(panel:DockPanel,invoker:HTMLElement|null=null){
+    if(mobile){
+      sheetInvoker=invoker??document.getElementById('window-menu-trigger');
+      sheet=panel;
+      mobileOpen=true;
+    }else setDesktopDock(panel,!dockOpen(panel));
+  }
+  function showSelectedRow(node:HTMLElement,activeId:string){
+    let frame=0;
+    const reveal=(id:string)=>{
+      cancelAnimationFrame(frame);
+      if(!id||!node.closest('.execution-right-dock, .agent-layers-dock'))return;
+      frame=requestAnimationFrame(()=>{
+        node.querySelector('button[aria-pressed="true"]')?.scrollIntoView({block:'nearest',inline:'nearest'});
+      });
+    };
+    reveal(activeId);
+    return {update:reveal,destroy:()=>cancelAnimationFrame(frame)};
+  }
+  function resetLayout(){
+    layoutWidth='Standard';
+    if(page==='Sessions'){sessionSidebar=true;launchOpen=false;}
+    else if(page==='Runs')runSidebar=true;
+    else {library=true;layers=true;}
   }
   async function persistKeyboardMove(){
     await tick();
@@ -174,54 +890,541 @@
     if(Object.keys(positions).length)commit([{type:'moveNodes',positions}]);
   }
   function keys(e:KeyboardEvent){
+    if(page==='Sessions'&&launchOpen&&!mobile&&e.key==='Escape'&&!e.defaultPrevented){
+      e.preventDefault();
+      void closeSessionLauncher();
+      return;
+    }
     if(page!=='Agents')return;
+    if(agentView==='Canvas'&&!e.defaultPrevented&&!delegationOpen&&!mobileOpen){
+      const wire=e.target instanceof Element?e.target.closest('.svelte-flow__edge'):null;
+      const focusedWire=wire?.getAttribute('data-id')??(e.target===document.body?selectedWire:'');
+      if(focusedWire===selectedWire&&focusedWire&&(e.key==='Delete'||e.key==='Backspace')&&
+        !e.ctrlKey&&!e.metaKey&&!e.altKey&&!e.shiftKey){
+        e.preventDefault();
+        disconnectWire(focusedWire);
+        return;
+      }
+      if(e.key==='Escape'&&(wireSource||focusedWire||wireDrag)){
+        if(wireDrag){wireDrag.cancelled=true;e.preventDefault();}
+        else if(wireSource){cancelWire();e.preventDefault();}
+        else if(!wire)flow?.updateEdge(focusedWire,{selected:false});
+        return;
+      }
+    }
+    if(e.key==='Escape'&&!e.repeat&&dirty&&!pending&&!mobileOpen&&!delegationOpen&&!e.defaultPrevented&&
+      !(e.target instanceof Element&&e.target.closest('[role="menu"],[role="dialog"],select'))){
+      e.preventDefault();
+      void reload();
+      return;
+    }
     if(e.key.startsWith('Arrow')&&(e.target as HTMLElement)?.matches?.('.svelte-flow__node'))void persistKeyboardMove();
     if(!(e.ctrlKey||e.metaKey))return;
     if(e.key.toLowerCase()==='s'){e.preventDefault();if(dirty&&!pending)void save();}
     if(e.key.toLowerCase()==='z'&&!['INPUT','TEXTAREA'].includes((e.target as HTMLElement)?.tagName)){e.preventDefault();travel(e.shiftKey?'redo':'undo');}
   }
+  function insertComponent(id:string){
+    if(page!=='Agents'||!loaded||pending||sending||graph.nodes.some(node=>node.id===id))return;
+    agentView='Canvas';
+    create(id);
+  }
+  const canInsert=$derived(page==='Agents'&&loaded&&!pending&&!sending);
+  const componentGroups=$derived([
+    {label:'Agents',items:[
+      {id:'agent',label:'Agent Definition',fn:()=>insertComponent('agent'),disabled:!canInsert||!!graph.nodes.length},
+      {id:'child',label:'Child Agent',fn:()=>insertComponent('child'),disabled:!canInsert||!graph.nodes.length||graph.nodes.some(n=>n.id==='child')},
+    ]},
+    {label:'Resources',items:agentResources.filter(item=>['context','tool'].includes(item.id)).map(item=>({
+      id:item.id,label:item.label,fn:()=>insertComponent(item.id),disabled:!canInsert||!graph.nodes.length||graph.nodes.some(n=>n.id===item.id),
+    }))},
+    {label:'Optional nodes',items:optionalBindings.map(item=>({
+      id:item.id,label:item.label,fn:()=>insertComponent(item.id),
+      disabled:!canInsert||!graph.nodes.length||graph.nodes.some(n=>n.id===item.id)||
+        (item.id===tokenSourceId&&!graph.nodes.some(n=>n.id==='model')),
+    }))},
+  ]);
+  const hiddenNodes=$derived(graph.nodes.filter(node=>isOptionalBinding(node.id)&&!canvasIds.has(node.id)));
+  async function showAllHiddenNodes(){
+    for(const node of hiddenNodes)setBindingVisible(node.id,true);
+    if(agentView!=='Canvas')agentView='Canvas';
+    await tick();
+    await new Promise<void>(resolve=>requestAnimationFrame(()=>requestAnimationFrame(()=>resolve())));
+    await fit();
+  }
+  const visibleComponentGroups=$derived(componentGroups.map(group=>({
+    ...group,items:group.items.filter(item=>item.label.toLowerCase().includes(componentQuery.trim().toLowerCase())),
+  })).filter(group=>group.items.length));
   const menu=$derived([
-    {name:'File',items:[{label:'Save draft',fn:save,disabled:!dirty||pending||!loaded},{label:'Reopen saved draft',fn:reload,disabled:dirty||pending||!state.revision}]},
+    {name:'File',items:[{label:'New agent',fn:newDefinition,disabled:page!=='Agents'||!loaded||dirty||pending||sending},{label:'Save draft',fn:save,disabled:page!=='Agents'||!dirty||pending||!loaded},{label:'Reopen saved draft',fn:reload,disabled:page!=='Agents'||dirty||pending||!state.revision}]},
     {name:'Edit',items:[{label:'Undo',fn:()=>travel('undo'),disabled:!canUndo},{label:'Redo',fn:()=>travel('redo'),disabled:!canRedo}]},
-    {name:'View',items:[{label:'Fit canvas',fn:fit,disabled:page!=='Agents'||!graph.nodes.length}]},
-    {name:'Insert',items:[{label:'Agent Definition',fn:()=>create('agent'),disabled:!!graph.nodes.length},{label:'Instruction Text',fn:expose,disabled:!graph.nodes.length||!!binding(graph,'instructions')},{label:'Model Reference',fn:()=>create('model'),disabled:!graph.nodes.length||!!graph.nodes.find(n=>n.id==='model')},
-      ...agentResources.map(item=>({label:item.label,fn:()=>create(item.id),disabled:!graph.nodes.length||graph.nodes.some(n=>n.id===item.id)}))]},
-    {name:'Run',items:[{label:'Activate saved revision',fn:activate,disabled:activateDisabled},{label:'Start Session',fn:start,disabled:!state.activation||pending}]},
-    {name:'Window',items:[{label:'Library',checked:mobile?undefined:library,fn:()=>toggle('Library'),disabled:page!=='Agents'},{label:'Inspector',checked:mobile?undefined:inspector,fn:()=>toggle('Inspector'),disabled:page!=='Agents'},{label:layoutWidth==='Wide'?'Use standard panels':'Use wider panels',fn:()=>layoutWidth=layoutWidth==='Wide'?'Standard':'Wide',disabled:mobile||page!=='Agents'},{label:'Reset layout',fn:()=>{layoutWidth='Standard';library=true;inspector=true;},disabled:mobile||page!=='Agents'}]},
+    {name:'View',items:[
+      {label:'Fit canvas',fn:fit,disabled:page!=='Agents'||agentView!=='Canvas'||!graph.nodes.length},
+      {label:'Show all hidden nodes',fn:showAllHiddenNodes,disabled:page!=='Agents'||!hiddenNodes.length},
+    ]},
+    {name:'Insert',items:componentGroups.flatMap(group=>group.items)},
+    {name:'Run',items:[{label:'Activate saved revision',fn:activate,disabled:activateDisabled},{label:'Start Session',fn:showSessionLauncher,disabled:!loaded||pending||sending}]},
+    {name:'Window',items:[{label:'Library',checked:mobile?undefined:libraryVisible,fn:()=>toggle('Library'),disabled:page!=='Agents'},...(executionPage?[{label:inspectorLabel,checked:mobile?undefined:inspectorVisible,fn:()=>toggle('Inspector')}]:page==='Agents'&&agentView==='Canvas'?[{label:'Nodes',checked:mobile?undefined:layersVisible,fn:()=>toggle('Nodes')}]:[]),{label:layoutWidth==='Wide'?'Use standard panels':'Use wider panels',fn:()=>layoutWidth=layoutWidth==='Wide'?'Standard':'Wide',disabled:mobile||(page!=='Agents'&&!executionPage)},{label:'Reset layout',fn:resetLayout,disabled:mobile||(page!=='Agents'&&!executionPage)}]},
     {name:'Help',items:[{label:'V1a · Assembly, Sessions and Runs',fn:()=>{},disabled:true}]},
   ]);
 </script>
 
 <svelte:window onkeydown={keys}/>
-{#snippet libraryBody()}
-  {#if !mobile}<h2>Library</h2>{/if}
-  {#if loaded && state.definitions?.length}
-    <label for="definition-picker">Agent Definition</label>
-    <Select id="definition-picker" name="definition" value={state.definition} disabled={dirty||pending||sending}
-      options={state.definitions.map(item=>({value:item.id,label:item.name}))} onChange={openDefinition}/>
-    <Button label="New Agent Definition" variant="secondary" disabled={dirty||pending||sending} onclick={newDefinition}/>
-    {#if dirty}<p class="muted">Save this draft before switching definitions.</p>{/if}
-  {/if}
-  {#if graph.nodes.length}<Input class="tori-field" aria-label="Search assembly objects" placeholder="Find a node" bind:value={query}/>{/if}
-  <p class="eyebrow library-heading">ASSEMBLY OBJECTS</p>
-  {#each graph.nodes.filter(n=>objectTitle(n.id).toLowerCase().includes(query.trim().toLowerCase())) as n (n.id)}
-    <ControlButton.Root class="vict-btn vict-btn--secondary library-row" aria-pressed={selection===n.id} onclick={()=>{void reveal(n.id);mobileOpen=false;}}>{objectTitle(n.id)}</ControlButton.Root>
-  {:else}<Feedback kind="empty" message={query?'No matching nodes.':'Your nodes will appear here.'}/>
+{#snippet layerBranch(branch:LayerBranch)}
+  {@const shown=canvasIds.has(branch.id)}
+  {@const visibilityLabel=nodeVisibilityLabel(branch.title,shown,!!branch.connection)}
+  <li data-layer-id={branch.id}>
+    <div class="layer-entry">
+      <ControlButton.Root class="vict-btn vict-btn--quiet layer-row" aria-pressed={selection===branch.id}
+        aria-label={branch.title} aria-describedby={branch.connection?'layer-connection-'+branch.id:undefined}
+        title={branch.connection?branch.title+' | '+branch.connection:branch.title} onclick={()=>chooseLayer(branch.id)}>
+        <AssemblyGlyph kind={branch.id}/>
+        <span class="layer-name">{branch.title}</span>
+        {#if branch.connection}
+          <span class="visually-hidden" id={'layer-connection-'+branch.id}>{branch.connection}</span>
+        {/if}
+      </ControlButton.Root>
+      {#if isOptionalBinding(branch.id)}
+        <Tooltip.Root>
+          <Tooltip.Trigger class="vict-btn vict-btn--quiet layer-visibility" aria-label={visibilityLabel}
+            onclick={()=>setLayerVisibility(branch.id,!shown)}>
+            <AssemblyGlyph kind={shown?'separate-node':'inline-node'} connected={!!branch.connection}/>
+          </Tooltip.Trigger>
+          <Tooltip.Content class="layer-tooltip" side="left" sideOffset={5}>
+            {shown?'Hide separate node':'Show separate node'}
+          </Tooltip.Content>
+        </Tooltip.Root>
+      {/if}
+    </div>
+    {#if branch.children.length}
+      <ul class="layer-children" role="list">
+        {#each branch.children as child (child.id)}
+          {@render layerBranch(child)}
+        {/each}
+      </ul>
+    {/if}
+  </li>
+{/snippet}
+{#snippet layersBody()}
+  <Tooltip.Provider delayDuration={450} ignoreNonKeyboardFocus>
+    <div class="layers-body">
+      <div class="library-filter"><Input class="tori-field" aria-label="Search nodes" placeholder="Search nodes" bind:value={layerQuery}/></div>
+      <div class="layers-list" use:showSelectedRow={selection}>
+        {#if !layerRoots.length}
+          <Feedback kind="empty" message={layerQuery.trim()?'No matching nodes.':'No nodes yet.'}/>
+        {/if}
+        {#if agentLayer}
+          <ul class="layer-tree" role="list" aria-label="Agent bindings">
+            {@render layerBranch(agentLayer)}
+          </ul>
+        {/if}
+        {#if unconnectedLayers.length}
+          <section class="layer-group" aria-label="Unconnected">
+            <h3>Unconnected</h3>
+            <ul class="layer-tree" role="list">
+              {#each unconnectedLayers as branch (branch.id)}
+                {@render layerBranch(branch)}
+              {/each}
+            </ul>
+          </section>
+        {/if}
+      </div>
+    </div>
+  </Tooltip.Provider>
+{/snippet}
+{#snippet componentPalette()}
+  <div class="library-filter">
+    <Input class="tori-field" aria-label="Search components" placeholder="Search components" bind:value={componentQuery}/>
+  </div>
+  {#each visibleComponentGroups as group (group.label)}
+    <div class="canvas-component-group" role="group" aria-label={group.label}>
+      <p class="canvas-component-heading">{group.label}</p>
+      {#each group.items as item (item.id)}
+        <ControlButton.Root class="vict-btn vict-btn--quiet canvas-component-row"
+          aria-label={'Add '+item.label} disabled={item.disabled} onclick={()=>{mobileOpen=false;item.fn();}}>
+          <AssemblyGlyph kind={item.id}/><span>{item.label}</span>
+          {#if !state.fixture&&(item.id==='tool'||item.id==='child')}<span class="canvas-component-note">Fixture</span>{/if}
+        </ControlButton.Root>
+      {/each}
+    </div>
+  {:else}
+    <Feedback kind="empty" message="No matching components."/>
   {/each}
 {/snippet}
-{#snippet inspectorBody()}
-  {#if !mobile}<h2>Inspector</h2>{/if}
-  {#if selection && graph.nodes.some(n=>n.id===selection)}
-    <p class="eyebrow">SELECTED OBJECT</p><h3>{objectTitle(selection)}</h3>
-    <Fields {graph} childRevisions={state.childRevisions} pinnedChild={state.activation?.childRevision} route={state.route} id={selection} area="inspector" {edit} {expose} {exposeTokens} {connect} {disconnect} {remove}/>
-  {:else}<Feedback kind="empty" message="Select a node to inspect its configuration."/>
+{#snippet agentFields(id:string,section:'configure'|'delegation'='configure')}
+  <Fields {graph} childRevisions={state.childRevisions} pinnedChild={state.activation?.childRevision} route={state.route} {id} {section} {edit} {disconnect}
+    reveal={focusCanvasNode} openDefinition={async id=>{delegationOpen=false;await openDefinition(id);}} canOpenDefinition={!dirty&&!pending&&!sending}
+    fixture={state.fixture} {configure} hostDeadlineMs={state.hostDeadlineMs}/>
+{/snippet}
+
+{#snippet dockToggle(panel:DockPanel,disabled=false)}
+  {@const label=panel==='Inspector'?inspectorLabel:panel}
+  <ControlButton.Root class="vict-btn vict-btn--secondary panel-shortcut" aria-label={label} title={label} {disabled}
+    aria-expanded={!disabled&&dockOpen(panel)}
+    onclick={event=>toggle(panel,event.currentTarget as HTMLElement)}>
+    <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6">
+      <rect x="3" y="5" width="18" height="14" rx="2"/>
+      <path d={panel==='Library'?'M9 5v14':'M15 5v14'}/>
+    </svg>
+  </ControlButton.Root>
+{/snippet}
+
+{#snippet sessionHistoryRows(group:{label:string;sessions:SessionHistoryItem[]})}
+  {#each group.sessions as item (item.id)}
+    {@const showAgentName=sessionGrouping==='date'||item.name!==group.label}
+    <div class="session-history-row" class:current-session-row={item.id===activeSession}>
+      <ControlButton.Root class="vict-btn vict-btn--secondary definition-row history-list-row" aria-pressed={item.id===activeSession} data-session-id={item.id}
+        title={showSessionDescriptions?item.title+' · '+recordIdentity(item):item.title} onclick={()=>openSession(item.id)}>
+        <span class="definition-copy">
+          <span class="definition-name">{item.title}</span>
+          {#if showSessionDescriptions}
+            <span class="definition-note session-row-meta">
+              {#if showAgentName}<span class="definition-name">{item.name}</span>{/if}
+              <span class="session-row-revision">{showAgentName?'· ':''}r{item.number}{item.fixture?' · Fixture':''}</span>
+            </span>
+          {/if}
+        </span>
+      </ControlButton.Root>
+      <DropdownMenu.Root>
+        <DropdownMenu.Trigger id={sessionActionId(item.id)} class="vict-btn vict-btn--quiet history-options session-row-actions"
+          aria-label={'Actions for '+item.title} title={'Actions for '+item.title}>
+          <span aria-hidden="true">⋮</span>
+        </DropdownMenu.Trigger>
+        <DropdownMenu.Portal>
+          <DropdownMenu.Content class="menu-content history-options-menu" align="end" sideOffset={4} collisionPadding={10}>
+            <DropdownMenu.Item class="menu-item" disabled={pending||sending} onSelect={()=>openRename(item)}>Rename Session</DropdownMenu.Item>
+            <DropdownMenu.Item class="menu-item" disabled={pending||sending} onSelect={()=>openDelete(item)}>Delete Session</DropdownMenu.Item>
+          </DropdownMenu.Content>
+        </DropdownMenu.Portal>
+      </DropdownMenu.Root>
+    </div>
+  {/each}
+{/snippet}
+
+{#snippet historyOptions(label:string,choices:Snippet)}
+  <DropdownMenu.Root>
+    <DropdownMenu.Trigger bind:ref={historyOptionsButton} class="vict-btn vict-btn--quiet panel-shortcut history-options"
+      aria-label={label} title={label}>
+      <span aria-hidden="true">⋮</span>
+    </DropdownMenu.Trigger>
+    <DropdownMenu.Portal>
+      <DropdownMenu.Content class="menu-content history-options-menu" align="end" sideOffset={4} collisionPadding={10}
+        aria-label={label}>
+        {@render choices()}
+      </DropdownMenu.Content>
+    </DropdownMenu.Portal>
+  </DropdownMenu.Root>
+{/snippet}
+
+{#snippet sessionHistoryChoices()}
+  <DropdownMenu.RadioGroup value={sessionGrouping} onValueChange={value=>{sessionGrouping=value;sessionGroupChoice=undefined;}}>
+    <DropdownMenu.GroupHeading>Group by</DropdownMenu.GroupHeading>
+    {#each sessionGroupings as option (option.value)}
+      <DropdownMenu.RadioItem class="menu-item panel-check" value={option.value} aria-label={option.label}>{option.label}</DropdownMenu.RadioItem>
+    {/each}
+  </DropdownMenu.RadioGroup>
+  <DropdownMenu.Separator/>
+  <DropdownMenu.RadioGroup bind:value={sessionFilter}>
+    <DropdownMenu.GroupHeading>Show</DropdownMenu.GroupHeading>
+    {#each sessionFilters as option (option.value)}
+      <DropdownMenu.RadioItem class="menu-item panel-check" value={option.value} aria-label={option.label}>{option.label}</DropdownMenu.RadioItem>
+    {/each}
+  </DropdownMenu.RadioGroup>
+  <DropdownMenu.Separator/>
+  <DropdownMenu.CheckboxItem class="menu-item panel-check" aria-label="Show row descriptions" bind:checked={showSessionDescriptions}>
+    Show row descriptions
+  </DropdownMenu.CheckboxItem>
+{/snippet}
+
+{#snippet runHistoryChoices()}
+  <DropdownMenu.RadioGroup value={runScope}>
+    <DropdownMenu.GroupHeading>Scope</DropdownMenu.GroupHeading>
+    <DropdownMenu.RadioItem class="menu-item panel-check" aria-label="This Session" value="session" onSelect={()=>setRunScope('session')}>This Session</DropdownMenu.RadioItem>
+    <DropdownMenu.RadioItem class="menu-item panel-check" aria-label="All runs" value="all" onSelect={()=>setRunScope('all')}>All runs</DropdownMenu.RadioItem>
+  </DropdownMenu.RadioGroup>
+  <DropdownMenu.Separator/>
+  <DropdownMenu.RadioGroup value={runGrouping} onValueChange={value=>{runGrouping=value;runGroupChoice=undefined;}}>
+    <DropdownMenu.GroupHeading>Group by</DropdownMenu.GroupHeading>
+    <DropdownMenu.RadioItem class="menu-item panel-check" aria-label="Session" value="session">Session</DropdownMenu.RadioItem>
+    <DropdownMenu.RadioItem class="menu-item panel-check" aria-label="Activity date" value="date">Activity date</DropdownMenu.RadioItem>
+  </DropdownMenu.RadioGroup>
+  <DropdownMenu.Separator/>
+  <DropdownMenu.CheckboxItem class="menu-item panel-check" aria-label="Show row descriptions" bind:checked={showRunDescriptions}>
+    Show row descriptions
+  </DropdownMenu.CheckboxItem>
+{/snippet}
+
+{#snippet executionHistory()}
+  <div class="library-sections execution-history">
+    {#if page==='Sessions'}
+      {#if launchOpen?launchSearchOpen:sessionSearchOpen}
+        <div class="library-filter">
+          {#if launchOpen}
+            <Input id="session-agent-search" class="tori-field" aria-label="Search agents" placeholder="Search agents" bind:value={launchQuery}/>
+          {:else}
+            <Input id="session-history-search" class="tori-field" aria-label="Search Sessions" placeholder="Search Sessions" bind:value={sessionQuery} oninput={()=>sessionGroupChoice=undefined}/>
+          {/if}
+        </div>
+      {/if}
+      <ControlButton.Root bind:ref={sessionLauncherButton} class="vict-btn vict-btn--quiet session-create-row"
+        disabled={pending||(!launchOpen&&(!loaded||sending))} onclick={()=>launchOpen?closeSessionLauncher():showSessionLauncher()}>
+        <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+          {#if launchOpen}<path d="M19 12H5m7-7-7 7 7 7"/>
+          {:else}<path d="M12 5H6a2 2 0 0 0-2 2v11a2 2 0 0 0 2 2h11a2 2 0 0 0 2-2v-6M10 14l1-4 7-7 3 3-7 7-4 1Z"/>{/if}
+        </svg>
+        {launchOpen?'Back':'New Session'}
+      </ControlButton.Root>
+      {#if launchOpen}
+        {@render sessionPicker()}
+      {:else}
+        <div class="definition-list" class:history-group-list={sessionHistory.length>0} use:showSelectedRow={activeSession}>
+          {#if !sessionHistory.length}
+            <p class="dock-empty">{sessionQuery||sessionFilter!=='all'?'No matching Sessions.':'No Sessions yet.'}</p>
+          {:else}
+            <Accordion.Root type="single" aria-label="Session history groups" value={openSessionHistoryGroup}
+              onValueChange={key=>sessionGroupChoice=key}>
+              {#each sessionHistory as group (group.key)}
+                <Accordion.Item value={group.key}>
+                  <Accordion.Header><Accordion.Trigger aria-label={group.label} title={group.fullDate??group.label}>
+                    <span class="definition-name">{group.label}</span>
+                  </Accordion.Trigger></Accordion.Header>
+                  <Accordion.Content>{@render sessionHistoryRows(group)}</Accordion.Content>
+                </Accordion.Item>
+              {/each}
+            </Accordion.Root>
+          {/if}
+        </div>
+      {/if}
+    {:else}
+      {#if runScope==='session'}
+        <p class="run-history-scope">
+          This Session{runGrouping==='date'?' · '+(session?.title??'Session unavailable'):''}
+        </p>
+      {/if}
+      {#if runSearchOpen}
+        <div class="library-filter">
+          <Input id="run-history-search" class="tori-field" aria-label="Search Runs" placeholder="Search Runs"
+            bind:value={runQuery} oninput={()=>runGroupChoice=undefined}/>
+        </div>
+      {/if}
+      <div class="definition-list" class:history-group-list={runHistory.length>0} use:showSelectedRow={activeRun}>
+        {#if runHistory.length}
+          <Accordion.Root type="single" aria-label="Run history groups" value={openRunHistoryGroup}
+            onValueChange={key=>runGroupChoice=key}>
+            {#each runHistory as group (group.key)}
+              <Accordion.Item value={group.key}>
+                <Accordion.Header><Accordion.Trigger aria-label={group.label} aria-description={group.runs.length+' '+(group.runs.length===1?'Run':'Runs')} title={group.title}>
+                  <span class="definition-name">{group.label}</span>
+                  <span class="run-group-count definition-note" aria-hidden="true">{group.runs.length}</span>
+                </Accordion.Trigger></Accordion.Header>
+                <Accordion.Content style={'--run-sequence-digits:'+group.sequenceDigits}>
+                  {#each group.runs as item (item.id)}
+                    <ControlButton.Root class="vict-btn vict-btn--secondary definition-row history-list-row run-history-row"
+                      aria-pressed={item.id===activeRun} data-run-id={item.id} title={historyDate(runActivity(item))}
+                      onclick={()=>openRun(item.id,mobile)}>
+                      <span class="run-row-numbered">
+                        <span class="run-row-number"><span class="visually-hidden">Run </span>{item.sequence}</span>
+                        <span class="definition-copy">
+                          <span class="run-row-overview">
+                            {#if item.messagePreview||item.parentRun}
+                              <span class="definition-name">{item.messagePreview??('Child Run · '+item.name)}</span>
+                            {:else}
+                              <time class="definition-name" datetime={runActivity(item)}>{runHistoryTime(item)}</time>
+                            {/if}
+                            <span>{runStatus(item.status)}</span>
+                          </span>
+                          {#if showRunDescriptions}
+                            <span class="definition-note">
+                              {#if item.messagePreview||item.parentRun}<time datetime={runActivity(item)}>{runHistoryTime(item)}</time> · {/if}
+                              {recordIdentity(item)}{item.fixture?' · '+recordMode(item):''}
+                            </span>
+                          {/if}
+                        </span>
+                      </span>
+                    </ControlButton.Root>
+                  {/each}
+                </Accordion.Content>
+              </Accordion.Item>
+            {/each}
+          </Accordion.Root>
+        {:else}
+          <p class="dock-empty">{runQuery.trim()?'No matching Runs.':'No Runs in this history yet.'}</p>
+        {/if}
+      </div>
+    {/if}
+  </div>
+{/snippet}
+
+{#snippet sidebarDetails(label:string,content:Snippet)}
+  <Accordion.Root class="execution-sidebar-details library-sections" type="single" aria-label={label}>
+    <Accordion.Item value="details">
+      <Accordion.Header><Accordion.Trigger aria-label="Details">Details</Accordion.Trigger></Accordion.Header>
+      <Accordion.Content class="execution-details-scroll" role="region" aria-label={label+' content'} tabindex={0}>
+        {@render content()}
+      </Accordion.Content>
+    </Accordion.Item>
+  </Accordion.Root>
+{/snippet}
+
+{#snippet openViewIcon()}
+  <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M13 5h6v6m0-6-8 8m-2-7H6a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-3"/>
+  </svg>
+{/snippet}
+
+{#snippet sessionDetails()}
+  <div class="session-details">
+    {#if sessionRuns.length}
+      <ControlButton.Root class="vict-btn vict-btn--quiet session-inspect-runs" onclick={()=>inspectSessionRuns()}>
+        {@render openViewIcon()} Inspect runs
+      </ControlButton.Root>
+    {/if}
+    <dl>
+      <dt>Agent revision</dt><dd>{recordIdentity(session)}</dd>
+      <dt>Last activity</dt><dd><time datetime={session.lastActivityAt}>{activityDate(session.lastActivityAt)}</time></dd>
+      <dt>Execution</dt><dd>{recordMode(session)}</dd>
+      <dt>Model route</dt><dd>{session.fixture?'Simulated ':''}Z.AI {session.route==='coding'?'Coding':'General'} · {modelName}</dd>
+      {#if session.context}<dt>Pinned context</dt><dd>{session.context}</dd>{/if}
+      {#if session.memory}<dt>Memory</dt><dd>{session.memory==='recent-10@1'?'Last 10 messages':'Last 100 messages'} · this Session</dd>{/if}
+      <dt>Thinking</dt><dd>Thinking details are unavailable through this connection.</dd>
+    </dl>
+  </div>
+{/snippet}
+
+{#snippet runDetails()}
+  <RunDetails {run}/>
+{/snippet}
+
+{#snippet historyHeaderActions(searchLabel:string,searchOpen:boolean,toggleSearch:()=>void,optionsLabel:string,choices:Snippet)}
+  <div class="history-header-actions">
+    <ControlButton.Root class="vict-btn vict-btn--quiet history-search-button" aria-label={searchLabel} title={searchLabel}
+      aria-expanded={searchOpen} onclick={toggleSearch}>
+      <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round">
+        <circle cx="10.5" cy="10.5" r="5.5"/><path d="m15 15 4 4"/>
+      </svg>
+    </ControlButton.Root>
+    {@render historyOptions(optionsLabel,choices)}
+  </div>
+{/snippet}
+
+{#snippet executionHeaderActions()}
+  {#if page==='Sessions'}
+    {@render historyHeaderActions(launchOpen?'Search agents':'Search Sessions',launchOpen?launchSearchOpen:sessionSearchOpen,
+      toggleSessionSearch,'Session history options',sessionHistoryChoices)}
+  {:else}
+    {@render historyHeaderActions('Search Runs',runSearchOpen,toggleRunSearch,'Run history options',runHistoryChoices)}
   {/if}
 {/snippet}
 
-<ControlScope class="tori-scope">
+{#snippet sessionPicker()}
+  <section id="new-session-picker" class="session-picker" aria-labelledby="new-session-picker-title">
+    <div class="session-picker-heading">
+      <h3 id="new-session-picker-title" tabindex="-1">Choose an agent</h3>
+    </div>
+    {@render sessionAgentChoices()}
+  </section>
+{/snippet}
+
+{#snippet executionSidebarBody()}
+  {@render executionHistory()}
+  {#if page==='Sessions'&&session}
+    {@render sidebarDetails('Session details',sessionDetails)}
+  {:else if page==='Runs'&&run}
+    {@render sidebarDetails('Run details',runDetails)}
+  {/if}
+{/snippet}
+
+{#snippet sessionAgentChoices()}
+  <div class="session-agent-list library-sections definition-list history-group-list" aria-label="Agents for a new Session">
+    {#if launchError}<Feedback kind="error" message={launchError}/>{/if}
+    <Accordion.Root type="single" aria-label="Agent revisions">
+      {#each matchingActiveAgents as agent (agent.definition)}
+        <Accordion.Item value={agent.definition}>
+          <Accordion.Header><Accordion.Trigger aria-label={agent.name} data-agent-revisions={agent.definition}>
+            <span class="definition-name">{agent.name}</span>
+          </Accordion.Trigger></Accordion.Header>
+          <Accordion.Content>
+            {#each agent.revisions as revision (revision.version)}
+              {@const routeLabel=revision.route==='coding'?'Coding':'General'}
+              {@const showRoute=agent.revisions.filter(item=>item.number===revision.number).length>1}
+              <ControlButton.Root class="vict-btn vict-btn--quiet definition-row history-list-row" data-start-agent={agent.definition}
+                aria-label={'Start Session with '+revision.name+' · r'+revision.number+(showRoute?' · '+routeLabel:'')+(state.fixture?' · Fixture':'')}
+                title={revision.name+' · r'+revision.number+' · '+routeLabel} disabled={pending||sending} onclick={()=>start(revision)}>
+                <span class="definition-name">r{revision.number}{showRoute?' · '+routeLabel:''}</span>
+                {#if revision.version===agent.version||state.fixture}
+                  <span class="definition-note">{revision.version===agent.version?'Active':''}{revision.version===agent.version&&state.fixture?' · ':''}{state.fixture?'Fixture':''}</span>
+                {/if}
+              </ControlButton.Root>
+            {/each}
+          </Accordion.Content>
+        </Accordion.Item>
+      {/each}
+    </Accordion.Root>
+    {#each matchingInactiveAgents as agent (agent.id)}
+      {@const switchingBlocked=dirty&&state.definition!==agent.id}
+      <ControlButton.Root class="vict-btn vict-btn--quiet definition-row history-list-row session-inactive-agent"
+        aria-label={'Open '+agent.name+' in Agents to activate revision '+agent.savedRevision}
+        title={switchingBlocked?'Save or discard the current agent draft before switching.':'Open in Agents'}
+        disabled={pending||sending||switchingBlocked} onclick={()=>openAgentForActivation(agent.id)}>
+        <span class="definition-copy">
+          <span class="definition-name">{agent.name}</span>
+          <span class="definition-note">r{agent.savedRevision} · Needs activation</span>
+        </span>
+      </ControlButton.Root>
+    {/each}
+    {#if !matchingActiveAgents.length&&!matchingInactiveAgents.length}
+      <p class="dock-empty">{launchQuery?'No matching agents.':'Save and activate an agent to start a Session.'}</p>
+    {/if}
+  </div>
+{/snippet}
+
+{#snippet readOnlyTurn()}{/snippet}
+
+{#snippet sessionComposer()}
+  {#if session.archivedFixture}
+    <div class="session-readonly"><Feedback message="Fixture history · read only"/></div>
+  {:else if session.interrupted}
+    <div class="session-readonly">
+      <Feedback kind="error" message={interruptedRun?.message??'This Session was interrupted. Start a new Session to continue.'}/>
+      <div class="session-recovery-actions">
+        {#if interruptedRun}
+          <Button label="Inspect Run" variant="secondary" onclick={()=>inspectSessionRuns(interruptedRun.id)}/>
+        {/if}
+        <Button label="Start a new Session" variant="secondary" onclick={showSessionLauncher}/>
+      </div>
+    </div>
+  {:else if !session.connectionReady}
+    <div class="session-readonly"><Feedback kind="error" message="Connect a credential for this Session’s pinned route to send a message."/></div>
+  {:else}
+    <div class="session-composer">
+      {#if turnErrors[session.id]}<Feedback kind="error" message={turnErrors[session.id]}/>{/if}
+      <Patterns.PromptInput bind:value={()=>sessionDrafts[session.id]??'',value=>sessionDrafts[session.id]=value} busy={sendActivity?.session===session.id}
+        onSend={!sending&&!pending?send:undefined}>
+        {#snippet footer()}
+          {@const revision=session.number??session.revision}
+          <Badge variant="secondary" class="session-agent-chip" title={revision==null?session.name:recordIdentity(session)}>
+            <span class="visually-hidden">Pinned agent </span>
+            <span class="session-agent-name">{session.name}</span>
+            {#if revision!=null}<span class="session-agent-revision">· r{revision}</span>{/if}
+          </Badge>
+          {#if session.context}
+            <Toggle.Root type="button" class="session-context-toggle"
+              bind:pressed={()=>!!sessionContext[session.id],pressed=>sessionContext[session.id]=pressed}
+              disabled={sendActivity?.session===session.id} aria-label="Include pinned context on next turn"
+              title={'Include pinned context on next turn · '+session.context}>Include context</Toggle.Root>
+          {/if}
+          {#if sendActivity?.session===session.id}
+            <span class="session-turn-state"><StatusBadge value={sendActivity.phase==='answer'?'Writing answer':'Waiting for answer'}/></span>
+          {/if}
+        {/snippet}
+      </Patterns.PromptInput>
+    </div>
+  {/if}
+{/snippet}
+
+<ControlScope class="tori-scope vict-app">
   <div class="studio" class:wide={layoutWidth==='Wide'}>
     <header class="shell">
-      <div class="menuline"><span class="brand"><i aria-hidden="true"></i>TORI <span>STUDIO</span></span>
+      <div class="menuline"><span class="brand" role="img" aria-label="TORI Studio" title="TORI Studio">T</span>
       <Menubar.Root class="app-menu">
         {#each menu as family}
           <Menubar.Menu><Menubar.Trigger class="menu-trigger" id={family.name==='Window'?'window-menu-trigger':undefined}>{family.name}</Menubar.Trigger>
@@ -229,7 +1432,7 @@
             {#each family.items as item}
               {#if 'checked' in item && item.checked!==undefined}
                 <Menubar.CheckboxItem class="menu-item panel-check" checked={item.checked} disabled={item.disabled} onSelect={item.fn}>
-                  <span aria-hidden="true">{item.checked?'✓':' '}</span>{item.label}
+                  {item.label}
                 </Menubar.CheckboxItem>
               {:else}
                 <Menubar.Item class="menu-item" disabled={item.disabled} onSelect={item.fn}>{item.label}</Menubar.Item>
@@ -238,129 +1441,417 @@
           </Menubar.Content></Menubar.Portal></Menubar.Menu>
         {/each}
       </Menubar.Root><span class="local">LOCAL STUDIO</span></div>
-      <div class="document">
-        <div class="doc-name"><span class="eyebrow">LOCAL PROJECT / {page.toUpperCase()}</span><strong>{page==='Agents'&&graph.nodes.length?objectTitle('agent'):page==='Agents'?'Agent Assembly':page}</strong></div>
-        {#if page==='Agents'}
-          <StatusBadge value={dirty?'Unsaved':state.revision?'Saved · r'+state.revision.number:'New'}/>
-          <div class="history">
-            <Button label="Undo" variant="secondary" disabled={!canUndo} onclick={()=>travel('undo')}/>
-            <Button label="Redo" variant="secondary" disabled={!canRedo} onclick={()=>travel('redo')}/>
-          </div>
-          <Button label="Save" variant="secondary" disabled={!loaded||!dirty||pending} onclick={save}/>
-          <Button label="Activate" disabled={activateDisabled} onclick={activate}/>
-        {:else if page==='Sessions'}
-          <Button label="New Session" variant="secondary" disabled={!state.activation||pending||sending} onclick={start}/>
-        {/if}
-      </div>
     </header>
     {#if error}<div class="banner"><Feedback kind="error" message={error}/></div>{/if}
     {#if page==='Agents'}
-      <main class="assembly" class:has-library={!mobile&&library} class:has-inspector={!mobile&&inspector}>
-        {#if !mobile&&library}<aside class="library">{@render libraryBody()}</aside>{/if}
-        <section class="stage" aria-label="Agent assembly canvas">
-          <div class="canvas-tools">
-            <Button label="Library" variant="secondary" expanded={mobile?mobileOpen&&sheet==='Library':library} onclick={(event)=>toggle('Library',event.currentTarget as HTMLElement)}/>
-            <Button label="Inspector" variant="secondary" expanded={mobile?mobileOpen&&sheet==='Inspector':inspector} onclick={(event)=>toggle('Inspector',event.currentTarget as HTMLElement)}/>
-            <span class="spacer"></span>
-            {#if graph.nodes.length}
-              {#if !graph.nodes.some(n=>n.id==='model')}<Button label="Add model" variant="secondary" onclick={()=>create('model')}/>{/if}
-              <Button label="Fit" variant="secondary" onclick={fit}/>
-            {/if}
+      <div class="agent-workspace" class:has-agent-dock={!mobile&&library} class:has-inspector-dock={!mobile&&layersVisible}>
+        {#if !mobile&&library}
+          <aside class="agent-left-dock" aria-label="Library">
+            <div class="library-tabbar">
+              <h2>Library</h2>
+            </div>
+            {@render librarySections('sidebar')}
+          </aside>
+        {/if}
+        <div class="agent-detail">
+      <div class="agent-dockbar">
+        <div class="agent-dock-actions">{@render dockToggle('Library')}</div>
+      <div class="agent-views" role="group" aria-label="Agent view">
+        {#each ['Settings','Canvas'] as viewName}
+          <ControlButton.Root class="vict-btn vict-btn--secondary" aria-pressed={agentView===viewName}
+            onclick={()=>{if(agentView===viewName)return;cancelWire();if(wireDrag)wireDrag.cancelled=true;agentView=viewName==='Canvas'?'Canvas':'Settings';if(agentView==='Canvas'){if(!canvasIds.has(selection))selection='';void fit();}else if(isOptionalBinding(selection))selection='agent';}}>{viewName==='Settings'?'Configure':'Canvas'}</ControlButton.Root>
+        {/each}
+      </div>
+        <div class="agent-dock-actions right">{@render dockToggle('Nodes',agentView!=='Canvas')}</div>
+      </div>
+      {#if !graph.nodes.length}
+        <main class="agent-empty" aria-labelledby="agent-empty-title">
+          <div class="agent-empty-content">
+            <h1 id="agent-empty-title">No agent yet</h1>
+            <p>Add an agent, then give it instructions and a model.</p>
+            <Button label="Add Agent" variant="secondary" disabled={!loaded} onclick={()=>create('agent')}/>
+            {#if graphError}<Feedback kind="error" message={graphError}/>{/if}
           </div>
-          <div class="flow">
-            {#if graph.nodes.length}
-              <SvelteFlowProvider>
-                {@render canvas()}
-              </SvelteFlowProvider>
+        </main>
+      {:else if agentView==='Settings'}
+        {@const current=graph.nodes.some(node=>node.id===selection)?selection:'agent'}
+        {#if selection&&selection!=='agent'&&graph.nodes.some(node=>node.id===selection)}
+          <div class="configure-detail-nav">
+                <ControlButton.Root class="vict-btn vict-btn--quiet configure-back" aria-label="Back to agent"
+                  onclick={()=>selection='agent'}>
+                  <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6">
+                    <path d="m11 5-7 7 7 7M4 12h16"/>
+                  </svg>
+                  Back
+                </ControlButton.Root>
+          </div>
+        {/if}
+        <main class="agent-settings" aria-label="Configure agent">
+          <div class="agent-settings-content">
+            {#if current!=='agent'}
+              <header class="configure-detail-heading">
+                <h1 class="configure-heading">{objectTitle(current)}</h1>
+                {#if current==='context'}<p>Choose the source revision this agent can load on demand.</p>{/if}
+              </header>
+            {/if}
+            {#if current!=='agent'}
+              <section class="configure-group configure-detail-panel" aria-label={objectTitle(current)+' settings'}>
+                {@render agentFields(current)}
+              </section>
             {:else}
-              <div class="empty"><div class="empty-mark" aria-hidden="true">◇</div><p class="eyebrow">AGENT ASSEMBLY</p><h1>Build your first agent</h1><p>Start with a definition, give it instructions, and bind a model before activation.</p><Button label="Add Agent" disabled={!loaded} onclick={()=>create('agent')}/></div>
+              {@render agentFields(current)}
             {/if}
+            {#if graphError}<Feedback kind="error" message={graphError}/>{/if}
           </div>
-          <div class="canvas-status">
-            {#if graphError}<Feedback kind="error" message={graphError}/>
-            {:else if state.activation}<span>Active r{state.activation.number} · {state.activation.name}</span><Button label="Start Session" variant="secondary" disabled={pending} onclick={start}/>
-            {:else if graph.nodes.length}<span>{ready||'Ready to activate after saving.'}</span>
-            {:else}<span>Agent definitions are saved in this local project.</span>{/if}
+        </main>
+      {:else}
+      <main class="assembly">
+        <section class="stage" aria-label="Agent assembly canvas">
+          <div class="flow" ondblclickcapture={inspectDelegationWire}>
+            <div class="canvas-view-menu">
+              <DropdownMenu.Root>
+                <DropdownMenu.Trigger class="vict-btn vict-btn--secondary" aria-label="Canvas view">
+                  {Math.round(view.zoom*100)}% <span aria-hidden="true">⌃</span>
+                </DropdownMenu.Trigger>
+                <DropdownMenu.Portal>
+                  <DropdownMenu.Content class="menu-content" align="end" side="top" sideOffset={4}>
+                    <DropdownMenu.Item class="menu-item" disabled={view.zoom>=1.7} onSelect={()=>flow?.zoomIn()}>Zoom in</DropdownMenu.Item>
+                    <DropdownMenu.Item class="menu-item" disabled={view.zoom<=0.2} onSelect={()=>flow?.zoomOut()}>Zoom out</DropdownMenu.Item>
+                    <DropdownMenu.Item class="menu-item" onSelect={()=>flow?.setZoom(1)}>Actual size</DropdownMenu.Item>
+                    <DropdownMenu.Item class="menu-item" onSelect={fit}>Fit to view</DropdownMenu.Item>
+                    {#if !graph.nodes.some(n=>n.id==='model')}
+                      <DropdownMenu.Separator/>
+                      <DropdownMenu.Item class="menu-item" onSelect={()=>create('model')}>Add model</DropdownMenu.Item>
+                    {/if}
+                  </DropdownMenu.Content>
+                </DropdownMenu.Portal>
+              </DropdownMenu.Root>
+            </div>
+            <SvelteFlowProvider>
+              {@render canvas()}
+            </SvelteFlowProvider>
           </div>
-        </section>
-        {#if !mobile&&inspector}<aside class="inspector">{@render inspectorBody()}</aside>{/if}
-      </main>
-    {:else if page==='Sessions'}
-      <main class="session-view">
-        {#if session}
-          <header class="session-header"><div><p class="eyebrow">{session.fixture?'SESSION · DETERMINISTIC FIXTURE':'SESSION · LIVE PROVIDER'}</p><h1>{session.name}</h1><p>Z.AI {session.route==='coding'?'Coding':'General'} · {modelName} · Activated r{session.number} · Conversation</p></div>
-            <StatusBadge value={sendActivity?.session===session.id?(sendActivity.phase==='answer'?'Writing answer':'Waiting for Z.AI'):session.archivedFixture?'Fixture history':session.interrupted?'Interrupted':session.connectionReady?'Ready':'Credential not connected'}/>
-          </header>
-          {#if state.sessions.length>1}<div class="session-picker"><label for="session-picker">Open Session</label><Select id="session-picker" name="session" value={activeSession} options={state.sessions.map(s=>({value:s.id,label:s.name+' · '+new Date(s.created).toLocaleString()}))} onChange={v=>{activeSession=v;includeContext=false;}}/></div>{/if}
-          {#if session.context}
-            <div class="session-picker"><Checkbox.Root id="context-demand" class="vict-btn vict-btn--secondary" bind:checked={includeContext} disabled={sending} aria-label="Include pinned context on next turn">{includeContext?'✓':'□'}</Checkbox.Root>
-            <label for="context-demand">Include pinned context on next turn</label></div>
+          {#if graphError}
+            <div class="canvas-status"><Feedback kind="error" message={graphError}/></div>
           {/if}
-          <div class="conversation"><Conversation messages={session.messages} busy={sending} onSend={session.connectionReady&&!session.interrupted?send:undefined} emptyMessage="Start a conversation with your activated agent."/></div>
-          <div class="session-foot">
-            <span class="muted session-reasoning">Thinking details are unavailable through this connection.</span>
-            <Button label="Delete Session" variant="danger" disabled={sending||pending} onclick={()=>deleteOpen=true}/>
-            <Button label="Inspect runs" variant="secondary" disabled={!state.runs.some(r=>r.session===activeSession)} onclick={()=>{activeRun=state.runs.find(r=>r.session===activeSession).id;page='Runs';}}/></div>
-        {:else}
-          <div class="empty"><p class="eyebrow">SESSIONS</p><h1>Start a conversation</h1><p>{state.activation?'Open a Session pinned to your active agent.':'Activate a saved agent to start a real Session.'}</p><Button label={state.activation?'Start Session':'Open Agents'} onclick={state.activation?start:()=>page='Agents'}/></div>
-        {/if}
+        </section>
       </main>
-    {:else if page==='Runs'}
-      <main class="runs-view">
-        <p class="eyebrow">EXECUTION EVIDENCE</p><h1>Runs</h1>
-        {#if run}
-          <label for="run-picker">Run</label><Select id="run-picker" name="run" value={activeRun} options={state.runs.map(r=>({value:r.id,label:new Date(r.started).toLocaleString()+' · '+r.status}))} onChange={v=>activeRun=v}/>
-          {#if run.fixture}<p class="eyebrow">DETERMINISTIC FIXTURE</p>{/if}
-          <dl><dt>Status</dt><dd><StatusBadge value={run.status}/></dd><dt>Agent</dt><dd>{run.name} · r{run.number??run.revision}</dd><dt>Activation</dt><dd class="hash">{run.activation}</dd><dt>Provider / model</dt><dd>{run.parentRun?'Offline fixture':'Z.AI '+(run.route==='coding'?'Coding':'General')} / {run.observedModel??run.model}</dd><dt>Output token limit</dt><dd>{run.tokens}{run.sentMaxOutputTokens===undefined?' - configured':' - sent '+run.sentMaxOutputTokens}</dd>{#if run.execution}
-          <dt>Sampling</dt><dd>Temperature {run.execution.temperature??'provider default'}{run.sentTemperature!==undefined?' · sent '+run.sentTemperature:''} / Top-p {run.execution.topP??'provider default'}{run.sentTopP!==undefined?' · sent '+run.sentTopP:''}</dd>
-          <dt>Execution limits</dt><dd>{run.execution.maxSteps} steps · {run.execution.maxRetries} model retries · {run.execution.maxToolCalls} tool calls · {run.execution.deadlineMs/1000}s host deadline</dd>
-          <dt>Provider attempts</dt><dd>{run.providerAttempts}</dd>
-          {/if}<dt>Usage</dt><dd>{run.usage?run.usage.inputTokens+' input / '+run.usage.outputTokens+' output':'Not reported'}</dd><dt>Thinking</dt><dd>{run.reasoningAt?'Earlier provider observation; not a public VICT reasoning event.':'No public reasoning events or summary are available for this run.'}</dd><dt>Context</dt><dd>{run.context?run.context.source+' · '+run.context.status+(run.context.reason?' · '+run.context.reason:run.context.reads?' · '+run.context.reads+' read':''):'No on-demand source admitted'}</dd>
-          {#if run.outputContract}<dt>Output validation</dt><dd>{run.outputContract.id} · r{run.outputContract.revision} · {run.outputValidation??'not validated'}</dd>{/if}
-          {#if run.parentRun}<dt>Parent Run</dt><dd class="hash">{run.parentRun}</dd>
-          <dt>Parent invocation</dt><dd class="hash">{run.parentInvocation}</dd>{/if}
-          {#if run.memory}<dt>Scoped memory</dt><dd>{run.memory==='recent-10@1'?'Last 10 messages':'Last 100 messages'} · this Session</dd>{/if}
-          {#if run.governance}<dt>Governed tool</dt><dd>{run.governance.calls} MCP calls · {run.governance.disposition??'not called'}</dd>
-          {#if run.governance.scope}<dt>Tool scope</dt><dd>{run.name} · r{run.number} · read-only observatory</dd>{/if}
-          <dt>VICT turn</dt><dd class="hash">{run.governance.turnId}</dd>
-          <dt>Observed model steps</dt><dd>{run.modelSteps}</dd>{/if}</dl>
-          {#if run.message}<Feedback kind="error" message={run.message}/>{/if}
-          {#each state.runs.filter(child=>child.parentRun===run.id) as child}
-            <Button label={'Open child Run · '+child.status} variant="secondary" onclick={()=>activeRun=child.id}/>
-          {/each}
-          {#if run.parentRun}<Button label="Open parent Run" variant="secondary" onclick={()=>activeRun=run.parentRun}/>{/if}
-          <h2>Timeline</h2><ol class="timeline">{#each run.events as event}<li><time>{new Date(event.at).toLocaleTimeString()}</time><span>{event.label}</span></li>{/each}</ol>
-          <Button label="Open Session" variant="secondary" disabled={!state.sessions.some(s=>s.id===run.session)} onclick={()=>{activeSession=run.session;page='Sessions';}}/>
-        {:else}<Feedback kind="empty" message="Completed, interrupted and failed turns will appear here."/>
+      {/if}
+        {#if loaded&&graph.nodes.length}
+          <footer class="agent-editor-footer" aria-label="Agent revision and actions">
+            <div id="agent-revision-status" class="agent-revision-status" tabindex="-1">
+              <Feedback message={agentRevisionStatus}/>
+              {#if ready}<Feedback message={ready}/>{/if}
+            </div>
+            <div class="agent-revision-actions">
+              {#if dirty}
+                <Button label="Discard" variant="secondary" disabled={pending} onclick={async()=>{await reload();if(!dirty)await focusAgentRevision();}}/>
+                <Button label="Save" disabled={pending} onclick={async()=>{await save();if(!dirty)await focusAgentRevision();}}/>
+              {:else if activationMatchesSaved}
+                <Button label="Start Session" disabled={pending||sending} onclick={()=>start(state.activation,true)}/>
+              {:else if state.revision}
+                <Button label={'Activate r'+state.revision.number} disabled={activateDisabled}
+                  onclick={async()=>{await activate();if(activationMatchesSaved)await focusAgentRevision();}}/>
+              {/if}
+            </div>
+          </footer>
         {/if}
-      </main>
+        </div>
+        {#if !mobile&&layersVisible}
+          <aside class="inspector agent-layers-dock" aria-label="Nodes">
+            <div class="library-tabbar"><h2>Nodes</h2></div>
+            {@render layersBody()}
+          </aside>
+        {/if}
+      </div>
+    {:else if executionPage}
+      <div class="agent-workspace execution-workspace" class:has-inspector-dock={!mobile&&inspectorVisible}>
+        <div class="agent-detail">
+          <div class="agent-dockbar execution-toolbar">
+            {#if page==='Sessions'}
+              <div class="execution-identity">
+                <h1 bind:this={sessionTitle} tabindex="-1"
+                  aria-describedby={session?'selected-session-identity':undefined}>Sessions</h1>
+                {#if session}
+                  <span id="selected-session-identity" class="visually-hidden">{session.title} · {recordIdentity(session)}{session.fixture?' · '+recordMode(session):''}</span>
+                {/if}
+              </div>
+            {:else}
+              {#if runReturnTarget}
+                <ControlButton.Root class="vict-btn vict-btn--quiet panel-shortcut" aria-label="Back to Session" title="Back to Session"
+                  onclick={()=>openSession(runReturnTarget.id,true)}>
+                  <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M19 12H5m7-7-7 7 7 7"/>
+                  </svg>
+                </ControlButton.Root>
+              {/if}
+              <div class="execution-identity"><strong>Runs</strong></div>
+            {/if}
+            <div class="execution-actions">{@render dockToggle('Inspector')}</div>
+          </div>
+          {#if page==='Sessions'}
+            <main class="session-view" aria-label="Conversation">
+              {#if session}
+                {#key session.id}
+                  <div class="conversation" bind:this={conversationPane} use:rememberReadingPosition={session.id}>
+                    <Conversation messages={session.messages} busy={sendActivity?.session===session.id}
+                      composer={sessionComposer} emptyMessage="Start a conversation."/>
+                  </div>
+                {/key}
+              {:else}
+                <div class="empty"><h1>No conversation yet</h1><p>Use New Session in the right sidebar to choose an active agent.</p></div>
+              {/if}
+            </main>
+          {:else}
+            <main class="runs-view" aria-label="Run outcome and timeline" bind:this={runPane}>
+              {#if run}
+                {@const parent=run.parentRun?state.runs.find(item=>item.id===run.parentRun):undefined}
+                {@const children=state.runs.filter(child=>child.parentRun===run.id)}
+                {@const revision=run.number??run.revision}
+                <div class="runs-content">
+                  <section class="run-summary" aria-labelledby="run-outcome-heading">
+                    <header class="run-section-heading">
+                      <span class="run-section-label" id="run-outcome-heading">Outcome</span>
+                    </header>
+                    <div class="run-section-card">
+                      {#if run.message}<Feedback kind={run.status==='failed'?'error':'status'} message={run.message}/>{/if}
+                      <dl class="run-summary-meta">
+                        <div>
+                          <dt>Agent</dt>
+                          <dd><h1 bind:this={runTitle} tabindex="-1">{run.name}</h1></dd>
+                        </div>
+                        <div><dt>Version</dt><dd>{revision==null?'Not recorded':'r'+revision}</dd></div>
+                        <div>
+                          <dt>Status</dt>
+                          <dd><StatusBadge value={runStatus(run.status)} tone={run.status==='failed'?'danger':'neutral'}/></dd>
+                        </div>
+                        <div><dt>Execution</dt><dd>{recordMode(run)}</dd></div>
+                      </dl>
+                      <dl class="run-summary-meta run-summary-timing">
+                        <div><dt>Started</dt><dd><time datetime={run.started}>{historyDate(run.started)}</time></dd></div>
+                        {#if runDuration}<div><dt>Duration</dt><dd>{runDuration}</dd></div>{/if}
+                        {#if runTokenUsage}<div><dt>Token usage</dt><dd>{runTokenUsage}</dd></div>{/if}
+                      </dl>
+                      {#if !selectedPrompt || parent || children.length}
+                        <div class="run-links">
+                          {#if !selectedPrompt}
+                            {#if runSession}
+                              <ControlButton.Root class="vict-btn vict-btn--quiet" onclick={()=>openSession(runSession.id,true)}>Open Session</ControlButton.Root>
+                            {:else}<span class="muted">Session unavailable</span>{/if}
+                          {/if}
+                          {#if parent}
+                            <ControlButton.Root class="vict-btn vict-btn--quiet" onclick={()=>openRun(parent.id,true)}>
+                              Open parent Run · {recordIdentity(parent)}
+                            </ControlButton.Root>
+                          {/if}
+                          {#each children as child (child.id)}
+                            <ControlButton.Root class="vict-btn vict-btn--quiet" onclick={()=>openRun(child.id,true)}>
+                              Open child Run · {recordIdentity(child)}
+                            </ControlButton.Root>
+                          {/each}
+                        </div>
+                      {/if}
+                    </div>
+                  </section>
+                  {#if selectedPrompt}
+                    {#key run.id}
+                      <section class="run-turn" aria-labelledby="run-turn-heading">
+                        <header class="run-section-heading">
+                          <h2 id="run-turn-heading">Turn</h2>
+                          {#if runSession}
+                            <ControlButton.Root class="vict-btn vict-btn--quiet run-open-turn" aria-label="Open turn" title="Open turn in Sessions"
+                              onclick={()=>openSession(runSession.id,true,selectedPrompt.id)}>
+                              {@render openViewIcon()}
+                            </ControlButton.Root>
+                          {/if}
+                        </header>
+                        <div class="run-section-card">
+                          <Conversation messages={selectedReply?[selectedPrompt,selectedReply]:[selectedPrompt]} composer={readOnlyTurn} inputLabel="Run turn"/>
+                        </div>
+                      </section>
+                    {/key}
+                  {/if}
+                  <section class="run-timeline" aria-label="Timeline">
+                    <div class="run-section-heading"><h2>Timeline</h2></div>
+                    <ol class="timeline">{#each run.events as event, index}
+                      {@const offset=elapsed(run.started,event.at,timelineSecondsFormat)}
+                      {@const timestamp=new Date(event.at)}
+                      <li>
+                        <span class="timeline-event">
+                          <span class="timeline-number" aria-hidden="true">{index+1}</span>
+                          <span class="timeline-label">{eventLabel(event)}</span>
+                        </span>
+                        <span class="timeline-offset">{offset?'+'+offset:'—'}</span>
+                        {#if Number.isFinite(timestamp.getTime())}
+                          <time class="timeline-clock" datetime={event.at} title={historyDate(event.at)}>{timelineClockFormat.format(timestamp)}</time>
+                        {:else}<span class="timeline-clock">Time unavailable</span>{/if}
+                      </li>
+                    {/each}</ol>
+                  </section>
+                </div>
+              {:else}
+                <div class="empty"><h1>No Runs yet</h1><p>{runScope==='session'&&session?'This Session has no recorded Runs yet.':'Recorded turns will appear here.'}</p></div>
+              {/if}
+            </main>
+          {/if}
+        </div>
+        {#if !mobile&&inspectorVisible}
+          <aside class="inspector execution-right-dock" aria-label={page==='Sessions'?'Session history':'Run history'}>
+            <div class="library-tabbar">
+              <h2>{page}</h2>
+              {@render executionHeaderActions()}
+            </div>
+            {@render executionSidebarBody()}
+          </aside>
+        {/if}
+      </div>
     {/if}
     <nav class="tasks" aria-label="Studio tasks">
       {#each pages as item}
-        <ControlButton.Root class={'vict-btn vict-btn--secondary '+(page===item?'current-task':'')} aria-current={page===item?'page':undefined} disabled={['Workflows','Creative'].includes(item)} onclick={()=>page=item}>{item}</ControlButton.Root>
+        <ControlButton.Root class={'vict-btn vict-btn--secondary '+(page===item?'current-task':'')} aria-current={page===item?'page':undefined} disabled={['Workflows','Creative'].includes(item)} onclick={()=>item==='Runs'?openRuns():changePage(item)}>{item}</ControlButton.Root>
       {/each}
     </nav>
   </div>
-  <Dialog.Root bind:open={deleteOpen}><Dialog.Portal><Dialog.Overlay class="sheet-shade"/><Dialog.Content class="mobile-sheet">
-    <Dialog.Title>Delete this Session?</Dialog.Title><Dialog.Description>Deletes its transcript and conversation memory. Run receipts are retained.</Dialog.Description>
-    <Dialog.Close class="vict-btn vict-btn--secondary">Cancel</Dialog.Close>
-    <Button label="Confirm delete Session" variant="danger" disabled={pending} onclick={deleteSession}/>
+  <Dialog.Root open={!!renameTarget} onOpenChange={open=>{if(!open&&!pending)renameTarget='';}}>
+    <Dialog.Portal><Dialog.Overlay class="sheet-shade studio-dialog-shade"/><Dialog.Content class="mobile-sheet studio-dialog"
+      onCloseAutoFocus={restoreSessionActionFocus}>
+      <Dialog.Title>Rename Session</Dialog.Title>
+      <Dialog.Description class="visually-hidden">Give this conversation a title.</Dialog.Description>
+      <form class="session-rename-form" onsubmit={renameSession}>
+        <label for="session-title-input">Session title</label>
+        <Input id="session-title-input" class="tori-field" bind:value={renameTitle} maxlength={80} disabled={pending}/>
+        {#if renameError}<Feedback kind="error" message={renameError}/>{/if}
+        <div class="launch-actions">
+          <Dialog.Close class="vict-btn vict-btn--quiet" type="button" disabled={pending}>Cancel</Dialog.Close>
+          <Button label="Save title" type="submit" variant="secondary" disabled={pending||!renameTitle.trim()}/>
+        </div>
+      </form>
+    </Dialog.Content></Dialog.Portal>
+  </Dialog.Root>
+  <Dialog.Root open={!!deleteTarget} onOpenChange={open=>{if(!open&&!pending)deleteTarget=null;}}>
+    <Dialog.Portal><Dialog.Overlay class="sheet-shade studio-dialog-shade"/><Dialog.Content class="mobile-sheet studio-dialog"
+      onCloseAutoFocus={restoreSessionActionFocus}>
+    <Dialog.Title>Delete this Session?</Dialog.Title>
+    <Dialog.Description>“{deleteTarget?.title}” and its conversation memory will be deleted. Run receipts are retained.</Dialog.Description>
+    {#if deleteError}<Feedback kind="error" message={deleteError}/>{/if}
+    <div class="launch-actions">
+      <Dialog.Close class="vict-btn vict-btn--quiet" disabled={pending}>Cancel</Dialog.Close>
+      <Button label="Confirm delete Session" variant="danger" disabled={pending} onclick={deleteSession}/>
+    </div>
   </Dialog.Content></Dialog.Portal></Dialog.Root>
-  <Dialog.Root bind:open={mobileOpen}><Dialog.Portal><Dialog.Overlay class="sheet-shade"/><Dialog.Content class="mobile-sheet" onCloseAutoFocus={(event)=>{if(sheetInvoker?.isConnected){event.preventDefault();sheetInvoker.focus({preventScroll:true});}}}>
-    <div class="sheet-top"><Dialog.Title>{sheet}</Dialog.Title><Dialog.Close class="menu-trigger">Close</Dialog.Close></div>
-    <Dialog.Description>Inspect the current assembly.</Dialog.Description>
-    {#if sheet==='Library'}{@render libraryBody()}{:else}{@render inspectorBody()}{/if}
+  <Dialog.Root bind:open={delegationOpen}>
+    <Dialog.Portal>
+      <Dialog.Overlay class="sheet-shade studio-dialog-shade"/>
+      <Dialog.Content class="mobile-sheet studio-dialog delegation-dialog" onCloseAutoFocus={restoreDelegationFocus}>
+        <div class="delegation-header">
+          <Dialog.Title>Delegation</Dialog.Title>
+          <Dialog.Close class="vict-btn vict-btn--quiet delegation-close" aria-label="Close" title="Close">
+            <span aria-hidden="true">×</span>
+          </Dialog.Close>
+        </div>
+        <Dialog.Description class="visually-hidden">Child revision, task and permitted scope.</Dialog.Description>
+        {@render agentFields('child','delegation')}
+      </Dialog.Content>
+    </Dialog.Portal>
+  </Dialog.Root>
+  <Dialog.Root bind:open={mobileOpen} onOpenChange={open=>{if(!open&&page==='Sessions')launchOpen=false;}}><Dialog.Portal><Dialog.Overlay class="sheet-shade"/><Dialog.Content class={'mobile-sheet'+(executionPage?' execution-sidebar-sheet':'')}
+    onEscapeKeydown={event=>{if(page==='Sessions'&&launchOpen){event.preventDefault();void closeSessionLauncher();}}}
+    onCloseAutoFocus={(event)=>{if(sheetInvoker?.isConnected){event.preventDefault();sheetInvoker.focus({preventScroll:true});}
+    else if(executionPage)event.preventDefault();}}>
+    <div class="sheet-top">
+      <Dialog.Title class={executionPage?'execution-sidebar-title':undefined}>{executionPage?page:sheet}</Dialog.Title>
+      <div class="sheet-top-actions">
+        {#if executionPage}{@render executionHeaderActions()}{/if}
+        <Dialog.Close class="menu-trigger">Close</Dialog.Close>
+      </div>
+    </div>
+    <Dialog.Description class="visually-hidden">{executionPage?'Browse or inspect the current workspace.':sheet==='Nodes'?'Browse nodes in the current agent.':'Browse agents and components.'}</Dialog.Description>
+    {#if executionPage}
+      {@render executionSidebarBody()}
+    {:else if sheet==='Nodes'}
+      {@render layersBody()}
+    {:else if sheet==='Library'}
+      {@render librarySections('sheet')}
+    {/if}
   </Dialog.Content></Dialog.Portal></Dialog.Root>
 </ControlScope>
 
 {#snippet canvas()}
-  <SvelteFlow bind:nodes {edges} nodeTypes={types} bind:viewport={view} oninit={()=>{if(mobile&&selection)void reveal(selection);else if(view.x===0&&view.y===0)void fit();}}
-    onnodeclick={({node})=>selection=node.id} onpaneclick={()=>selection=''}
-    onselectionchange={({nodes:selected})=>{if(selected.length)selection=selected[0].id;}}
-    onbeforeconnect={(connection)=>{onConnection(connection);return false;}}
+  <SvelteFlow bind:nodes {edges} nodeTypes={types} {edgeTypes} bind:viewport={view}
+    oninit={()=>{if(mobile&&selection)void focusCanvasNode(selection);else if(view.x===0&&view.y===0)void fit();}}
+    onnodeclick={({node})=>selectCanvas(node.id)}
+    onedgeclick={({edge})=>void tick().then(()=>{
+      if(!delegationOpen)canvasWire(edge.id)?.focus({preventScroll:true});
+    })}
+    onpaneclick={()=>{selection='';cancelWire();}}
+    onselectionchange={({nodes:selected,edges:selectedWires})=>{
+      selectedWire=selectedWires[0]?.id??'';
+      if(selected.length)selection=selected[0].id;
+      else if(selectedWire)selection='';
+    }}
+    {isValidConnection} onbeforeconnect={onConnection}
+    onconnectstart={event=>{
+      if(wireDrag?.event!==event)wireDrag=undefined;
+      graphError='';cancelWire();
+    }}
+    onconnectend={(_event,connection)=>{
+      if(connection.toHandle&&!connection.isValid&&!wireDrag?.cancelled){
+        graphError=wireDrag?'Drop on a compatible port with room for the wire.':'Use a matching, unconnected input.';
+      }
+    }}
+    onreconnectstart={(event,edge)=>{wireDrag={id:edge.id,graph,event,cancelled:false};}}
+    onbeforereconnect={reconnectWire}
+    onreconnectend={(event,edge,_end,connection)=>finishWireDrag(event,edge.id,!!connection.toHandle)}
+    clickConnect onclickconnectstart={(_event,handle)=>{wireDrag=undefined;graphError='';wireSource=handle.nodeId??'';}}
+    onclickconnectend={()=>wireSource=''}
     onnodedragstop={({nodes:moved})=>commit([{type:'moveNodes',positions:Object.fromEntries(moved.map(n=>[n.id,n.position]))}])}
     nodesDraggable={!mobile} multiSelectionKey={null} deleteKey={null} minZoom={0.2} maxZoom={1.7} proOptions={{hideAttribution:true}}>
-    <FlowAccess onready={(instance)=>flow=instance}/>
-    <Background color="#454950" gap={24} size={1}/>
+    <FlowAccess onready={(instance,cancelClick)=>{flow=instance;cancelFlowClick=cancelClick;}}/>
+    <Background color="var(--canvas-grid)" gap={24} size={1}/>
   </SvelteFlow>
+{/snippet}
+
+
+{#snippet definitionList(location:string)}
+  <div class="library-filter">
+    <label for={'agent-search-'+location} class="visually-hidden">Search agents</label>
+    <Input id={'agent-search-'+location} class="tori-field" placeholder="Search agents" bind:value={agentSearch}/>
+  </div>
+  <div class="definition-list">
+    {#each agentDefinitions.filter(item=>item.name.toLowerCase().includes(agentSearch.trim().toLowerCase())) as item (item.id)}
+      <ControlButton.Root class="vict-btn vict-btn--secondary definition-row" aria-pressed={state.definition===item.id}
+        disabled={state.definition!==item.id&&(dirty||pending||sending)}
+        onclick={async()=>{if(state.definition!==item.id)await openDefinition(item.id);if(!error)mobileOpen=false;}}>
+        <span class="definition-copy">
+          <span class="definition-name">{item.name}</span>
+          {#if state.definition===item.id&&dirty}<span class="definition-note">Unsaved changes</span>
+          {:else if item.savedRevision!==undefined&&!activeDefinitionIds.has(item.id)}
+            <span class="definition-note">Needs activation</span>
+          {/if}
+        </span>
+      </ControlButton.Root>
+    {:else}
+      <p class="muted">No matching agents.</p>
+    {/each}
+  </div>
+  <div class="library-create">
+    <Button label="New agent" variant="secondary" disabled={!loaded||dirty||pending||sending}
+      onclick={async()=>{await newDefinition();if(!error)mobileOpen=false;}}/>
+  </div>
+  {#if dirty}<p class="muted">Save or discard changes before switching agents.</p>{/if}
+{/snippet}
+
+{#snippet librarySections(location:string)}
+  <Accordion.Root class="library-sections" type="single" aria-label="Library sections">
+    <Accordion.Item value="agents">
+      <Accordion.Header><Accordion.Trigger aria-label="Agents">Agents</Accordion.Trigger></Accordion.Header>
+      <Accordion.Content class="agent-index">{@render definitionList(location)}</Accordion.Content>
+    </Accordion.Item>
+    {#if agentView==='Canvas'}
+      <Accordion.Item value="components">
+        <Accordion.Header><Accordion.Trigger aria-label="Components">Components</Accordion.Trigger></Accordion.Header>
+        <Accordion.Content class="canvas-component-palette">{@render componentPalette()}</Accordion.Content>
+      </Accordion.Item>
+    {/if}
+  </Accordion.Root>
 {/snippet}

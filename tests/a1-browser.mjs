@@ -49,12 +49,95 @@ try {
   page.setDefaultTimeout(20000);
   const errors=[];
   page.on('pageerror',error=>errors.push(error.message));
-  const button=name=>page.getByRole('button',{name,exact:true});
+  const button=name=>page.getByRole('button',{
+    name,
+    exact:true,
+  });
+  async function canvasMenu(name,role='menuitem'){
+    await button('Canvas view').click();
+    await page.getByRole(role,{name,exact:true}).click();
+  }
+  const library=page.getByRole('complementary',{name:'Library'});
+  const nodePanel=page.getByRole('complementary',{name:'Nodes'});
+  const layer=name=>nodePanel.getByRole('button',{name,exact:true});
+  async function openNodes(){
+    if(await button('Nodes').getAttribute('aria-expanded')!=='true')await button('Nodes').click();
+  }
+  async function openLibrary(section){
+    if(await button('Library').getAttribute('aria-expanded')!=='true')await button('Library').click();
+    const group=library.getByRole('button',{name:section,exact:true});
+    if(await group.getAttribute('aria-expanded')!=='true')await group.click();
+  }
+  async function addCanvasComponent(label){
+    await openLibrary('Components');
+    await library.getByRole('button',{name:'Add '+label,exact:true}).click();
+  }
+  const task=name=>page.getByRole('navigation',{name:'Studio tasks'}).getByRole('button',{name,exact:true});
+  async function expectSessionIdentity(title,identity){
+    await page.getByRole('heading',{name:'Sessions',exact:true})
+      .and(page.locator('[aria-describedby="selected-session-identity"]')).waitFor();
+    await page.waitForFunction(text=>document.getElementById('selected-session-identity')?.textContent?.trim()===text,
+      title+' · '+identity);
+  }
+  async function findSessionRow(id){
+    if(await button('Sessions sidebar').getAttribute('aria-expanded')!=='true')await button('Sessions sidebar').click();
+    const history=page.getByRole('complementary',{name:'Session history'});
+    const row=history.locator('[data-session-id="'+id+'"]');
+    if(!await row.isVisible()){
+      const snapshot=await api();
+      const session=snapshot.sessions.find(item=>item.id===id);
+      const name=snapshot.definitions.find(item=>item.id===session.definition)?.name??session.name;
+      await history.getByRole('button',{name,exact:true}).click();
+    }
+    return row;
+  }
+  async function chooseSession(id){
+    await (await findSessionRow(id)).click();
+  }
+  async function sessionRowAction(id,name){
+    const row=await findSessionRow(id);
+    await row.hover();
+    await page.locator('#session-row-actions-'+id).click();
+    await page.getByRole('menuitem',{name,exact:true}).click();
+  }
+  async function openSessionDetails(){
+    if(await button('Sessions sidebar').getAttribute('aria-expanded')!=='true')await button('Sessions sidebar').click();
+    const details=button('Details');
+    if(await details.getAttribute('aria-expanded')!=='true')await details.click();
+  }
+  async function inspectRuns(){
+    await openSessionDetails();
+    await button('Inspect runs').click();
+    await page.waitForFunction(()=>document.activeElement?.matches('.run-summary h1'));
+  }
+  async function openRunDetails(name){
+    if(await button('Runs sidebar').getAttribute('aria-expanded')!=='true')await button('Runs sidebar').click();
+    if(await button('Details').getAttribute('aria-expanded')!=='true')await button('Details').click();
+    await page.getByRole('region',{name:'Run details content'}).getByRole('heading',{name,exact:true}).scrollIntoViewIfNeeded();
+  }
+  async function chooseRunOption(name){
+    await button('Run history options').click();
+    await page.getByRole('menu',{name:'Run history options',exact:true}).getByRole('menuitemradio',{name,exact:true}).click();
+  }
   const field=id=>page.locator('#'+id);
+  async function openAgentExecution(){
+    const disclosure=page.locator('.graph-node[data-kind="agent"]').getByRole('button',{name:/^Execution /});
+    if(await disclosure.getAttribute('aria-expanded')!=='true')await disclosure.click();
+  }
+  async function agentAction(agent,name){
+    await button('Actions for '+agent).click();
+    await page.getByRole('menuitem',{name,exact:true}).click();
+  }
+  async function renameAgent(previous,name){
+    await agentAction(previous,'Rename agent');
+    await field('canvas-agent-label').fill(name);
+    await button('Apply').click();
+  }
   const api=async()=> (await page.request.get(url+'/api/studio')).json();
   async function clickRequest(buttonName,path) {
     const pending=page.waitForResponse(r=>r.url().endsWith('/api/studio/'+path)&&r.request().method()==='POST');
-    await button(buttonName).click();
+    if(buttonName==='Activate')await page.getByRole('button',{name:/^Activate r\d+$/}).click();
+    else await button(buttonName).click();
     const response=await pending;
     assert.equal(response.status(),200,await response.text());
     return response.json();
@@ -83,57 +166,118 @@ try {
   }
 
   await page.goto(url,{timeout:120000});
+  await button('Canvas').click();
   await button('Add Agent').click({timeout:60000});
-  await field('inspector-agent-name').fill('A1 Fixture Agent');
-  await field('inspector-agent-text').fill('Return a concise synthetic answer.');
-  await button('Add model').click();
-  await field('inspector-model-model').selectOption('glm-5.3-flash');
-  await button('Connect to Model').click();
-  await field('inspector-model-tokens').fill('4096');
-  await clickRequest('Save','save');
+  await openNodes();
+  await renameAgent('Untitled agent','A1 Fixture Agent');
+  await field('canvas-agent-instructions').fill('Return a concise synthetic answer.');
+  await canvasMenu('Add model');
+  await field('canvas-model').selectOption('glm-5.3-flash');
+  await agentAction('Model Reference','Connect to Model');
+  await field('canvas-model-output-limit').fill('4096');
+  const {graph:initialValidGraph}=await clickRequest('Save','save');
   await clickRequest('Activate','activate');
   const old=(await clickRequest('Start Session','sessions')).sessions[0];
-  await page.getByText('SESSION · DETERMINISTIC FIXTURE',{exact:true}).waitFor();
+  await expectSessionIdentity('New Session','A1 Fixture Agent · r1 · Fixture');
   await turn(old,4096);
+  await expectSessionIdentity('Synthetic A1 verification','A1 Fixture Agent · r1 · Fixture');
+  const beforeRename=(await api()).sessions.find(item=>item.id===old.id);
+  await sessionRowAction(old.id,'Rename Session');
+  const titleInput=page.getByRole('textbox',{name:'Session title'});
+  await titleInput.fill('   ');
+  assert.ok(await button('Save title').isDisabled());
+  await titleInput.fill('  Observatory notes  ');
+  await clickRequest('Save title','rename-session');
+  await expectSessionIdentity('Observatory notes','A1 Fixture Agent · r1 · Fixture');
+  const renamed=(await api()).sessions.find(item=>item.id===old.id);
+  assert.equal(renamed.lastActivityAt,beforeRename.lastActivityAt);
+  assert.equal(renamed.activation,old.activation);
+  assert.deepEqual(renamed.messages,beforeRename.messages);
 
-  await button('Agents').click();
-  await button('GLM-5.3 Flash').click();
-  await button('Show output limit as node').click();
-  await page.locator('.svelte-flow__edge[data-id="output-limit-to-tokens"]').waitFor();
-  assert.equal(await field('inspector-output-limit-tokens').inputValue(),'4096');
-  await field('inspector-output-limit-tokens').fill('2048');
-  await button('GLM-5.3 Flash').click();
-  assert.equal(await field('inspector-model-tokens').inputValue(),'2048');
+  await task('Agents').click();
+  if(await button('Canvas').getAttribute('aria-pressed')!=='true')await button('Canvas').click();
+  await openNodes();
+  await layer('Model Reference').click();
+  await canvasMenu('Fit to view');
+  await agentAction('A1 Fixture Agent','Create and connect: Output limit Integer');
+  const outputEdge=page.locator('.svelte-flow__edge[data-id="output-limit-to-tokens"] .svelte-flow__edge-path');
+  await outputEdge.waitFor({state:'attached'});
+  assert.ok(await outputEdge.evaluate(path=>path.getTotalLength())>0);
+  assert.equal(await field('canvas-integer-output-limit').inputValue(),'4096');
+  await field('canvas-integer-output-limit').fill('2048');
+  await layer('Model Reference').click();
+  assert.equal(await field('canvas-model-output-limit').inputValue(),'2048');
   await page.screenshot({path:join(directory,'connected-output-limit.png'),animations:'disabled'});
-  await button('Detach output limit source').click();
-  assert.equal(await field('inspector-model-tokens').inputValue(),'2048');
-  await button('Show output limit as node').click();
-  assert.equal(await field('inspector-output-limit-tokens').inputValue(),'2048');
+  const outputWire=page.getByRole('group',{name:'Output limit Integer to Max output tokens',exact:true});
+  await outputWire.focus();
+  await page.keyboard.press('Enter');
+  await page.keyboard.press('Delete');
+  await outputEdge.waitFor({state:'detached'});
+  assert.equal(await field('canvas-model-output-limit').inputValue(),'2048');
+  await layer('Output limit Integer').click();
+  await agentAction('Output limit Integer','Connect to Max output tokens');
+  assert.equal(await field('canvas-integer-output-limit').inputValue(),'2048');
   if(a2){
-    await button('GLM-5.3 Flash').click();
-    await field('inspector-model-temperature').fill('0.4');
-    await field('inspector-model-top-p').fill('0.8');
-    await button('A1 Fixture Agent').click();
-    await field('inspector-agent-steps').fill('2');
-    await field('inspector-agent-retries').fill('1');
+    await layer('Model Reference').click();
+    await button('Sampling').click();
+    await field('canvas-model-temperature').fill('0.4');
+    await field('canvas-model-top-p').fill('0.8');
+    await layer('A1 Fixture Agent').click();
+    await openAgentExecution();
+    await field('canvas-agent-steps').fill('2');
+    await field('canvas-agent-retries').fill('1');
   }
   await clickRequest('Save','save');
   await clickRequest('Activate','activate');
   const next=(await clickRequest('Start Session','sessions')).sessions[0];
   assert.notEqual(next.activation,old.activation);
+  const composer=page.getByRole('textbox',{name:'Message'});
+  await composer.fill('Unsent next Session draft');
+  await chooseSession(old.id);
+  assert.equal(await composer.inputValue(),'');
+  await composer.fill('Unsent old Session draft');
+  await chooseSession(next.id);
+  assert.equal(await composer.inputValue(),'Unsent next Session draft');
+  await task('Runs').click();
+  await task('Sessions').click();
+  assert.equal(await composer.inputValue(),'Unsent next Session draft');
   await turn(next,2048);
-  await button('Inspect runs').click();
+  await inspectRuns();
+  const runSidebar=page.getByRole('complementary',{name:'Run history'});
+  const runGroups=runSidebar.getByLabel('Run history groups').locator('[data-accordion-trigger]');
+  const selectedRun=runSidebar.locator('[data-run-id][aria-pressed=true]');
+  const selectedId=await selectedRun.getAttribute('data-run-id');
+  await selectedRun.getByText('Synthetic A1 verification',{exact:true}).waitFor();
+  const runTurn=page.getByRole('region',{name:'Turn',exact:true});
+  await runTurn.getByText('Synthetic A1 verification',{exact:true}).waitFor();
+  await runTurn.getByText('Deterministic A1 fixture answer.',{exact:true}).waitFor();
+  assert.equal(await runGroups.count(),1);
+  await chooseRunOption('All runs');
+  assert.equal(await runGroups.count(),2);
+  assert.equal(await selectedRun.getAttribute('data-run-id'),selectedId);
+  await chooseRunOption('This Session');
+  assert.equal(await runGroups.count(),1);
+  await chooseRunOption('Activity date');
+  await runGroups.first().getByText('Today',{exact:true}).waitFor();
+  await chooseRunOption('Session');
+  await button('Search Runs').click();
+  await runSidebar.getByRole('textbox',{name:'Search Runs'}).fill(selectedId);
+  assert.equal(await selectedRun.getAttribute('data-run-id'),selectedId);
+  await button('Search Runs').click();
+  await openRunDetails('Execution');
   await page.getByText('2048 - sent 2048',{exact:true}).waitFor();
-  await page.getByText('DETERMINISTIC FIXTURE',{exact:true}).waitFor();
+  await page.getByRole('region',{name:'Outcome'}).getByText('Fixture',{exact:true}).waitFor();
   if(a2)await page.getByText('Temperature 0.4 · sent 0.4 / Top-p 0.8 · sent 0.8',{exact:true}).waitFor();
   await page.screenshot({path:join(directory,'fixture-run.png'),animations:'disabled'});
 
-  await button('Agents').click();
-  await button('Output limit Integer').click();
+  await task('Agents').click();
+  if(await button('Canvas').getAttribute('aria-pressed')!=='true')await button('Canvas').click();
+  await openNodes();
+  await layer('Output limit Integer').click();
   for(const bad of ['63','64.5','32769']){
-    await field('inspector-output-limit-tokens').fill(bad);
+    await field('canvas-integer-output-limit').fill(bad);
     const state=await clickRequest('Save','save');
-    assert.ok(await button('Activate').isDisabled());
+    assert.ok(await page.getByRole('button',{name:/^Activate r\d+$/}).isDisabled());
     const refused=await page.request.post(url+'/api/studio/activate',{data:{revision:state.revision},headers:{origin:url}});
     assert.equal(refused.status(),409);
     assert.match((await refused.json()).message,/whole output limit/);
@@ -146,26 +290,56 @@ try {
   await launch();
   await page.goto(url,{timeout:120000});
   await button('Sessions').click();
-  await field('session-picker').selectOption(old.id);
+  if(await button('Sessions sidebar').getAttribute('aria-expanded')!=='true')await button('Sessions sidebar').click();
+  const group=page.getByRole('complementary',{name:'Session history'}).getByRole('button',{name:'A1 Fixture Agent',exact:true});
+  assert.equal(await group.getAttribute('aria-expanded'),'false');
+  await chooseSession(old.id);
+  await expectSessionIdentity('Observatory notes','A1 Fixture Agent · r1 · Fixture');
   await turn(old,4096);
-  await field('session-picker').selectOption(next.id);
+  const history=page.getByRole('complementary',{name:'Session history'});
+  await page.waitForFunction(id=>document.querySelector('[data-session-id]')?.getAttribute('data-session-id')===id,old.id);
+  const oldRow=history.locator('[data-session-id="'+old.id+'"]');
+  const metadata=oldRow.locator('.session-row-meta');
+  await metadata.getByText('r1 · Fixture',{exact:true}).waitFor();
+  assert.equal(await oldRow.locator('time').count(),0);
+  await openSessionDetails();
+  const activity=page.locator('.session-details time');
+  await activity.waitFor();
+  assert.ok(await activity.getAttribute('datetime')>renamed.lastActivityAt);
+  await button('Search Sessions').click();
+  await history.getByRole('textbox',{name:'Search Sessions'}).fill('Observatory notes');
+  assert.equal(await history.locator('[data-session-id]').count(),1);
+  await history.getByRole('textbox',{name:'Search Sessions'}).clear();
+  const priorRun=(await api()).runs.filter(run=>run.session===old.id).at(-1);
+  await inspectRuns();
+  const priorRow=page.locator('[data-run-id="'+priorRun.id+'"]');
+  await priorRow.click();
+  await button('Open turn').click();
+  await page.waitForFunction(id=>document.activeElement?.getAttribute('data-message-id')===id,priorRun.id+'-user');
+  await inspectRuns();
+  assert.equal(await priorRow.getAttribute('aria-pressed'),'true');
+  await button('Open turn').click();
+  await chooseSession(next.id);
   await turn(next,2048);
   assert.deepEqual(await readCapture(),[4096,2048,4096,2048]);
   if(a3){
-    await button('Agents').click();
-    await button('Output limit Integer').click();
-    await field('inspector-output-limit-tokens').fill('4096');
+    await task('Agents').click();
+    if(await button('Canvas').getAttribute('aria-pressed')!=='true')await button('Canvas').click();
+    await openNodes();
+    await layer('Show binding as a separate node: Output limit Integer').click();
+    await field('canvas-integer-output-limit').fill('4096');
     for(const label of ['Context Source','Memory Policy','Read-only MCP Tool']){
-      await page.getByRole('menuitem',{name:'Insert',exact:true}).click();
-      await page.getByRole('menuitem',{name:label,exact:true}).click();
-      await button('Connect '+label).click();
+      await addCanvasComponent(label);
+      await agentAction(label,'Connect to '+label);
     }
-    await button('A1 Fixture Agent').click();
-    await field('inspector-agent-steps').fill('2');
+    await openNodes();
+    await layer('A1 Fixture Agent').click();
+    await openAgentExecution();
+    await field('canvas-agent-steps').fill('2');
     await clickRequest('Save','save');
     await clickRequest('Activate','activate');
     await clickRequest('Start Session','sessions');
-    await page.getByRole('checkbox',{name:'Include pinned context on next turn'}).click();
+    await button('Include pinned context on next turn').click();
     async function readReference(){
       const composer=page.getByRole('textbox',{name:'Message'});
       await composer.fill('Read the synthetic observatory reference.');
@@ -180,12 +354,16 @@ try {
     assert.equal(enough.modelSteps,2);
     assert.equal(enough.governance.calls,1);
     assert.equal(enough.context.status,'admitted');
-    await button('Inspect runs').click();
+    await inspectRuns();
+    await openRunDetails('Evidence');
     await page.getByText('1 MCP calls · completed',{exact:true}).waitFor();
     await page.screenshot({path:join(directory,'a3-completed.png'),animations:'disabled'});
-    await button('Agents').click();
-    await button('A1 Fixture Agent').click();
-    await field('inspector-agent-steps').fill('1');
+    await task('Agents').click();
+    if(await button('Canvas').getAttribute('aria-pressed')!=='true')await button('Canvas').click();
+    await openNodes();
+    await layer('A1 Fixture Agent').click();
+    await openAgentExecution();
+    await field('canvas-agent-steps').fill('1');
     await clickRequest('Save','save');
     await clickRequest('Activate','activate');
     await clickRequest('Start Session','sessions');
@@ -193,49 +371,101 @@ try {
     assert.equal(low.errorCode,'TORI_MODEL_STEP_LIMIT');
     assert.equal(low.modelSteps,1);
     assert.equal(low.governance.calls,1);
-    await button('Inspect runs').click();
+    await inspectRuns();
     await page.getByText('Model step limit reached before the next call.',{exact:true}).waitFor();
     await page.screenshot({path:join(directory,'a3-step-limit.png'),animations:'disabled'});
-    await button('Open Session').click();
-    await button('Delete Session').click();
+    const failedTurn=page.getByRole('region',{name:'Turn',exact:true});
+    await failedTurn.getByText('Read the synthetic observatory reference.',{exact:true}).waitFor();
+    assert.equal(await failedTurn.locator('[data-message-id]').count(),1);
+    await button('Open turn').click();
+    await sessionRowAction(low.session,'Delete Session');
     await page.getByRole('dialog').getByText('Delete this Session?').waitFor();
     await clickRequest('Confirm delete Session','delete-session');
     assert.ok(!(await api()).sessions.some(session=>session.id===low.session));
     if(a4){
-      await button('Agents').click();
-      await button('Read-only MCP Tool').click();
-      await button('Detach Read-only MCP Tool').click();
+      await task('Agents').click();
+      if(await button('Canvas').getAttribute('aria-pressed')!=='true')await button('Canvas').click();
+      await openNodes();
+      await layer('Read-only MCP Tool').click();
+      const toolWire=page.getByRole('group',{name:'Read-only MCP Tool to Read-only MCP Tool',exact:true});
+      await toolWire.focus();
+      await page.keyboard.press('Enter');
+      await page.keyboard.press('Delete');
+      await toolWire.waitFor({state:'detached'});
       for(const label of ['Output Contract','Child Agent']){
-        await page.getByRole('menuitem',{name:'Insert',exact:true}).click();
-        await page.getByRole('menuitem',{name:label,exact:true}).click();
-        await button('Connect '+label).click();
+        await addCanvasComponent(label);
+        await agentAction(label,'Connect to '+label);
       }
-      await page.getByRole('heading',{name:'Delegation binding'}).waitFor();
+      await agentAction('Child Agent','Inspect delegation');
+      const delegation=page.getByRole('dialog',{name:'Delegation'});
       await page.getByText('Connected · deterministic fixture',{exact:true}).waitFor();
       await page.getByText('tori.child.reference-reviewer.invoke',{exact:true}).waitFor();
       await page.getByText('Synthetic reference review completed.',{exact:false}).waitFor();
-      await button('A1 Fixture Agent').click();
-      await field('inspector-agent-name').fill('Quellight · delegation fixture');
-      await field('inspector-agent-steps').fill('2');
+      await delegation.getByRole('button',{name:'Close',exact:true}).click();
+      await openNodes();
+      await layer('A1 Fixture Agent').click();
+      await renameAgent('A1 Fixture Agent','Quellight · delegation fixture');
+      await openAgentExecution();
+      await field('canvas-agent-steps').fill('2');
       await clickRequest('Save','save');
       await clickRequest('Activate','activate');
       await clickRequest('Start Session','sessions');
       const parent=await readReference();
       assert.equal(parent.status,'completed');
       assert.equal(parent.outputValidation,'accepted');
-      await button('Inspect runs').click();
+      await inspectRuns();
+      await openRunDetails('Evidence');
       await page.getByText('tori.output.finding · r1 · accepted',{exact:true}).waitFor();
-      await button('Open child Run · completed').click();
+      await button(/^Open child Run/).click();
+      assert.equal(await page.getByRole('region',{name:'Turn',exact:true}).count(),0);
+      await openRunDetails('Provenance');
       await page.getByText(parent.id,{exact:true}).waitFor();
       await page.screenshot({path:join(directory,'a4-child.png'),animations:'disabled'});
-      await button('Open parent Run').click();
+      await button(/^Open parent Run/).click();
+      await openRunDetails('Evidence');
       await page.getByText('tori.output.finding · r1 · accepted',{exact:true}).scrollIntoViewIfNeeded();
       await page.screenshot({path:join(directory,'a4-parent.png'),animations:'disabled'});
     }
   }
+  const post=async(path,data={})=>{
+    const response=await page.request.post(url+'/api/studio/'+path,{headers:{origin:url},data});
+    assert.equal(response.status(),200,await response.text());
+    return response.json();
+  };
+  const current=await api();
+  const {definition:otherDefinition}=await post('definitions');
+  const otherGraph=structuredClone(initialValidGraph);
+  otherGraph.nodes.find(node=>node.id==='agent').values.name='Second Active Agent';
+  const otherSaved=await post('save',{definition:otherDefinition,graph:otherGraph});
+  const otherActive=await post('activate',{definition:otherDefinition,revision:otherSaved.revision});
+  await page.reload();
+  await task('Sessions').click();
+  if(await button('Sessions sidebar').getAttribute('aria-expanded')!=='true')await button('Sessions sidebar').click();
+  await button('New Session').click();
+  const picker=page.getByRole('region',{name:'Choose an agent'});
+  await picker.getByRole('button',{name:'Second Active Agent',exact:true}).click();
+  const created=await clickRequest('Start Session with Second Active Agent · r1 · Fixture','sessions');
+  assert.equal(created.sessions[0].activation,otherActive.activation.version);
+  assert.equal(created.sessions[0].definition,otherDefinition);
+  assert.equal(created.sessions[0].title,'New Session');
+  assert.equal(created.sessions[0].lastActivityAt,created.sessions[0].created);
+  assert.equal(created.definition,current.definition);
+  await expectSessionIdentity('New Session','Second Active Agent · r1 · Fixture');
+
+  await button('New Session').click();
+  await picker.locator('[data-agent-revisions="'+current.definition+'"]').click();
+  const historical=await clickRequest('Start Session with A1 Fixture Agent · r1 · Fixture','sessions');
+  assert.equal(historical.sessions[0].activation,old.activation);
+  assert.equal(historical.activation.version,current.activation.version);
+  await expectSessionIdentity('New Session','A1 Fixture Agent · r1 · Fixture');
+  const mismatched=await page.request.post(url+'/api/studio/sessions',{headers:{origin:url},
+    data:{activation:old.activation,sessionDefinition:otherDefinition}});
+  assert.equal(mismatched.status(),409);
+  assert.equal((await api()).sessions[0].id,historical.sessions[0].id);
+
   assert.deepEqual(errors,[]);
   console.log(JSON.stringify({mode:'deterministic fixture only',requests:await readCapture(),
-    invalidDrafts:['63','64.5','32769'],restartIsolation:true,evidenceDirectory:directory}));
+    invalidDrafts:['63','64.5','32769'],restartIsolation:true,sessionTitles:true,activeAgentPicker:true,evidenceDirectory:directory}));
 } catch(error) {
   console.error(log);
   throw error;
