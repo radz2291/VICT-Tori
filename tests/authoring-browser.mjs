@@ -29,6 +29,7 @@ for (const stream of [server?.stdout, server?.stderr].filter(Boolean)) {
   else stream.resume();
 }
 let browser, page;
+const markdownStyles = [];
 try {
   let initial;
   for (let attempt = 0; attempt < 300; attempt++) {
@@ -68,7 +69,8 @@ try {
   async function openAuthoring(version) {
     const toggle = page.locator('.agent-dock-actions').getByRole('button', { name: 'Authoring Agent', exact: true });
     if (await toggle.getAttribute('aria-expanded') !== 'true') await toggle.click();
-    await dock().locator('#authoring-activation').selectOption(version);
+    const picker = dock().locator('#authoring-activation');
+    if (await picker.inputValue() !== version) await picker.selectOption(version);
   }
   async function send(prompt, change = true) {
     await dock().locator('#authoring-mode').selectOption(change ? 'change' : 'inspect');
@@ -93,6 +95,83 @@ try {
     const details = page.getByRole('region', { name: 'Run details content' });
     await details.getByRole('heading', { name, exact: true }).scrollIntoViewIfNeeded();
     return details;
+  }
+  async function checkMarkdown(container, view) {
+    const markdown = container.locator('.vict-ai-markdown').filter({
+      has: page.getByRole('heading', { name: 'Research review', exact: true }),
+    });
+    await markdown.locator('[data-slot="code-block-line-content"] > span').first().waitFor({ state: 'attached' });
+    const styles = await markdown.evaluate(root => {
+      const canvas = document.createElement('canvas');
+      canvas.width = canvas.height = 1;
+      const context = canvas.getContext('2d', { willReadFrequently: true });
+      function rgba(color) {
+        context.clearRect(0, 0, 1, 1);
+        context.fillStyle = color;
+        context.fillRect(0, 0, 1, 1);
+        return Array.from(context.getImageData(0, 0, 1, 1).data, value => value / 255);
+      }
+      const blend = (top, bottom) => top.slice(0, 3).map((value, channel) =>
+        value * top[3] + bottom[channel] * (1 - top[3]));
+      const luminance = color => color.map(value => value <= .04045 ?
+        value / 12.92 : ((value + .055) / 1.055) ** 2.4)
+        .reduce((total, value, channel) => total + value * [.2126, .7152, .0722][channel], 0);
+      function contrast(element) {
+        const layers = [];
+        for (let current = element; current; current = current.parentElement) {
+          const layer = rgba(getComputedStyle(current).backgroundColor);
+          layers.push(layer);
+          if (layer[3] === 1) break;
+        }
+        const background = layers.reduceRight((bottom, top) => blend(top, bottom), [1, 1, 1]);
+        const foreground = blend(rgba(getComputedStyle(element).color), background);
+        const values = [luminance(foreground), luminance(background)].sort((a, b) => b - a);
+        return (values[0] + .05) / (values[1] + .05);
+      }
+
+      const list = root.querySelector('ol');
+      const item = list.querySelector('li');
+      const boundary = root.getBoundingClientRect();
+      const inlineCode = item.querySelector('code');
+      const longCode = item.querySelector('ul code');
+      const highlighted = Array.from(root.querySelectorAll('[data-slot="code-block-line-content"] > span'));
+      return {
+        indent: item.getBoundingClientRect().left - boundary.left,
+        listMarker: getComputedStyle(list).listStylePosition,
+        longCodeFits: Array.from(longCode.getClientRects()).every(rect => rect.left >= boundary.left && rect.right <= boundary.right + 1),
+        linkDecoration: getComputedStyle(root.querySelector('a')).textDecorationLine,
+        contrast: {
+          inlineCode: contrast(inlineCode),
+          quote: contrast(root.querySelector('blockquote')),
+          link: contrast(root.querySelector('a')),
+          tableHeader: contrast(root.querySelector('th')),
+          tableCell: contrast(root.querySelector('td')),
+          syntax: Math.min(...highlighted.map(contrast)),
+        },
+      };
+    });
+    assert.ok(styles.indent <= 22, 'Excessive list indent in ' + view + ': ' + styles.indent);
+    assert.equal(styles.listMarker, 'outside');
+    assert.equal(styles.longCodeFits, true, 'Long inline code should wrap within ' + view);
+    assert.match(styles.linkDecoration, /underline/);
+    for (const [role, ratio] of Object.entries(styles.contrast)) {
+      assert.ok(ratio >= 4.5, view + ' ' + role + ' contrast: ' + ratio.toFixed(2));
+    }
+    markdownStyles.push({ view, viewport: page.viewportSize(), ...styles });
+    return markdown;
+  }
+  async function checkComposer(container) {
+    const bounds = await container.boundingBox();
+    for (const label of ['Send', 'Inspect authoring Run']) {
+      const control = await container.getByRole('button', { name: label, exact: true }).boundingBox();
+      assert.ok(control && control.y >= bounds.y && control.y + control.height <= bounds.y + bounds.height,
+        label + ' should stay within the authoring panel');
+    }
+    const feed = await container.locator('.vict-conversation').boundingBox();
+    const scrollControl = container.getByRole('button', { name: 'Scroll to latest message' });
+    const scrollBounds = await scrollControl.boundingBox();
+    assert.ok(feed && scrollBounds && feed.y + feed.height <= scrollBounds.y + 1,
+      'The scroll-to-latest control should sit below the transcript text');
   }
   async function history(command) {
     await page.getByRole('menuitem', { name: 'Edit', exact: true }).click();
@@ -180,6 +259,39 @@ try {
   assert.deepEqual((await api(specialist.definitionId)).graph, unchanged.graph);
   assert.deepEqual((await api(specialist.definitionId)).revision, unchanged.revision);
   assert.deepEqual((await api(specialist.definitionId)).activation, unchanged.activation);
+
+  if (!live) {
+    await page.setViewportSize({ width: 1531, height: 668 });
+    const desktopDock = page.getByRole('complementary', { name: 'Authoring Agent' });
+    const desktopReply = await checkMarkdown(desktopDock, 'Authoring dock');
+    await desktopReply.getByText('Bindings', { exact: true }).scrollIntoViewIfNeeded();
+    await checkComposer(desktopDock);
+    await page.screenshot({ path: join(evidence, 'markdown-authoring-desktop.png') });
+
+    await page.setViewportSize({ width: 390, height: 844 });
+    await desktopDock.waitFor({ state: 'hidden' });
+    await openAuthoring(pinned.version);
+    const drawer = page.getByRole('dialog', { name: 'Authoring Agent' });
+    const phoneReply = await checkMarkdown(drawer, 'Authoring drawer');
+    await phoneReply.getByText('Bindings', { exact: true }).scrollIntoViewIfNeeded();
+    await checkComposer(drawer);
+    await page.screenshot({ path: join(evidence, 'markdown-authoring-narrow.png') });
+    await page.keyboard.press('Escape');
+    await drawer.waitFor({ state: 'hidden' });
+
+    await page.setViewportSize({ width: 1531, height: 668 });
+    await desktopDock.waitFor();
+    await desktopDock.getByRole('button', { name: 'Inspect authoring Run' }).click();
+    const runReply = await checkMarkdown(page.locator('.run-turn'), 'Run turn');
+    await runReply.getByText('Bindings', { exact: true }).scrollIntoViewIfNeeded();
+    await page.screenshot({ path: join(evidence, 'markdown-run.png') });
+    await page.getByRole('button', { name: 'Open turn', exact: true }).click();
+    const sessionReply = await checkMarkdown(page.locator('.session-view'), 'Session');
+    await sessionReply.getByText('Bindings', { exact: true }).scrollIntoViewIfNeeded();
+    await page.screenshot({ path: join(evidence, 'markdown-session.png') });
+    await tab('Agents').click();
+    await page.setViewportSize({ width: 1531, height: 850 });
+  }
 
   await openDefinition('Quellight');
   await button('Canvas').click();
@@ -306,7 +418,7 @@ try {
   const report = {
     live, chromium: browser.version(), authoringActivation: pinned, workspace: initial.workspace,
     build: built.run, review: reviewed.run, reviewReply: reviewed.message, edit: edited.run,
-    bindingRun, second: second.run, test, child, secondRun, finalRevision: finalResearch.revision, probes,
+    bindingRun, second: second.run, test, child, secondRun, finalRevision: finalResearch.revision, probes, markdownStyles,
   };
   await writeFile(join(evidence, 'observations.json'), JSON.stringify(report, null, 2) + '\n');
   console.log(JSON.stringify({ live, build: built.run.id, review: reviewed.run.id, edit: edited.run.id,

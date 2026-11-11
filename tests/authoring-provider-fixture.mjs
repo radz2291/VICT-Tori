@@ -34,7 +34,28 @@ async function fixtureFetch(url, init) {
       if (!step) call('workspace_inspect', {});
       else {
         assert.ok(results[0].run, JSON.stringify({ keys: Object.keys(results[0]), step, toolNames }));
-        say('Run ' + results[0].run.id + ' used the Research result. Add a source label to the specialist instructions.');
+        say([
+          '### Research review',
+          '',
+          'Run ' + results[0].run.id + ' used the Research result. Add a source label to the specialist instructions.',
+          '',
+          '1. **Bindings** include `studio-research@1`, `project-knowledge@1` and `reading-list@1`.',
+          '   - Keep source identity `f3c123fb-96ab-4d10-bcb7-4f7ec5fc19a8` in the evidence.',
+          '2. **Next step** is to label the source.',
+          '',
+          '> Keep the original Research finding in the Run.',
+          '',
+          '[Sample research notes](https://example.com/research)',
+          '',
+          '| Binding | Evidence |',
+          '| --- | --- |',
+          '| Reading List | READING-29 |',
+          '',
+          '```js',
+          '// Saved source label',
+          'const binding = "reading-list@1";',
+          '```',
+        ].join('\n'));
       }
     } else if (!step) {
       call('workspace_inspect', {});

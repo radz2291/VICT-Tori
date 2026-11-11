@@ -111,7 +111,58 @@ dt{color:#a4adbb}dd{margin:0;overflow-wrap:anywhere}.hash{font:11px/1.5 ui-monos
 .vict-controls .mobile-sheet[data-dialog-content]{z-index:81}
 .vict-controls .mobile-sheet [data-dialog-description]{margin:2px 0 12px}
 .vict-controls select.vict-select{min-height:32px;padding:5px 8px}
-.tori-scope .vict-ai{--vict-ai-background:var(--studio-field);--vict-ai-foreground:var(--vict-color-text);--vict-ai-primary:var(--vict-color-accent)}
+.tori-scope .vict-ai{
+  --vict-ai-background:var(--studio-field);
+  --vict-ai-foreground:var(--vict-color-text);
+  --vict-ai-primary:var(--vict-color-accent);
+  --vict-theme-highlight:color-mix(in srgb,var(--vict-color-text) 9%,var(--studio-field));
+  --vict-theme-highlight-text:var(--vict-color-text);
+  --destructive:var(--vict-color-danger);
+}
+
+/* Keep rich VICT messages readable against the same graphite palette in every view. */
+.tori-scope .vict-ai.vict-ai .vict-ai-markdown :is(ol,ul){
+  margin-inline:0;
+  padding-inline-start:1.35em;
+  list-style-position:outside;
+}
+.tori-scope .vict-ai-markdown li{padding-block:.12em}
+.tori-scope .vict-ai-markdown li::marker{color:var(--muted-foreground)}
+.tori-scope .vict-ai-markdown a{
+  color:var(--primary);
+  text-decoration:underline;
+  text-underline-offset:.15em;
+}
+.tori-scope .vict-ai-markdown a:focus-visible{
+  outline:2px solid var(--ring);
+  outline-offset:1px;
+}
+.tori-scope .vict-ai.vict-ai .vict-ai-markdown blockquote{
+  margin-inline:0;
+  padding-inline-start:.75em;
+  border-inline-start:2px solid var(--border);
+  color:var(--muted-foreground);
+}
+.tori-scope .vict-ai.vict-ai .vict-ai-markdown hr{border-color:var(--border)}
+.tori-scope .vict-ai-markdown [data-slot="code-block-content"]{background:var(--background)}
+.tori-scope .vict-ai-markdown [data-slot="code-block-content"]:focus-visible{
+  outline:2px solid var(--ring);
+  outline-offset:-2px;
+}
+.tori-scope .vict-ai.vict-ai .vict-ai-markdown [data-slot="code-block-line-content"] > span{
+  color:color-mix(in srgb,var(--shiki-dark,var(--foreground)) 72%,var(--foreground));
+}
+.tori-scope .vict-ai.vict-ai .vict-ai-markdown div:has(> table){
+  background:var(--background);
+  border-color:var(--border);
+}
+.tori-scope .vict-ai.vict-ai .vict-ai-markdown :is(thead,tfoot,tr:hover){background:var(--muted)}
+.tori-scope .vict-ai.vict-ai .vict-ai-markdown tr{border-color:var(--border)}
+.tori-scope .vict-ai.vict-ai .vict-ai-markdown :is(th,td){
+  min-inline-size:0;
+  padding:var(--vict-space-1) var(--vict-space-2);
+  overflow-wrap:anywhere;
+}
 
 .tori-scope .vict-ai [data-participant="user"] [data-slot="bubble-content"]{background:var(--studio-selected);color:var(--vict-color-text)}
 .tori-scope .vict-btn.vict-btn--danger{background:#54313a;border-color:#75444f;color:#ffdbdf}
@@ -236,7 +287,11 @@ dt{color:#a4adbb}dd{margin:0;overflow-wrap:anywhere}.hash{font:11px/1.5 ui-monos
   .studio .agent-dockbar .panel-shortcut{width:40px}
 }
 
-.agent-left-dock{min-height:0;overflow:auto;background:var(--dock);border-inline-end:1px solid var(--line)}
+.agent-left-dock{
+  display:flex;flex-direction:column;min-height:0;min-width:0;overflow:auto;
+  background:var(--dock);border-inline-end:1px solid var(--line)
+}
+.agent-left-dock > .library-tabbar{flex:none}
 .library-sections :is(.library-row,.definition-row){
   display:block;width:100%;margin:1px 0;padding:var(--vict-space-1) var(--vict-space-2);
   text-align:left;white-space:normal;border-color:transparent;background:transparent;
@@ -273,11 +328,46 @@ dt{color:#a4adbb}dd{margin:0;overflow-wrap:anywhere}.hash{font:11px/1.5 ui-monos
 .agent-selection-content .configure-identity{grid-template-columns:minmax(0,1fr)}
 .assembly-node-section .layers-body > .library-filter{margin-inline:0}
 .assembly-node-section .layers-list{padding-inline:0;overflow:visible}
-.draft-authoring-form{display:grid;gap:var(--vict-space-2);margin-block-start:var(--vict-space-3)}
-.authoring-dock-content p{margin:0 0 var(--vict-space-2)}
-.authoring-dock-content .vict-ai-conversation{margin-block-start:var(--vict-space-3)}
-.authoring-dock-content .vict-ai.vict-ai-conversation .vict-conversation{max-height:min(36dvh,23rem);overscroll-behavior:contain}
-@media(max-width:720px){.authoring-dock-content .vict-ai.vict-ai-conversation .vict-conversation{max-height:22dvh}}
+.draft-authoring-form{display:grid;gap:var(--vict-space-1);margin-block-start:var(--vict-space-3)}
+.draft-authoring-form label{margin:0}
+.authoring-dock-content{
+  display:flex;flex-direction:column;flex:1;min-height:0;min-width:0
+}
+.authoring-dock-content > :not(.vict-ai-conversation){flex:none}
+.authoring-dock-content > p{margin:0 0 var(--vict-space-2)}
+.authoring-dock-content > .vict-btn{align-self:flex-start;margin-block-start:var(--vict-space-2)}
+.authoring-dock-content > .vict-ai.vict-ai-conversation{
+  flex:1 1 auto;height:auto;min-height:5rem;max-height:min(36dvh,23rem);
+  margin-block-start:var(--vict-space-3)
+}
+.authoring-dock-content .vict-ai.vict-ai-conversation .vict-conversation{
+  overscroll-behavior:contain;
+  --scroll-fade-b-size:.5rem
+}
+.authoring-dock-content .vict-ai.vict-ai [data-slot="message-scroller"]:has(> .vict-conversation){
+  padding-block-end:2rem
+}
+.authoring-dock-content .vict-ai.vict-ai [data-slot="message-scroller-button"]{
+  inset-inline-start:auto;
+  inset-inline-end:var(--vict-space-1);
+  bottom:0;
+  translate:none
+}
+.authoring-dock-content .vict-ai.vict-ai .vict-ai-messages{
+  gap:var(--vict-space-3);
+  padding:var(--vict-space-2) var(--vict-space-1)
+}
+.authoring-dock-content .vict-ai [data-participant]{font-size:var(--vict-font-sizeBase);line-height:1.45}
+.authoring-dock-content .vict-ai-markdown :is(h1,h2,h3,h4,h5,h6){
+  font-size:1em;line-height:1.35;
+  margin-block:var(--vict-space-2) var(--vict-space-1)
+}
+@media(max-width:720px){
+  .vict-controls .mobile-sheet[data-dialog-content]:has(> .authoring-dock-content > .vict-ai-conversation){
+    display:flex;flex-direction:column;height:78dvh
+  }
+  .mobile-sheet .authoring-dock-content > .vict-ai.vict-ai-conversation{max-height:25dvh}
+}
 @media(max-width:720px){.tori-scope .agent-dock-tablist [role=tab]{min-height:42px}}
 .layers-body{display:flex;flex-direction:column;min-width:0;min-height:0;flex:1}
 .layers-body > .library-filter{flex:none;margin:var(--vict-space-3)}
