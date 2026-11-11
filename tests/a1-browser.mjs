@@ -175,6 +175,18 @@ try {
   assert.equal(await authoringToggle.getAttribute('aria-expanded'),'false');
   await button('Canvas').click();
   await button('Add Agent').click({timeout:60000});
+  await page.setViewportSize({width:390,height:844});
+  await canvasMenu('Zoom out');
+  await canvasMenu('Zoom out');
+  await page.waitForFunction(()=>parseInt(document.querySelector('[aria-label="Canvas view"]').textContent)<90);
+  const canvasTransform=()=>page.locator('.svelte-flow__viewport').evaluate(node=>node.style.transform);
+  const narrowCamera=await canvasTransform();
+  await button('Configure').click();
+  await button('Canvas').click();
+  await page.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(()=>requestAnimationFrame(resolve)))));
+  assert.equal(await canvasTransform(),narrowCamera);
+  await page.setViewportSize({width:1531,height:668});
+  await canvasMenu('Fit to view');
   await openNodes();
   await renameAgent('Untitled agent','A1 Fixture Agent');
   await library.getByRole('button',{name:'A1 Fixture Agent Unsaved changes',exact:true}).waitFor();

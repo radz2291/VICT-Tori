@@ -32,6 +32,7 @@
   let componentQuery=$state('');
   let page=$state('Agents');
   let view=$state({x:0,y:0,zoom:1});
+  let canvasInitialized=false;
   let flow=$state<any>();
   let authoringDock=$state(false), assemblyDock=$state(true);
   let assemblyContext=$state('assembly');
@@ -573,6 +574,7 @@
   const save=()=>action(async()=>{const snapshot=graph;applyState(await request('/save',{graph:snapshot,expected:state.revision}));baseline=authoringBytes(snapshot);});
   async function switchDefinition(next:any){
     applyState(next);selection='';layerQuery='';componentQuery='';graphError='';reopen(next);
+    canvasInitialized=false;
     view={x:0,y:0,zoom:1};
     // A blank definition unmounts the canvas. Fitting must never block authoring.
     if(agentView==='Canvas'&&graph.nodes.length)void fit();
@@ -1803,7 +1805,12 @@
 
 {#snippet canvas()}
   <SvelteFlow bind:nodes {edges} nodeTypes={types} {edgeTypes} bind:viewport={view}
-    oninit={()=>{if(mobile&&selection)void focusCanvasNode(selection);else if(view.x===0&&view.y===0)void fit();}}
+    oninit={()=>{
+      if(canvasInitialized)return;
+      canvasInitialized=true;
+      if(mobile&&selection)void focusCanvasNode(selection);
+      else if(view.x===0&&view.y===0)void fit();
+    }}
     onnodeclick={({node})=>selectCanvas(node.id)}
     onedgeclick={({edge})=>void tick().then(()=>{
       if(!mobileOpen)canvasWire(edge.id)?.focus({preventScroll:true});
