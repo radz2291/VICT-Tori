@@ -73,7 +73,7 @@ try {
     if (await picker.inputValue() !== version) await picker.selectOption(version);
   }
   async function send(prompt, change = true) {
-    await dock().locator('#authoring-mode').selectOption(change ? 'change' : 'inspect');
+    if (change !== null) await dock().locator('#authoring-mode').selectOption(change ? 'change' : 'inspect');
     await dock().locator('#authoring-instructions').fill(prompt);
     const reply = page.waitForResponse(response => response.url() === url + '/api/studio/turn' &&
       response.request().method() === 'POST', { timeout: 130000 });
@@ -207,6 +207,7 @@ try {
   assert.equal(pinned.workspaceAuthoring, true);
   await page.reload();
   await openAuthoring(pinned.version);
+  assert.equal(await dock().locator('#authoring-mode').inputValue(), 'inspect');
 
   let lostBuildResponse = 0;
   if (!live) {
@@ -224,6 +225,7 @@ try {
     await page.unroute('**/api/studio/turn');
   }
   assert.equal(built.run.status, 'completed', JSON.stringify(built.run));
+  assert.equal(await dock().locator('#authoring-mode').inputValue(), 'change');
   assert.equal(built.run.activation, pinned.version);
   const saved = actions(built.run, 'assemble');
   assert.equal(saved?.status, 'saved', JSON.stringify(built.run.authoringActions));
@@ -314,6 +316,7 @@ try {
   await openDefinition('Research');
   assert.equal(await field('settings-agent-text').inputValue(), improved);
   await openAuthoring(pinned.version);
+  assert.equal(await dock().locator('#authoring-mode').inputValue(), 'change');
 
   let droppedSaveAck = 0;
   if (!live) {
@@ -326,8 +329,9 @@ try {
     });
   }
   let second = await result(await send(
-    'Discover the registered Reading List and connect it to the open Research agent in place of Research Topics. Save this revision, then test Research directly using the Reading List tool with the planning key. Tell me the actual result.'
+    'Discover the registered Reading List and connect it to the open Research agent in place of Research Topics. Save this revision, then test Research directly using the Reading List tool with the planning key. Tell me the actual result.', null
   ));
+  assert.equal(second.run.authoringMode, 'change');
   if (!live) {
     assert.ok(droppedSaveAck >= 2, 'Lost Save acknowledgement should trigger the same journal receipt again.');
     await page.unroute('**/api/studio/authoring-ack');
@@ -441,7 +445,9 @@ try {
     assert.equal(legacyBudget.toolCalls, 3);
     assert.equal(legacyBudget.authoringActions.length, 3);
     assert.equal(legacyBudget.draftReceipts?.length ?? 0, 0);
+    await dock().locator('#authoring-mode').selectOption('change');
     await openAuthoring(configured.version);
+    assert.equal(await dock().locator('#authoring-mode').inputValue(), 'change');
     await dock().getByText('Per turn: 7 model steps · 5 tool calls', { exact: true }).waitFor();
     const expandedBudget = (await result(await send('Please compare execution budgets.', false))).run;
     assert.equal(expandedBudget.activation, configured.version);

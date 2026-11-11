@@ -54,6 +54,7 @@
   let authoringActivation=$state('');
   let authoringInput=$state('');
   let authoringMode=$state<'inspect'|'change'>('inspect');
+  const authoringModeKey=(workspace:string)=>'tori-authoring-permission:'+workspace;
   const authoringModes=[
     {value:'inspect',label:'Review only'},
     {value:'change',label:'Allow edits and tests'},
@@ -319,6 +320,14 @@
     return result;
   }
   function applyState(next:any){
+    if(next.workspace!==state.workspace){
+      authoringMode='inspect';
+      if(next.workspace){
+        try{
+          if(localStorage.getItem(authoringModeKey(next.workspace))==='change')authoringMode='change';
+        }catch{}
+      }
+    }
     if(next.definition!==state.definition){
       promptSize=defaultPromptSize;
       shownBindings=visibilityByDefinition.get(next.definition)??[];
@@ -335,6 +344,12 @@
     if(!next.sessions.some(item=>item.id===activeSession))activeSession=next.sessions[0]?.id??'';
     if(page==='Runs')syncRunSelection();
     else if(!next.runs.some(item=>item.id===activeRun))activeRun=next.runs[0]?.id??'';
+  }
+  function setAuthoringMode(value:string){
+    authoringMode=value==='change'?'change':'inspect';
+    if(state.workspace){
+      try{localStorage.setItem(authoringModeKey(state.workspace),authoringMode);}catch{}
+    }
   }
   function reopen(next:any) {
     cancelWire();
@@ -1103,7 +1118,6 @@
     };
     const target={channel:turn.channel,draftId:turn.draftId,occurrenceId,revision:graph.revision,
       savedRevision:turn.savedRevision,...(workspace?{mode:authoringMode,hasDraft:graph.nodes.length>0,graph}:{instructions:instructions(graph)})};
-    if(workspace)authoringMode='inspect';
     draftTurn=turn; sending=true; authoringError='';authoringResult=null;
     authoringStatus='Starting authoring Session…';
     let pollTimer:ReturnType<typeof setTimeout>|undefined;
@@ -2281,7 +2295,7 @@
       <label for="authoring-activation">Authoring activation</label>
       <Select id="authoring-activation" name="authoring-activation" options={authoringChoices}
         value={authoringActivation} disabled={sending} onChange={value=>{
-          authoringActivation=value;authoringMode='inspect';authoringResult=null;authoringError='';
+          authoringActivation=value;authoringResult=null;authoringError='';
         }}/>
       {#if dockSession?.messages.length}
         <Conversation messages={dockSession.messages} composer={readOnlyTurn} inputLabel="Authoring conversation"/>
@@ -2290,7 +2304,7 @@
         {#if workspaceAuthoring}
           <label for="authoring-mode">Turn permission</label>
           <Select id="authoring-mode" name="authoring-mode" options={authoringModes}
-            value={authoringMode} disabled={sending} onChange={value=>authoringMode=value==='change'?'change':'inspect'}/>
+            value={authoringMode} disabled={sending} onChange={setAuthoringMode}/>
         {/if}
         <label for="authoring-instructions">{workspaceAuthoring?'Message':'Requested change'}</label>
         <Textarea id="authoring-instructions" class="tori-field" rows={4} bind:value={authoringInput} disabled={sending}/>

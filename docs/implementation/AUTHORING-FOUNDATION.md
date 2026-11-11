@@ -18,6 +18,8 @@ Keep enough Session context to resolve a follow-up to the same workspace, defini
 
 A request to review or suggest improvements uses inspection actions and leaves drafts, saved revisions and activations untouched. Cite the actual definition or Run behind each recommendation. A request to apply a change uses the authorized Studio actions and shows the affected objects, what changed and the result. Make draft changes undoable through the regular history. Report completed changes and remaining work separately when a multi-step request stops partway through.
 
+The operator selects **Turn permission** in the Authoring Agent dock. It starts at **Review only** for a workspace with no saved choice. Studio remembers the selection in this browser for that workspace across messages, activation changes, and reloads. Each turn carries the permission selected when the operator sends it.
+
 The agent should select and combine actions from the discovered catalog based on the request. Exercise different names or a paraphrased request and a follow-up chosen during review. Keep action behavior independent of the Quellight/Research display names and the example prompt. Discussing a possible feature should produce grounded guidance about available capabilities and concrete gaps.
 
 ## Studio action boundary
