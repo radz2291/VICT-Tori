@@ -1,5 +1,6 @@
 import { createHash } from 'node:crypto';
 import { setTimeout as delay } from 'node:timers/promises';
+import { workspaceOccurrence } from '../packages/authoring/index.mjs';
 import { createDraftAuthoring } from '@victframework/control/draft-authoring';
 
 export const editGrant = 'tori.draft.instructions.edit';
@@ -23,9 +24,10 @@ const fields = ['draftId', 'occurrenceId', 'expectedRevision', 'edit'];
 const statuses = ['applied', 'stale', 'cancelled', 'denied', 'invalid'];
 const bindingFields = ['actorId', 'turnId', 'operationId', 'draftId', 'occurrenceId', 'expectedRevision', 'editDigest'];
 
-export function validAuthoringTarget(value) {
-  return record(value) && validToken(value.channel) && validToken(value.draftId) &&
-    instructionOccurrences.includes(value.occurrenceId) && validRevision(value.revision);
+export function validAuthoringTarget(value, workspace) {
+  return record(value) && validToken(value.channel) && validToken(value.draftId) && validRevision(value.revision) &&
+    (workspace ? value.occurrenceId === workspaceOccurrence && typeof value.hasDraft === 'boolean' &&
+      ['inspect', 'change'].includes(value.mode) : instructionOccurrences.includes(value.occurrenceId));
 }
 
 /** Loopback transport. Only the editor that started the turn holds its channel token. */
@@ -39,7 +41,7 @@ export function createAuthoringTransport(db) {
   const confirm = db.prepare('UPDATE authoring_operation SET receipt=?, received=? WHERE id=? AND receipt IS NULL');
   const receipts = db.prepare('SELECT receipt,received FROM authoring_operation WHERE run=? AND receipt IS NOT NULL ORDER BY received,id');
 
-  function acknowledge(channel, receipt) {
+  function acknowledge(channel, receipt, graph, saveDraft, readSave) {
     if (!validToken(channel) || !record(receipt) || typeof receipt.operationId !== 'string') return false;
     const entry = operation.get(receipt.operationId);
     if (!entry || entry.channel !== tokenHash(channel)) return false;
@@ -48,19 +50,36 @@ export function createAuthoringTransport(db) {
     const revision = ['applied', 'stale'].includes(receipt.status);
     if (revision && (!validRevision(receipt.revision) || receipt.revision === binding.expectedRevision)) return false;
     if (receipt.status === 'applied' && receipt.revision !== binding.expectedRevision + 1) return false;
-    const clean = JSON.stringify({ ...binding, status: receipt.status, ...(revision ? { revision: receipt.revision } : {}) });
-    if (entry.receipt !== null) return entry.receipt === clean;
-    return confirm.run(clean, new Date().toISOString(), receipt.operationId).changes === 1;
+    const identity = Object.fromEntries(bindingFields.map(key => [key, binding[key]]));
+    const clean = JSON.stringify({ ...identity, status: receipt.status, ...(revision ? { revision: receipt.revision } : {}) });
+    if (entry.receipt !== null) return entry.receipt === clean && {
+      accepted: true, saved: readSave(receipt.operationId),
+    };
+    if (!binding.save || receipt.status !== 'applied') {
+      return confirm.run(clean, new Date().toISOString(), receipt.operationId).changes === 1 && { accepted: true };
+    }
+    // The saved revision and its VICT receipt have one SQLite commit boundary.
+    if (!graph || graph.revision !== receipt.revision) return false;
+    db.exec('BEGIN IMMEDIATE');
+    try {
+      const saved = saveDraft(binding, graph);
+      confirm.run(clean, new Date().toISOString(), receipt.operationId);
+      db.exec('COMMIT');
+      return { accepted: true, saved };
+    } catch (error) {
+      db.exec('ROLLBACK');
+      throw error;
+    }
   }
 
-  function start({ channel, draftId, occurrenceId, revision }, actorId, turnId, deadlineAt) {
+  function start({ channel, draftId, occurrenceId, revision, hasDraft, savedRevision }, actorId, turnId, deadlineAt, definition) {
     const hash = tokenHash(channel);
     const stop = new AbortController();
     const pending = new Map();
     const scope = { draftId, occurrenceId, revision };
     const matches = key => key.actorId === actorId && key.turnId === turnId;
     const authoring = createDraftAuthoring({
-      resolveDraft: key => matches(key) ? scope : undefined,
+      resolveDraft: key => matches(key) && hasDraft !== false ? scope : undefined,
       readReceipt: key => {
         if (!matches(key)) return undefined;
         const receipt = operation.get(key.operationId)?.receipt;
@@ -68,6 +87,9 @@ export function createAuthoringTransport(db) {
       },
       async commit(proposal, signal) {
         const binding = Object.fromEntries(bindingFields.map(key => [key, proposal[key]]));
+        if (occurrenceId === workspaceOccurrence && JSON.parse(proposal.edit).save === true) {
+          binding.save = { definition, expected: savedRevision ?? null, deadlineAt };
+        }
         const serialized = JSON.stringify(binding);
         insert.run(proposal.operationId, turnId, hash, serialized);
         const registered = operation.get(proposal.operationId);
@@ -87,6 +109,18 @@ export function createAuthoringTransport(db) {
     });
     const outcomes = [];
     const refusals = [];
+    const discover = context => authoring.discover({ actorId: context.victActorId, turnId: context.victTurnId });
+    const apply = async (args, context) => {
+      const result = await authoring.apply({
+        actorId: context.victActorId, turnId: context.victTurnId,
+        operationId: context.victIdempotencyKey, signal: context.signal,
+      }, args);
+      outcomes.push(result);
+      if (result.status !== 'confirmed') {
+        refusals.push({ at: new Date().toISOString(), label: 'Draft edit · ' + result.status });
+      }
+      return result;
+    };
     const capabilities = [
       {
         ...authoringRefs[0], effect: 'read', description: 'Discover the exact open instruction field, its current revision and text.',
@@ -94,7 +128,7 @@ export function createAuthoringTransport(db) {
           value => record(value) && Object.keys(value).length === 0),
         output: objectOutput,
         async invoke(_args, context) {
-          const target = await authoring.discover({ actorId: context.victActorId, turnId: context.victTurnId });
+          const target = await discover(context);
           return target ? { ...target, instructions: scope.instructions } : { status: 'denied' };
         },
       },
@@ -111,21 +145,11 @@ export function createAuthoringTransport(db) {
           typeof value.occurrenceId === 'string' && validRevision(value.expectedRevision) &&
           typeof value.edit === 'string' && !!value.edit.trim() && value.edit.length <= 12000),
         output: objectOutput,
-        async invoke(args, context) {
-          const result = await authoring.apply({
-            actorId: context.victActorId, turnId: context.victTurnId,
-            operationId: context.victIdempotencyKey, signal: context.signal,
-          }, args);
-          outcomes.push(result);
-          if (result.status !== 'confirmed') {
-            refusals.push({ at: new Date().toISOString(), label: 'Draft edit · ' + result.status });
-          }
-          return result;
-        },
+        invoke: apply,
       },
     ];
     return {
-      capabilities, outcomes, refusals, signal: stop.signal,
+      capabilities, discover, apply, outcomes, refusals, signal: stop.signal,
       setInstructions: instructions => { scope.instructions = instructions; },
       matches: candidate => validToken(candidate) && tokenHash(candidate) === hash,
       stop: () => stop.abort(),

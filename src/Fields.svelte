@@ -6,7 +6,7 @@
   import { binding, field, instructions, modelId, modelName, rootId, instructionId, modelNodeId, tokenSourceId, agentResources, resourceChoices as choices, inlineAgentSettings } from './assembly';
   import ModelSampling from './ModelSampling.svelte';
   import ExecutionLimits from './ExecutionLimits.svelte';
-  import { childRef, childName, delegateGrant, childTask, childResult, taskLengthLimit, resultLengthLimit } from './delegation-fixture.mjs';
+  import { childRef, childName, delegateGrant, childTask, childResult, taskLengthLimit } from './delegation-fixture.mjs';
   let {graph,route,id,location='',childRevisions=[],pinnedChild,edit,disconnect,reveal,
     openDefinition,canOpenDefinition,fixture,configure,section,hostDeadlineMs}=$props();
   let base=$derived(location?location+'-settings':'settings');
@@ -17,12 +17,14 @@
   let resource=$derived(agentResources.find(item=>item.id===id));
   let selectedChild=$derived(childRevisions.find(item=>'saved:'+item.id===field(graph,id,'reference')));
   let activeChild=$derived(childRevisions.find(item=>item.id===pinnedChild));
-  let childChoices=$derived([...choices.child,...childRevisions.map(item=>({value:'saved:'+item.id,label:item.name+' · r'+item.number}))]);
+  let toolChoices=$derived(choices.tool.filter(option=>fixture||option.value!=='local-reference@1'||field(graph,'tool','reference')===option.value));
+  const capabilityLabel=(capability:{id:string;label:string})=>capability.id==='tool'&&(!fixture||field(graph,'tool','reference')!=='local-reference@1')?'Read-only Tool':capability.label;
+  let childChoices=$derived([...(fixture||field(graph,'child','reference')==='reference-reviewer@1'?choices.child:[]),...childRevisions.map(item=>({value:'saved:'+item.id,label:item.name+' · r'+item.number}))]);
   let modelWire=$derived(binding(graph,'model'));
   let existingCapabilities=$derived(agentResources.filter(item=>['context','tool','child','authoring'].includes(item.id)&&binding(graph,item.id)));
   let availableCapabilities=$derived(agentResources
-    .filter(item=>['context','tool','child','authoring'].includes(item.id)&&!existingCapabilities.includes(item)&&(fixture||['context','authoring'].includes(item.id)))
-    .map(item=>({value:item.id,label:item.label})));
+    .filter(item=>['context','tool','child','authoring'].includes(item.id)&&!existingCapabilities.includes(item)&&(item.id!=='child'||fixture||childRevisions.length>0))
+    .map(item=>({value:item.id,label:capabilityLabel(item)})));
 </script>
 
 {#if section==='configure' && id===rootId}
@@ -47,10 +49,10 @@
     <div class="configure-group configure-capability-grid">
       {#each existingCapabilities as capability}
         {@const reference=field(graph,capability.id,'reference')}
-        {@const label=(capability.id==='child'?childChoices:choices[capability.id]).find(option=>option.value===reference)?.label}
+        {@const label=(capability.id==='child'?childChoices:capability.id==='tool'?toolChoices:choices[capability.id]).find(option=>option.value===reference)?.label}
         <div class="configure-capability">
-          <div><span>{capability.label}</span>{#if label}<small>{label}</small>{/if}</div>
-          <ControlButton.Root class="vict-btn vict-btn--quiet" aria-label={'Edit '+capability.label}
+          <div><span>{capabilityLabel(capability)}</span>{#if label}<small>{label}</small>{/if}</div>
+          <ControlButton.Root class="vict-btn vict-btn--quiet" aria-label={'Edit '+capabilityLabel(capability)}
             onclick={()=>reveal(capability.id)}>Edit</ControlButton.Root>
         </div>
       {/each}
@@ -98,8 +100,8 @@
   {@render outputLimit(tokenSourceId)}
 {:else if section==='configure' && resource}
   <div class="configure-setting">
-    <label for={prefix+'-reference'}>{id==='context'?'Source revision':resource.label}</label>
-    <Select id={prefix+'-reference'} name="reference" value={String(field(graph,id,'reference'))} options={id==='child'?childChoices:choices[resource.id]} onChange={v=>edit(id,'reference',v)}/>
+    <label for={prefix+'-reference'}>{id==='context'?'Source revision':capabilityLabel(resource)}</label>
+    <Select id={prefix+'-reference'} name="reference" value={String(field(graph,id,'reference'))} options={id==='child'?childChoices:id==='tool'?toolChoices:choices[resource.id]} onChange={v=>edit(id,'reference',v)}/>
   </div>
   {#if id==='child'}{@render delegationDetails()}{/if}
   {#if binding(graph,id)}
@@ -114,14 +116,14 @@
 
 {#snippet delegationDetails()}
   <div class="delegation-details">
-    <StatusBadge value={binding(graph,'child')?'Connected · deterministic fixture':'Unconnected · deterministic fixture'}/>
+    <StatusBadge value={(binding(graph,'child')?'Connected':'Unconnected')+(fixture||!selectedChild?' · deterministic fixture':' · saved revision')}/>
     <dl class="delegation-facts">
       {#if selectedChild}
         <dt>Selected revision</dt><dd>{selectedChild.name} r{selectedChild.number}</dd>
         <dt>Active pin</dt><dd>{activeChild?activeChild.name+' r'+activeChild.number:'Activate to pin this revision.'}</dd>
-        <dt>Permitted scope</dt><dd>{selectedChild.context==='project-knowledge@1'?'Project Knowledge r1 on demand. ':selectedChild.context?'Pinned context on demand. ':''}{selectedChild.tool?'One governed read-only observatory call. ':'No tool calls. '}Further delegation is disabled.</dd>
+        <dt>Permitted scope</dt><dd>{selectedChild.context==='project-knowledge@1'?'Project Knowledge r1 on demand. ':selectedChild.context?'Pinned context on demand. ':''}{selectedChild.tool?'One governed read-only tool call. ':'No tool calls. '}Further delegation is disabled.</dd>
         <dt>Task</dt><dd>Review the supplied research task.</dd>
-        <dt>Expected result</dt><dd>A short text finding of up to {resultLengthLimit} characters.</dd>
+        <dt>Expected result</dt><dd>A text finding under the specialist’s pinned output-token limit.</dd>
       {:else}
         <dt>Child reference</dt><dd>{childName} · r{childRef.revision}</dd>
         <dt>Permitted scope</dt><dd>One read-only delegation. No child tool calls or further delegation.</dd>

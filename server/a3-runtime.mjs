@@ -5,8 +5,9 @@ import { Client } from '@modelcontextprotocol/client';
 import { StdioClientTransport } from '@modelcontextprotocol/client/stdio';
 import { AgentStreamHub, authenticatedActorContext, gateCapabilityInvoke } from '@victframework/runtime';
 import { composeMastraTurnExecutor } from '@victframework/mastra';
-import { delegateGrant, delegationRef } from './a4-runtime.mjs';
-import { editGrant, authoringRefs } from './draft-authoring.mjs';
+import { createScriptCapability } from './script-tools.mjs';
+import { delegateGrant } from './a4-runtime.mjs';
+import { editGrant } from './draft-authoring.mjs';
 import { contextBudget, inputSchema, readGrant, schemaDigest, sources, toolRef } from './a3-catalog.mjs';
 
 export { toolRef };
@@ -76,10 +77,11 @@ const objectContract=(id,test,descriptiveJsonSchema)=>({
   parse(value){return test(value)?{ok:true,value}:{ok:false,issues:[{code:'INVALID',path:'$',message:'Invalid reference contract.'}]};},
 });
 
-export async function governedReadTurn({activation,stores,agentConfig,actorId,threadId,input,deadline,fixture,onEvent,childCapability,allowRead=true,draftTurn,runId}) {
+export async function governedReadTurn({activation,stores,agentConfig,actorId,threadId,input,deadline,fixture,onEvent,childCapability,allowRead=true,draftTurn,runId,scriptBinding,recordScript=()=>{}}) {
   const hub=new AgentStreamHub({ledger:stores.streamLedger});
   const streamId=randomUUID();
   const governance={calls:0,disposition:undefined};
+  const script=createScriptCapability(scriptBinding,recordScript);
   const definition={
     id:toolRef.id,revision:toolRef.revision,effect:'read',description:'Read the synthetic observatory reference.',
     permissions:[readGrant],
@@ -104,22 +106,31 @@ export async function governedReadTurn({activation,stores,agentConfig,actorId,th
     stores,activation,hub,agentConfig,
     ids:{turnId:runId?()=>runId:id,streamId:()=>streamId,invocationId:id,approvalId:id,idempotencyKey:id,cancelId:id},
     capabilityBridge:{
-      ...(draftTurn?{quietWriteApprovals:{policyIdentity:'tori.open-draft.instructions',entries:[{
-        capabilityId:authoringRefs[1].id,capabilityRevision:authoringRefs[1].revision,
-      }]}}:{}),
-      resolveCapability:(capId,rev)=>draftTurn?draftTurn.capabilities.find(cap=>cap.id===capId&&cap.revision===rev):capId===definition.id&&rev===definition.revision?definition:
-        capId===childCapability?.id&&rev===childCapability?.revision?childCapability:undefined,
+      ...(draftTurn?{quietWriteApprovals:{
+        policyIdentity:draftTurn.workspace?'tori.open-workspace.authoring':'tori.open-draft.instructions',
+        entries:draftTurn.capabilities.filter(cap=>cap.effect==='write').map(cap=>({
+          capabilityId:cap.id,capabilityRevision:cap.revision,
+        })),
+      }}:{}),
+      resolveCapability:(capId,rev)=>(draftTurn?.capabilities??[script?.capability,definition,childCapability])
+        .find(cap=>cap?.id===capId&&cap.revision===rev),
       invoke:(cap,args,context)=>{
+        const sameActor=context.victActorId===actorId&&requester.scopes.includes('agent.turn.start');
         if(draftTurn){
-          const granted=context.victActorId===actorId&&context.victTurnId===runId&&
-            requester.scopes.includes('agent.turn.start');
-          return gateCapabilityInvoke(cap,{grants:granted?[editGrant]:[]})(args,context);
+          const granted=sameActor&&context.victTurnId===runId&&
+            (!draftTurn.workspace||cap.effect==='read'||draftTurn.allowChanges);
+          if(!granted)draftTurn.refusals.push({at:new Date().toISOString(),label:'Studio action denied · '+cap.id});
+          return gateCapabilityInvoke(cap,{grants:granted?(draftTurn.workspace?cap.permissions:[editGrant]):[]})(args,context);
         }
-        const child=cap.id===delegationRef.id;
-        const granted=context.victActorId===actorId&&requester.scopes.includes('agent.turn.start')&&
-          (child?process.env.TORI_CHILD_REVOKED!=='1':allowRead&&process.env.TORI_MCP_REVOKED!=='1');
-        if(!granted)governance.disposition=child?'child-denied':'denied';
-        return gateCapabilityInvoke(cap,{grants:granted?[child?delegateGrant:readGrant]:[]})(args,context);
+        const child=cap.id===childCapability?.id;
+        const scriptRead=cap.id===script?.capability.id;
+        const granted=sameActor&&(child?process.env.TORI_CHILD_REVOKED!=='1':
+          allowRead&&(scriptRead?process.env.TORI_SCRIPT_REVOKED!=='1':process.env.TORI_MCP_REVOKED!=='1'));
+        if(!granted){
+          governance.disposition=child?'child-denied':scriptRead?'script-denied':'denied';
+          if(scriptRead)script.deny(args,context);
+        }
+        return gateCapabilityInvoke(cap,{grants:granted?[child?delegateGrant:scriptRead?script.grant:readGrant]:[]})(args,context);
       },
       recordInvocationIntent:command=>service.recordToolInvocationIntent(command),
       updateInvocationStatus:command=>stores.invocations.updateInvocationStatus(command),

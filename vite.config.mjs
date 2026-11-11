@@ -40,5 +40,5 @@ export default defineConfig({
   }],
   optimizeDeps:{noDiscovery:true},
   ssr:{noExternal:['@victframework/ui-flow-svelte']},
-  server:{cors:false,fs:{deny:['.env','.env.*','*.{crt,pem}','**/.git/**','**/.data/**','**/.pi/**','**/server/**','**/fixtures/v1a/a3-context-*.txt','**/*.sqlite*','**/*.db*']}},
+  server:{cors:false,fs:{deny:['.env','.env.*','*.{crt,pem}','**/.git/**','**/.data/**','**/.pi/**','**/server/**','**/fixtures/v1a/a3-context-*.txt','**/fixtures/authoring/**','**/*.sqlite*','**/*.db*']}},
 });

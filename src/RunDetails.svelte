@@ -1,5 +1,6 @@
 <script lang="ts">
-  let {run}=$props();
+  import { Button } from '@victframework/ui-svelte';
+  let {run,inspectRun}=$props();
 </script>
 
 <div class="run-details">
@@ -7,7 +8,7 @@
     <h3>Execution</h3>
     <dl>
       <dt>Provider / model</dt>
-      <dd>{run.parentRun?'Offline fixture':(run.fixture?'Simulated ':'')+'Z.AI '+(run.route==='coding'?'Coding':'General')} / {run.observedModel??run.model}</dd>
+      <dd>{run.provider==='offline-fixture'?'Offline fixture':(run.fixture?'Simulated ':'')+'Z.AI '+(run.route==='coding'?'Coding':'General')} / {run.observedModel??run.model}</dd>
       <dt>Output token limit</dt>
       <dd>{run.tokens}{run.sentMaxOutputTokens===undefined?' - configured':' - sent '+run.sentMaxOutputTokens}</dd>
       {#if run.execution}
@@ -27,7 +28,7 @@
       <dt>Context</dt><dd>{run.context?run.context.source+' · '+run.context.status+(run.context.reason?' · '+run.context.reason:run.context.reads?' · '+run.context.reads+' read':''):'No on-demand source admitted'}</dd>
       {#if run.memory}<dt>Scoped memory</dt><dd>{run.memory==='recent-10@1'?'Last 10 messages':'Last 100 messages'} · this Session</dd>{/if}
       {#if run.outputContract}<dt>Output validation</dt><dd>{run.outputContract.id} · r{run.outputContract.revision} · {run.outputValidation??'not validated'}</dd>{/if}
-      {#if run.governance}
+      {#if run.governance&&!run.scriptReceipts?.length}
         <dt>Governed tool</dt><dd>{run.governance.calls} MCP calls · {run.governance.disposition??'not called'}</dd>
         {#if run.governance.scope}<dt>Tool scope</dt><dd>{run.name} · r{run.number} · read-only observatory</dd>{/if}
       {/if}
@@ -51,11 +52,58 @@
       </dl>
     </section>
   {/if}
+  {#if run.authoringActions?.length}
+    <section aria-label="Studio actions">
+      <h3>Studio actions</h3>
+      {#each run.authoringActions as item (item.operationId)}
+        {@const linked=item.result.run?.id??item.result.runId}
+        <dl>
+          <dt>Action</dt><dd>{item.action} · {item.result.status}</dd>
+          <dt>Operation</dt><dd class="hash">{item.operationId}</dd>
+          {#if item.result.message}<dt>Result</dt><dd>{item.result.message}</dd>{/if}
+          {#each item.result.definitions??[] as definition (definition.definitionId)}
+            <dt>Definition</dt><dd>{definition.name} · {definition.definitionId}</dd>
+            <dt>Draft</dt><dd class="hash">{definition.receipt.draftId} · {definition.receipt.expectedRevision} → {definition.receipt.revision}</dd>
+            <dt>Saved revision</dt><dd class="hash">{definition.savedRevision??'Unsaved'}</dd>
+            <dt>Readiness</dt><dd>{definition.readiness}</dd>
+          {/each}
+          {#if item.result.saveStatus}<dt>Save outcome</dt><dd>{item.result.saveStatus}</dd>{/if}
+          {#if item.result.savedRevision}
+            <dt>Saved revision</dt><dd class="hash">{item.result.savedRevision}</dd>
+          {/if}
+          {#if linked}<dt>Run</dt><dd class="hash">{linked}</dd>{/if}
+        </dl>
+        {#if linked}
+          <Button label="Open linked Run" variant="secondary" onclick={()=>inspectRun(linked)}/>
+        {/if}
+        {#each item.result.run?.children??[] as child (child.id)}
+          <Button label={'Open '+child.name+' Run'} variant="secondary" onclick={()=>inspectRun(child.id)}/>
+        {/each}
+      {/each}
+    </section>
+  {/if}
+  {#if run.scriptReceipts?.length}
+    <section aria-label="Script evidence">
+      <h3>Script evidence</h3>
+      {#each run.scriptReceipts as receipt (receipt.invocationId)}
+        <dl>
+          <dt>Tool</dt><dd>{receipt.id} · r{receipt.revision}</dd>
+          <dt>Permission</dt><dd class="hash">{receipt.grant}</dd>
+          <dt>Entry point</dt><dd>{receipt.entry}</dd>
+          <dt>Invocation</dt><dd class="hash">{receipt.invocationId}</dd>
+          <dt>Outcome</dt><dd>{receipt.status} · {receipt.calls} script {receipt.calls===1?'invocation':'invocations'}</dd>
+          <dt>Input key</dt><dd>{receipt.key}</dd>
+          {#if receipt.result}<dt>Result</dt><dd>{receipt.result.text}</dd>{/if}
+        </dl>
+      {/each}
+    </section>
+  {/if}
   <section aria-label="Provenance">
     <h3>Provenance</h3>
     <dl>
       <dt>Run</dt><dd class="hash">{run.id}</dd>
       <dt>Activation</dt><dd class="hash">{run.activation}</dd>
+      {#if run.authoringRun}<dt>Authoring Run</dt><dd class="hash">{run.authoringRun}</dd>{/if}
       {#if run.parentRun}
         <dt>Parent Run</dt><dd class="hash">{run.parentRun}</dd>
         <dt>Parent invocation</dt><dd class="hash">{run.parentInvocation}</dd>

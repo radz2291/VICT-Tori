@@ -49,9 +49,10 @@
   let modelWire=$derived(binding(data.graph,'model'));
   let textWire=$derived(binding(data.graph,'instructions'));
   let choices=$derived(resource?.id==='child'
-    ? [...resourceChoices.child,...(data.fields.childRevisions??[]).map((revision:{id:string;name:string;number:number})=>({
+    ? [...(data.fixture||field(data.graph,id,'reference')==='reference-reviewer@1'?resourceChoices.child:[]),...(data.fields.childRevisions??[]).map((revision:{id:string;name:string;number:number})=>({
       value:'saved:'+revision.id,label:revision.name+' · r'+revision.number
     }))]
+    : resource?.id==='tool'?resourceChoices.tool.filter(option=>data.fixture||option.value!=='local-reference@1'||field(data.graph,id,'reference')===option.value)
     : resource?resourceChoices[resource.id]:[]);
   $effect(()=>{
     if(root){

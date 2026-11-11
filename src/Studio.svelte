@@ -1,5 +1,6 @@
 <script lang="ts">
   import { onMount, tick, untrack, type Snippet } from 'svelte';
+  import { patchInput, workspaceOccurrence } from '../packages/authoring/index.mjs';
   import { commitDraftEdit, type DraftEditProposal, type DraftEditReceipt } from '@victframework/control/draft-authoring';
   import { Button, ControlScope, Feedback, Select, StatusBadge } from '@victframework/ui-svelte';
   import { Button as ControlButton, Dialog, Menubar, Tooltip } from '@victframework/ui-svelte/primitives';
@@ -15,7 +16,7 @@
   import FlowAccess from './FlowAccess.svelte';
   import Fields from './Fields.svelte';
   import RunDetails from './RunDetails.svelte';
-  import {add,binding,canWire,change,emptyAssembly,field,history,instructions,modelName,readiness,resolved,wire,outputTokens,tokenSourceId,agentResources,resourceChoices,optionalBindings,isOptionalBinding,nodeVisibilityLabel} from './assembly';
+  import {add,binding,canWire,change,emptyAssembly,field,history,instructions,modelName,readiness,resolved,wire,outputTokens,tokenSourceId,agentResources,resourceChoices,optionalBindings,isOptionalBinding,nodeVisibilityLabel,assemblyPatchOperations,configureOperations} from './assembly';
 
   type DockPanel='Authoring Agent'|'Assembly / Selection'|'Inspector';
   const initial=emptyAssembly();
@@ -52,22 +53,27 @@
   let loaded=$state(false), pending=$state(false), sending=$state(false);
   let authoringActivation=$state('');
   let authoringInput=$state('');
+  let authoringMode=$state<'inspect'|'change'>('inspect');
+  const authoringModes=[
+    {value:'inspect',label:'Review only'},
+    {value:'change',label:'Allow edits and tests'},
+  ];
   let authoringError=$state('');
   let authoringResult=$state<{session:string;run?:string;message:string;kind?:'status'|'error'|'denied'}|null>(null);
   let authoringStatus=$state('');
   type DraftTurn = {
-    channel:string; definition:string; savedRevision:string; draftId:string;
+    channel:string; definition:string; savedRevision:string|null; draftId:string; workspace:boolean;
     stop:AbortController; receipts:Map<string,JournalRecovery>; turnId?:string; session?:string;
   };
   let draftInstance=crypto.randomUUID();
   let draftTurn=$state.raw<DraftTurn|null>(null);
   const recoveryPrefix=(workspace:string)=>'tori-v1b-journal:'+workspace+':';
-  type JournalRecovery = {channel:string; receipt:DraftEditReceipt};
+  type JournalRecovery = {channel:string; receipt:DraftEditReceipt; graph?:typeof initial};
   type JournalAction = {operations:Parameters<typeof journal.apply>[0]} | {travel:'undo'|'redo'};
   let journalBefore=initial;
   let journalActions:JournalAction[]=[];
   type WorkingDraft = {
-    savedRevision:string; before?:typeof initial; actions:JournalAction[];
+    savedRevision:string|null; before?:typeof initial; actions:JournalAction[];
     receipts:Record<string,JournalRecovery>;
   };
   const editableOccurrence=()=>!graph.nodes.some(node=>node.id==='agent')?undefined:
@@ -85,13 +91,15 @@
   let sessionActionGroup:HTMLElement|null=null;
   let launchOpen=$state(false),launchError=$state(''),launchQuery=$state('');
   let sessionLauncherButton:HTMLButtonElement|null=$state(null);
-  type AgentActivation={definition:string;version:string;number:number;name:string;route?:string;authoring?:boolean};
+  type AgentActivation={definition:string;version:string;number:number;name:string;route?:string;authoring?:boolean;workspaceAuthoring?:boolean};
   type ActiveAgent=AgentActivation&{revisions:AgentActivation[]};
   type AgentDefinitionSummary={id:string;name:string;savedRevision?:number};
   let activeAgents:ActiveAgent[]=$derived(state.activeAgents??[]);
   const agentDefinitions:AgentDefinitionSummary[]=$derived(state.definitions??[]);
   const authoringActivations=$derived(activeAgents.flatMap(agent=>agent.revisions)
-    .filter(revision=>revision.authoring&&revision.definition!==state.definition&&revision.route===state.route));
+    .filter(revision=>revision.authoring&&(revision.workspaceAuthoring||revision.definition!==state.definition)&&revision.route===state.route));
+  const workspaceAuthoring=$derived(!!authoringActivations.find(revision=>revision.version===authoringActivation)?.workspaceAuthoring);
+  const dockSession=$derived(workspaceAuthoring?state.sessions.find(session=>session.activation===authoringActivation&&session.authoringDock):undefined);
   const authoringChoices=$derived(authoringActivations.map(revision=>({value:revision.version,label:revision.name+' · r'+revision.number})));
   const activeDefinitionIds=$derived(new Set(activeAgents.map(agent=>agent.definition)));
   const agentsNeedingActivation=$derived(agentDefinitions.filter(agent=>agent.savedRevision!==undefined&&!activeDefinitionIds.has(agent.id)));
@@ -198,13 +206,17 @@
     if(sessionGroupChoice===''||sessionHistory.some(group=>group.key===sessionGroupChoice))return sessionGroupChoice??'';
     return sessionQuery.trim()?sessionHistory[0]?.key??'':'';
   });
-  type RunHistoryItem={id:string;session:string;name:string;number?:number;revision:string;started:string;ended?:string;status:string;parentRun?:string;fixture?:string;archivedFixture?:boolean};
+  type RunHistoryItem={id:string;session:string;name:string;number?:number;revision:string;started:string;ended?:string;status:string;parentRun?:string;provider?:string;input?:string;output?:string;fixture?:string;archivedFixture?:boolean};
   type RunHistoryRow=RunHistoryItem&{sequence:number;messagePreview?:string};
   let messagesBySession=$derived.by(()=>new Map<string,Map<string,ConversationMessage>>(
     state.sessions.map(session=>[session.id,new Map((session.messages??[]).map(message=>[message.id,message]))])
   ));
   function runMessage(item:RunHistoryItem,role:'user'|'assistant'){
-    if(item.parentRun)return undefined;
+    if(item.parentRun){
+      if(item.provider==='offline-fixture')return undefined;
+      const text=role==='user'?item.input:item.output;
+      return text?{id:item.id+'-'+role,role,text}:undefined;
+    }
     const message=messagesBySession.get(item.session)?.get(item.id+(role==='user'?'-user':'-agent'));
     return message?.role===role?message:undefined;
   }
@@ -278,7 +290,7 @@
     return Number.isFinite(value)?Math.max(min,Math.min(max,Math.round(value))):min;
   }
   const defaultNodeTitle=(id:string)=>id==='agent'?'Agent Definition':id==='model'?'Model Reference':
-    id===tokenSourceId?'Output limit Integer':agentResources.find(item=>item.id===id)?.label??'System prompt';
+    id===tokenSourceId?'Output limit Integer':id==='tool'&&(!state.fixture||field(graph,'tool','reference')!=='local-reference@1')?'Read-only Tool':agentResources.find(item=>item.id===id)?.label??'System prompt';
   function customNodeTitle(id:string){
     const node=graph.nodes.find(item=>item.id===id);
     const original=graph.nodeTypes.find(type=>type.id===node?.type)?.label;
@@ -329,6 +341,11 @@
     journal=history(g); graph=journal.graph; baseline=authoringBytes(graph);historyState();
     journalBefore=graph;
     journalActions=[];
+    if(next.workingAssembly){
+      const {operations,receipt}=next.workingAssembly;
+      draftInstance=receipt.draftId;
+      commit(operations,false);
+    }
     selectedWire='';
     if(!graph.nodes.some(node=>node.id===selection))selection='';
   }
@@ -375,7 +392,7 @@
         ...(n.id==='instructions'?promptSize:{}),
         data:{graph:g,preview,activePin:n.id==='child'?state.childRevisions?.find(item=>item.id===state.activation?.childRevision):undefined,
           title:objectTitle(n.id),customTitle:customNodeTitle(n.id),defaultTitle:defaultNodeTitle(n.id),mobile,promptSize,canvasIds,route:state.route,hostDeadlineMs:state.hostDeadlineMs,
-          wireSource,
+          wireSource,fixture:state.fixture,
           fields:{childRevisions:state.childRevisions,edit,configure,connect,disconnect,remove,inspectDelegation,
             focus:focusCanvasNode,rename:renameNode,resizePrompt,
             showOptionalNode,hideOptionalNode,createAndConnectSettingNode}}};
@@ -422,10 +439,7 @@
     return (child?child.name+' \u00b7 r'+child.number:undefined)??(reference==='reference-reviewer@1'?'Reference reviewer':'Saved revision unavailable');
   }
   function configure(id:string,key:string,value:string|number){
-    const operations=[];
-    if(!graph.nodes.some(node=>node.id===id))operations.push(add(id));
-    if(key)operations.push(change(id,key,value));
-    if(binding(graph,id)?.source!==id)operations.push(wire(id,id));
+    const operations=configureOperations(graph,id,key,value);
     return operations.length===0||commit(operations);
   }
   function travel(direction:'undo'|'redo'){
@@ -898,7 +912,7 @@
     try{
       const item=readWorking(workingKey(next.workspace,next.definition));
       if(!item?.before)return;
-      if(item.savedRevision!==next.revision?.id){
+      if(item.savedRevision!==(next.revision?.id??null)){
         authoringError='The saved revision changed. This tab still holds the earlier working draft recovery record.';
         return;
       }
@@ -920,7 +934,7 @@
     const key=workingKey(state.workspace,state.definition);
     try{
       const item=readWorking(key);
-      if(!item?.before||item.savedRevision!==state.revision?.id)return;
+      if(!item?.before||item.savedRevision!==(state.revision?.id??null))return;
       writeWorking(key,{...item,actions:journalActions});
     }catch{
       authoringError='The latest edit could not be added to the recovery record. Save the draft before reloading.';
@@ -931,7 +945,7 @@
     try{
       const item=readWorking(key);
       if(!item)return;
-      writeWorking(key,{...item,savedRevision:state.revision?.id,
+      writeWorking(key,{...item,savedRevision:state.revision?.id??null,
         ...(!keepDraft?{before:undefined,actions:[]}:{}),
       });
     }catch{
@@ -939,11 +953,22 @@
     }
   }
   async function sendDraftReceipt(key:string, item:JournalRecovery){
-    await request('/authoring-ack',{channel:item.channel,receipt:item.receipt});
+    const acknowledge=()=>request('/authoring-ack',{channel:item.channel,receipt:item.receipt,graph:item.graph});
+    const confirmation=await acknowledge().catch(error=>{
+      if(item.graph&&error instanceof TypeError)return acknowledge();
+      throw error;
+    });
     const working=readWorking(key);
     if(working&&Object.hasOwn(working.receipts,item.receipt.operationId)){
       delete working.receipts[item.receipt.operationId];
       writeWorking(key,working);
+    }
+    if(confirmation.saved?.id&&item.graph&&state.definition===confirmation.saved.definition&&
+       (state.revision?.id??null)===confirmation.saved.expected){
+      const {id,number}=confirmation.saved;
+      applyState({...state,revision:{id,number}});
+      baseline=authoringBytes(item.graph);
+      updateWorkingAfterSave(dirty);
     }
   }
   async function recoverDraftReceipts(next:any){
@@ -967,13 +992,14 @@
     const workspace=state.workspace;
     const key=workingKey(workspace,turn.definition);
     let acknowledged:JournalRecovery|undefined;
-    let operation:ReturnType<typeof change>|undefined;
+    let operations:Parameters<typeof journal.apply>[0]|undefined;
     let staged:typeof graph|undefined;
+    let save=false;
     if(Date.now()>=deadlineAt)turn.stop.abort();
     commitDraftEdit(proposal,turn.stop.signal,{
       resolveDraft:()=>{
-        const occurrenceId=editableOccurrence();
-        return draftTurn===turn&&draftInstance===turn.draftId&&state.definition===turn.definition&&state.revision?.id===turn.savedRevision&&occurrenceId
+        const occurrenceId=turn.workspace?workspaceOccurrence:editableOccurrence();
+        return draftTurn===turn&&draftInstance===turn.draftId&&state.definition===turn.definition&&(state.revision?.id??null)===turn.savedRevision&&occurrenceId
           ?{draftId:turn.draftId,occurrenceId,revision:graph.revision}:undefined;
       },
       readReceipt:()=>{
@@ -983,16 +1009,24 @@
         return acknowledged?.receipt;
       },
       apply:bound=>{
-        if(!bound.edit.trim()||bound.edit.length>12000)return {status:'invalid'};
-        const [nodeId,fieldName]=bound.occurrenceId.split('.');
-        operation=change(nodeId,fieldName,bound.edit);
-        const result=history(graph).apply([operation],graph.revision);
-        if(!result.ok)return {status:'invalid'};
+        if(turn.workspace){
+          const proposal=JSON.parse(bound.edit);
+          const parsed=patchInput.safeParse(proposal.patch);
+          if(!parsed.success)return {status:'invalid'};
+          operations=assemblyPatchOperations(graph,parsed.data);
+          save=proposal.save===true;
+        }else{
+          if(!bound.edit.trim()||bound.edit.length>12000)return {status:'invalid'};
+          const [nodeId,fieldName]=bound.occurrenceId.split('.');
+          operations=[change(nodeId,fieldName,bound.edit)];
+        }
+        const result=history(graph).apply(operations,graph.revision);
+        if(!result.ok){operations=undefined;return {status:'invalid'};}
         staged=result.graph;
         return {status:'applied',revision:staged.revision};
       },
       recordReceipt:receipt=>{
-        const item={channel:turn.channel,receipt};
+        const item:JournalRecovery={channel:turn.channel,receipt,...(save&&staged?{graph:staged}:{})};
         const previous=readWorking(key);
         const working=previous?.savedRevision===turn.savedRevision?previous:{
           savedRevision:turn.savedRevision,actions:[],receipts:previous?.receipts??{},
@@ -1001,11 +1035,11 @@
         // preflight and the live journal apply share a synchronous revision fence.
         writeWorking(key,{
           ...working,
-          before:operation?journalBefore:working.before,
-          actions:operation?[...journalActions,{operations:[operation]}]:working.actions,
+          before:operations?journalBefore:working.before,
+          actions:operations?[...journalActions,{operations}]:working.actions,
           receipts:{...working.receipts,[proposal.operationId]:item},
         });
-        if(operation&&staged&&!commit([operation],false)){
+        if(operations&&staged&&!commit(operations,false)){
           if(previous)writeWorking(key,previous);
           else sessionStorage.removeItem(key);
           throw new Error('The draft changed before the authoring edit could commit.');
@@ -1026,7 +1060,7 @@
     const updated=next.runs.find(item=>item.id===id);
     if(!updated||state.definition!==definition)return;
     applyState({...state,runs:state.runs.map(item=>item.id===id?updated:item)});
-    if(authoringResult?.run===id&&updated.draftReceipts?.length){
+    if(authoringResult?.run===id&&updated.draftReceipts?.length&&!updated.authoringActions){
       authoringResult={...authoringResult,...draftOutcome(updated.draftReceipts.at(-1).status)};
     }
   }
@@ -1051,22 +1085,24 @@
   }
   async function sendAuthoring(){
     const activation=authoringActivations.find(item=>item.version===authoringActivation);
-    const occurrenceId=editableOccurrence();
-    if(!activation||!occurrenceId||!state.revision||pending||sending)return;
+    const workspace=!!activation?.workspaceAuthoring;
+    const occurrenceId=workspace?workspaceOccurrence:editableOccurrence();
+    if(!activation||!occurrenceId||(!workspace&&!state.revision)||pending||sending)return;
     const input=authoringInput.trim();
     if(!input)return;
     const turn:DraftTurn={
-      channel:crypto.randomUUID(),definition:state.definition,savedRevision:state.revision.id,
-      draftId:draftInstance,stop:new AbortController(),receipts:new Map(),
+      channel:crypto.randomUUID(),definition:state.definition,savedRevision:state.revision?.id??null,
+      draftId:draftInstance,workspace,stop:new AbortController(),receipts:new Map(),
     };
     const target={channel:turn.channel,draftId:turn.draftId,occurrenceId,revision:graph.revision,
-      instructions:instructions(graph),savedRevision:turn.savedRevision};
+      savedRevision:turn.savedRevision,...(workspace?{mode:authoringMode,hasDraft:graph.nodes.length>0,graph}:{instructions:instructions(graph)})};
+    if(workspace)authoringMode='inspect';
     draftTurn=turn; sending=true; authoringError='';authoringResult=null;
     authoringStatus='Starting authoring Session…';
     let pollTimer:ReturnType<typeof setTimeout>|undefined;
     try{
-      const next=await request('/sessions',{activation:activation.version,sessionDefinition:activation.definition},turn.definition);
-      turn.session=next.sessions[0].id;
+      const next=await request('/sessions',{activation:activation.version,sessionDefinition:activation.definition,authoringDock:workspace},turn.definition);
+      turn.session=next.openedSession;
       applyState(next);
       if(turn.stop.signal.aborted)return;
       const poll=async()=>{
@@ -1085,14 +1121,32 @@
         if(draftTurn===turn)pollTimer=setTimeout(poll,150);
       };
       authoringStatus='Authoring turn running…';
-      const pendingTurn=request('/turn',{session:turn.session,input,draftTarget:target},turn.definition);
+      const payload={session:turn.session,input,draftTarget:target};
+      const send=()=>request('/turn',payload,turn.definition);
+      const pendingTurn=send().catch(error=>{
+        if(workspace&&error instanceof TypeError)return send();
+        throw error;
+      });
       void poll();
       const result=await pendingTurn;
-      if(state.definition===turn.definition)applyState(result);
-      const run=result.runs.find(item=>item.session===turn.session);
+      if(state.definition===turn.definition){
+        const changed=result.revision?.id!==state.revision?.id;
+        applyState(result);
+        if(workspace&&changed&&result.graph){
+          baseline=authoringBytes(result.graph);
+          updateWorkingAfterSave(dirty);
+        }
+      }
+      const run=result.runs.find(item=>item.session===turn.session&&!item.parentRun);
       const status=run?.draftReceipts?.at(-1)?.status??run?.authoringOutcomes?.at(-1);
+      const failure=run?.authoringActions?.find(item=>['denied','stale','invalid','cancelled','failed','unconfirmed','operation-conflict'].includes(item.result.status));
+      const unsaved=run?.authoringActions?.find(item=>item.result.saveStatus&&item.result.saveStatus!=='saved');
       authoringResult={session:turn.session!,run:run?.id,
-        ...(status?draftOutcome(status):{message:run?.message??'The turn ended without a confirmed draft edit.'})};
+        ...(workspace?(failure?{message:failure.result.message??draftOutcome(failure.result.status).message,
+          kind:failure.result.status==='denied'?'denied':'error'}:unsaved?{
+            message:'The draft edit was applied. Save outcome: '+unsaved.result.saveStatus+'.',kind:'error',
+          }:{message:run?.message??'',kind:run?.status==='failed'?'error':'status'}):
+          status?draftOutcome(status):{message:run?.message??'The turn ended without a confirmed draft edit.'})};
       if(authoringInput.trim()===input)authoringInput='';
     }catch(e){authoringError=(e as Error).message;}
     finally{
@@ -1254,7 +1308,7 @@
       {id:'child',label:'Child Agent',fn:()=>insertComponent('child'),disabled:!canInsert||!graph.nodes.length||graph.nodes.some(n=>n.id==='child')},
     ]},
     {label:'Resources',items:agentResources.filter(item=>['context','tool','authoring'].includes(item.id)).map(item=>({
-      id:item.id,label:item.label,fn:()=>insertComponent(item.id),disabled:!canInsert||!graph.nodes.length||graph.nodes.some(n=>n.id===item.id),
+      id:item.id,label:defaultNodeTitle(item.id),fn:()=>insertComponent(item.id),disabled:!canInsert||!graph.nodes.length||graph.nodes.some(n=>n.id===item.id),
     }))},
     {label:'Optional nodes',items:optionalBindings.map(item=>({
       id:item.id,label:item.label,fn:()=>insertComponent(item.id),
@@ -1361,7 +1415,6 @@
         <ControlButton.Root class="vict-btn vict-btn--quiet canvas-component-row"
           aria-label={'Add '+item.label} disabled={item.disabled} onclick={()=>{mobileOpen=false;item.fn();}}>
           <AssemblyGlyph kind={item.id}/><span>{item.label}</span>
-          {#if !state.fixture&&(item.id==='tool'||item.id==='child')}<span class="canvas-component-note">Fixture</span>{/if}
         </ControlButton.Root>
       {/each}
     </div>
@@ -1610,7 +1663,11 @@
 {/snippet}
 
 {#snippet runDetails()}
-  <RunDetails {run}/>
+  <RunDetails {run} inspectRun={async(id:string)=>{
+    setRunScope('all');
+    runReturnSession='';
+    await openRun(id,true);
+  }}/>
 {/snippet}
 
 {#snippet historyHeaderActions(searchLabel:string,searchOpen:boolean,toggleSearch:()=>void,optionsLabel:string,choices:Snippet)}
@@ -1978,7 +2035,7 @@
                       <section class="run-turn" aria-labelledby="run-turn-heading">
                         <header class="run-section-heading">
                           <h2 id="run-turn-heading">Turn</h2>
-                          {#if runSession}
+                          {#if runSession&&!run.parentRun}
                             <ControlButton.Root class="vict-btn vict-btn--quiet run-open-turn" aria-label="Open turn" title="Open turn in Sessions"
                               onclick={()=>openSession(runSession.id,true,selectedPrompt.id)}>
                               {@render openViewIcon()}
@@ -2212,25 +2269,35 @@
       <p>Current draft: <strong>{objectTitle('agent')}</strong></p>
     {/if}
     {#if !authoringChoices.length}
-      <Feedback kind="empty" message="Create and activate an agent with Draft Authoring, then open the saved definition you want it to edit."/>
+      <Feedback kind="empty" message="Create and activate an agent with Draft Authoring to use this dock."/>
     {:else}
       <label for="authoring-activation">Authoring activation</label>
       <Select id="authoring-activation" name="authoring-activation" options={authoringChoices}
-        value={authoringActivation} disabled={sending} onChange={value=>authoringActivation=value}/>
+        value={authoringActivation} disabled={sending} onChange={value=>{
+          authoringActivation=value;authoringMode='inspect';authoringResult=null;authoringError='';
+        }}/>
+      {#if dockSession?.messages.length}
+        <Conversation messages={dockSession.messages} composer={readOnlyTurn} inputLabel="Authoring conversation"/>
+      {/if}
       <form class="draft-authoring-form" onsubmit={event=>{event.preventDefault();void sendAuthoring();}}>
-        <label for="authoring-instructions">Requested change</label>
+        {#if workspaceAuthoring}
+          <label for="authoring-mode">Turn permission</label>
+          <Select id="authoring-mode" name="authoring-mode" options={authoringModes}
+            value={authoringMode} disabled={sending} onChange={value=>authoringMode=value==='change'?'change':'inspect'}/>
+        {/if}
+        <label for="authoring-instructions">{workspaceAuthoring?'Message':'Requested change'}</label>
         <Textarea id="authoring-instructions" class="tori-field" rows={4} bind:value={authoringInput} disabled={sending}/>
-        <Button label="Send" type="submit" disabled={!authoringActivation||!authoringInput.trim()||sending||pending||!state.revision||!state.provider}/>
+        <Button label="Send" type="submit" disabled={!authoringActivation||!authoringInput.trim()||sending||pending||(!workspaceAuthoring&&!state.revision)||!state.provider}/>
         {#if draftTurn}<Button label="Stop" variant="secondary" disabled={draftTurn.stop.signal.aborted||authoringStatus==='Stopping…'}
           onclick={stopAuthoring}/>{/if}
       </form>
       {#if !state.provider}<Feedback message="Connect the provider for the selected activation on the local server."/>{/if}
-      {#if !state.revision}<Feedback message="Save this Agent Definition before authoring."/>{/if}
+      {#if !workspaceAuthoring&&!state.revision}<Feedback message="Save this Agent Definition before authoring."/>{/if}
     {/if}
     {#if authoringStatus}<Feedback message={authoringStatus}/>{/if}
     {#if authoringError}<Feedback kind="error" message={authoringError}/>{/if}
     {#if authoringResult}
-      <Feedback kind={authoringResult.kind} message={authoringResult.message}/>
+      {#if authoringResult.message}<Feedback kind={authoringResult.kind} message={authoringResult.message}/>{/if}
       {#if authoringResult.run}
         <Button label="Inspect authoring Run" variant="secondary" onclick={inspectAuthoringRun}/>
       {/if}

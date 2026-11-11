@@ -1,0 +1,13 @@
+{
+  "name": "independent-tori-authoring-consumer",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "@tori-studio/authoring": "file:packs/tori-studio-authoring-0.1.0.tgz",
+    "@victframework/contracts": "file:packs/victframework-contracts-0.4.0-rc.1.tgz",
+    "@victframework/control": "file:packs/victframework-control-0.4.0-rc.1.tgz",
+    "@victframework/kernel": "file:packs/victframework-kernel-0.4.0-rc.1.tgz",
+    "@victframework/runtime": "file:packs/victframework-runtime-0.4.0-rc.1.tgz",
+    "@victframework/sdk": "file:packs/victframework-sdk-0.4.0-rc.1.tgz"
+  }
+}

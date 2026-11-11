@@ -1,5 +1,8 @@
 import { GraphSessionV3, validateGraphV3, type GraphDocumentV3, type GraphOperationV3 } from '@victframework/ui-flow-svelte/model';
 
+import { workspaceBinding } from '../packages/authoring/index.mjs';
+import { registeredTool, registeredTools } from './registered-tools.mjs';
+
 export const modelId = 'glm-5.3-flash';
 export const modelName = 'GLM-5.3 Flash';
 export const rootId = 'agent';
@@ -73,12 +76,13 @@ export const agentResources=[...a4Resources,
   {id:'authoring',label:'Draft Authoring',type:'authoring-reference',defaultValue:'instructions@1'},
 ] as const;
 export const resourceChoices={
-  authoring:[{value:'instructions@1',label:'Edit draft instructions · r1'}],
-  context:[{value:'project-knowledge@1',label:'Project Knowledge r1'},{value:'reference@1',label:'Observatory reference · r1'},{value:'reference@2',label:'Observatory reference · r2'}],
+  authoring:[{value:'instructions@1',label:'Edit draft instructions · r1'},{value:workspaceBinding,label:'Workspace authoring · r1'}],
+  context:[{value:'studio-research@1',label:'Studio Research Knowledge · r1'},{value:'project-knowledge@1',label:'Project Knowledge r1'},{value:'reference@1',label:'Observatory reference · r1'},{value:'reference@2',label:'Observatory reference · r2'}],
   memory:[{value:'recent-10@1',label:'Last 10 messages'},{value:'recent-100@1',label:'Last 100 messages'}],
   output:[{value:'finding@1',label:'Finding JSON · r1'}],
   child:[{value:'reference-reviewer@1',label:'Reference reviewer · r1 (fixture)'}],
-  tool:[{value:'local-reference@1',label:'Local observatory · read only'}],
+  tool:[{value:'local-reference@1',label:'Local observatory · read only'},
+    ...registeredTools.map(tool=>({value:tool.reference,label:tool.label}))],
 };
 export const inlineAgentSettings=[
   {id:'memory',label:'Memory window',options:[{value:'default',label:'Last 100 messages (default)'},...resourceChoices.memory]},
@@ -146,14 +150,15 @@ export function readiness(graph:GraphDocumentV3,route?:string) {
     !value.name.trim() ? 'Enter an agent name.' :
     !value.instructions.trim() ? 'Write system instructions.' :
     value.model!==modelId ? 'Select GLM-5.3 Flash and connect its Model Reference.' :
-    value.context!==undefined && !['reference@1','reference@2','project-knowledge@1'].includes(String(value.context)) ? 'Select a supported Context Source revision.' :
+    value.context!==undefined && !resourceChoices.context.some(option=>option.value===value.context) ? 'Select a supported Context Source revision.' :
     value.memory!==undefined && !['recent-10@1','recent-100@1'].includes(String(value.memory)) ? 'Select a supported Memory Policy.' :
     value.output!==undefined && value.output!=='finding@1' ? 'Select the supported Output Contract.' :
     value.child!==undefined && value.child!=='reference-reviewer@1' && !/^saved:[0-9a-f-]{36}$/.test(String(value.child)) ? 'Select the allowlisted Child Agent.' :
-    value.authoring!==undefined && value.authoring!=='instructions@1' ? 'Select the supported Draft Authoring capability.' :
+    value.authoring!==undefined && value.authoring!=='instructions@1' && value.authoring!==workspaceBinding ? 'Select the supported Draft Authoring capability.' :
     value.authoring && (value.tool||value.child||value.output) ? 'Remove MCP, delegation and structured output from this authoring activation.' :
+    value.authoring===workspaceBinding && value.maxSteps<4 ? 'Set 4 model steps for workspace authoring.' :
     value.authoring && value.maxSteps<3 ? 'Set at least 3 model steps for draft authoring.' :
-    value.tool!==undefined && value.tool!=='local-reference@1' ? 'Select the allowlisted read-only MCP Tool.' :
+    value.tool!==undefined && value.tool!=='local-reference@1' && !registeredTool(value.tool) ? 'Select a registered read-only tool revision.' :
     route!==undefined && route!=='coding' && (value.temperature!==undefined||value.topP!==undefined) ? 'Clear sampling overrides or select the supported Coding route on the host.' :
     !Number.isInteger(value.tokens)||value.tokens<64||value.tokens>32768 ? 'Enter a whole output limit from 64 to 32,768 tokens.' :
     value.temperature!==undefined && (!Number.isFinite(value.temperature)||value.temperature<0||value.temperature>1) ? 'Enter a temperature from 0 to 1, or leave it blank.' :
@@ -170,3 +175,31 @@ export const add = (id:string):GraphOperationV3 => ({type:'addNode',id,nodeType:
 export const wire = (source:string,targetPort:string):GraphOperationV3 => ({type:'connect',edge:{
   id:source+'-to-'+targetPort,source,sourcePort:'value',target:targetPort==='tokens'?modelNodeId:rootId,targetPort,
 }});
+
+export function configureOperations(graph:GraphDocumentV3,id:string,key:string,value:string|number) {
+  const operations:GraphOperationV3[]=[];
+  if(!graph.nodes.some(node=>node.id===id))operations.push(add(id));
+  if(key)operations.push(change(id,key,value));
+  if(binding(graph,id)?.source!==id)operations.push(wire(id,id));
+  return operations;
+}
+
+type AssemblyPatch = {
+  name?:string; instructions?:string; model?:string; context?:string; tool?:string;
+  childRevision?:string; maxSteps?:number;
+};
+
+export function assemblyPatchOperations(graph:GraphDocumentV3,patch:AssemblyPatch) {
+  const operations:GraphOperationV3[]=[];
+  if(!graph.nodes.some(node=>node.id===rootId))operations.push(add(rootId));
+  if(patch.name!==undefined)operations.push(change(rootId,'name',patch.name));
+  if(patch.instructions!==undefined)operations.push(binding(graph,'instructions')
+    ? change(instructionId,'text',patch.instructions)
+    : change(rootId,'instructions',patch.instructions));
+  if(patch.maxSteps!==undefined)operations.push(change(rootId,'maxSteps',patch.maxSteps));
+  if(patch.model!==undefined)operations.push(...configureOperations(graph,modelNodeId,'model',patch.model));
+  if(patch.context!==undefined)operations.push(...configureOperations(graph,'context','reference',patch.context));
+  if(patch.tool!==undefined)operations.push(...configureOperations(graph,'tool','reference',patch.tool));
+  if(patch.childRevision!==undefined)operations.push(...configureOperations(graph,'child','reference','saved:'+patch.childRevision));
+  return operations;
+}
