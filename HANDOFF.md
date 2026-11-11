@@ -1,18 +1,18 @@
 # TORI handoff
 
-## Current authority — V1b
+## Prepared implementation — TORI-005
 
-Radzi accepted the V1a Studio and directed continuation with the V1b assignment. Start from accepted V1a at `633e34d0a89a8d89a5d4477f6642be2a27f08501` on the dedicated `codex/tori-v1b` branch. [V1b full slice specification](docs/implementation/V1B.md) defines the operator experience, shared authoring contract, complete T07 acceptance and scope. [V1a Studio closeout](docs/evidence/v1a/STUDIO-CLOSEOUT.md) anchors the approved UI/UX.
+Radzi requested the ticket and implementation specification for the [Studio authoring foundation](docs/implementation/AUTHORING-FOUNDATION.md), ahead of V1c. The assignment is **TORI-005** in Work project `TORI`. Use `codex/tori-authoring-foundation` and the exact specification commit pinned in Work. The preparation started from `652d6f6a0f79e95a3c5925df67a870b4070c835b`, which includes the reviewed V1b product and evidence.
 
-Resolve the V1b ticket in Work project `TORI` and read its pinned standard and predecessor TORI-003. Own the slice through implementation, a live Studio walkthrough, independent verification and in-scope repairs. Submit the runnable candidate and evidence to Review for Radzi. [Start instruction](CODEX_START.md) · [Work protocol](docs/governance/ROLLADICE-WORK.md)
+The owner should be able to describe Quellight and its Research specialist in ordinary conversation, have the Authoring Agent build and test them, ask for review of their actual Run, and apply an undoable improvement. Register a second read-only script-backed tool and prove it can be discovered, connected and tested through the same action catalog. Keep the approved quiet Studio and left Authoring Agent dock as the experience reference.
 
-**TORI-004 owner review.** The owner selected the public VICT authoring interface. Install the VICT `control` and `contracts` tarballs from `02c63c31f8f4dc42840fc8975927c98b21f30058` together. The lockfile checks their exact integrity. Product `59e568426183d2199be90ca96dd0d31bdd53fbd5` has the live browser walkthrough and recorded Run. The [integration report](docs/evidence/v1b/INTEGRATION.md) identifies the installed interface, receipt, independent checks, and local review route. Owner review is the next gate.
+The handoff requires a permitted live-model browser walkthrough and actual script results, together with deterministic boundary probes, relevant regressions and independent verification. The stage owner resolves routine implementation choices and repairs through Review. The first task maps canonical Studio actions and installed public VICT APIs. [Full slice spec](docs/implementation/AUTHORING-FOUNDATION.md) · [Local start instruction](CODEX_START.md) · [Work protocol](docs/governance/ROLLADICE-WORK.md)
 
-## Prepared follow-on — Studio authoring foundation
+The delivered V1b source is the technical baseline for TORI-005. TORI-004 continues in its own owner review. Creation of this assignment prepares a fresh local Codex handoff.
 
-Radzi directed the broader authoring slice to come before V1c. The next implementation spec starts from the TORI-004 review baseline and defines the blank-library Quellight and Research walkthrough, review without edits, undoable application and registered script-tool extensibility. Use the approved left dock and the VICT authority, Flow history, Stop and Run receipt path demonstrated in V1b. [Implementation spec](docs/implementation/AUTHORING-FOUNDATION.md) · [Stage sequence](docs/implementation/ROADMAP.md)
+## TORI-004 owner review
 
-Start implementation under its own Work assignment and handoff. Keep the TORI-004 candidate and live walkthrough available for owner review.
+The owner selected the public VICT authoring interface. Install the VICT `control` and `contracts` tarballs from `02c63c31f8f4dc42840fc8975927c98b21f30058` together with the existing public package set and recorded lockfile. Product `59e568426183d2199be90ca96dd0d31bdd53fbd5` has the live browser walkthrough and recorded Run. The exact evidence baseline is `aabc80737905671911942c0435b85c5dee285aed` on `codex/tori-v1b`. [Integration report](docs/evidence/v1b/INTEGRATION.md) · [V1b scope](docs/implementation/V1B.md)
 
 ## V1a delivery history
 
