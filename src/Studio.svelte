@@ -1224,7 +1224,7 @@
       {:else}
         <div class="definition-list" class:history-group-list={sessionHistory.length>0} use:showSelectedRow={activeSession}>
           {#if !sessionHistory.length}
-            <p class="dock-empty">{sessionQuery||sessionFilter!=='all'?'No matching Sessions.':'No Sessions yet.'}</p>
+            <Feedback kind="empty" surfaceId="sessions-history" message={sessionQuery||sessionFilter!=='all'?'No matching Sessions.':'No Sessions yet.'}/>
           {:else}
             <Accordion.Root type="single" aria-label="Session history groups" value={openSessionHistoryGroup}
               onValueChange={key=>sessionGroupChoice=key}>
@@ -1293,7 +1293,7 @@
             {/each}
           </Accordion.Root>
         {:else}
-          <p class="dock-empty">{runQuery.trim()?'No matching Runs.':'No Runs in this history yet.'}</p>
+          <Feedback kind="empty" surfaceId="runs-history" message={runQuery.trim()?'No matching Runs.':'No Runs in this history yet.'}/>
         {/if}
       </div>
     {/if}
@@ -1418,7 +1418,7 @@
       </ControlButton.Root>
     {/each}
     {#if !matchingActiveAgents.length&&!matchingInactiveAgents.length}
-      <p class="dock-empty">{launchQuery?'No matching agents.':'Save and activate an agent to start a Session.'}</p>
+      <Feedback kind="empty" surfaceId="session-agent-picker" message={launchQuery?'No matching agents.':'Save and activate an agent to start a Session.'}/>
     {/if}
   </div>
 {/snippet}
@@ -1863,7 +1863,7 @@
         </span>
       </ControlButton.Root>
     {:else}
-      <p class="muted">No matching agents.</p>
+      <Feedback kind="empty" surfaceId="assembly-agents" message="No matching agents."/>
     {/each}
   </div>
   <div class="library-create">
