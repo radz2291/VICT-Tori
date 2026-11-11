@@ -3,7 +3,8 @@
   import { binding, executionBounds, field, rootId } from './assembly';
 
   let {graph, edit, prefix, hostDeadlineMs, compact=false}=$props();
-  let governed=$derived(binding(graph,'child')?'Governed delegation fixture':
+  let authoring=$derived(!!binding(graph,'authoring'));
+  let governed=$derived(authoring?'Governed draft authoring':binding(graph,'child')?'Governed delegation fixture':
     binding(graph,'tool')?'Governed read-only MCP':undefined);
   const numeric=(value:string)=>value===''?undefined:Number(value);
 </script>
@@ -21,6 +22,6 @@
 <p class="muted execution-limit-note">
   Studio allows up to {executionBounds.maxSteps} steps and {executionBounds.maxRetries} retry.
   {#if hostDeadlineMs!==undefined}Host deadline {hostDeadlineMs/1000} s.{/if}
-  {governed?'One governed capability call allowed.':'Tool calls are disabled.'}
+  {authoring?'One discovery and one instruction edit per turn.':governed?'One governed capability call allowed.':'Tool calls are disabled.'}
 </p>
 {#if !compact}<dl><dt>Draft runtime</dt><dd>{governed??'Conversation only'}</dd></dl>{/if}

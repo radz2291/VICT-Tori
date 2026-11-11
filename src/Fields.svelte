@@ -19,9 +19,9 @@
   let activeChild=$derived(childRevisions.find(item=>item.id===pinnedChild));
   let childChoices=$derived([...choices.child,...childRevisions.map(item=>({value:'saved:'+item.id,label:item.name+' · r'+item.number}))]);
   let modelWire=$derived(binding(graph,'model'));
-  let existingCapabilities=$derived(agentResources.filter(item=>['context','tool','child'].includes(item.id)&&binding(graph,item.id)));
+  let existingCapabilities=$derived(agentResources.filter(item=>['context','tool','child','authoring'].includes(item.id)&&binding(graph,item.id)));
   let availableCapabilities=$derived(agentResources
-    .filter(item=>['context','tool','child'].includes(item.id)&&!existingCapabilities.includes(item)&&(fixture||item.id==='context'))
+    .filter(item=>['context','tool','child','authoring'].includes(item.id)&&!existingCapabilities.includes(item)&&(fixture||['context','authoring'].includes(item.id)))
     .map(item=>({value:item.id,label:item.label})));
 </script>
 

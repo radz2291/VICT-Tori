@@ -273,6 +273,7 @@ dt{color:#a4adbb}dd{margin:0;overflow-wrap:anywhere}.hash{font:11px/1.5 ui-monos
 .agent-selection-content .configure-identity{grid-template-columns:minmax(0,1fr)}
 .assembly-node-section .layers-body > .library-filter{margin-inline:0}
 .assembly-node-section .layers-list{padding-inline:0;overflow:visible}
+.draft-authoring-form{display:grid;gap:var(--vict-space-2);margin-block-start:var(--vict-space-3)}
 .authoring-dock-content p{margin:0 0 var(--vict-space-2)}
 @media(max-width:720px){.tori-scope .agent-dock-tablist [role=tab]{min-height:42px}}
 .layers-body{display:flex;flex-direction:column;min-width:0;min-height:0;flex:1}

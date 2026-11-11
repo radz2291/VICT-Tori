@@ -181,7 +181,7 @@ try {
   assert.equal(await authoringToggle.getAttribute('aria-expanded'),'false');
   await authoringToggle.click();
   await page.getByRole('complementary',{name:'Authoring Agent',exact:true})
-    .getByText(/Agent authoring is unavailable/).waitFor();
+    .getByText(/Create and activate an agent with Draft Authoring/).waitFor();
   await authoringToggle.click();
   assert.equal(await authoringToggle.getAttribute('aria-expanded'),'false');
   await button('Canvas').click();
@@ -461,7 +461,7 @@ try {
       await page.setViewportSize({width:390,height:844});
       await authoringToggle.click();
       const authoringSheet=page.getByRole('dialog',{name:'Authoring Agent',exact:true});
-      await authoringSheet.getByText(/Agent authoring is unavailable/).waitFor();
+      await authoringSheet.getByText(/Create and activate an agent with Draft Authoring/).waitFor();
       await page.screenshot({path:join(directory,'v1b-authoring-phone.png'),animations:'disabled'});
       await authoringSheet.getByRole('button',{name:'Close',exact:true}).click();
       assert.equal(await authoringToggle.evaluate(el=>el===document.activeElement),true);

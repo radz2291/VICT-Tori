@@ -34,6 +34,23 @@
       <dt>Thinking</dt><dd>{run.reasoningAt?'Earlier provider observation; not a public VICT reasoning event.':'No public reasoning events or summary are available for this run.'}</dd>
     </dl>
   </section>
+  {#if run.draftTarget}
+    <section aria-label="Draft authoring">
+      <h3>Draft authoring</h3>
+      <dl>
+        <dt>Definition</dt><dd class="hash">{run.draftTarget.definition}</dd>
+        <dt>Occurrence</dt><dd>{run.draftTarget.occurrenceId}</dd>
+        <dt>Open draft</dt><dd class="hash">{run.draftTarget.draftId}</dd>
+        {#each run.draftReceipts??[] as receipt (receipt.operationId)}
+          <dt>Outcome</dt><dd>{receipt.status}</dd>
+          <dt>Operation</dt><dd class="hash">{receipt.operationId}</dd>
+          <dt>Revision</dt><dd>{receipt.expectedRevision}{receipt.revision===undefined?'':' → '+receipt.revision}</dd>
+        {:else}
+          <dt>Outcome</dt><dd>{run.authoringOutcomes?.at(-1)??'No confirmed draft receipt'}</dd>
+        {/each}
+      </dl>
+    </section>
+  {/if}
   <section aria-label="Provenance">
     <h3>Provenance</h3>
     <dl>

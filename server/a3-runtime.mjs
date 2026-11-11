@@ -6,6 +6,7 @@ import { StdioClientTransport } from '@modelcontextprotocol/client/stdio';
 import { AgentStreamHub, authenticatedActorContext, gateCapabilityInvoke } from '@victframework/runtime';
 import { composeMastraTurnExecutor } from '@victframework/mastra';
 import { delegateGrant, delegationRef } from './a4-runtime.mjs';
+import { editGrant, authoringRefs } from './draft-authoring.mjs';
 import { contextBudget, inputSchema, readGrant, schemaDigest, sources, toolRef } from './a3-catalog.mjs';
 
 export { toolRef };
@@ -75,7 +76,7 @@ const objectContract=(id,test,descriptiveJsonSchema)=>({
   parse(value){return test(value)?{ok:true,value}:{ok:false,issues:[{code:'INVALID',path:'$',message:'Invalid reference contract.'}]};},
 });
 
-export async function governedReadTurn({activation,stores,agentConfig,actorId,threadId,input,deadline,fixture,onEvent,childCapability,allowRead=true}) {
+export async function governedReadTurn({activation,stores,agentConfig,actorId,threadId,input,deadline,fixture,onEvent,childCapability,allowRead=true,draftTurn,runId}) {
   const hub=new AgentStreamHub({ledger:stores.streamLedger});
   const streamId=randomUUID();
   const governance={calls:0,disposition:undefined};
@@ -101,11 +102,19 @@ export async function governedReadTurn({activation,stores,agentConfig,actorId,th
   const id=()=>randomUUID();
   const composition=composeMastraTurnExecutor({
     stores,activation,hub,agentConfig,
-    ids:{turnId:id,streamId:()=>streamId,invocationId:id,approvalId:id,idempotencyKey:id,cancelId:id},
+    ids:{turnId:runId?()=>runId:id,streamId:()=>streamId,invocationId:id,approvalId:id,idempotencyKey:id,cancelId:id},
     capabilityBridge:{
-      resolveCapability:(capId,rev)=>capId===definition.id&&rev===definition.revision?definition:
+      ...(draftTurn?{quietWriteApprovals:{policyIdentity:'tori.open-draft.instructions',entries:[{
+        capabilityId:authoringRefs[1].id,capabilityRevision:authoringRefs[1].revision,
+      }]}}:{}),
+      resolveCapability:(capId,rev)=>draftTurn?draftTurn.capabilities.find(cap=>cap.id===capId&&cap.revision===rev):capId===definition.id&&rev===definition.revision?definition:
         capId===childCapability?.id&&rev===childCapability?.revision?childCapability:undefined,
       invoke:(cap,args,context)=>{
+        if(draftTurn){
+          const granted=context.victActorId===actorId&&context.victTurnId===runId&&
+            requester.scopes.includes('agent.turn.start');
+          return gateCapabilityInvoke(cap,{grants:granted?[editGrant]:[]})(args,context);
+        }
         const child=cap.id===delegationRef.id;
         const granted=context.victActorId===actorId&&requester.scopes.includes('agent.turn.start')&&
           (child?process.env.TORI_CHILD_REVOKED!=='1':allowRead&&process.env.TORI_MCP_REVOKED!=='1');
@@ -130,7 +139,7 @@ export async function governedReadTurn({activation,stores,agentConfig,actorId,th
   try{
     deadline.throwIfAborted();
     const {turn,outcomePromise}=await service.startTurn(requester,{threadId,input,inputSummary:'TORI governed turn'});
-    cancel=()=>{cancellation=service.cancelTurn(requester,{turnId:turn.turnId,reasonCode:'TORI_TURN_DEADLINE'}).catch(()=>undefined);};
+    cancel=()=>{cancellation=service.cancelTurn(requester,{turnId:turn.turnId,reasonCode:draftTurn?.signal.aborted?'TORI_AUTHORING_STOP':'TORI_TURN_DEADLINE'}).catch(()=>undefined);};
     deadline.addEventListener('abort',cancel,{once:true});
     if(deadline.aborted)cancel();
     const outcome=await outcomePromise;

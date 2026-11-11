@@ -65,11 +65,15 @@ const resourceCatalog=(resources:ReadonlyArray<{id:string,label:string,type:stri
     ports:[{id:'value',label:resource.label,type:resource.type,direction:'output' as const}]})),
 ];
 
-export const agentResources=[...a3Resources,
+const a4Resources=[...a3Resources,
   {id:'output',label:'Output Contract',type:'output-reference',defaultValue:'finding@1'},
   {id:'child',label:'Child Agent',type:'agent-reference',defaultValue:'reference-reviewer@1'},
 ] as const;
+export const agentResources=[...a4Resources,
+  {id:'authoring',label:'Draft Authoring',type:'authoring-reference',defaultValue:'instructions@1'},
+] as const;
 export const resourceChoices={
+  authoring:[{value:'instructions@1',label:'Edit draft instructions · r1'}],
   context:[{value:'project-knowledge@1',label:'Project Knowledge r1'},{value:'reference@1',label:'Observatory reference · r1'},{value:'reference@2',label:'Observatory reference · r2'}],
   memory:[{value:'recent-10@1',label:'Last 10 messages'},{value:'recent-100@1',label:'Last 100 messages'}],
   output:[{value:'finding@1',label:'Finding JSON · r1'}],
@@ -84,7 +88,7 @@ const a3Definitions=resourceCatalog(a3Resources);
 const definitions=resourceCatalog(agentResources);
 
 function upgrade(graph:GraphDocumentV3):GraphDocumentV3 {
-  return [legacyDefinitions,a1Definitions,a2Definitions,a3Definitions].some(catalog=>JSON.stringify(graph.nodeTypes)===JSON.stringify(catalog))
+  return [legacyDefinitions,a1Definitions,a2Definitions,a3Definitions,resourceCatalog(a4Resources)].some(catalog=>JSON.stringify(graph.nodeTypes)===JSON.stringify(catalog))
     ? {...graph,nodeTypes:structuredClone(definitions)} : graph;
 }
 
@@ -131,7 +135,7 @@ export function resolved(graph:GraphDocumentV3) {
   const temperature=modelValues?.temperature as number|undefined;
   const topP=modelValues?.topP as number|undefined;
   const resource=(id:string)=>binding(graph,id)?field(graph,id,'reference'):undefined;
-  return {output:resource('output'),child:resource('child'),context:resource('context'),memory:resource('memory'),tool:resource('tool'),name:String(field(graph,rootId,'name')??''),instructions:instructions(graph),
+  return {authoring:resource('authoring'),output:resource('output'),child:resource('child'),context:resource('context'),memory:resource('memory'),tool:resource('tool'),name:String(field(graph,rootId,'name')??''),instructions:instructions(graph),
     model:binding(graph,'model') ? String(field(graph,modelNodeId,'model')??'') : '',
     tokens:outputTokens(graph),temperature,topP,
     maxSteps:Number(field(graph,rootId,'maxSteps')??1),maxRetries:Number(field(graph,rootId,'maxRetries')??0)};
@@ -146,6 +150,9 @@ export function readiness(graph:GraphDocumentV3,route?:string) {
     value.memory!==undefined && !['recent-10@1','recent-100@1'].includes(String(value.memory)) ? 'Select a supported Memory Policy.' :
     value.output!==undefined && value.output!=='finding@1' ? 'Select the supported Output Contract.' :
     value.child!==undefined && value.child!=='reference-reviewer@1' && !/^saved:[0-9a-f-]{36}$/.test(String(value.child)) ? 'Select the allowlisted Child Agent.' :
+    value.authoring!==undefined && value.authoring!=='instructions@1' ? 'Select the supported Draft Authoring capability.' :
+    value.authoring && (value.tool||value.child||value.output) ? 'Remove MCP, delegation and structured output from this authoring activation.' :
+    value.authoring && value.maxSteps<3 ? 'Set at least 3 model steps for draft authoring.' :
     value.tool!==undefined && value.tool!=='local-reference@1' ? 'Select the allowlisted read-only MCP Tool.' :
     route!==undefined && route!=='coding' && (value.temperature!==undefined||value.topP!==undefined) ? 'Clear sampling overrides or select the supported Coding route on the host.' :
     !Number.isInteger(value.tokens)||value.tokens<64||value.tokens>32768 ? 'Enter a whole output limit from 64 to 32,768 tokens.' :
