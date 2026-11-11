@@ -213,12 +213,16 @@ try {
       } else await route.continue();
     });
   }
-  const second = await result(await send(
+  let second = await result(await send(
     'Discover the registered Reading List and connect it to the open Research agent in place of Research Topics. Save this revision, then test Research directly using the Reading List tool with the planning key. Tell me the actual result.'
   ));
   if (!live) {
     assert.ok(droppedSaveAck >= 2, 'Lost Save acknowledgement should trigger the same journal receipt again.');
     await page.unroute('**/api/studio/authoring-ack');
+  }
+  const bindingRun = second.run;
+  if (live && !actions(second.run, 'test') && actions(second.run, 'edit')?.savedRevision) {
+    second = await result(await send('Now test the saved Research agent. Ask it to use the Reading List tool for the planning key. Show the actual Run and result.'));
   }
   const secondRun = actions(second.run, 'test')?.run;
   assert.equal(secondRun?.status, 'completed', JSON.stringify(second.run.authoringActions));
@@ -240,6 +244,8 @@ try {
   await page.locator('.agent-left-dock').waitFor({ state: 'hidden' });
   await openAuthoring(pinned.version);
   await dock().locator('#authoring-mode').waitFor();
+  const sendBounds = await dock().getByRole('button', { name: 'Send', exact: true }).boundingBox();
+  assert.ok(sendBounds && sendBounds.y >= 0 && sendBounds.y + sendBounds.height <= 844, 'The composer remains visible below a long conversation.');
   await page.screenshot({ path: join(evidence, 'narrow-conversation.png') });
   await page.keyboard.press('Escape');
   await dock().waitFor({ state: 'hidden' });
@@ -293,13 +299,14 @@ try {
     assert.equal(actions(separateSave.run, 'edit').status, 'applied');
     const reopened = await api(actions(variant.run, 'assemble').definitions[0].definitionId);
     assert.equal(reopened.revision.number, 1);
+    assert.equal(separateSave.run.draftReceipts[0].revision, reopened.revision.id);
     assert.ok(reopened.graph);
     probes.variant = variant.run.id;
   }
   const report = {
     live, chromium: browser.version(), authoringActivation: pinned, workspace: initial.workspace,
     build: built.run, review: reviewed.run, reviewReply: reviewed.message, edit: edited.run,
-    second: second.run, test, child, secondRun, finalRevision: finalResearch.revision, probes,
+    bindingRun, second: second.run, test, child, secondRun, finalRevision: finalResearch.revision, probes,
   };
   await writeFile(join(evidence, 'observations.json'), JSON.stringify(report, null, 2) + '\n');
   console.log(JSON.stringify({ live, build: built.run.id, review: reviewed.run.id, edit: edited.run.id,

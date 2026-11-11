@@ -82,6 +82,16 @@ export async function governedReadTurn({activation,stores,agentConfig,actorId,th
   const streamId=randomUUID();
   const governance={calls:0,disposition:undefined};
   const script=createScriptCapability(scriptBinding,recordScript);
+  const callLimit=activation.profile.profile.turnPolicy.maxToolCalls;
+  let admitted=0;
+  function reserve(cap,args,context) {
+    // Claim synchronously before dispatch, including parallel calls in one model step.
+    if(admitted<callLimit){admitted++;return;}
+    governance.limitExceeded=true;
+    if(draftTurn)draftTurn.refusals.push({at:new Date().toISOString(),label:'Studio action limit reached · '+cap.id});
+    if(cap.id===script?.capability.id)script.deny(args,context,'call-limit');
+    throw new Error('TORI_CAPABILITY_CALL_LIMIT');
+  }
   const definition={
     id:toolRef.id,revision:toolRef.revision,effect:'read',description:'Read the synthetic observatory reference.',
     permissions:[readGrant],
@@ -119,7 +129,8 @@ export async function governedReadTurn({activation,stores,agentConfig,actorId,th
         if(draftTurn){
           const granted=sameActor&&context.victTurnId===runId&&
             (!draftTurn.workspace||cap.effect==='read'||draftTurn.allowChanges);
-          if(!granted)draftTurn.refusals.push({at:new Date().toISOString(),label:'Studio action denied · '+cap.id});
+          if(granted)reserve(cap,args,context);
+          else draftTurn.refusals.push({at:new Date().toISOString(),label:'Studio action denied · '+cap.id});
           return gateCapabilityInvoke(cap,{grants:granted?(draftTurn.workspace?cap.permissions:[editGrant]):[]})(args,context);
         }
         const child=cap.id===childCapability?.id;
@@ -128,8 +139,8 @@ export async function governedReadTurn({activation,stores,agentConfig,actorId,th
           allowRead&&(scriptRead?process.env.TORI_SCRIPT_REVOKED!=='1':process.env.TORI_MCP_REVOKED!=='1'));
         if(!granted){
           governance.disposition=child?'child-denied':scriptRead?'script-denied':'denied';
-          if(scriptRead)script.deny(args,context);
-        }
+          if(scriptRead)script.deny(args,context,'read-scope');
+        }else reserve(cap,args,context);
         return gateCapabilityInvoke(cap,{grants:granted?[child?delegateGrant:scriptRead?script.grant:readGrant]:[]})(args,context);
       },
       recordInvocationIntent:command=>service.recordToolInvocationIntent(command),

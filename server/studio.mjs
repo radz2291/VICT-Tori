@@ -249,12 +249,12 @@ export function createStudio({getAssembly,dataDirectory,turnDeadlineMs=90000,con
     state.definitions=[...(state.definitions??[]),id];
     return id;
   }
-  function saveDefinition(state,definition,expected,input,assembly) {
+  function saveDefinition(state,definition,expected,input,assembly,id=randomUUID()) {
     const saved=newest(state.drafts,definition);
     if(expected!==(saved?.id??null))throw conflict('A newer draft exists. Reload it before saving again.');
     let graph;
     try{graph=assembly.checkedAssembly(input);}catch{throw new StudioError(400,'The graph contains an unsupported node or connection.');}
-    const revision={id:randomUUID(),number:(saved?.number??0)+1,definition,graph};
+    const revision={id,number:(saved?.number??0)+1,definition,graph};
     state.drafts.unshift(revision);
     if(state.workingAssemblies)delete state.workingAssemblies[definition];
     return revision;
@@ -364,7 +364,7 @@ export function createStudio({getAssembly,dataDirectory,turnDeadlineMs=90000,con
           result={status:'cancelled'};
         }else{
           try{
-            const revision=saveDefinition(state,binding.save.definition,binding.save.expected,graph,assembly);
+            const revision=saveDefinition(state,binding.save.definition,binding.save.expected,graph,assembly,binding.save.snapshotId);
             result={status:'saved',id:revision.id,number:revision.number,definition:revision.definition,
               expected:binding.save.expected,readiness:assembly.readiness(revision.graph,selectedRoute())||'ready'};
           }catch(error){
@@ -554,7 +554,8 @@ export function createStudio({getAssembly,dataDirectory,turnDeadlineMs=90000,con
         'You are operating the local Studio with approved synthetic resources. Discover the workspace before acting.',
         draftTurn.allowChanges?'Only carry out changes and tests requested by the user. Use assemble for a new composition, edit for the open draft, and test for an exact saved revision.':
           'This turn is read only. Inspect the actual Run or definition and cite its ID. Suggest changes without applying them.',
-        'The open draft and Run references from the tools are authoritative. Ask if the target is ambiguous. Report actual tool outcomes and remaining work. Keep the answer concise.',
+        'Studio binds edits to the current open draft. Omit draftId and expectedRevision for an ordinary edit. Never copy draft IDs or graph revisions from earlier turns. Discover current resources and use their exact references.',
+        'Ask if the target is ambiguous. Report actual tool outcomes and remaining work. Keep the answer concise.',
       ].join(' '):undefined;
       const agentConfig={store:storage.store,modelFactory:()=>providerModel(key,run.route,evidence,{
         ...value,tool:value.tool||value.child||value.authoring,context:context.content,authoringGuide,
@@ -596,6 +597,7 @@ export function createStudio({getAssembly,dataDirectory,turnDeadlineMs=90000,con
               childRun.message='Research’s pinned MCP read was denied before contacting the tool.';
               return {...result,status:'failed',errorCode:'TORI_MCP_SCOPE_DENIED'};
             }
+            if(result.governance.limitExceeded)return {...result,status:'failed',errorCode:'TORI_CAPABILITY_CALL_LIMIT'};
             const scriptFailure=childRun.scriptReceipts?.find(receipt=>receipt.status!=='completed');
             if(scriptFailure)return {...result,status:'failed',errorCode:scriptFailure.status==='denied'?'TORI_SCRIPT_SCOPE_DENIED':'TORI_SCRIPT_FAILED'};
             if(result.governance.disposition==='schema-mismatch')return {...result,status:'failed',errorCode:'TORI_MCP_SCHEMA_DRIFT'};
@@ -642,6 +644,11 @@ export function createStudio({getAssembly,dataDirectory,turnDeadlineMs=90000,con
         run.status='failed';
         run.errorCode=scriptFailure.status==='denied'?'TORI_SCRIPT_SCOPE_DENIED':'TORI_SCRIPT_FAILED';
         run.message=scriptFailure.status==='denied'?'The registered script refused a read outside its scope.':'The registered script did not return an accepted result.';
+      }
+      if(run.governance?.limitExceeded){
+        run.status='failed';
+        run.errorCode='TORI_CAPABILITY_CALL_LIMIT';
+        run.message='An additional tool request exceeded the pinned call limit and was refused before dispatch.';
       }
       if(run.governance?.disposition==='child-denied'){
         run.status='failed';

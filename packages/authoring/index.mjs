@@ -34,13 +34,13 @@ const values = z.object({
 const revisionId = z.number().int().nonnegative();
 const draftReceipt = z.object({
   actorId: z.string(), turnId: z.string(), operationId: z.string(), draftId: uuid, occurrenceId: z.string(),
-  expectedRevision: revisionId, editDigest: z.string(), revision: revisionId.optional(),
+  expectedRevision: revisionId, editDigest: z.string(), revision: z.union([revisionId, uuid]).optional(),
   status: z.enum(['applied', 'stale', 'cancelled', 'denied', 'invalid']),
 }).strict();
 const scriptReceipt = z.object({
   id: z.string(), revision: z.string(), grant: z.string(), entry: z.string(), invocationId: z.string(),
   key: z.string(), calls: z.number().int().nonnegative(), started: z.string(), ended: z.string(),
-  status: z.enum(['completed', 'failed', 'cancelled', 'timed-out', 'denied']),
+  status: z.enum(['completed', 'failed', 'cancelled', 'timed-out', 'denied']), reason: z.string().optional(),
   result: z.object({ text: z.string() }).strict().optional(),
 }).strict();
 const runStatus = z.enum(['running', 'completed', 'failed', 'cancelled', 'interrupted']);
@@ -95,11 +95,11 @@ const entries = [
   },
   {
     key: 'edit', effect: 'write',
-    description: 'Change fields or bindings on the exact open draft from discovery. Use its draft ID and graph revision. Set save only when requested or required for a requested test. Set patch to an empty object with save true to save the current working draft.',
+    description: 'Edit the current open draft. Studio binds its exact identity and revision. Omit draftId and expectedRevision unless the user supplied an exact reference to verify. Set save when requested or needed for a requested test. Use an empty patch with save true to save without editing.',
     schema: object({ draftId: string(36), expectedRevision: revision, patch: object(patchProperties), save: boolean },
-      ['draftId', 'expectedRevision', 'patch']),
+      ['patch']),
     input: z.object({
-      draftId: uuid, expectedRevision: z.number().int().nonnegative().safe(),
+      draftId: uuid.optional(), expectedRevision: z.number().int().nonnegative().safe().optional(),
       patch: patchInput, save: z.boolean().optional(),
     }).strict().refine(value => value.save || Object.keys(value.patch).length > 0),
     output: z.union([refusal, z.object({

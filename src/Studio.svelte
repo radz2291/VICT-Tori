@@ -1013,8 +1013,13 @@
           const proposal=JSON.parse(bound.edit);
           const parsed=patchInput.safeParse(proposal.patch);
           if(!parsed.success)return {status:'invalid'};
-          operations=assemblyPatchOperations(graph,parsed.data);
           save=proposal.save===true;
+          if(save&&typeof proposal.saveOnlyRevision==='string'&&!Object.keys(parsed.data).length){
+            // Save the validated current snapshot without adding an Undo entry.
+            staged=graph;
+            return {status:'applied',revision:proposal.saveOnlyRevision};
+          }
+          operations=assemblyPatchOperations(graph,parsed.data);
         }else{
           if(!bound.edit.trim()||bound.edit.length>12000)return {status:'invalid'};
           const [nodeId,fieldName]=bound.occurrenceId.split('.');

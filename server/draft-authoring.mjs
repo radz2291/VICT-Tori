@@ -48,8 +48,8 @@ export function createAuthoringTransport(db) {
     const binding = JSON.parse(entry.binding);
     if (!bindingFields.every(key => binding[key] === receipt[key]) || !statuses.includes(receipt.status)) return false;
     const revision = ['applied', 'stale'].includes(receipt.status);
-    if (revision && (!validRevision(receipt.revision) || receipt.revision === binding.expectedRevision)) return false;
-    if (receipt.status === 'applied' && receipt.revision !== binding.expectedRevision + 1) return false;
+    if (receipt.status === 'stale' && (!validRevision(receipt.revision) || receipt.revision === binding.expectedRevision)) return false;
+    if (receipt.status === 'applied' && receipt.revision !== (binding.save?.snapshotId ?? binding.expectedRevision + 1)) return false;
     const identity = Object.fromEntries(bindingFields.map(key => [key, binding[key]]));
     const clean = JSON.stringify({ ...identity, status: receipt.status, ...(revision ? { revision: receipt.revision } : {}) });
     if (entry.receipt !== null) return entry.receipt === clean && {
@@ -59,7 +59,7 @@ export function createAuthoringTransport(db) {
       return confirm.run(clean, new Date().toISOString(), receipt.operationId).changes === 1 && { accepted: true };
     }
     // The saved revision and its VICT receipt have one SQLite commit boundary.
-    if (!graph || graph.revision !== receipt.revision) return false;
+    if (!graph || graph.revision !== (binding.save.snapshotId ? binding.expectedRevision : receipt.revision)) return false;
     db.exec('BEGIN IMMEDIATE');
     try {
       const saved = saveDraft(binding, graph);
@@ -87,8 +87,9 @@ export function createAuthoringTransport(db) {
       },
       async commit(proposal, signal) {
         const binding = Object.fromEntries(bindingFields.map(key => [key, proposal[key]]));
-        if (occurrenceId === workspaceOccurrence && JSON.parse(proposal.edit).save === true) {
-          binding.save = { definition, expected: savedRevision ?? null, deadlineAt };
+        if (occurrenceId === workspaceOccurrence) {
+          const edit = JSON.parse(proposal.edit);
+          if (edit.save) binding.save = { definition, expected: savedRevision ?? null, deadlineAt, snapshotId: edit.saveOnlyRevision };
         }
         const serialized = JSON.stringify(binding);
         insert.run(proposal.operationId, turnId, hash, serialized);

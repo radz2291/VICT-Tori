@@ -12,6 +12,12 @@ export function rememberOperation(state, id, entry) {
   state.workspaceOperations[id] = entry;
 }
 
+function saveIdentity(operationId) {
+  const hex = operationDigest({ save: operationId });
+  return [hex.slice(0, 8), hex.slice(8, 12), '4' + hex.slice(13, 16),
+    '8' + hex.slice(17, 20), hex.slice(20, 32)].join('-');
+}
+
 const present = value => Object.fromEntries(Object.entries(value).filter(([, item]) => item !== undefined));
 
 export function runEvidence(state, run) {
@@ -158,9 +164,12 @@ export function workspaceCapabilities({
           return reject('edit', context, 'Choose a ready saved specialist without authoring or delegation.');
         }
       }
+      const open = await draftTurn.discover(context);
+      if (!open) return reject('edit', context, 'Open the agent definition you want to edit.');
+      const saveOnlyRevision = save && !Object.keys(patch).length ? saveIdentity(context.victIdempotencyKey) : undefined;
       const result = await draftTurn.apply({
-        draftId, expectedRevision, occurrenceId: workspaceOccurrence,
-        edit: JSON.stringify({ patch, save: save === true }),
+        draftId: draftId ?? open.draftId, expectedRevision: expectedRevision ?? open.revision,
+        occurrenceId: workspaceOccurrence, edit: JSON.stringify({ patch, save: save === true, saveOnlyRevision }),
       }, context);
       if (result.status !== 'confirmed') return note('edit', context, result);
       const saved = knownOperation(snapshot(), context.victIdempotencyKey)?.result;

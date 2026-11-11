@@ -45,7 +45,8 @@
         {#each run.draftReceipts??[] as receipt (receipt.operationId)}
           <dt>Outcome</dt><dd>{receipt.status}</dd>
           <dt>Operation</dt><dd class="hash">{receipt.operationId}</dd>
-          <dt>Revision</dt><dd>{receipt.expectedRevision}{receipt.revision===undefined?'':' → '+receipt.revision}</dd>
+          <dt>{typeof receipt.revision==='string'?'Draft → saved revision':'Revision'}</dt>
+          <dd>{receipt.expectedRevision}{receipt.revision===undefined?'':' → '+receipt.revision}</dd>
         {:else}
           <dt>Outcome</dt><dd>{run.authoringOutcomes?.at(-1)??'No confirmed draft receipt'}</dd>
         {/each}
@@ -93,6 +94,7 @@
           <dt>Invocation</dt><dd class="hash">{receipt.invocationId}</dd>
           <dt>Outcome</dt><dd>{receipt.status} · {receipt.calls} script {receipt.calls===1?'invocation':'invocations'}</dd>
           <dt>Input key</dt><dd>{receipt.key}</dd>
+          {#if receipt.reason}<dt>Reason</dt><dd>{receipt.reason}</dd>{/if}
           {#if receipt.result}<dt>Result</dt><dd>{receipt.result.text}</dd>{/if}
         </dl>
       {/each}

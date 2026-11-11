@@ -75,8 +75,9 @@ async function fixtureFetch(url, init) {
       if (step === 1) {
         const tool = results[0].tools.find(item => item.label.startsWith('Reading List'));
         call('workspace_edit', {
-          draftId: prompt.includes('outside this draft') ? '00000000-0000-4000-8000-000000000001' : open.draftId,
-          expectedRevision: open.revision,
+          ...(prompt.includes('outside this draft') ? {
+            draftId: '00000000-0000-4000-8000-000000000001', expectedRevision: open.revision,
+          } : {}),
           patch: prompt.includes('Reading List') ? { tool: tool.reference } :
             prompt.includes('save this draft') ? {} : { instructions: open.instructions + ' Include a source label in every finding.' },
           save: prompt.includes('Reading List') || prompt.includes('save this draft'),

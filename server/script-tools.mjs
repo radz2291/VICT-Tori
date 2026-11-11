@@ -88,7 +88,7 @@ export function createScriptCapability(reference, record) {
     async invoke({ key }, context) {
       const evidence = receipt(context, key);
       if (!tool.keys.includes(key)) {
-        settle(evidence, 'denied');
+        settle({ ...evidence, reason: 'key-outside-scope' }, 'denied');
         throw new Error('TORI_SCRIPT_SCOPE_DENIED');
       }
       try {
@@ -103,6 +103,6 @@ export function createScriptCapability(reference, record) {
   };
   return {
     capability, grant: tool.grant,
-    deny: (args, context) => settle(receipt(context, args.key), 'denied'),
+    deny: (args, context, reason) => settle({ ...receipt(context, args.key), reason }, 'denied'),
   };
 }
