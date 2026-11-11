@@ -290,6 +290,7 @@ export function createStudio({getAssembly,dataDirectory,turnDeadlineMs=90000,con
       return {revision,value,contextPolicy:pin===undefined?contextPolicy(value.context):pin};
     };
     if(path==='/save'){
+      if(activeTurn?.draftTurn&&activeTurn.definition===definition)throw conflict('Wait for the authoring turn to finish before saving this draft.');
       if((input.expected?.id??null)!==(saved?.id??null))throw conflict('A newer draft exists. Reload it before saving again.');
       let graph;
       try{graph=assembly.checkedAssembly(input.graph);}catch{throw new StudioError(400,'The graph contains an unsupported node or connection.');}
@@ -370,7 +371,7 @@ export function createStudio({getAssembly,dataDirectory,turnDeadlineMs=90000,con
         run.draftTarget={definition,draftId:target.draftId,occurrenceId:target.occurrenceId,revision:target.revision};
         store(state);
       }
-      activeTurn={session:session.id,publicTextStarted:false,draftTurn};
+      activeTurn={session:session.id,publicTextStarted:false,draftTurn,definition};
       const evidence={providerAttempts:0,modelSteps:0};
       const expiry=AbortSignal.timeout(turnDeadlineMs);
       const deadline=draftTurn?AbortSignal.any([expiry,draftTurn.signal]):expiry;

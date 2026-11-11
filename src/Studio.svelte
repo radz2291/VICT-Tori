@@ -62,7 +62,14 @@
   let draftInstance=crypto.randomUUID();
   let draftTurn=$state.raw<DraftTurn|null>(null);
   const recoveryPrefix=(workspace:string)=>'tori-v1b-journal:'+workspace+':';
-  type JournalRecovery = {channel:string; receipt:DraftEditReceipt; definition:string; savedRevision:string; graph?:typeof initial};
+  type JournalRecovery = {channel:string; receipt:DraftEditReceipt};
+  type JournalAction = {operations:Parameters<typeof journal.apply>[0]} | {travel:'undo'|'redo'};
+  let journalBefore=initial;
+  let journalActions:JournalAction[]=[];
+  type WorkingDraft = {
+    savedRevision:string; before?:typeof initial; actions:JournalAction[];
+    receipts:Record<string,JournalRecovery>;
+  };
   const editableOccurrence=()=>!graph.nodes.some(node=>node.id==='agent')?undefined:
     binding(graph,'instructions')?'instructions.text':'agent.instructions';
   let sendActivity=$state<{session:string;phase:string}|null>(null);
@@ -320,6 +327,8 @@
     draftInstance=crypto.randomUUID();
     const g=next.graph??emptyAssembly();
     journal=history(g); graph=journal.graph; baseline=authoringBytes(graph);historyState();
+    journalBefore=graph;
+    journalActions=[];
     selectedWire='';
     if(!graph.nodes.some(node=>node.id===selection))selection='';
   }
@@ -346,7 +355,7 @@
       runGrouping=prefs.runGrouping==='date'?'date':'session';
       runScopePreference=prefs.runScopePreference==='session'?'session':'all';
     }catch{}
-    request().then(next=>{applyState(next);reopen(next);void recoverDraftReceipts(next);}).catch(e=>error=e.message).finally(()=>loaded=true);
+    request().then(next=>{applyState(next);reopen(next);restoreWorkingDraft(next);void recoverDraftReceipts(next);}).catch(e=>error=e.message).finally(()=>loaded=true);
     const dayCheck=setInterval(()=>today=localCalendarDay(new Date()),60_000);
     return ()=>{
       mq.removeEventListener('change',measure);
@@ -389,10 +398,13 @@
       class:delegation?'delegation-wire':undefined,
       style:delegation?'stroke-dasharray:3 4':e.targetPort==='model'?'stroke-dasharray:6 4':undefined};
   }));
-  function commit(operations:any[]){
+  function commit(operations:any[],persist=true){
     const result=journal.apply(operations,graph.revision);
     if(!result.ok){graphError=result.issues.map(i=>i.message).join(' ');return false;}
-    graph=result.graph;graphError='';historyState();return true;
+    graph=result.graph;graphError='';historyState();
+    journalActions.push({operations});
+    if(persist)rememberWorkingActions();
+    return true;
   }
   function edit(id:string,key:string,value:string|number|undefined){if(graph.nodes.find(n=>n.id===id)?.values[key]!==value)commit([change(id,key,value)]);}
   function renameNode(id:string,label:string){
@@ -418,6 +430,8 @@
   }
   function travel(direction:'undo'|'redo'){
     const result=journal[direction]();if(!result.ok)return;graph=result.graph;graphError='';historyState();
+    journalActions.push({travel:direction});
+    rememberWorkingActions();
     if(!graph.nodes.some(node=>node.id===selection))selection='';
   }
   function connect(id:string,port:string){if(binding(graph,port)?.source!==id)commit([wire(id,port)]);}
@@ -591,10 +605,16 @@
     if(surface?.matches('.flow .svelte-flow__pane, .flow .svelte-flow__viewport'))disconnectWire(id);
   }
   async function action(work:()=>Promise<void>){if(pending)return;pending=true;error='';try{await work();}catch(e){error=(e as Error).message;}finally{pending=false;}}
-  const save=()=>action(async()=>{const snapshot=graph;applyState(await request('/save',{graph:snapshot,expected:state.revision}));baseline=authoringBytes(snapshot);});
+  const save=()=>action(async()=>{
+    if(draftTurn)return;
+    const snapshot=graph;
+    applyState(await request('/save',{graph:snapshot,expected:state.revision}));
+    baseline=authoringBytes(snapshot);
+    updateWorkingAfterSave(graph!==snapshot);
+  });
   async function switchDefinition(next:any){
     const canvasWasMounted=agentView==='Canvas'&&graph.nodes.length>0;
-    applyState(next);selection='';layerQuery='';componentQuery='';graphError='';reopen(next);
+    applyState(next);selection='';layerQuery='';componentQuery='';graphError='';reopen(next);restoreWorkingDraft(next);
     canvasInitialized=canvasWasMounted&&graph.nodes.length>0;
     view={x:0,y:0,zoom:1};
     // If Flow stays mounted, fit the new document here. Otherwise oninit owns the first fit.
@@ -605,7 +625,12 @@
     await switchDefinition(await request('/definitions',{}));
     create('agent');
   });
-  const reload=()=>action(async()=>{const next=await request();applyState(next);reopen(next);});
+  const reload=()=>action(async()=>{
+    const next=await request();
+    updateWorkingAfterSave(false);
+    applyState(next);
+    reopen(next);
+  });
   const activate=()=>action(async()=>{applyState(await request('/activate',{revision:state.revision}));});
   function changePage(next:string){
     launchOpen=false;
@@ -858,23 +883,81 @@
     }catch(e){turnErrors[id]=(e as Error).message;}
     finally{activityAbort.abort();sendActivity=null;sending=false;}
   }
-  async function sendDraftReceipt(workspace:string, item:JournalRecovery){
+  function workingKey(workspace:string,definition:string){
+    return recoveryPrefix(workspace)+definition;
+  }
+  function readWorking(key:string):WorkingDraft|undefined{
+    const stored=sessionStorage.getItem(key);
+    return stored?JSON.parse(stored):undefined;
+  }
+  function writeWorking(key:string,item:WorkingDraft){
+    if(item.before||Object.keys(item.receipts).length)sessionStorage.setItem(key,JSON.stringify(item));
+    else sessionStorage.removeItem(key);
+  }
+  function restoreWorkingDraft(next:any){
+    try{
+      const item=readWorking(workingKey(next.workspace,next.definition));
+      if(!item?.before)return;
+      if(item.savedRevision!==next.revision?.id){
+        authoringError='The saved revision changed. This tab still holds the earlier working draft recovery record.';
+        return;
+      }
+      const restored=history(item.before);
+      for(const action of item.actions){
+        const result='travel' in action?restored[action.travel]():restored.apply(action.operations);
+        if(!result.ok)throw new Error('Invalid working draft history.');
+      }
+      journal=restored;
+      journalBefore=item.before;
+      journalActions=[...item.actions];
+      graph=journal.graph;
+      historyState();
+    }catch{
+      authoringError='The working draft could not be restored. Its recovery record is retained in this tab.';
+    }
+  }
+  function rememberWorkingActions(){
+    const key=workingKey(state.workspace,state.definition);
+    try{
+      const item=readWorking(key);
+      if(!item?.before||item.savedRevision!==state.revision?.id)return;
+      writeWorking(key,{...item,actions:journalActions});
+    }catch{
+      authoringError='The latest edit could not be added to the recovery record. Save the draft before reloading.';
+    }
+  }
+  function updateWorkingAfterSave(keepDraft:boolean){
+    const key=workingKey(state.workspace,state.definition);
+    try{
+      const item=readWorking(key);
+      if(!item)return;
+      writeWorking(key,{...item,savedRevision:state.revision?.id,
+        ...(!keepDraft?{before:undefined,actions:[]}:{}),
+      });
+    }catch{
+      authoringError='The draft recovery record could not be updated.';
+    }
+  }
+  async function sendDraftReceipt(key:string, item:JournalRecovery){
     await request('/authoring-ack',{channel:item.channel,receipt:item.receipt});
-    sessionStorage.removeItem(recoveryPrefix(workspace)+item.receipt.operationId);
+    const working=readWorking(key);
+    if(working&&Object.hasOwn(working.receipts,item.receipt.operationId)){
+      delete working.receipts[item.receipt.operationId];
+      writeWorking(key,working);
+    }
   }
   async function recoverDraftReceipts(next:any){
     const prefix=recoveryPrefix(next.workspace);
+    let recovered=false;
     try{
-      const keys=Object.keys(sessionStorage).filter(key=>key.startsWith(prefix));
-      for(const key of keys){
-        const item=JSON.parse(sessionStorage.getItem(key)??'null') as JournalRecovery|null;
-        if(!item)continue;
-        if(item.graph&&state.definition===item.definition&&state.revision?.id===item.savedRevision&&!dirty){
-          journal=history(item.graph);graph=journal.graph;historyState();
+      for(const key of Object.keys(sessionStorage).filter(key=>key.startsWith(prefix))){
+        const working=readWorking(key);
+        for(const item of Object.values(working?.receipts??{})){
+          await sendDraftReceipt(key,item);
+          recovered=true;
         }
-        await sendDraftReceipt(next.workspace,item);
       }
-      if(keys.length&&state.definition===next.definition)applyState(await request());
+      if(recovered&&state.definition===next.definition)applyState(await request());
     }catch{
       authoringError='An earlier authoring receipt could not be sent. It is retained in this tab.';
     }
@@ -882,7 +965,7 @@
   async function acceptDraftProposal(turn:DraftTurn, proposal:DraftEditProposal, actorId:string, deadlineAt:number){
     if(proposal.actorId!==actorId||proposal.turnId!==turn.turnId||proposal.draftId!==turn.draftId)return;
     const workspace=state.workspace;
-    const key=recoveryPrefix(workspace)+proposal.operationId;
+    const key=workingKey(workspace,turn.definition);
     let acknowledged:JournalRecovery|undefined;
     let operation:ReturnType<typeof change>|undefined;
     let staged:typeof graph|undefined;
@@ -890,18 +973,14 @@
     commitDraftEdit(proposal,turn.stop.signal,{
       resolveDraft:()=>{
         const occurrenceId=editableOccurrence();
-        return draftTurn===turn&&draftInstance===turn.draftId&&state.definition===turn.definition&&occurrenceId
+        return draftTurn===turn&&draftInstance===turn.draftId&&state.definition===turn.definition&&state.revision?.id===turn.savedRevision&&occurrenceId
           ?{draftId:turn.draftId,occurrenceId,revision:graph.revision}:undefined;
       },
       readReceipt:()=>{
         acknowledged=turn.receipts.get(proposal.operationId);
         if(acknowledged)return acknowledged.receipt;
-        const stored=sessionStorage.getItem(key);
-        if(stored){
-          acknowledged=JSON.parse(stored);
-          return acknowledged?.receipt;
-        }
-        return undefined;
+        acknowledged=readWorking(key)?.receipts[proposal.operationId];
+        return acknowledged?.receipt;
       },
       apply:bound=>{
         if(!bound.edit.trim()||bound.edit.length>12000)return {status:'invalid'};
@@ -913,19 +992,46 @@
         return {status:'applied',revision:staged.revision};
       },
       recordReceipt:receipt=>{
-        const item={channel:turn.channel,receipt,definition:turn.definition,savedRevision:turn.savedRevision,graph:staged};
-        // Store the graph and receipt together before exposing the journal edit.
-        // The preflight and the actual journal apply are synchronous on the same revision.
-        sessionStorage.setItem(key,JSON.stringify(item));
-        if(operation&&staged&&!commit([operation])){
-          sessionStorage.removeItem(key);
+        const item={channel:turn.channel,receipt};
+        const previous=readWorking(key);
+        const working=previous?.savedRevision===turn.savedRevision?previous:{
+          savedRevision:turn.savedRevision,actions:[],receipts:previous?.receipts??{},
+        };
+        // Persist the replayable journal action and receipt together. The
+        // preflight and the live journal apply share a synchronous revision fence.
+        writeWorking(key,{
+          ...working,
+          before:operation?journalBefore:working.before,
+          actions:operation?[...journalActions,{operations:[operation]}]:working.actions,
+          receipts:{...working.receipts,[proposal.operationId]:item},
+        });
+        if(operation&&staged&&!commit([operation],false)){
+          if(previous)writeWorking(key,previous);
+          else sessionStorage.removeItem(key);
           throw new Error('The draft changed before the authoring edit could commit.');
         }
         turn.receipts.set(proposal.operationId,item);
         acknowledged=item;
       },
     });
-    if(acknowledged)await sendDraftReceipt(workspace,acknowledged);
+    if(acknowledged){
+      await sendDraftReceipt(key,acknowledged);
+      if(draftTurn===turn)authoringError='';
+      else await refreshDraftRun(acknowledged.receipt.turnId);
+    }
+  }
+  async function refreshDraftRun(id:string){
+    const definition=state.definition;
+    const next=await request('',undefined,definition);
+    const updated=next.runs.find(item=>item.id===id);
+    if(!updated||state.definition!==definition)return;
+    applyState({...state,runs:state.runs.map(item=>item.id===id?updated:item)});
+    if(authoringResult?.run===id&&updated.draftReceipts?.length){
+      authoringResult={...authoringResult,message:draftReceiptMessage(updated.draftReceipts.at(-1).status)};
+    }
+  }
+  function draftReceiptMessage(status:string){
+    return status==='applied'?'Instructions updated. Save the draft to retain the new revision.':'Draft edit: '+status+'.';
   }
   function stopAuthoring(){
     const turn=draftTurn;
@@ -978,8 +1084,7 @@
       const run=result.runs.find(item=>item.session===turn.session);
       const status=run?.draftReceipts?.at(-1)?.status??run?.authoringOutcomes?.at(-1);
       authoringResult={session:turn.session!,run:run?.id,
-        message:status==='applied'?'Instructions updated. Save the draft to retain the new revision.':
-          status?'Draft edit: '+status+'.':run?.message??'The turn ended without a confirmed draft edit.'};
+        message:status?draftReceiptMessage(status):run?.message??'The turn ended without a confirmed draft edit.'};
       if(authoringInput.trim()===input)authoringInput='';
     }catch(e){authoringError=(e as Error).message;}
     finally{
@@ -1161,7 +1266,7 @@
     ...group,items:group.items.filter(item=>item.label.toLowerCase().includes(componentQuery.trim().toLowerCase())),
   })).filter(group=>group.items.length));
   const menu=$derived([
-    {name:'File',items:[{label:'New agent',fn:newDefinition,disabled:page!=='Agents'||!loaded||dirty||pending||sending},{label:'Save draft',fn:save,disabled:page!=='Agents'||!dirty||pending||!loaded},{label:'Reopen saved draft',fn:reload,disabled:page!=='Agents'||dirty||pending||!state.revision}]},
+    {name:'File',items:[{label:'New agent',fn:newDefinition,disabled:page!=='Agents'||!loaded||dirty||pending||sending},{label:'Save draft',fn:save,disabled:page!=='Agents'||!dirty||pending||!!draftTurn||!loaded},{label:'Reopen saved draft',fn:reload,disabled:page!=='Agents'||dirty||pending||!state.revision}]},
     {name:'Edit',items:[{label:'Undo',fn:()=>travel('undo'),disabled:!canUndo},{label:'Redo',fn:()=>travel('redo'),disabled:!canRedo}]},
     {name:'View',items:[
       {label:'Fit canvas',fn:fit,disabled:page!=='Agents'||agentView!=='Canvas'||!graph.nodes.length},
@@ -1754,7 +1859,7 @@
             <div class="agent-revision-actions">
               {#if dirty}
                 <Button label="Discard" variant="secondary" disabled={pending} onclick={async()=>{await reload();if(!dirty)await focusAgentRevision();}}/>
-                <Button label="Save" disabled={pending} onclick={async()=>{await save();if(!dirty)await focusAgentRevision();}}/>
+                <Button label="Save" disabled={pending||!!draftTurn} onclick={async()=>{await save();if(!dirty)await focusAgentRevision();}}/>
               {:else if activationMatchesSaved}
                 <Button label="Start Session" disabled={pending||sending} onclick={()=>start(state.activation,true)}/>
               {:else if state.revision}

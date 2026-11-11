@@ -142,9 +142,18 @@ try {
   await button('Canvas').click();
   assert.equal(await field('canvas-agent-instructions').inputValue(), newText);
   await button('Configure').click();
+  if (!live) {
+    await page.reload();
+    await page.waitForFunction(text => document.getElementById('settings-agent-text')?.value === text, newText);
+    await history('Undo');
+    assert.equal(await field('settings-agent-text').inputValue(), 'Summarize the findings.');
+    await history('Redo');
+    assert.equal(await field('settings-agent-text').inputValue(), newText);
+  }
   await clickRequest(button('Save'), 'save');
   assert.equal((await api()).activation.version, researchPin.version);
-  await authoring.getByRole('button', { name: 'Inspect authoring Run', exact: true }).click();
+  if (live) await authoring.getByRole('button', { name: 'Inspect authoring Run', exact: true }).click();
+  else await tab('Runs').click();
   await page.getByText('Draft edit · applied', { exact: true }).waitFor();
   await page.reload();
   assert.equal((await api()).runs[0].draftReceipts[0].operationId, success.draftReceipts[0].operationId);
@@ -158,6 +167,12 @@ try {
     const pending = interceptProposal();
     const stale = await send('Test the manual revision fence.');
     const gated = await pending;
+    const competing = await page.request.post(url + '/api/studio/save', {
+      headers: { origin: url },
+      data: { definition: research.definition, expected: research.revision, graph: research.graph },
+    });
+    assert.equal(competing.status(), 409);
+    assert.match((await competing.json()).message, /Wait for the authoring turn/);
     await field('settings-agent-text').fill('Preserve the newer manual edit.');
     gated.release();
     const staleRun = await runFrom(stale.reply);
@@ -177,6 +192,33 @@ try {
     assert.ok(!stoppedRun.draftReceipts.some(receipt => receipt.status === 'applied'));
     assert.equal(await field('settings-agent-text').inputValue(), 'Preserve the newer manual edit.');
     await page.unroute('**/api/studio/authoring-poll');
+
+    // The journal commits before Stop, while the acknowledgement is held.
+    let releaseAck;
+    let reportAck;
+    const heldAck = new Promise(resolve => { reportAck = resolve; });
+    await page.route('**/api/studio/authoring-ack', async route => {
+      const held = new Promise(resolve => { releaseAck = resolve; });
+      reportAck();
+      await held;
+      await route.continue();
+    });
+    const afterCommit = await send('Test Stop after the browser commit.');
+    await heldAck;
+    assert.match(await field('settings-agent-text').inputValue(), /source link/);
+    await authoring.getByRole('button', { name: 'Stop', exact: true }).click();
+    const lateRun = await runFrom(afterCommit.reply);
+    assert.equal(lateRun.status, 'cancelled');
+    const ack = page.waitForResponse(r => r.url().endsWith('/authoring-ack'));
+    releaseAck();
+    assert.equal((await ack).status(), 200);
+    await authoring.getByRole('button', { name: 'Inspect authoring Run', exact: true }).click();
+    await page.getByText('Draft edit · applied', { exact: true }).waitFor();
+    await page.unroute('**/api/studio/authoring-ack');
+    await page.reload();
+    await page.waitForFunction(() => /source link/.test(document.getElementById('settings-agent-text')?.value));
+    await history('Undo');
+    assert.equal(await field('settings-agent-text').inputValue(), 'Preserve the newer manual edit.');
   }
   await page.screenshot({ path: join(directory, 'authoring-checkpoint.png'), animations: 'disabled' });
   console.log(JSON.stringify({ live, applied: success.draftReceipts[0], run: success.id, session: success.session, evidenceDirectory: directory }));
