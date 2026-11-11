@@ -1,0 +1,28 @@
+# V1b installed authoring boundary
+
+TORI-004 / CAP-33 / T07. Clean branch start was `ef1cc19cc0a49ff569f2833092a90ac4eea5b597`, a documentation-only commit on accepted V1a `633e34d0a89a8d89a5d4477f6642be2a27f08501`. This is a mapping of the installed lockfile artifacts plus a read-only comparison with VICT's source at `6b420a3e9eada6f694cc2550debda7753316b5b3`. The V1a packs were copied into the isolated V1b worktree and installed with `npm ci --no-audit --no-fund`; npm verified the lockfile integrity. VICT packages are `0.4.0-rc.1`. The adapter reported Mastra core `1.64.0`, memory `1.28.2`, libsql `1.22.3`, observability `1.17.5`. The manifest and lockfile are unchanged.
+
+| Role | Installed public export and result | Ownership and disposition |
+| --- | --- | --- |
+| Canonical edit and history | `@victframework/ui-flow-svelte/model`: `GraphSessionV3.apply(operations, expectedRevision)`, `undo`, `redo`, `applyGraphPatchV3`. A stale journal revision produces `GRAPH_STALE`; revision advances on successful apply, undo and redo. | Reuse. Studio already sends manual edits through the journal. TORI maps the effective instruction occurrence: `agent.instructions` inline, `instructions.text` when the typed binding is connected. Save is a separate server check against the saved revision. |
+| Discovery | Flow `/authoring` supplies descriptors, implementations and authoring knowledge. `@victframework/ui-editor` supplies editor/source discovery for UI documents. `@victframework/mastra` supplies `buildCapabilityTools` with caller-supplied resolution and invocation. | None discovers or binds an open TORI graph draft for an authenticated actor. A catalog or tool definition does not grant edit authority. |
+| Observe | The Flow journal exposes the committed graph and revision. `@victframework/control` `AgentTurnService.getTurn` exposes a safe turn record. | These are usable building blocks. They do not expose a single receipt reconciling the exact browser draft occurrence, expected revision, operation identity and correlated turn. |
+| Cancel | `@victframework/control` exports `AgentTurnService.cancelTurn` (confirmed installed), and the Mastra composition propagates abort. | Reuse runtime cancellation when wired. A browser journal apply still needs a fence at commit; a completed edit cannot be reported as cancelled or undone implicitly. |
+| Authority and receipts | `@victframework/runtime` `validateChangeSetOperation` only accepts select/rollback activation and publish/select/rollback release operations. An attempted `set-agent-instructions` operation produces `VICT_CONTROL_OPERATION_INVALID`. | Do not extend the closed vocabulary in TORI. Runtime approval/idempotency records alone do not prove a browser draft mutation. |
+| Existing Designer authoring | VICT's pinned [Designer host](https://github.com/radz2291/vict-02/blob/6b420a3e9eada6f694cc2550debda7753316b5b3/apps/studio/src/lib/server/designer-agent.ts) implements `studio.screen.read`, `studio.screen.edit`, observation and cancellation. The [host acknowledgement route](https://github.com/radz2291/vict-02/blob/6b420a3e9eada6f694cc2550debda7753316b5b3/apps/studio/src/routes/api/designer-agent/ack/+server.ts) binds the browser's canonical edit receipt to the host proposal. | Application source, not an installed public package or documented reusable service for a TORI Agent Definition. The screen path targets a VICT UI document and Designer browser host. Do not import the app, copy the host protocol or call the current VICT installation. |
+
+Reproduce the ChangeSet refusal from the V1b worktree with:
+
+```powershell
+node --input-type=module -e "import {validateChangeSetOperation as v} from '@victframework/runtime'; try { v({kind:'set-agent-instructions',definitionId:'research',expectedRevision:1,text:'Synthetic test'}); process.exitCode=1; } catch(e) { console.log(e.code,e.message); if(e.code!=='VICT_CONTROL_OPERATION_INVALID')process.exitCode=1; }"
+npm ls @mastra/core --all
+node --test tests/assembly.test.mjs
+```
+
+## Dependency decision
+
+T07 requires public VICT discovery, canonical edit, observation and cancellation with a shared authoring contract. The existing public graph operations cover local mutation, and the existing public agent services cover turn governance. The missing seam is the **reusable, governed proposal/acknowledgement bridge** between the two. A plain Mastra tool can request an edit; it cannot safely turn a model or client supplied definition ID into permission or prove a concurrent browser edit applied once. A second TORI-specific authority path would depart from this slice's public VICT boundary.
+
+Propose a separately authorized, narrow VICT dependency slice: expose the proposal, applied/rejected acknowledgement, observation and cancellation fence as a public host-neutral authoring interface. Bind it to trusted actor/target/revision and stable operation ID; retain outcome against the exact turn. Allow an adapter to supply the Flow graph source and journal commit so TORI can reuse its existing manual edits, explicit Save and activation. Verify a retry, stale revision, denied target and cancellation before publishing or changing the TORI pin. Keep Designer adoption and its paused work out of that slice. An alternative decision is to explicitly accept a TORI-hosted adapter composed from the existing lower-level VICT exports and revise the T07 boundary accordingly.
+
+T07-01 through T07-07 remain **NOT DEMONSTRATED**. This mapping does not establish a live turn, an authoring receipt or separate consumer acceptance.

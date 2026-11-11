@@ -4,6 +4,7 @@
   import { Button as ControlButton, Dialog, Menubar, Tooltip } from '@victframework/ui-svelte/primitives';
   import { DropdownMenu } from '@victframework/ui-svelte/catalog/dropdown-menu';
   import { Accordion } from '@victframework/ui-svelte/catalog/accordion';
+  import { Tabs } from '@victframework/ui-svelte/catalog/tabs';
   import { Toggle } from '@victframework/ui-svelte/catalog/toggle';
   import { Badge, Conversation, Input, Patterns, type ConversationMessage } from '@victframework/ui-ai-svelte';
   import { SvelteFlow, SvelteFlowProvider, Background, connectionIssueForTopology, type Connection, type Edge, type IsValidConnection } from '@victframework/ui-flow-svelte';
@@ -15,7 +16,7 @@
   import RunDetails from './RunDetails.svelte';
   import {add,binding,canWire,change,emptyAssembly,field,history,instructions,modelName,readiness,resolved,wire,outputTokens,tokenSourceId,agentResources,resourceChoices,optionalBindings,isOptionalBinding,nodeVisibilityLabel} from './assembly';
 
-  type DockPanel='Library'|'Nodes'|'Inspector';
+  type DockPanel='Authoring Agent'|'Assembly / Selection'|'Inspector';
   const initial=emptyAssembly();
   let graph=$state.raw(initial);
   let journal=history(initial);
@@ -32,15 +33,20 @@
   let page=$state('Agents');
   let view=$state({x:0,y:0,zoom:1});
   let flow=$state<any>();
-  let library=$state(false), layers=$state(true);
+  let authoringDock=$state(false), assemblyDock=$state(true);
+  let assemblyContext=$state('assembly');
+  let assemblySections=$state<string[]>(['agents']);
+  let assemblyScroll=0;
+  let selectionScroll=0;
   let wireSource=$state('');
-  let selectedWire='';
+  let selectedWire=$state('');
+  const inspectedWire=$derived(graph.edges.find(edge=>edge.id===selectedWire));
+  const delegationSelected=$derived(inspectedWire?.source==='child'&&inspectedWire.targetPort==='child');
   let wireDrag:{id:string;graph:typeof initial;event:MouseEvent|TouchEvent;cancelled:boolean}|undefined;
   let cancelFlowClick: (()=>void)|undefined;
-  let delegationOpen=$state(false);
   let delegationInvoker:HTMLElement|string|null=null;
   let mobile=$state(false), sheet=$state<DockPanel|''>(''), mobileOpen=$state(false);
-  let sheetInvoker:HTMLElement|null=null;
+  let sheetInvoker:HTMLElement|SVGElement|null=null;
   let loaded=$state(false), pending=$state(false), sending=$state(false);
   let sendActivity=$state<{session:string;phase:string}|null>(null);
   let error=$state(''), graphError=$state('');
@@ -84,7 +90,7 @@
   let sessionTitle:HTMLHeadingElement|undefined=$state();
   const readingPositions=new Map<string,number>();
   let executionPage=$derived(page==='Sessions'||page==='Runs');
-  let libraryVisible=$derived(page==='Agents'&&library);
+  let authoringVisible=$derived(page==='Agents'&&authoringDock);
   let inspectorVisible=$derived(page==='Sessions'?sessionSidebar:page==='Runs'&&runSidebar);
   let inspectorLabel=$derived(executionPage?page+' sidebar':'Inspector');
   let session=$derived(state.sessions.find((s)=>s.id===activeSession));
@@ -223,7 +229,7 @@
   let layoutWidth=$state('Standard');
   let layerQuery=$state('');
   let agentView=$state<'Settings'|'Canvas'>('Settings');
-  const layersVisible=$derived(page==='Agents'&&agentView==='Canvas'&&layers);
+  const assemblyVisible=$derived(page==='Agents'&&assemblyDock);
   const activationMatchesSaved=$derived(!!state.revision&&state.activation?.revision===state.revision.id&&state.activation?.route===state.route);
   const activateDisabled=$derived(!loaded||!!ready||dirty||!state.revision||pending||sending||activationMatchesSaved);
   const agentRevisionStatus=$derived([
@@ -291,6 +297,7 @@
     cancelWire();
     const g=next.graph??emptyAssembly();
     journal=history(g); graph=journal.graph; baseline=authoringBytes(graph);historyState();
+    selectedWire='';
     if(!graph.nodes.some(node=>node.id===selection))selection='';
   }
   onMount(()=>{
@@ -307,7 +314,7 @@
     try{
       const prefs=JSON.parse(localStorage.getItem('tori-v1a-layout')??'{}');
       layoutWidth=prefs.width??'Standard';
-      layers=prefs.layers??true;
+      assemblyDock=prefs.assemblyDock??prefs.layers??true;
       selection=prefs.selection??'';
       sessionSidebar=prefs.sessionSidebar??prefs.sessionLibrary??true;
       showSessionDescriptions=prefs.showSessionDescriptions??prefs.showSessionRevision??true;
@@ -323,7 +330,7 @@
       clearInterval(dayCheck);
     };
   });
-  $effect(()=>{if(loaded)localStorage.setItem('tori-v1a-layout',JSON.stringify({library,layers,width:layoutWidth,selection,sessionSidebar,showSessionDescriptions,runSidebar,showRunDescriptions,runGrouping,runScopePreference}));});
+  $effect(()=>{if(loaded)localStorage.setItem('tori-v1a-layout',JSON.stringify({assemblyDock,width:layoutWidth,selection,sessionSidebar,showSessionDescriptions,runSidebar,showRunDescriptions,runGrouping,runScopePreference}));});
   $effect(()=>{
     const g=graph;
     const selected=untrack(()=>selection);
@@ -410,9 +417,22 @@
     if(edge.target==='model'&&edge.targetPort==='tokens')return [change('model','tokens',outputTokens(graph))];
     return [];
   }
-  function inspectDelegation(invoker:HTMLElement|string|null){
+  async function inspectDelegation(invoker:HTMLElement|string|null){
+    const edge=graph.edges.find(edge=>edge.source==='child'&&edge.targetPort==='child');
+    if(!edge)return;
     delegationInvoker=invoker;
-    delegationOpen=true;
+    selection='';
+    selectedWire=edge.id;
+    assemblyContext='selection';
+    if(mobile){
+      sheetInvoker=typeof invoker==='string'?canvasWire(invoker):invoker;
+      sheet='Assembly / Selection';
+      mobileOpen=true;
+    }else{
+      assemblyDock=true;
+      await tick();
+      document.getElementById('agent-selection-heading')?.focus({preventScroll:true});
+    }
   }
   function canvasWire(id:string){
     return document.querySelector<SVGElement>('.flow .svelte-flow__edge[data-id="'+CSS.escape(id)+'"]');
@@ -425,13 +445,21 @@
     event.stopPropagation();
     inspectDelegation(id);
   }
-  function restoreDelegationFocus(event:Event){
+  function restoreDelegationFocus(){
     const invoker=typeof delegationInvoker==='string'?canvasWire(delegationInvoker):delegationInvoker;
-    if(invoker?.isConnected){
-      event.preventDefault();
-      invoker.focus({preventScroll:true});
-    }
+    if(invoker?.isConnected)invoker.focus({preventScroll:true});
     delegationInvoker=null;
+  }
+  function rememberDockScroll(node:HTMLElement,context:'assembly'|'selection'){
+    const restore=()=>node.scrollTop=context==='assembly'?assemblyScroll:selectionScroll;
+    const save=()=>{
+      if(context!==assemblyContext||!node.clientHeight)return;
+      if(context==='assembly')assemblyScroll=node.scrollTop;
+      else selectionScroll=node.scrollTop;
+    };
+    const frame=requestAnimationFrame(restore);
+    node.addEventListener('scroll',save);
+    return {destroy:()=>{cancelAnimationFrame(frame);node.removeEventListener('scroll',save);}};
   }
   function cancelWire(){
     cancelFlowClick?.();
@@ -446,6 +474,7 @@
   }
   async function fit(){await tick();await flow?.fitView({padding:0.18,maxZoom:1});}
   function selectCanvas(id:string){
+    selectedWire='';
     selection=id;
   }
   async function focusCanvasNode(id:string,alsoShow?:string){
@@ -850,18 +879,23 @@
       }
     }else if(page==='Runs'){
       if(panel==='Inspector')runSidebar=open;
-    }else if(panel==='Library')library=open;
-    else if(panel==='Nodes')layers=open;
+    }else if(panel==='Authoring Agent')authoringDock=open;
+    else if(panel==='Assembly / Selection')assemblyDock=open;
   }
   function dockOpen(panel:DockPanel){
-    return mobile?mobileOpen&&sheet===panel:panel==='Library'?libraryVisible:panel==='Nodes'?layersVisible:inspectorVisible;
+    return mobile?mobileOpen&&sheet===panel:panel==='Authoring Agent'?authoringVisible:panel==='Assembly / Selection'?assemblyVisible:inspectorVisible;
   }
   function toggle(panel:DockPanel,invoker:HTMLElement|null=null){
     if(mobile){
+      if(dockOpen(panel)){mobileOpen=false;return;}
       sheetInvoker=invoker??document.getElementById('window-menu-trigger');
       sheet=panel;
       mobileOpen=true;
-    }else setDesktopDock(panel,!dockOpen(panel));
+    }else{
+      const open=!dockOpen(panel);
+      setDesktopDock(panel,open);
+      if(!open&&panel==='Assembly / Selection')delegationInvoker=null;
+    }
   }
   function showSelectedRow(node:HTMLElement,activeId:string){
     let frame=0;
@@ -879,7 +913,7 @@
     layoutWidth='Standard';
     if(page==='Sessions'){sessionSidebar=true;launchOpen=false;}
     else if(page==='Runs')runSidebar=true;
-    else {library=true;layers=true;}
+    else {authoringDock=false;assemblyDock=true;assemblyContext='assembly';}
   }
   async function persistKeyboardMove(){
     await tick();
@@ -896,9 +930,16 @@
       return;
     }
     if(page!=='Agents')return;
-    if(agentView==='Canvas'&&!e.defaultPrevented&&!delegationOpen&&!mobileOpen){
+    if(e.key==='Escape'&&!e.defaultPrevented&&!mobileOpen&&e.target instanceof Element&&e.target.closest('.agent-selection-content')){
+      if(delegationInvoker){e.preventDefault();restoreDelegationFocus();}
+      return;
+    }
+    if(agentView==='Canvas'&&!e.defaultPrevented&&!mobileOpen){
       const wire=e.target instanceof Element?e.target.closest('.svelte-flow__edge'):null;
       const focusedWire=wire?.getAttribute('data-id')??(e.target===document.body?selectedWire:'');
+      if(focusedWire&&['Enter',' '].includes(e.key)&&wire?.classList.contains('delegation-wire')){
+        e.preventDefault();void inspectDelegation(focusedWire);return;
+      }
       if(focusedWire===selectedWire&&focusedWire&&(e.key==='Delete'||e.key==='Backspace')&&
         !e.ctrlKey&&!e.metaKey&&!e.altKey&&!e.shiftKey){
         e.preventDefault();
@@ -912,7 +953,7 @@
         return;
       }
     }
-    if(e.key==='Escape'&&!e.repeat&&dirty&&!pending&&!mobileOpen&&!delegationOpen&&!e.defaultPrevented&&
+    if(e.key==='Escape'&&!e.repeat&&dirty&&!pending&&!mobileOpen&&!e.defaultPrevented&&
       !(e.target instanceof Element&&e.target.closest('[role="menu"],[role="dialog"],select'))){
       e.preventDefault();
       void reload();
@@ -963,7 +1004,7 @@
     ]},
     {name:'Insert',items:componentGroups.flatMap(group=>group.items)},
     {name:'Run',items:[{label:'Activate saved revision',fn:activate,disabled:activateDisabled},{label:'Start Session',fn:showSessionLauncher,disabled:!loaded||pending||sending}]},
-    {name:'Window',items:[{label:'Library',checked:mobile?undefined:libraryVisible,fn:()=>toggle('Library'),disabled:page!=='Agents'},...(executionPage?[{label:inspectorLabel,checked:mobile?undefined:inspectorVisible,fn:()=>toggle('Inspector')}]:page==='Agents'&&agentView==='Canvas'?[{label:'Nodes',checked:mobile?undefined:layersVisible,fn:()=>toggle('Nodes')}]:[]),{label:layoutWidth==='Wide'?'Use standard panels':'Use wider panels',fn:()=>layoutWidth=layoutWidth==='Wide'?'Standard':'Wide',disabled:mobile||(page!=='Agents'&&!executionPage)},{label:'Reset layout',fn:resetLayout,disabled:mobile||(page!=='Agents'&&!executionPage)}]},
+    {name:'Window',items:[...(executionPage?[{label:inspectorLabel,checked:inspectorVisible,fn:()=>toggle('Inspector')}]:page==='Agents'?[{label:'Authoring Agent',checked:dockOpen('Authoring Agent'),fn:()=>toggle('Authoring Agent')},{label:'Assembly / Selection',checked:dockOpen('Assembly / Selection'),fn:()=>toggle('Assembly / Selection')}]:[]),{label:layoutWidth==='Wide'?'Use standard panels':'Use wider panels',fn:()=>layoutWidth=layoutWidth==='Wide'?'Standard':'Wide',disabled:mobile||(page!=='Agents'&&!executionPage)},{label:'Reset layout',fn:resetLayout,disabled:mobile||(page!=='Agents'&&!executionPage)}]},
     {name:'Help',items:[{label:'V1a · Assembly, Sessions and Runs',fn:()=>{},disabled:true}]},
   ]);
 </script>
@@ -1050,9 +1091,9 @@
     <Feedback kind="empty" message="No matching components."/>
   {/each}
 {/snippet}
-{#snippet agentFields(id:string,section:'configure'|'delegation'='configure')}
-  <Fields {graph} childRevisions={state.childRevisions} pinnedChild={state.activation?.childRevision} route={state.route} {id} {section} {edit} {disconnect}
-    reveal={focusCanvasNode} openDefinition={async id=>{delegationOpen=false;await openDefinition(id);}} canOpenDefinition={!dirty&&!pending&&!sending}
+{#snippet agentFields(id:string,section:'configure'|'delegation'='configure',location='')}
+  <Fields {graph} {location} childRevisions={state.childRevisions} pinnedChild={state.activation?.childRevision} route={state.route} {id} {section} {edit} {disconnect}
+    reveal={focusCanvasNode} openDefinition={async id=>{mobileOpen=false;await openDefinition(id);}} canOpenDefinition={!dirty&&!pending&&!sending}
     fixture={state.fixture} {configure} hostDeadlineMs={state.hostDeadlineMs}/>
 {/snippet}
 
@@ -1063,7 +1104,7 @@
     onclick={event=>toggle(panel,event.currentTarget as HTMLElement)}>
     <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6">
       <rect x="3" y="5" width="18" height="14" rx="2"/>
-      <path d={panel==='Library'?'M9 5v14':'M15 5v14'}/>
+      <path d={panel==='Authoring Agent'?'M9 5v14':'M15 5v14'}/>
     </svg>
   </ControlButton.Root>
 {/snippet}
@@ -1444,25 +1485,23 @@
     </header>
     {#if error}<div class="banner"><Feedback kind="error" message={error}/></div>{/if}
     {#if page==='Agents'}
-      <div class="agent-workspace" class:has-agent-dock={!mobile&&library} class:has-inspector-dock={!mobile&&layersVisible}>
-        {#if !mobile&&library}
-          <aside class="agent-left-dock" aria-label="Library">
-            <div class="library-tabbar">
-              <h2>Library</h2>
-            </div>
-            {@render librarySections('sidebar')}
+      <div class="agent-workspace" class:has-agent-dock={!mobile&&authoringVisible} class:has-inspector-dock={!mobile&&assemblyVisible}>
+        {#if !mobile&&authoringVisible}
+          <aside class="agent-left-dock" aria-label="Authoring Agent">
+            <div class="library-tabbar"><h2>Authoring Agent</h2></div>
+            {@render authoringBody()}
           </aside>
         {/if}
         <div class="agent-detail">
       <div class="agent-dockbar">
-        <div class="agent-dock-actions">{@render dockToggle('Library')}</div>
+        <div class="agent-dock-actions">{@render dockToggle('Authoring Agent')}</div>
       <div class="agent-views" role="group" aria-label="Agent view">
         {#each ['Settings','Canvas'] as viewName}
           <ControlButton.Root class="vict-btn vict-btn--secondary" aria-pressed={agentView===viewName}
-            onclick={()=>{if(agentView===viewName)return;cancelWire();if(wireDrag)wireDrag.cancelled=true;agentView=viewName==='Canvas'?'Canvas':'Settings';if(agentView==='Canvas'){if(!canvasIds.has(selection))selection='';void fit();}else if(isOptionalBinding(selection))selection='agent';}}>{viewName==='Settings'?'Configure':'Canvas'}</ControlButton.Root>
+            onclick={()=>{if(agentView===viewName)return;cancelWire();if(wireDrag)wireDrag.cancelled=true;agentView=viewName==='Canvas'?'Canvas':'Settings';}}>{viewName==='Settings'?'Configure':'Canvas'}</ControlButton.Root>
         {/each}
       </div>
-        <div class="agent-dock-actions right">{@render dockToggle('Nodes',agentView!=='Canvas')}</div>
+        <div class="agent-dock-actions right">{@render dockToggle('Assembly / Selection')}</div>
       </div>
       {#if !graph.nodes.length}
         <main class="agent-empty" aria-labelledby="agent-empty-title">
@@ -1557,10 +1596,9 @@
           </footer>
         {/if}
         </div>
-        {#if !mobile&&layersVisible}
-          <aside class="inspector agent-layers-dock" aria-label="Nodes">
-            <div class="library-tabbar"><h2>Nodes</h2></div>
-            {@render layersBody()}
+        {#if !mobile&&assemblyVisible}
+          <aside class="inspector agent-layers-dock" aria-label="Assembly / Selection">
+            {@render assemblyBody('sidebar')}
           </aside>
         {/if}
       </div>
@@ -1739,21 +1777,6 @@
       <Button label="Confirm delete Session" variant="danger" disabled={pending} onclick={deleteSession}/>
     </div>
   </Dialog.Content></Dialog.Portal></Dialog.Root>
-  <Dialog.Root bind:open={delegationOpen}>
-    <Dialog.Portal>
-      <Dialog.Overlay class="sheet-shade studio-dialog-shade"/>
-      <Dialog.Content class="mobile-sheet studio-dialog delegation-dialog" onCloseAutoFocus={restoreDelegationFocus}>
-        <div class="delegation-header">
-          <Dialog.Title>Delegation</Dialog.Title>
-          <Dialog.Close class="vict-btn vict-btn--quiet delegation-close" aria-label="Close" title="Close">
-            <span aria-hidden="true">×</span>
-          </Dialog.Close>
-        </div>
-        <Dialog.Description class="visually-hidden">Child revision, task and permitted scope.</Dialog.Description>
-        {@render agentFields('child','delegation')}
-      </Dialog.Content>
-    </Dialog.Portal>
-  </Dialog.Root>
   <Dialog.Root bind:open={mobileOpen} onOpenChange={open=>{if(!open&&page==='Sessions')launchOpen=false;}}><Dialog.Portal><Dialog.Overlay class="sheet-shade"/><Dialog.Content class={'mobile-sheet'+(executionPage?' execution-sidebar-sheet':'')}
     onEscapeKeydown={event=>{if(page==='Sessions'&&launchOpen){event.preventDefault();void closeSessionLauncher();}}}
     onCloseAutoFocus={(event)=>{if(sheetInvoker?.isConnected){event.preventDefault();sheetInvoker.focus({preventScroll:true});}
@@ -1765,13 +1788,13 @@
         <Dialog.Close class="menu-trigger">Close</Dialog.Close>
       </div>
     </div>
-    <Dialog.Description class="visually-hidden">{executionPage?'Browse or inspect the current workspace.':sheet==='Nodes'?'Browse nodes in the current agent.':'Browse agents and components.'}</Dialog.Description>
+    <Dialog.Description class="visually-hidden">{executionPage?'Browse or inspect the current workspace.':sheet==='Authoring Agent'?'Authoring for the current draft.':'Browse or inspect the current agent.'}</Dialog.Description>
     {#if executionPage}
       {@render executionSidebarBody()}
-    {:else if sheet==='Nodes'}
-      {@render layersBody()}
-    {:else if sheet==='Library'}
-      {@render librarySections('sheet')}
+    {:else if sheet==='Assembly / Selection'}
+      {@render assemblyBody('sheet')}
+    {:else if sheet==='Authoring Agent'}
+      {@render authoringBody()}
     {/if}
   </Dialog.Content></Dialog.Portal></Dialog.Root>
 </ControlScope>
@@ -1781,13 +1804,12 @@
     oninit={()=>{if(mobile&&selection)void focusCanvasNode(selection);else if(view.x===0&&view.y===0)void fit();}}
     onnodeclick={({node})=>selectCanvas(node.id)}
     onedgeclick={({edge})=>void tick().then(()=>{
-      if(!delegationOpen)canvasWire(edge.id)?.focus({preventScroll:true});
+      if(!mobileOpen)canvasWire(edge.id)?.focus({preventScroll:true});
     })}
-    onpaneclick={()=>{selection='';cancelWire();}}
+    onpaneclick={()=>{selection='';selectedWire='';cancelWire();}}
     onselectionchange={({nodes:selected,edges:selectedWires})=>{
-      selectedWire=selectedWires[0]?.id??'';
-      if(selected.length)selection=selected[0].id;
-      else if(selectedWire)selection='';
+      if(selectedWires.length){selectedWire=selectedWires[0].id;selection='';}
+      else if(selected.length)selectCanvas(selected[0].id);
     }}
     {isValidConnection} onbeforeconnect={onConnection}
     onconnectstart={event=>{
@@ -1841,8 +1863,8 @@
   {#if dirty}<p class="muted">Save or discard changes before switching agents.</p>{/if}
 {/snippet}
 
-{#snippet librarySections(location:string)}
-  <Accordion.Root class="library-sections" type="single" aria-label="Library sections">
+{#snippet assemblySectionsBody(location:string)}
+  <Accordion.Root class="library-sections" type="multiple" bind:value={assemblySections} aria-label="Assembly sections">
     <Accordion.Item value="agents">
       <Accordion.Header><Accordion.Trigger aria-label="Agents">Agents</Accordion.Trigger></Accordion.Header>
       <Accordion.Content class="agent-index">{@render definitionList(location)}</Accordion.Content>
@@ -1853,5 +1875,55 @@
         <Accordion.Content class="canvas-component-palette">{@render componentPalette()}</Accordion.Content>
       </Accordion.Item>
     {/if}
+    <Accordion.Item value="nodes">
+      <Accordion.Header><Accordion.Trigger aria-label="Nodes">Nodes</Accordion.Trigger></Accordion.Header>
+      <Accordion.Content class="assembly-node-section">{@render layersBody()}</Accordion.Content>
+    </Accordion.Item>
   </Accordion.Root>
+{/snippet}
+
+{#snippet assemblyBody(location:'sidebar'|'sheet')}
+  <Tabs.Root bind:value={assemblyContext} class="agent-dock-tabs">
+    <Tabs.List class="agent-dock-tablist" aria-label="Agent sidebar context">
+      <Tabs.Trigger value="assembly">Assembly</Tabs.Trigger>
+      <Tabs.Trigger value="selection">Selection</Tabs.Trigger>
+    </Tabs.List>
+    <Tabs.Content value="assembly" class="agent-dock-tabpanel">
+      {#if assemblyContext==='assembly'}
+        <div class="agent-dock-scroll" use:rememberDockScroll={'assembly'}>
+          {@render assemblySectionsBody(location)}
+        </div>
+      {/if}
+    </Tabs.Content>
+    <Tabs.Content value="selection" class="agent-dock-tabpanel">
+      {#if assemblyContext==='selection'}
+        <div class="agent-dock-scroll agent-selection-content" use:rememberDockScroll={'selection'}>
+          {#if inspectedWire}
+            <h2 id="agent-selection-heading" tabindex="-1">{delegationSelected?'Delegation':'Connection'}</h2>
+            {#if delegationSelected}
+              {@render agentFields('child','delegation','dock')}
+            {:else}
+              <p>{objectTitle(inspectedWire.source)} → {objectTitle(inspectedWire.target)}</p>
+              <p class="muted">{graph.nodeTypes.find(type=>type.id===graph.nodes.find(n=>n.id===inspectedWire?.target)?.type)?.ports.find(port=>port.id===inspectedWire?.targetPort)?.label??inspectedWire.targetPort}</p>
+            {/if}
+            <Button label="Disconnect" variant="secondary" onclick={()=>{disconnectWire(inspectedWire.id);selectedWire='';}}/>
+          {:else if selection&&graph.nodes.some(node=>node.id===selection)}
+            <h2 id="agent-selection-heading" tabindex="-1">{objectTitle(selection)}</h2>
+            {@render agentFields(selection,'configure','dock')}
+          {:else}
+            <Feedback kind="empty" message="Select a node or connection to inspect it."/>
+          {/if}
+        </div>
+      {/if}
+    </Tabs.Content>
+  </Tabs.Root>
+{/snippet}
+
+{#snippet authoringBody()}
+  <div class="authoring-dock-content">
+    {#if graph.nodes.length}
+      <p>Current draft: <strong>{objectTitle('agent')}</strong></p>
+    {/if}
+    <Feedback message="Agent authoring is unavailable in this build. You can edit the current draft in Configure or Canvas."/>
+  </div>
 {/snippet}

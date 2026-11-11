@@ -57,14 +57,14 @@ try {
     await button('Canvas view').click();
     await page.getByRole(role,{name,exact:true}).click();
   }
-  const library=page.getByRole('complementary',{name:'Library'});
-  const nodePanel=page.getByRole('complementary',{name:'Nodes'});
-  const layer=name=>nodePanel.getByRole('button',{name,exact:true});
-  async function openNodes(){
-    if(await button('Nodes').getAttribute('aria-expanded')!=='true')await button('Nodes').click();
-  }
+  const library=page.getByRole('complementary',{name:'Assembly / Selection'});
+  const layer=name=>library.locator('.assembly-node-section').getByRole('button',{name,exact:true});
+  async function openNodes(){await openLibrary('Nodes');}
   async function openLibrary(section){
-    if(await button('Library').getAttribute('aria-expanded')!=='true')await button('Library').click();
+    const toggle=button('Assembly / Selection');
+    if(await toggle.getAttribute('aria-expanded')!=='true')await toggle.click();
+    const assembly=library.getByRole('tab',{name:'Assembly',exact:true});
+    if(await assembly.getAttribute('aria-selected')!=='true')await assembly.click();
     const group=library.getByRole('button',{name:section,exact:true});
     if(await group.getAttribute('aria-expanded')!=='true')await group.click();
   }
@@ -166,11 +166,31 @@ try {
   }
 
   await page.goto(url,{timeout:120000});
+  const authoringToggle=button('Authoring Agent');
+  assert.equal(await authoringToggle.getAttribute('aria-expanded'),'false');
+  await authoringToggle.click();
+  await page.getByRole('complementary',{name:'Authoring Agent',exact:true})
+    .getByText(/Agent authoring is unavailable/).waitFor();
+  await authoringToggle.click();
+  assert.equal(await authoringToggle.getAttribute('aria-expanded'),'false');
   await button('Canvas').click();
   await button('Add Agent').click({timeout:60000});
   await openNodes();
   await renameAgent('Untitled agent','A1 Fixture Agent');
   await field('canvas-agent-instructions').fill('Return a concise synthetic answer.');
+  await layer('A1 Fixture Agent').click();
+  await library.getByRole('tab',{name:'Selection',exact:true}).click();
+  await button('Configure').click();
+  const sharedInstructions=field('dock-settings-agent-text');
+  await sharedInstructions.fill('Selection changes the same draft.');
+  assert.equal(await field('settings-agent-text').inputValue(),'Selection changes the same draft.');
+  await page.getByRole('menuitem',{name:'Edit',exact:true}).click();
+  await page.getByRole('menuitem',{name:'Undo',exact:true}).click();
+  assert.equal(await field('settings-agent-text').inputValue(),'Return a concise synthetic answer.');
+  await button('Canvas').click();
+  assert.equal(await field('canvas-agent-instructions').inputValue(),'Return a concise synthetic answer.');
+  await openNodes();
+  await page.screenshot({path:join(directory,'v1b-assembly-desktop.png'),animations:'disabled'});
   await canvasMenu('Add model');
   await field('canvas-model').selectOption('glm-5.3-flash');
   await agentAction('Model Reference','Connect to Model');
@@ -397,11 +417,36 @@ try {
         await agentAction(label,'Connect to '+label);
       }
       await agentAction('Child Agent','Inspect delegation');
-      const delegation=page.getByRole('dialog',{name:'Delegation'});
+      const delegation=library.getByRole('tabpanel',{name:'Selection',exact:true});
+      await delegation.getByRole('heading',{name:'Delegation',exact:true}).waitFor();
       await page.getByText('Connected · deterministic fixture',{exact:true}).waitFor();
       await page.getByText('tori.child.reference-reviewer.invoke',{exact:true}).waitFor();
       await page.getByText('Synthetic reference review completed.',{exact:false}).waitFor();
-      await delegation.getByRole('button',{name:'Close',exact:true}).click();
+      await page.keyboard.press('Escape');
+      assert.equal(await library.getByRole('tab',{name:'Selection',exact:true}).getAttribute('aria-selected'),'true');
+      assert.equal(await button('Actions for Child Agent').evaluate(el=>el===document.activeElement),true);
+      await library.getByRole('tab',{name:'Selection',exact:true}).press('ArrowLeft');
+      assert.equal(await library.getByRole('tab',{name:'Assembly',exact:true}).getAttribute('aria-selected'),'true');
+      const delegationWire=page.getByRole('group',{name:'Child Agent to Child Agent',exact:true});
+      await delegationWire.focus();
+      await page.keyboard.press('Enter');
+      await delegation.getByRole('heading',{name:'Delegation',exact:true}).waitFor();
+      await page.screenshot({path:join(directory,'v1b-selection-desktop.png'),animations:'disabled'});
+      await page.keyboard.press('Escape');
+      assert.equal(await delegationWire.evaluate(el=>el===document.activeElement),true);
+      await page.setViewportSize({width:390,height:844});
+      await authoringToggle.click();
+      const authoringSheet=page.getByRole('dialog',{name:'Authoring Agent',exact:true});
+      await authoringSheet.getByText(/Agent authoring is unavailable/).waitFor();
+      await page.screenshot({path:join(directory,'v1b-authoring-phone.png'),animations:'disabled'});
+      await authoringSheet.getByRole('button',{name:'Close',exact:true}).click();
+      assert.equal(await authoringToggle.evaluate(el=>el===document.activeElement),true);
+      await button('Assembly / Selection').click();
+      const assemblySheet=page.getByRole('dialog',{name:'Assembly / Selection',exact:true});
+      await assemblySheet.getByRole('heading',{name:'Delegation',exact:true}).waitFor();
+      await page.screenshot({path:join(directory,'v1b-selection-phone.png'),animations:'disabled'});
+      await assemblySheet.getByRole('button',{name:'Close',exact:true}).click();
+      await page.setViewportSize({width:1531,height:668});
       await openNodes();
       await layer('A1 Fixture Agent').click();
       await renameAgent('A1 Fixture Agent','Quellight · delegation fixture');

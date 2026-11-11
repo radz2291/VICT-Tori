@@ -3,13 +3,14 @@
   import { Button as ControlButton } from '@victframework/ui-svelte/primitives';
   import { DropdownMenu } from '@victframework/ui-svelte/catalog/dropdown-menu';
   import { Input, Textarea } from '@victframework/ui-ai-svelte';
-  import { binding, field, instructions, modelId, modelName, rootId, instructionId, modelNodeId, outputTokens, tokenSourceId, agentResources, resourceChoices as choices, inlineAgentSettings } from './assembly';
+  import { binding, field, instructions, modelId, modelName, rootId, instructionId, modelNodeId, tokenSourceId, agentResources, resourceChoices as choices, inlineAgentSettings } from './assembly';
   import ModelSampling from './ModelSampling.svelte';
   import ExecutionLimits from './ExecutionLimits.svelte';
   import { childRef, childName, delegateGrant, childTask, childResult, taskLengthLimit, resultLengthLimit } from './delegation-fixture.mjs';
-  let {graph,route,id,childRevisions=[],pinnedChild,edit,disconnect,reveal,
+  let {graph,route,id,location='',childRevisions=[],pinnedChild,edit,disconnect,reveal,
     openDefinition,canOpenDefinition,fixture,configure,section,hostDeadlineMs}=$props();
-  let prefix=$derived('settings-'+id);
+  let base=$derived(location?location+'-settings':'settings');
+  let prefix=$derived(base+'-'+id);
   let name=$derived(String(field(graph,rootId,'name')??''));
   let textWire=$derived(binding(graph,'instructions'));
   let tokenWire=$derived(binding(graph,'tokens'));
@@ -33,8 +34,8 @@
         <Input id={prefix+'-name'} class="tori-field" value={name} oninput={(e)=>edit(rootId,'name',e.currentTarget.value)}/>
       </div>
       <div>
-        <label for="settings-model">Model</label>
-        <Select id="settings-model" name="model" value={modelWire?String(field(graph,modelNodeId,'model')??''):''}
+        <label for={base+'-model'}>Model</label>
+        <Select id={base+'-model'} name="model" value={modelWire?String(field(graph,modelNodeId,'model')??''):''}
           options={[{value:modelId,label:modelName}]} onChange={value=>value?configure(modelNodeId,'model',value):disconnect('model')}/>
       </div>
     </div>
@@ -83,6 +84,18 @@
       <ExecutionLimits {graph} {edit} {prefix} {hostDeadlineMs}/>
     </div>
   </section>
+{:else if section==='configure' && id===instructionId}
+  <label for={prefix+'-text'}>Instruction source</label>
+  <Textarea id={prefix+'-text'} class="tori-field" rows={4} value={String(field(graph,id,'text')??'')}
+    oninput={event=>edit(id,'text',event.currentTarget.value)}/>
+{:else if section==='configure' && id===modelNodeId}
+  <label for={prefix+'-reference'}>Model</label>
+  <Select id={prefix+'-reference'} name="model" value={String(field(graph,id,'model')??'')}
+    options={[{value:modelId,label:modelName}]} onChange={value=>edit(id,'model',value||undefined)}/>
+  {@render outputLimit(tokenWire?tokenSourceId:modelNodeId)}
+  <ModelSampling {graph} {route} {edit} {prefix}/>
+{:else if section==='configure' && id===tokenSourceId}
+  {@render outputLimit(tokenSourceId)}
 {:else if section==='configure' && resource}
   <div class="configure-setting">
     <label for={prefix+'-reference'}>{id==='context'?'Source revision':resource.label}</label>
@@ -136,19 +149,23 @@
 
 {#snippet generationFields()}
   {#if modelWire}
-    <div class="configure-setting">
-      <label for="settings-output-limit">Max output tokens</label>
-      <Input id="settings-output-limit" class="tori-field" type="number" min={64} max={32768}
-        value={outputTokens(graph)} oninput={e=>edit(tokenWire?tokenSourceId:modelNodeId,'tokens',Number(e.currentTarget.value))}/>
-    </div>
-    <ModelSampling {graph} {route} {edit} prefix="settings-model"/>
+    {@render outputLimit(tokenWire?tokenSourceId:modelNodeId)}
+    <ModelSampling {graph} {route} {edit} prefix={base+'-model'}/>
   {/if}
   {#each inlineAgentSettings as setting}
     <div class="configure-setting">
-      <label for={'settings-'+setting.id}>{setting.label}</label>
-      <Select id={'settings-'+setting.id} name={setting.id}
+      <label for={base+'-'+setting.id}>{setting.label}</label>
+      <Select id={base+'-'+setting.id} name={setting.id}
         value={binding(graph,setting.id)?String(field(graph,setting.id,'reference')):'default'}
         options={setting.options} onChange={value=>value&&value!=='default'?configure(setting.id,'reference',value):disconnect(setting.id)}/>
     </div>
   {/each}
+{/snippet}
+
+{#snippet outputLimit(nodeId:string)}
+  <div class="configure-setting">
+    <label for={base+'-output-limit'}>Max output tokens</label>
+    <Input id={base+'-output-limit'} class="tori-field" type="number" min={64} max={32768}
+      value={Number(field(graph,nodeId,'tokens')??4096)} oninput={event=>edit(nodeId,'tokens',Number(event.currentTarget.value))}/>
+  </div>
 {/snippet}

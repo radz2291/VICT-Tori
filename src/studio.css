@@ -257,11 +257,25 @@ dt{color:#a4adbb}dd{margin:0;overflow-wrap:anywhere}.hash{font:11px/1.5 ui-monos
 
 .library-tabbar{display:flex;justify-content:space-between;align-items:center;min-height:34px;border-bottom:1px solid var(--line)}
 .library-tabbar h2{margin:0;padding-inline:var(--vict-space-3);font-size:12px}
-.studio .agent-left-dock .library-sections :is(.agent-index,.library),
+.studio .agent-layers-dock .library-sections :is(.agent-index,.library),
 .mobile-sheet .library-sections :is(.agent-index,.library){display:block;width:auto;background:transparent;border:0;padding:0 var(--vict-space-3) var(--vict-space-2)}
-/* The Nodes panel shares the dock header and selection treatment with the Library. */
+/* Assembly and Selection share the right dock. */
 .studio .agent-workspace > .agent-layers-dock{display:flex;flex-direction:column;min-height:0;overflow:hidden}
-.agent-layers-dock .library-tabbar{flex:none}
+.agent-dock-tabs{display:flex;flex-direction:column;min-height:0;min-width:0;flex:1}
+.tori-scope .agent-dock-tablist{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0;flex:none;padding:0;border:0;border-bottom:1px solid var(--line,var(--vict-color-border));border-radius:0;background:transparent}
+.tori-scope .agent-dock-tablist [role=tab]{min-width:0;min-height:34px;padding:0 var(--vict-space-2);border:0;border-radius:0;background:transparent;color:var(--vict-color-textMuted);font-size:12px;box-shadow:none}
+.tori-scope .agent-dock-tablist [role=tab][aria-selected=true]{color:var(--vict-color-text);background:var(--vict-color-surface);box-shadow:inset 0 -2px var(--vict-color-accent)}
+.tori-scope .agent-dock-tablist [role=tab]:focus-visible{outline-offset:-3px}
+.tori-scope .agent-dock-tabpanel{display:flex;flex-direction:column;min-height:0;flex:1;padding:0}
+.tori-scope .agent-dock-tabpanel[hidden],.tori-scope .agent-dock-tabpanel[data-state=inactive]{display:none}
+.agent-dock-scroll{min-height:0;min-width:0;overflow:auto;overscroll-behavior:contain}
+.agent-selection-content,.authoring-dock-content{padding:var(--vict-space-3);overflow-wrap:anywhere}
+.agent-selection-content h2{margin:0 0 var(--vict-space-3)}
+.agent-selection-content .configure-identity{grid-template-columns:minmax(0,1fr)}
+.assembly-node-section .layers-body > .library-filter{margin-inline:0}
+.assembly-node-section .layers-list{padding-inline:0;overflow:visible}
+.authoring-dock-content p{margin:0 0 var(--vict-space-2)}
+@media(max-width:720px){.tori-scope .agent-dock-tablist [role=tab]{min-height:42px}}
 .layers-body{display:flex;flex-direction:column;min-width:0;min-height:0;flex:1}
 .layers-body > .library-filter{flex:none;margin:var(--vict-space-3)}
 .layers-list{min-height:0;overflow:auto;overscroll-behavior:contain;padding:0 var(--vict-space-2) var(--vict-space-2)}
@@ -524,15 +538,6 @@ dt{color:#a4adbb}dd{margin:0;overflow-wrap:anywhere}.hash{font:11px/1.5 ui-monos
   z-index:93;background:var(--studio-panel);border-color:var(--border);box-shadow:0 8px 24px #0005
 }
 .studio-dialog [data-dialog-title]{font-size:14px}
-.delegation-header{
-  display:flex;align-items:center;justify-content:space-between;
-  padding-block-end:var(--vict-space-2);border-block-end:1px solid var(--line,var(--border))
-}
-.delegation-header [data-dialog-title]{margin:0;font-weight:650}
-.vict-controls .delegation-header .delegation-close{
-  display:grid;place-items:center;flex:none;width:32px;min-height:32px;margin:0;padding:0;
-  font-size:19px;line-height:1;color:var(--vict-color-textMuted)
-}
 .delegation-details{margin-block-start:var(--vict-space-3)}
 .vict-controls .delegation-details .vict-status{
   display:inline-flex;align-items:center;gap:var(--vict-space-1);padding:0;
@@ -543,6 +548,7 @@ dt{color:#a4adbb}dd{margin:0;overflow-wrap:anywhere}.hash{font:11px/1.5 ui-monos
   column-gap:var(--vict-space-3);row-gap:var(--vict-space-2);
   margin:var(--vict-space-3) 0 0
 }
+.agent-selection-content .delegation-facts{grid-template-columns:minmax(0,1fr) minmax(0,1.5fr)}
 .delegation-facts dt{color:var(--vict-color-textMuted)}
 .delegation-facts dd{min-width:0;line-height:1.55}
 .delegation-facts code{font:11px/1.55 ui-monospace,monospace}
@@ -565,7 +571,6 @@ dt{color:#a4adbb}dd{margin:0;overflow-wrap:anywhere}.hash{font:11px/1.5 ui-monos
 .tori-scope .studio-dialog .vict-btn--danger:hover:not(:disabled){background:color-mix(in srgb,var(--vict-color-danger) 10%,var(--studio-panel))}
 @media(min-width:721px){
   .vict-controls .studio-dialog[data-dialog-content]{inset:50% auto auto 50%;transform:translate(-50%,-50%);width:min(352px,90vw);padding:var(--vict-space-4);border-radius:var(--vict-radius-base)}
-  .vict-controls .studio-dialog.delegation-dialog[data-dialog-content]{width:min(510px,90vw);padding:var(--vict-space-6)}
 }
 @media(max-width:720px){
   .execution-toolbar{padding-inline:var(--vict-space-1)}
