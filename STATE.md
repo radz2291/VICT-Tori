@@ -1,5 +1,7 @@
 # TORI current state
 
+**V1a Studio closeout.** Candidate `f73d114` consolidates the owner’s Agents, Sessions and Runs refinements. The [closeout evidence](docs/evidence/v1a/STUDIO-CLOSEOUT.md) records the final fixture regression and separates it from earlier live receipts. TORI-003 remains in Review.
+
 **Saved Research composition ready for V1a review.** Candidate `496d90b` supports direct and delegated execution of the same saved Research Agent with a fixed Quellight revision pin. The [running previews and evidence](docs/evidence/v1a/INTEGRATED-PREVIEW.md#saved-research-review) cover admitted Project Knowledge, governed MCP and a zero-call denial. TORI-003 remains in Review.
 
 **Agents alignment for owner review.** Candidate `c279e73` adds an inspectable governed child binding. The [two-example walkthrough](docs/evidence/v1a/INTEGRATED-PREVIEW.md#agents-alignment) records the saved-definition boundary. TORI-003 remains in Review.
