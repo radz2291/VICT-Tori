@@ -166,6 +166,17 @@ try {
   }
 
   await page.goto(url,{timeout:120000});
+  const searchAgents=page.getByRole('textbox',{name:'Search agents',exact:true});
+  await searchAgents.fill('Unmatched fixture name');
+  await page.locator('[data-surface="assembly-agents"][data-state="empty"]').waitFor();
+  await searchAgents.clear();
+  await task('Sessions').click();
+  await page.locator('[data-surface="sessions-history"][data-state="empty"]').waitFor();
+  await button('New Session').click();
+  await page.locator('[data-surface="session-agent-picker"][data-state="empty"]').waitFor();
+  await task('Runs').click();
+  await page.locator('[data-surface="runs-history"][data-state="empty"]').waitFor();
+  await task('Agents').click();
   const authoringToggle=button('Authoring Agent');
   assert.equal(await authoringToggle.getAttribute('aria-expanded'),'false');
   await authoringToggle.click();
