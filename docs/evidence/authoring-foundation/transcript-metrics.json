@@ -1,0 +1,78 @@
+[
+  {
+    "view": "Authoring dock",
+    "viewport": {
+      "width": 1531,
+      "height": 668
+    },
+    "indent": 17.546875,
+    "listMarker": "outside",
+    "longCodeFits": true,
+    "linkDecoration": "underline",
+    "contrast": {
+      "inlineCode": 10.991878251576665,
+      "quote": 7.213273770815071,
+      "link": 8.125687423113716,
+      "tableHeader": 10.991878251576665,
+      "tableCell": 13.783925247951698,
+      "syntax": 5.500565352835882
+    }
+  },
+  {
+    "view": "Authoring drawer",
+    "viewport": {
+      "width": 390,
+      "height": 844
+    },
+    "indent": 17.546875,
+    "listMarker": "outside",
+    "longCodeFits": true,
+    "linkDecoration": "underline",
+    "contrast": {
+      "inlineCode": 10.991878251576665,
+      "quote": 6.673868160639194,
+      "link": 7.518051899796009,
+      "tableHeader": 10.991878251576665,
+      "tableCell": 13.783925247951698,
+      "syntax": 5.500565352835882
+    }
+  },
+  {
+    "view": "Run turn",
+    "viewport": {
+      "width": 1531,
+      "height": 668
+    },
+    "indent": 15.34375,
+    "listMarker": "outside",
+    "longCodeFits": true,
+    "linkDecoration": "underline",
+    "contrast": {
+      "inlineCode": 10.991878251576665,
+      "quote": 8.080047267355566,
+      "link": 9.102099898683951,
+      "tableHeader": 10.991878251576665,
+      "tableCell": 13.783925247951698,
+      "syntax": 5.500565352835882
+    }
+  },
+  {
+    "view": "Session",
+    "viewport": {
+      "width": 1531,
+      "height": 668
+    },
+    "indent": 15.34375,
+    "listMarker": "outside",
+    "longCodeFits": true,
+    "linkDecoration": "underline",
+    "contrast": {
+      "inlineCode": 10.991878251576665,
+      "quote": 8.080047267355566,
+      "link": 9.102099898683951,
+      "tableHeader": 10.991878251576665,
+      "tableCell": 13.783925247951698,
+      "syntax": 5.500565352835882
+    }
+  }
+]
