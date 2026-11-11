@@ -258,6 +258,8 @@
     return node?.label!==original?node?.label:undefined;
   }
   const objectTitle=(id:string)=>id==='agent' ? resolved(graph).name||'Untitled agent' : customNodeTitle(id)??defaultNodeTitle(id);
+  const assemblyDefinitions=$derived(agentDefinitions.map(item=>item.id===state.definition&&graph.nodes.some(node=>node.id==='agent')
+    ? {...item,name:objectTitle('agent')} : item));
   function resizePrompt({width=promptSize.width,height=promptSize.height}:Partial<typeof defaultPromptSize>){
     promptSize={width:promptDimension(width,promptWidths),height:promptDimension(height,promptHeights)};
     if(state.definition){
@@ -1840,7 +1842,7 @@
     <Input id={'agent-search-'+location} class="tori-field" placeholder="Search agents" bind:value={agentSearch}/>
   </div>
   <div class="definition-list">
-    {#each agentDefinitions.filter(item=>item.name.toLowerCase().includes(agentSearch.trim().toLowerCase())) as item (item.id)}
+    {#each assemblyDefinitions.filter(item=>item.name.toLowerCase().includes(agentSearch.trim().toLowerCase())) as item (item.id)}
       <ControlButton.Root class="vict-btn vict-btn--secondary definition-row" aria-pressed={state.definition===item.id}
         disabled={state.definition!==item.id&&(dirty||pending||sending)}
         onclick={async()=>{if(state.definition!==item.id)await openDefinition(item.id);if(!error)mobileOpen=false;}}>

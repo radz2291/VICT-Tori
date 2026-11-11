@@ -177,6 +177,7 @@ try {
   await button('Add Agent').click({timeout:60000});
   await openNodes();
   await renameAgent('Untitled agent','A1 Fixture Agent');
+  await library.getByRole('button',{name:'A1 Fixture Agent Unsaved changes',exact:true}).waitFor();
   await field('canvas-agent-instructions').fill('Return a concise synthetic answer.');
   await layer('A1 Fixture Agent').click();
   await library.getByRole('tab',{name:'Selection',exact:true}).click();
