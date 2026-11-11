@@ -1,6 +1,6 @@
 # TORI current state
 
-**11 November 2026 — V1a accepted. V1b prepared for local implementation.** Radzi approved the V1a experience after hands-on refinement. Work records TORI-003 as Done. The approved Studio baseline is `633e34d0a89a8d89a5d4477f6642be2a27f08501` on `codex/tori-v1a-a4`. Continue with the [V1b slice](docs/implementation/V1B.md) on `codex/tori-v1b`. V1b implementation and T07 verification are pending.
+**11 November 2026 — V1b Agents dock checkpoint. Live authoring held.** TORI-004 starts from accepted V1a `633e34d0a89a8d89a5d4477f6642be2a27f08501`. Candidate `e73290100da9fd89728f134617c05b4dce79400c` on `codex/tori-v1b` implements the left Authoring Agent entry and right Assembly / Selection dock. [Walkthrough and evidence](docs/evidence/v1b/README.md). The [installed public authoring map](docs/evidence/v1b/PUBLIC-BOUNDARY.md) identifies the missing open-draft proposal, commit and observation seam. T07 and owner acceptance remain open.
 
 The accepted V1a Studio is the reference for later TORI UI/UX. V1b adds the left Authoring Agent dock and the consolidated right-hand Assembly / Selection dock in Agents. See the [owner decision](docs/governance/DECISIONS.md) and [current handoff](HANDOFF.md).
 
