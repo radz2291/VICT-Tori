@@ -1,5 +1,9 @@
 # TORI handoff
 
+## TORI-005 execution budgets
+
+Open [Studio](http://127.0.0.1:48797/) on product `6910888f529d95a426c50a9196cb53381d1e605e`. In **Agents → Canvas**, expand **Execution** on the Agent node, edit the three budgets, and **Save** and **Activate**. Select the new revision in the Authoring Agent dock; existing sessions and r1 retain their pinned values. For a quick trial use 7 model steps and 5 tool calls. [Evidence, supported ranges and remaining limits](docs/evidence/authoring-foundation/EXECUTION-BUDGETS.md). The work stays in TORI-005 for Radzi's review.
+
 ## TORI-005 owner review
 
 Open the [local Studio](http://127.0.0.1:48797/) on product `f3894fba7b9d813e1dcd729b8898da104c30a692`. The [transcript styling repair](docs/evidence/authoring-foundation/TRANSCRIPT-REVIEW.md) covers contrast, list spacing and composer visibility in the dock and narrow drawer, with matching treatment in Sessions and Runs. The synthetic workspace contains the persisted Authoring Agent, Quellight, Research, the actual live parent and child Runs, and both registered script results. The [walkthrough](docs/evidence/authoring-foundation/README.md) gives the steps and links to [independent verification](docs/evidence/authoring-foundation/INDEPENDENT.md). The live evidence is attributed to `0971471b`. The final candidate rechecks the legacy fixture palette label and reopens the saved live workspace.

@@ -1,5 +1,7 @@
 # TORI-005 Authoring Foundation review
 
+For the current Agent node budgets and preview instructions, see [Execution budgets](EXECUTION-BUDGETS.md). The original walkthrough below retains its tested activation and Run references.
+
 The current preview includes the [transcript styling repair](TRANSCRIPT-REVIEW.md) at `f3894fba7b9d813e1dcd729b8898da104c30a692`.
 
 Original authoring review candidate `4308bbff84e0d46b77126ea7fd946a9661e982f9` on `codex/tori-authoring-foundation`. The isolated [local Studio preview](http://127.0.0.1:48797/) is bound to loopback. Review acceptance belongs to Radzi.

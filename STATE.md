@@ -1,5 +1,7 @@
 # TORI current state
 
+**12 November 2026 — TORI-005 Agent execution budgets.** Product `6910888f529d95a426c50a9196cb53381d1e605e` on `codex/tori-authoring-foundation` gives the Agent node and Configure shared model step, tool call and retry budgets within the installed VICT contract. The dock displays the selected activation's limits and Runs show observed usage. The existing r1 is preserved. [Verification and fixed value audit](docs/evidence/authoring-foundation/EXECUTION-BUDGETS.md). Radzi owns the Review decision.
+
 **12 November 2026 — TORI-005 transcript styling repair.** Product `f3894fba7b9d813e1dcd729b8898da104c30a692` on `codex/tori-authoring-foundation` applies the Studio dark palette and tighter list spacing to the Authoring dock, Sessions and Runs. The [review repair](docs/evidence/authoring-foundation/TRANSCRIPT-REVIEW.md) records the live preview check, synthetic browser captures and measured contrast. Radzi owns the Review decision.
 
 **12 November 2026 — TORI-005 offered for owner review.** Product `4308bbff84e0d46b77126ea7fd946a9661e982f9` on `codex/tori-authoring-foundation` adds conversational agent assembly, Run review, undoable edits and registered read-only script tools. The [review preview and evidence](docs/evidence/authoring-foundation/README.md) link the live GLM-5.3 Flash walkthrough, exact saved revisions and Run receipts, independent engineering verification and the final fixture label recheck. Radzi owns the Review decision.
