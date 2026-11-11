@@ -1,6 +1,12 @@
 # TORI handoff
 
-## Prepared implementation — TORI-005
+## TORI-005 owner review
+
+Open the [local Studio](http://127.0.0.1:48797/) on product `4308bbff84e0d46b77126ea7fd946a9661e982f9`. The synthetic workspace contains the persisted Authoring Agent, Quellight, Research, the actual live parent and child Runs, and both registered script results. The [walkthrough](docs/evidence/authoring-foundation/README.md) gives the steps and links to [independent verification](docs/evidence/authoring-foundation/INDEPENDENT.md). The live evidence is attributed to `0971471b`. The final candidate rechecks the legacy fixture palette label and reopens the saved live workspace.
+
+In Agents, use the left Authoring Agent dock and select its persisted activation. Review only is the default permission for each message. Open Research and use Allow edits and tests when requesting a change or an authorized test. In Runs, the action and script receipts link the actual definitions, revisions and execution results. Radzi reviews delivery in TORI-005.
+
+## Original implementation handoff — TORI-005
 
 Radzi requested the ticket and implementation specification for the [Studio authoring foundation](docs/implementation/AUTHORING-FOUNDATION.md), ahead of V1c. The assignment is **TORI-005** in Work project `TORI`. Use `codex/tori-authoring-foundation` and the exact specification commit pinned in Work. The preparation started from `652d6f6a0f79e95a3c5925df67a870b4070c835b`, which includes the reviewed V1b product and evidence.
 

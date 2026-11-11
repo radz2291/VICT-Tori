@@ -1,0 +1,1121 @@
+{
+  "live": true,
+  "chromium": "153.0.8010.12",
+  "authoringActivation": {
+    "definition": "tori-local-agent",
+    "version": "v1_9aacfc6556fb4339fe7ea74114d5628d8adf94b829028c8a09e7185febb1bd83",
+    "revision": "82cfd74a-511d-4ac2-aaf7-a03c78515536",
+    "number": 1,
+    "name": "Authoring Agent",
+    "route": "coding",
+    "authoring": true,
+    "workspaceAuthoring": true
+  },
+  "build": {
+    "id": "4153da11-4e5f-43f9-8877-81f90062619e",
+    "session": "558bea41-02b5-4c97-ab16-4153e3527ab1",
+    "activation": "v1_9aacfc6556fb4339fe7ea74114d5628d8adf94b829028c8a09e7185febb1bd83",
+    "revision": "82cfd74a-511d-4ac2-aaf7-a03c78515536",
+    "number": 1,
+    "name": "Authoring Agent",
+    "memory": "recent-100@1",
+    "provider": "zai",
+    "model": "glm-5.3-flash",
+    "route": "coding",
+    "tokens": 4096,
+    "execution": {
+      "maxSteps": 4,
+      "maxRetries": 0,
+      "maxToolCalls": 3,
+      "deadlineMs": 90000
+    },
+    "started": "2026-11-11T18:55:05.081Z",
+    "status": "completed",
+    "events": [
+      {
+        "at": "2026-11-11T18:55:05.081Z",
+        "label": "Turn accepted by Studio"
+      },
+      {
+        "at": "2026-11-11T18:55:05.549Z",
+        "label": "VICT · response.started",
+        "kind": "response.started"
+      },
+      {
+        "at": "2026-11-11T18:55:09.817Z",
+        "label": "VICT · tool.requested",
+        "kind": "tool.requested"
+      },
+      {
+        "at": "2026-11-11T18:55:09.825Z",
+        "label": "VICT · tool.started",
+        "kind": "tool.started"
+      },
+      {
+        "at": "2026-11-11T18:55:09.866Z",
+        "label": "Studio inspect · observed"
+      },
+      {
+        "at": "2026-11-11T18:55:09.887Z",
+        "label": "VICT · tool.completed",
+        "kind": "tool.completed"
+      },
+      {
+        "at": "2026-11-11T18:55:23.817Z",
+        "label": "VICT · tool.requested",
+        "kind": "tool.requested"
+      },
+      {
+        "at": "2026-11-11T18:55:23.821Z",
+        "label": "VICT · tool.started",
+        "kind": "tool.started"
+      },
+      {
+        "at": "2026-11-11T18:55:23.892Z",
+        "label": "Studio assemble · saved"
+      },
+      {
+        "at": "2026-11-11T18:55:23.910Z",
+        "label": "VICT · tool.completed",
+        "kind": "tool.completed"
+      },
+      {
+        "at": "2026-11-11T18:55:28.291Z",
+        "label": "VICT · tool.requested",
+        "kind": "tool.requested"
+      },
+      {
+        "at": "2026-11-11T18:55:28.317Z",
+        "label": "VICT · tool.started",
+        "kind": "tool.started"
+      },
+      {
+        "at": "2026-11-11T18:55:46.815Z",
+        "label": "Studio test · completed"
+      },
+      {
+        "at": "2026-11-11T18:55:46.829Z",
+        "label": "VICT · tool.completed",
+        "kind": "tool.completed"
+      },
+      {
+        "at": "2026-11-11T18:55:53.708Z",
+        "label": "VICT · usage.updated",
+        "kind": "usage.updated"
+      },
+      {
+        "at": "2026-11-11T18:55:54.008Z",
+        "label": "VICT · response.completed",
+        "kind": "response.completed"
+      },
+      {
+        "at": "2026-11-11T18:55:54.310Z",
+        "label": "Z.AI HTTP 200"
+      },
+      {
+        "at": "2026-11-11T18:55:54.310Z",
+        "label": "Turn completed"
+      }
+    ],
+    "draftTarget": {
+      "definition": "tori-local-agent",
+      "draftId": "58d0f4bd-ac46-4b86-8728-a15e260eacf2",
+      "occurrenceId": "agent.assembly",
+      "revision": 7
+    },
+    "authoringActions": [
+      {
+        "action": "inspect",
+        "operationId": "4153da11-4e5f-43f9-8877-81f90062619e:call_ebc31eeb65b34506ad44fdd1:tori.workspace.inspect:1:44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+        "at": "2026-11-11T18:55:09.866Z",
+        "result": {
+          "status": "observed",
+          "definitionId": "tori-local-agent",
+          "draftId": "58d0f4bd-ac46-4b86-8728-a15e260eacf2",
+          "revision": 7
+        }
+      },
+      {
+        "action": "assemble",
+        "operationId": "4153da11-4e5f-43f9-8877-81f90062619e:call_62fdab000e944da18913ce71:tori.workspace.assemble:1:66bee80e5df5285512026e3d027798dcb4d680c239c1ea352b439d52c5185415",
+        "at": "2026-11-11T18:55:23.892Z",
+        "result": {
+          "status": "saved",
+          "definitions": [
+            {
+              "role": "specialist",
+              "definitionId": "afb00ff0-11ae-4457-935f-fd8079319f71",
+              "name": "Research",
+              "savedRevision": "ad6431a7-5585-47b3-b596-ac4d58970b9a",
+              "number": 1,
+              "readiness": "ready",
+              "receipt": {
+                "actorId": "tori-local-owner",
+                "turnId": "4153da11-4e5f-43f9-8877-81f90062619e",
+                "operationId": "4153da11-4e5f-43f9-8877-81f90062619e:call_62fdab000e944da18913ce71:tori.workspace.assemble:1:66bee80e5df5285512026e3d027798dcb4d680c239c1ea352b439d52c5185415:specialist",
+                "draftId": "8ac73bf3-b3f3-496b-8453-8a7420e73206",
+                "occurrenceId": "agent.assembly",
+                "expectedRevision": 0,
+                "editDigest": "9a6e7071ef6c875caab106287fa95eb2ec0919a98bfb250013c1253ec15fdf44",
+                "status": "applied",
+                "revision": 1
+              }
+            },
+            {
+              "role": "agent",
+              "definitionId": "a1be0d15-3a4b-4818-935f-bd27a7f2cd82",
+              "name": "Quellight",
+              "savedRevision": "94ffddc8-0fcf-476d-bca3-a0fa1e447f7e",
+              "number": 1,
+              "readiness": "ready",
+              "receipt": {
+                "actorId": "tori-local-owner",
+                "turnId": "4153da11-4e5f-43f9-8877-81f90062619e",
+                "operationId": "4153da11-4e5f-43f9-8877-81f90062619e:call_62fdab000e944da18913ce71:tori.workspace.assemble:1:66bee80e5df5285512026e3d027798dcb4d680c239c1ea352b439d52c5185415:agent",
+                "draftId": "287aa221-38fb-448d-be8e-256c1679c635",
+                "occurrenceId": "agent.assembly",
+                "expectedRevision": 0,
+                "editDigest": "356b8e61936d5dc418fe92e927429d2572b03f406c1c3fb032b0ef124638df08",
+                "status": "applied",
+                "revision": 1
+              }
+            }
+          ]
+        }
+      },
+      {
+        "action": "test",
+        "operationId": "4153da11-4e5f-43f9-8877-81f90062619e:call_b89f8061fcf94c3caf0e9711:tori.workspace.test:1:ad37c34b5598a8e73ff211721c75657ce144aa06faca37a4219ccd479e1a844c",
+        "at": "2026-11-11T18:55:46.815Z",
+        "result": {
+          "status": "completed",
+          "run": {
+            "id": "0ca3abe6-40d2-4d0a-a0b8-f2486ef774ad",
+            "name": "Quellight",
+            "session": "e4944112-27e8-4799-bc14-dad66fc9b044",
+            "revision": "94ffddc8-0fcf-476d-bca3-a0fa1e447f7e",
+            "activation": "v1_5133683c39b2447d0850c96fb8384ac8c33fb8f78e9068b8ace8aff104d7a301",
+            "status": "completed",
+            "fixture": false,
+            "input": "Delegate a research request to Research on the topic \"habits\". Include the key habits in the request and project knowledge as context.",
+            "output": "Research on the topic **\"habits\"** is complete. Here are the results, relayed faithfully from the Research specialist:\n\n**Topic examined:** habits\n\n**Key finding:** Pair a small habit with an existing routine and record the cue.\n\n**Reference ID:** TOPIC-104\n\n**Suggested next step:** Choose one small habit you want to build and attach it to something you already do consistently (for example, after pouring your morning coffee, write one sentence in your planning workspace). Then explicitly record the cue — the existing routine that triggers the new habit — so you can observe whether the pairing holds over time and adjust if needed.\n\nResearch also noted this aligns with the project knowledge context, since the cue itself becomes the observable anchor for tracking the habit and turning intentions into small, observable next actions.",
+            "context": {
+              "source": "project-knowledge@1",
+              "trigger": "explicit-turn-demand",
+              "budgetBytes": 512,
+              "reads": 1,
+              "status": "admitted",
+              "bytes": 77
+            },
+            "scripts": [],
+            "children": [
+              {
+                "id": "5cf16e1e-ea82-4969-bef2-92bf0f641d7b",
+                "name": "Research",
+                "session": "e4944112-27e8-4799-bc14-dad66fc9b044",
+                "revision": "ad6431a7-5585-47b3-b596-ac4d58970b9a",
+                "activation": "v1_98e7393deef57104a39fd6987daa60f663a04816dae99115974a5ffdc25013a8",
+                "status": "completed",
+                "fixture": false,
+                "input": "Research request — Topic: \"habits\". Please examine the topic of habits as the requested research subject. Use your approved project knowledge as context for this research.",
+                "output": "I'll research the topic \"habits\" using the registered project index.Research complete. Here are the findings for the topic **\"habits\"**:\n\n**Finding:** Pair a small habit with an existing routine and record the cue.\n\n**Reference ID:** TOPIC-104\n\n**Practical next step:** Choose one small habit you want to build and attach it to something you already do consistently (for example, after pouring your morning coffee, write one sentence in your planning workspace). Then explicitly record the cue — the existing routine that triggers the new habit — so you can observe whether the pairing holds over time and adjust if needed.\n\nThis aligns with the project brief's goal of turning intentions into small, observable next actions: the cue itself becomes the observable anchor for tracking the habit.",
+                "context": {
+                  "source": "studio-research@1",
+                  "trigger": "explicit-turn-demand",
+                  "budgetBytes": 512,
+                  "reads": 1,
+                  "status": "admitted",
+                  "bytes": 258
+                },
+                "scripts": [
+                  {
+                    "id": "tori.script.research-topics",
+                    "revision": "1",
+                    "grant": "tori.script.research-topics.read",
+                    "entry": "research-topics.mjs",
+                    "invocationId": "2174723a-ba17-4a64-822d-451d039fb0f0",
+                    "key": "habits",
+                    "calls": 1,
+                    "started": "2026-11-11T18:55:36.530Z",
+                    "result": {
+                      "text": "TOPIC-104: Pair a small habit with an existing routine and record the cue."
+                    },
+                    "status": "completed",
+                    "ended": "2026-11-11T18:55:36.785Z"
+                  }
+                ],
+                "children": []
+              }
+            ]
+          }
+        }
+      }
+    ],
+    "authoringMode": "change",
+    "authoringOutcomes": [],
+    "usage": {
+      "inputTokens": 10126,
+      "outputTokens": 1626,
+      "totalTokens": 11752
+    },
+    "providerAttempts": 4,
+    "modelSteps": 4,
+    "sentMaxOutputTokens": 4096,
+    "ended": "2026-11-11T18:55:54.310Z",
+    "draftReceipts": []
+  },
+  "review": {
+    "id": "c5b672b5-7a37-4ee8-a6ee-1b1275499104",
+    "session": "558bea41-02b5-4c97-ab16-4153e3527ab1",
+    "activation": "v1_9aacfc6556fb4339fe7ea74114d5628d8adf94b829028c8a09e7185febb1bd83",
+    "revision": "82cfd74a-511d-4ac2-aaf7-a03c78515536",
+    "number": 1,
+    "name": "Authoring Agent",
+    "memory": "recent-100@1",
+    "provider": "zai",
+    "model": "glm-5.3-flash",
+    "route": "coding",
+    "tokens": 4096,
+    "execution": {
+      "maxSteps": 4,
+      "maxRetries": 0,
+      "maxToolCalls": 3,
+      "deadlineMs": 90000
+    },
+    "started": "2026-11-11T18:55:54.921Z",
+    "status": "completed",
+    "events": [
+      {
+        "at": "2026-11-11T18:55:54.921Z",
+        "label": "Turn accepted by Studio"
+      },
+      {
+        "at": "2026-11-11T18:55:54.969Z",
+        "label": "VICT · response.started",
+        "kind": "response.started"
+      },
+      {
+        "at": "2026-11-11T18:55:58.159Z",
+        "label": "VICT · tool.requested",
+        "kind": "tool.requested"
+      },
+      {
+        "at": "2026-11-11T18:55:58.163Z",
+        "label": "VICT · tool.started",
+        "kind": "tool.started"
+      },
+      {
+        "at": "2026-11-11T18:55:58.176Z",
+        "label": "Studio inspect · observed"
+      },
+      {
+        "at": "2026-11-11T18:55:58.192Z",
+        "label": "VICT · tool.completed",
+        "kind": "tool.completed"
+      },
+      {
+        "at": "2026-11-11T18:56:10.173Z",
+        "label": "VICT · usage.updated",
+        "kind": "usage.updated"
+      },
+      {
+        "at": "2026-11-11T18:56:10.464Z",
+        "label": "VICT · response.completed",
+        "kind": "response.completed"
+      },
+      {
+        "at": "2026-11-11T18:56:10.746Z",
+        "label": "Z.AI HTTP 200"
+      },
+      {
+        "at": "2026-11-11T18:56:10.746Z",
+        "label": "Turn completed"
+      }
+    ],
+    "draftTarget": {
+      "definition": "tori-local-agent",
+      "draftId": "58d0f4bd-ac46-4b86-8728-a15e260eacf2",
+      "occurrenceId": "agent.assembly",
+      "revision": 7
+    },
+    "authoringActions": [
+      {
+        "action": "inspect",
+        "operationId": "c5b672b5-7a37-4ee8-a6ee-1b1275499104:call_f777febc56894050ac373e8b:tori.workspace.inspect:1:386e19ec370cd5b21965e2c6a9b1b3e427dc2522a575dd0a04f5a728897a59fa",
+        "at": "2026-11-11T18:55:58.176Z",
+        "result": {
+          "status": "observed",
+          "runId": "0ca3abe6-40d2-4d0a-a0b8-f2486ef774ad",
+          "definitionId": "tori-local-agent",
+          "draftId": "58d0f4bd-ac46-4b86-8728-a15e260eacf2",
+          "revision": 7
+        }
+      }
+    ],
+    "authoringMode": "inspect",
+    "authoringOutcomes": [],
+    "usage": {
+      "inputTokens": 8211,
+      "outputTokens": 794,
+      "totalTokens": 9005
+    },
+    "providerAttempts": 2,
+    "modelSteps": 2,
+    "sentMaxOutputTokens": 4096,
+    "ended": "2026-11-11T18:56:10.746Z",
+    "draftReceipts": []
+  },
+  "reviewReply": "I reviewed Run `0ca3abe6-40d2-4d0a-a0b8-f2486ef774ad` (status: completed, not a fixture).\n\n## What went well\n- Research actually invoked `research-topics@1` (key `habits`, 1 call, completed) and quoted the returned reference ID `TOPIC-104` exactly.\n- It delivered one practical next step as specified.\n\n## One suggested improvement (not applied)\n\n**Add a fidelity guard against out-of-scope context claims.** In the Run, Research stated: *\"This aligns with the project brief's goal of turning intentions into small, observable next actions...\"* — but Research's definition binds only `studio-research@1`; it does not hold `project-knowledge@1`, so it asserted alignment with a project brief it never actually read. That's a small hallucinated-justification risk that could mislead Quellight's relay.\n\n**Concrete suggestion:** append one line to Research's instructions, e.g.:\n\n> \"Base your answer strictly on the tool result and your research knowledge source. Do not reference, summarize, or claim alignment with project knowledge — that context belongs to the delegating agent, which handles the synthesis.\"\n\nThis keeps Research's output fully verifiable against its actual resources while leaving cross-context synthesis to Quellight.\n\nWant me to apply this edit to Research (`afb00ff0-11ae-4457-935f-fd8079319f71`)? I won't change anything until you confirm.",
+  "edit": {
+    "id": "0726cc52-d3f3-41eb-a29e-a633dfd686cc",
+    "session": "558bea41-02b5-4c97-ab16-4153e3527ab1",
+    "activation": "v1_9aacfc6556fb4339fe7ea74114d5628d8adf94b829028c8a09e7185febb1bd83",
+    "revision": "82cfd74a-511d-4ac2-aaf7-a03c78515536",
+    "number": 1,
+    "name": "Authoring Agent",
+    "memory": "recent-100@1",
+    "provider": "zai",
+    "model": "glm-5.3-flash",
+    "route": "coding",
+    "tokens": 4096,
+    "execution": {
+      "maxSteps": 4,
+      "maxRetries": 0,
+      "maxToolCalls": 3,
+      "deadlineMs": 90000
+    },
+    "started": "2026-11-11T18:56:11.481Z",
+    "status": "completed",
+    "events": [
+      {
+        "at": "2026-11-11T18:56:11.481Z",
+        "label": "Turn accepted by Studio"
+      },
+      {
+        "at": "2026-11-11T18:56:11.514Z",
+        "label": "VICT · response.started",
+        "kind": "response.started"
+      },
+      {
+        "at": "2026-11-11T18:56:23.374Z",
+        "label": "VICT · tool.requested",
+        "kind": "tool.requested"
+      },
+      {
+        "at": "2026-11-11T18:56:23.376Z",
+        "label": "VICT · tool.started",
+        "kind": "tool.started"
+      },
+      {
+        "at": "2026-11-11T18:56:23.395Z",
+        "label": "Studio inspect · observed"
+      },
+      {
+        "at": "2026-11-11T18:56:23.412Z",
+        "label": "VICT · tool.completed",
+        "kind": "tool.completed"
+      },
+      {
+        "at": "2026-11-11T18:56:29.422Z",
+        "label": "VICT · tool.requested",
+        "kind": "tool.requested"
+      },
+      {
+        "at": "2026-11-11T18:56:29.429Z",
+        "label": "VICT · tool.started",
+        "kind": "tool.started"
+      },
+      {
+        "at": "2026-11-11T18:56:29.467Z",
+        "label": "Draft edit · applied"
+      },
+      {
+        "at": "2026-11-11T18:56:29.516Z",
+        "label": "Studio edit · applied"
+      },
+      {
+        "at": "2026-11-11T18:56:29.528Z",
+        "label": "VICT · tool.completed",
+        "kind": "tool.completed"
+      },
+      {
+        "at": "2026-11-11T18:56:33.875Z",
+        "label": "VICT · usage.updated",
+        "kind": "usage.updated"
+      },
+      {
+        "at": "2026-11-11T18:56:34.177Z",
+        "label": "VICT · response.completed",
+        "kind": "response.completed"
+      },
+      {
+        "at": "2026-11-11T18:56:34.462Z",
+        "label": "Z.AI HTTP 200"
+      },
+      {
+        "at": "2026-11-11T18:56:34.462Z",
+        "label": "Turn completed"
+      }
+    ],
+    "draftTarget": {
+      "definition": "afb00ff0-11ae-4457-935f-fd8079319f71",
+      "draftId": "64188f0e-ab47-438f-975e-e75d7a80c0a0",
+      "occurrenceId": "agent.assembly",
+      "revision": 1
+    },
+    "authoringActions": [
+      {
+        "action": "inspect",
+        "operationId": "0726cc52-d3f3-41eb-a29e-a633dfd686cc:call_a50962caa14d4e579594e115:tori.workspace.inspect:1:44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+        "at": "2026-11-11T18:56:23.395Z",
+        "result": {
+          "status": "observed",
+          "runId": "0ca3abe6-40d2-4d0a-a0b8-f2486ef774ad",
+          "definitionId": "afb00ff0-11ae-4457-935f-fd8079319f71",
+          "draftId": "64188f0e-ab47-438f-975e-e75d7a80c0a0",
+          "revision": 1
+        }
+      },
+      {
+        "action": "edit",
+        "operationId": "0726cc52-d3f3-41eb-a29e-a633dfd686cc:call_968efce22ddf4a00997983c1:tori.workspace.edit:1:1b3def88281354a2110df46980cc10f0c1332edb69b30debaccb1e1f2cbbe676",
+        "at": "2026-11-11T18:56:29.516Z",
+        "result": {
+          "status": "applied",
+          "definitionId": "afb00ff0-11ae-4457-935f-fd8079319f71",
+          "receipt": {
+            "actorId": "tori-local-owner",
+            "turnId": "0726cc52-d3f3-41eb-a29e-a633dfd686cc",
+            "operationId": "0726cc52-d3f3-41eb-a29e-a633dfd686cc:call_968efce22ddf4a00997983c1:tori.workspace.edit:1:1b3def88281354a2110df46980cc10f0c1332edb69b30debaccb1e1f2cbbe676",
+            "draftId": "64188f0e-ab47-438f-975e-e75d7a80c0a0",
+            "occurrenceId": "agent.assembly",
+            "expectedRevision": 1,
+            "editDigest": "263611675381d5b550280d28732b9ba63007d4575c532ab406fcf084ebd093d3",
+            "status": "applied",
+            "revision": 2
+          }
+        }
+      }
+    ],
+    "authoringMode": "change",
+    "authoringOutcomes": [
+      "applied"
+    ],
+    "usage": {
+      "inputTokens": 22142,
+      "outputTokens": 1017,
+      "totalTokens": 23159
+    },
+    "providerAttempts": 3,
+    "modelSteps": 3,
+    "sentMaxOutputTokens": 4096,
+    "ended": "2026-11-11T18:56:34.462Z",
+    "draftReceipts": [
+      {
+        "actorId": "tori-local-owner",
+        "turnId": "0726cc52-d3f3-41eb-a29e-a633dfd686cc",
+        "operationId": "0726cc52-d3f3-41eb-a29e-a633dfd686cc:call_968efce22ddf4a00997983c1:tori.workspace.edit:1:1b3def88281354a2110df46980cc10f0c1332edb69b30debaccb1e1f2cbbe676",
+        "draftId": "64188f0e-ab47-438f-975e-e75d7a80c0a0",
+        "occurrenceId": "agent.assembly",
+        "expectedRevision": 1,
+        "editDigest": "263611675381d5b550280d28732b9ba63007d4575c532ab406fcf084ebd093d3",
+        "status": "applied",
+        "revision": 2,
+        "at": "2026-11-11T18:56:29.467Z"
+      }
+    ]
+  },
+  "bindingRun": {
+    "id": "c9b82121-141f-48b4-88cc-a3207e5e5f97",
+    "session": "558bea41-02b5-4c97-ab16-4153e3527ab1",
+    "activation": "v1_9aacfc6556fb4339fe7ea74114d5628d8adf94b829028c8a09e7185febb1bd83",
+    "revision": "82cfd74a-511d-4ac2-aaf7-a03c78515536",
+    "number": 1,
+    "name": "Authoring Agent",
+    "memory": "recent-100@1",
+    "provider": "zai",
+    "model": "glm-5.3-flash",
+    "route": "coding",
+    "tokens": 4096,
+    "execution": {
+      "maxSteps": 4,
+      "maxRetries": 0,
+      "maxToolCalls": 3,
+      "deadlineMs": 90000
+    },
+    "started": "2026-11-11T18:56:35.793Z",
+    "status": "completed",
+    "events": [
+      {
+        "at": "2026-11-11T18:56:35.793Z",
+        "label": "Turn accepted by Studio"
+      },
+      {
+        "at": "2026-11-11T18:56:35.826Z",
+        "label": "VICT · response.started",
+        "kind": "response.started"
+      },
+      {
+        "at": "2026-11-11T18:56:59.766Z",
+        "label": "VICT · tool.requested",
+        "kind": "tool.requested"
+      },
+      {
+        "at": "2026-11-11T18:56:59.770Z",
+        "label": "VICT · tool.started",
+        "kind": "tool.started"
+      },
+      {
+        "at": "2026-11-11T18:56:59.785Z",
+        "label": "Studio inspect · observed"
+      },
+      {
+        "at": "2026-11-11T18:56:59.803Z",
+        "label": "VICT · tool.completed",
+        "kind": "tool.completed"
+      },
+      {
+        "at": "2026-11-11T18:57:18.844Z",
+        "label": "VICT · tool.requested",
+        "kind": "tool.requested"
+      },
+      {
+        "at": "2026-11-11T18:57:18.846Z",
+        "label": "VICT · tool.started",
+        "kind": "tool.started"
+      },
+      {
+        "at": "2026-11-11T18:57:19.015Z",
+        "label": "Draft edit · applied"
+      },
+      {
+        "at": "2026-11-11T18:57:19.067Z",
+        "label": "Studio edit · applied"
+      },
+      {
+        "at": "2026-11-11T18:57:19.076Z",
+        "label": "VICT · tool.completed",
+        "kind": "tool.completed"
+      },
+      {
+        "at": "2026-11-11T18:57:22.540Z",
+        "label": "VICT · tool.requested",
+        "kind": "tool.requested"
+      },
+      {
+        "at": "2026-11-11T18:57:22.547Z",
+        "label": "VICT · tool.started",
+        "kind": "tool.started"
+      },
+      {
+        "at": "2026-11-11T18:57:33.001Z",
+        "label": "Studio test · completed"
+      },
+      {
+        "at": "2026-11-11T18:57:33.011Z",
+        "label": "VICT · tool.completed",
+        "kind": "tool.completed"
+      },
+      {
+        "at": "2026-11-11T18:57:42.627Z",
+        "label": "VICT · usage.updated",
+        "kind": "usage.updated"
+      },
+      {
+        "at": "2026-11-11T18:57:42.938Z",
+        "label": "VICT · response.completed",
+        "kind": "response.completed"
+      },
+      {
+        "at": "2026-11-11T18:57:43.224Z",
+        "label": "Z.AI HTTP 200"
+      },
+      {
+        "at": "2026-11-11T18:57:43.224Z",
+        "label": "Turn completed"
+      }
+    ],
+    "draftTarget": {
+      "definition": "afb00ff0-11ae-4457-935f-fd8079319f71",
+      "draftId": "180fa73e-9722-4de5-9ac5-3ba438eea9e9",
+      "occurrenceId": "agent.assembly",
+      "revision": 4
+    },
+    "authoringActions": [
+      {
+        "action": "inspect",
+        "operationId": "c9b82121-141f-48b4-88cc-a3207e5e5f97:call_33a64b0462fc47e49a5a78d5:tori.workspace.inspect:1:44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+        "at": "2026-11-11T18:56:59.785Z",
+        "result": {
+          "status": "observed",
+          "runId": "0ca3abe6-40d2-4d0a-a0b8-f2486ef774ad",
+          "definitionId": "afb00ff0-11ae-4457-935f-fd8079319f71",
+          "draftId": "180fa73e-9722-4de5-9ac5-3ba438eea9e9",
+          "revision": 4
+        }
+      },
+      {
+        "action": "edit",
+        "operationId": "c9b82121-141f-48b4-88cc-a3207e5e5f97:call_ead8e593ee48476fa6f6a492:tori.workspace.edit:1:88d996d9f8248b093f8c70ada7b0c0bd20644291a3158f20db9a2f368dc9bc69",
+        "at": "2026-11-11T18:57:19.067Z",
+        "result": {
+          "status": "applied",
+          "definitionId": "afb00ff0-11ae-4457-935f-fd8079319f71",
+          "receipt": {
+            "actorId": "tori-local-owner",
+            "turnId": "c9b82121-141f-48b4-88cc-a3207e5e5f97",
+            "operationId": "c9b82121-141f-48b4-88cc-a3207e5e5f97:call_ead8e593ee48476fa6f6a492:tori.workspace.edit:1:88d996d9f8248b093f8c70ada7b0c0bd20644291a3158f20db9a2f368dc9bc69",
+            "draftId": "180fa73e-9722-4de5-9ac5-3ba438eea9e9",
+            "occurrenceId": "agent.assembly",
+            "expectedRevision": 4,
+            "editDigest": "999706c7837c3c578fdee67ec17fc3c4c6a11e24547f81a471fe0f421a072ce7",
+            "status": "applied",
+            "revision": 5
+          },
+          "savedRevision": "4d361a17-915e-47bf-ad71-1a1b028f51a4",
+          "number": 3,
+          "readiness": "ready",
+          "saveStatus": "saved"
+        }
+      },
+      {
+        "action": "test",
+        "operationId": "c9b82121-141f-48b4-88cc-a3207e5e5f97:call_62189ca1a6c4409584fae943:tori.workspace.test:1:4f5078a455b900cdfb44fa1defbc6ffc2c142cb874b47a1d79372b83a1016d0e",
+        "at": "2026-11-11T18:57:33.001Z",
+        "result": {
+          "status": "completed",
+          "run": {
+            "id": "d432324e-99f4-4036-9a37-f32a947567db",
+            "name": "Research",
+            "session": "2730590d-4ad4-4643-a92f-1acb8bc36cb9",
+            "revision": "4d361a17-915e-47bf-ad71-1a1b028f51a4",
+            "activation": "v1_f36e588a1dc7f5d46deaaaeb12d9dad87f0be89a96e70d8eac59d7956e49ee7b",
+            "status": "completed",
+            "fixture": false,
+            "input": "Research request — use the Reading List tool for the topic \"planning\".",
+            "output": "Here are the findings from the Reading List tool for the topic \"planning\":\n\n**Finding 1 — Weekly Planning Guide**\n- **Reference ID (exact):** READING-29\n- **Source label:** Reading List tool (reading-list@1), topic: planning\n- **Summary:** The approved synthetic weekly planning guide recommends reserving dedicated time for a weekly review.\n\n**Suggested next step:** Block a recurring 30–60 minute calendar slot (e.g., end of Friday or start of Monday) for your weekly review — use it to check off completed items, carry over unfinished tasks, and set priorities for the coming week, as prescribed in READING-29.",
+            "context": {
+              "source": "studio-research@1",
+              "trigger": "explicit-turn-demand",
+              "budgetBytes": 512,
+              "reads": 0,
+              "status": "omitted",
+              "reason": "no-demand"
+            },
+            "scripts": [
+              {
+                "id": "tori.script.reading-list",
+                "revision": "1",
+                "grant": "tori.script.reading-list.read",
+                "entry": "reading-list.mjs",
+                "invocationId": "8d96ead9-1d5f-4176-a336-97ebf47c969d",
+                "key": "planning",
+                "calls": 1,
+                "started": "2026-11-11T18:57:27.925Z",
+                "result": {
+                  "text": "READING-29: Synthetic weekly planning guide. Reserve time for a weekly review."
+                },
+                "status": "completed",
+                "ended": "2026-11-11T18:57:28.003Z"
+              }
+            ],
+            "children": []
+          }
+        }
+      }
+    ],
+    "authoringMode": "change",
+    "authoringOutcomes": [
+      "applied"
+    ],
+    "usage": {
+      "inputTokens": 39860,
+      "outputTokens": 3243,
+      "totalTokens": 43103
+    },
+    "providerAttempts": 4,
+    "modelSteps": 4,
+    "sentMaxOutputTokens": 4096,
+    "ended": "2026-11-11T18:57:43.224Z",
+    "draftReceipts": [
+      {
+        "actorId": "tori-local-owner",
+        "turnId": "c9b82121-141f-48b4-88cc-a3207e5e5f97",
+        "operationId": "c9b82121-141f-48b4-88cc-a3207e5e5f97:call_ead8e593ee48476fa6f6a492:tori.workspace.edit:1:88d996d9f8248b093f8c70ada7b0c0bd20644291a3158f20db9a2f368dc9bc69",
+        "draftId": "180fa73e-9722-4de5-9ac5-3ba438eea9e9",
+        "occurrenceId": "agent.assembly",
+        "expectedRevision": 4,
+        "editDigest": "999706c7837c3c578fdee67ec17fc3c4c6a11e24547f81a471fe0f421a072ce7",
+        "status": "applied",
+        "revision": 5,
+        "at": "2026-11-11T18:57:19.015Z"
+      }
+    ]
+  },
+  "second": {
+    "id": "c9b82121-141f-48b4-88cc-a3207e5e5f97",
+    "session": "558bea41-02b5-4c97-ab16-4153e3527ab1",
+    "activation": "v1_9aacfc6556fb4339fe7ea74114d5628d8adf94b829028c8a09e7185febb1bd83",
+    "revision": "82cfd74a-511d-4ac2-aaf7-a03c78515536",
+    "number": 1,
+    "name": "Authoring Agent",
+    "memory": "recent-100@1",
+    "provider": "zai",
+    "model": "glm-5.3-flash",
+    "route": "coding",
+    "tokens": 4096,
+    "execution": {
+      "maxSteps": 4,
+      "maxRetries": 0,
+      "maxToolCalls": 3,
+      "deadlineMs": 90000
+    },
+    "started": "2026-11-11T18:56:35.793Z",
+    "status": "completed",
+    "events": [
+      {
+        "at": "2026-11-11T18:56:35.793Z",
+        "label": "Turn accepted by Studio"
+      },
+      {
+        "at": "2026-11-11T18:56:35.826Z",
+        "label": "VICT · response.started",
+        "kind": "response.started"
+      },
+      {
+        "at": "2026-11-11T18:56:59.766Z",
+        "label": "VICT · tool.requested",
+        "kind": "tool.requested"
+      },
+      {
+        "at": "2026-11-11T18:56:59.770Z",
+        "label": "VICT · tool.started",
+        "kind": "tool.started"
+      },
+      {
+        "at": "2026-11-11T18:56:59.785Z",
+        "label": "Studio inspect · observed"
+      },
+      {
+        "at": "2026-11-11T18:56:59.803Z",
+        "label": "VICT · tool.completed",
+        "kind": "tool.completed"
+      },
+      {
+        "at": "2026-11-11T18:57:18.844Z",
+        "label": "VICT · tool.requested",
+        "kind": "tool.requested"
+      },
+      {
+        "at": "2026-11-11T18:57:18.846Z",
+        "label": "VICT · tool.started",
+        "kind": "tool.started"
+      },
+      {
+        "at": "2026-11-11T18:57:19.015Z",
+        "label": "Draft edit · applied"
+      },
+      {
+        "at": "2026-11-11T18:57:19.067Z",
+        "label": "Studio edit · applied"
+      },
+      {
+        "at": "2026-11-11T18:57:19.076Z",
+        "label": "VICT · tool.completed",
+        "kind": "tool.completed"
+      },
+      {
+        "at": "2026-11-11T18:57:22.540Z",
+        "label": "VICT · tool.requested",
+        "kind": "tool.requested"
+      },
+      {
+        "at": "2026-11-11T18:57:22.547Z",
+        "label": "VICT · tool.started",
+        "kind": "tool.started"
+      },
+      {
+        "at": "2026-11-11T18:57:33.001Z",
+        "label": "Studio test · completed"
+      },
+      {
+        "at": "2026-11-11T18:57:33.011Z",
+        "label": "VICT · tool.completed",
+        "kind": "tool.completed"
+      },
+      {
+        "at": "2026-11-11T18:57:42.627Z",
+        "label": "VICT · usage.updated",
+        "kind": "usage.updated"
+      },
+      {
+        "at": "2026-11-11T18:57:42.938Z",
+        "label": "VICT · response.completed",
+        "kind": "response.completed"
+      },
+      {
+        "at": "2026-11-11T18:57:43.224Z",
+        "label": "Z.AI HTTP 200"
+      },
+      {
+        "at": "2026-11-11T18:57:43.224Z",
+        "label": "Turn completed"
+      }
+    ],
+    "draftTarget": {
+      "definition": "afb00ff0-11ae-4457-935f-fd8079319f71",
+      "draftId": "180fa73e-9722-4de5-9ac5-3ba438eea9e9",
+      "occurrenceId": "agent.assembly",
+      "revision": 4
+    },
+    "authoringActions": [
+      {
+        "action": "inspect",
+        "operationId": "c9b82121-141f-48b4-88cc-a3207e5e5f97:call_33a64b0462fc47e49a5a78d5:tori.workspace.inspect:1:44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+        "at": "2026-11-11T18:56:59.785Z",
+        "result": {
+          "status": "observed",
+          "runId": "0ca3abe6-40d2-4d0a-a0b8-f2486ef774ad",
+          "definitionId": "afb00ff0-11ae-4457-935f-fd8079319f71",
+          "draftId": "180fa73e-9722-4de5-9ac5-3ba438eea9e9",
+          "revision": 4
+        }
+      },
+      {
+        "action": "edit",
+        "operationId": "c9b82121-141f-48b4-88cc-a3207e5e5f97:call_ead8e593ee48476fa6f6a492:tori.workspace.edit:1:88d996d9f8248b093f8c70ada7b0c0bd20644291a3158f20db9a2f368dc9bc69",
+        "at": "2026-11-11T18:57:19.067Z",
+        "result": {
+          "status": "applied",
+          "definitionId": "afb00ff0-11ae-4457-935f-fd8079319f71",
+          "receipt": {
+            "actorId": "tori-local-owner",
+            "turnId": "c9b82121-141f-48b4-88cc-a3207e5e5f97",
+            "operationId": "c9b82121-141f-48b4-88cc-a3207e5e5f97:call_ead8e593ee48476fa6f6a492:tori.workspace.edit:1:88d996d9f8248b093f8c70ada7b0c0bd20644291a3158f20db9a2f368dc9bc69",
+            "draftId": "180fa73e-9722-4de5-9ac5-3ba438eea9e9",
+            "occurrenceId": "agent.assembly",
+            "expectedRevision": 4,
+            "editDigest": "999706c7837c3c578fdee67ec17fc3c4c6a11e24547f81a471fe0f421a072ce7",
+            "status": "applied",
+            "revision": 5
+          },
+          "savedRevision": "4d361a17-915e-47bf-ad71-1a1b028f51a4",
+          "number": 3,
+          "readiness": "ready",
+          "saveStatus": "saved"
+        }
+      },
+      {
+        "action": "test",
+        "operationId": "c9b82121-141f-48b4-88cc-a3207e5e5f97:call_62189ca1a6c4409584fae943:tori.workspace.test:1:4f5078a455b900cdfb44fa1defbc6ffc2c142cb874b47a1d79372b83a1016d0e",
+        "at": "2026-11-11T18:57:33.001Z",
+        "result": {
+          "status": "completed",
+          "run": {
+            "id": "d432324e-99f4-4036-9a37-f32a947567db",
+            "name": "Research",
+            "session": "2730590d-4ad4-4643-a92f-1acb8bc36cb9",
+            "revision": "4d361a17-915e-47bf-ad71-1a1b028f51a4",
+            "activation": "v1_f36e588a1dc7f5d46deaaaeb12d9dad87f0be89a96e70d8eac59d7956e49ee7b",
+            "status": "completed",
+            "fixture": false,
+            "input": "Research request — use the Reading List tool for the topic \"planning\".",
+            "output": "Here are the findings from the Reading List tool for the topic \"planning\":\n\n**Finding 1 — Weekly Planning Guide**\n- **Reference ID (exact):** READING-29\n- **Source label:** Reading List tool (reading-list@1), topic: planning\n- **Summary:** The approved synthetic weekly planning guide recommends reserving dedicated time for a weekly review.\n\n**Suggested next step:** Block a recurring 30–60 minute calendar slot (e.g., end of Friday or start of Monday) for your weekly review — use it to check off completed items, carry over unfinished tasks, and set priorities for the coming week, as prescribed in READING-29.",
+            "context": {
+              "source": "studio-research@1",
+              "trigger": "explicit-turn-demand",
+              "budgetBytes": 512,
+              "reads": 0,
+              "status": "omitted",
+              "reason": "no-demand"
+            },
+            "scripts": [
+              {
+                "id": "tori.script.reading-list",
+                "revision": "1",
+                "grant": "tori.script.reading-list.read",
+                "entry": "reading-list.mjs",
+                "invocationId": "8d96ead9-1d5f-4176-a336-97ebf47c969d",
+                "key": "planning",
+                "calls": 1,
+                "started": "2026-11-11T18:57:27.925Z",
+                "result": {
+                  "text": "READING-29: Synthetic weekly planning guide. Reserve time for a weekly review."
+                },
+                "status": "completed",
+                "ended": "2026-11-11T18:57:28.003Z"
+              }
+            ],
+            "children": []
+          }
+        }
+      }
+    ],
+    "authoringMode": "change",
+    "authoringOutcomes": [
+      "applied"
+    ],
+    "usage": {
+      "inputTokens": 39860,
+      "outputTokens": 3243,
+      "totalTokens": 43103
+    },
+    "providerAttempts": 4,
+    "modelSteps": 4,
+    "sentMaxOutputTokens": 4096,
+    "ended": "2026-11-11T18:57:43.224Z",
+    "draftReceipts": [
+      {
+        "actorId": "tori-local-owner",
+        "turnId": "c9b82121-141f-48b4-88cc-a3207e5e5f97",
+        "operationId": "c9b82121-141f-48b4-88cc-a3207e5e5f97:call_ead8e593ee48476fa6f6a492:tori.workspace.edit:1:88d996d9f8248b093f8c70ada7b0c0bd20644291a3158f20db9a2f368dc9bc69",
+        "draftId": "180fa73e-9722-4de5-9ac5-3ba438eea9e9",
+        "occurrenceId": "agent.assembly",
+        "expectedRevision": 4,
+        "editDigest": "999706c7837c3c578fdee67ec17fc3c4c6a11e24547f81a471fe0f421a072ce7",
+        "status": "applied",
+        "revision": 5,
+        "at": "2026-11-11T18:57:19.015Z"
+      }
+    ]
+  },
+  "test": {
+    "id": "0ca3abe6-40d2-4d0a-a0b8-f2486ef774ad",
+    "name": "Quellight",
+    "session": "e4944112-27e8-4799-bc14-dad66fc9b044",
+    "revision": "94ffddc8-0fcf-476d-bca3-a0fa1e447f7e",
+    "activation": "v1_5133683c39b2447d0850c96fb8384ac8c33fb8f78e9068b8ace8aff104d7a301",
+    "status": "completed",
+    "fixture": false,
+    "input": "Delegate a research request to Research on the topic \"habits\". Include the key habits in the request and project knowledge as context.",
+    "output": "Research on the topic **\"habits\"** is complete. Here are the results, relayed faithfully from the Research specialist:\n\n**Topic examined:** habits\n\n**Key finding:** Pair a small habit with an existing routine and record the cue.\n\n**Reference ID:** TOPIC-104\n\n**Suggested next step:** Choose one small habit you want to build and attach it to something you already do consistently (for example, after pouring your morning coffee, write one sentence in your planning workspace). Then explicitly record the cue — the existing routine that triggers the new habit — so you can observe whether the pairing holds over time and adjust if needed.\n\nResearch also noted this aligns with the project knowledge context, since the cue itself becomes the observable anchor for tracking the habit and turning intentions into small, observable next actions.",
+    "context": {
+      "source": "project-knowledge@1",
+      "trigger": "explicit-turn-demand",
+      "budgetBytes": 512,
+      "reads": 1,
+      "status": "admitted",
+      "bytes": 77
+    },
+    "scripts": [],
+    "children": [
+      {
+        "id": "5cf16e1e-ea82-4969-bef2-92bf0f641d7b",
+        "name": "Research",
+        "session": "e4944112-27e8-4799-bc14-dad66fc9b044",
+        "revision": "ad6431a7-5585-47b3-b596-ac4d58970b9a",
+        "activation": "v1_98e7393deef57104a39fd6987daa60f663a04816dae99115974a5ffdc25013a8",
+        "status": "completed",
+        "fixture": false,
+        "input": "Research request — Topic: \"habits\". Please examine the topic of habits as the requested research subject. Use your approved project knowledge as context for this research.",
+        "output": "I'll research the topic \"habits\" using the registered project index.Research complete. Here are the findings for the topic **\"habits\"**:\n\n**Finding:** Pair a small habit with an existing routine and record the cue.\n\n**Reference ID:** TOPIC-104\n\n**Practical next step:** Choose one small habit you want to build and attach it to something you already do consistently (for example, after pouring your morning coffee, write one sentence in your planning workspace). Then explicitly record the cue — the existing routine that triggers the new habit — so you can observe whether the pairing holds over time and adjust if needed.\n\nThis aligns with the project brief's goal of turning intentions into small, observable next actions: the cue itself becomes the observable anchor for tracking the habit.",
+        "context": {
+          "source": "studio-research@1",
+          "trigger": "explicit-turn-demand",
+          "budgetBytes": 512,
+          "reads": 1,
+          "status": "admitted",
+          "bytes": 258
+        },
+        "scripts": [
+          {
+            "id": "tori.script.research-topics",
+            "revision": "1",
+            "grant": "tori.script.research-topics.read",
+            "entry": "research-topics.mjs",
+            "invocationId": "2174723a-ba17-4a64-822d-451d039fb0f0",
+            "key": "habits",
+            "calls": 1,
+            "started": "2026-11-11T18:55:36.530Z",
+            "result": {
+              "text": "TOPIC-104: Pair a small habit with an existing routine and record the cue."
+            },
+            "status": "completed",
+            "ended": "2026-11-11T18:55:36.785Z"
+          }
+        ],
+        "children": []
+      }
+    ]
+  },
+  "child": {
+    "id": "5cf16e1e-ea82-4969-bef2-92bf0f641d7b",
+    "name": "Research",
+    "session": "e4944112-27e8-4799-bc14-dad66fc9b044",
+    "revision": "ad6431a7-5585-47b3-b596-ac4d58970b9a",
+    "activation": "v1_98e7393deef57104a39fd6987daa60f663a04816dae99115974a5ffdc25013a8",
+    "status": "completed",
+    "fixture": false,
+    "input": "Research request — Topic: \"habits\". Please examine the topic of habits as the requested research subject. Use your approved project knowledge as context for this research.",
+    "output": "I'll research the topic \"habits\" using the registered project index.Research complete. Here are the findings for the topic **\"habits\"**:\n\n**Finding:** Pair a small habit with an existing routine and record the cue.\n\n**Reference ID:** TOPIC-104\n\n**Practical next step:** Choose one small habit you want to build and attach it to something you already do consistently (for example, after pouring your morning coffee, write one sentence in your planning workspace). Then explicitly record the cue — the existing routine that triggers the new habit — so you can observe whether the pairing holds over time and adjust if needed.\n\nThis aligns with the project brief's goal of turning intentions into small, observable next actions: the cue itself becomes the observable anchor for tracking the habit.",
+    "context": {
+      "source": "studio-research@1",
+      "trigger": "explicit-turn-demand",
+      "budgetBytes": 512,
+      "reads": 1,
+      "status": "admitted",
+      "bytes": 258
+    },
+    "scripts": [
+      {
+        "id": "tori.script.research-topics",
+        "revision": "1",
+        "grant": "tori.script.research-topics.read",
+        "entry": "research-topics.mjs",
+        "invocationId": "2174723a-ba17-4a64-822d-451d039fb0f0",
+        "key": "habits",
+        "calls": 1,
+        "started": "2026-11-11T18:55:36.530Z",
+        "result": {
+          "text": "TOPIC-104: Pair a small habit with an existing routine and record the cue."
+        },
+        "status": "completed",
+        "ended": "2026-11-11T18:55:36.785Z"
+      }
+    ],
+    "children": []
+  },
+  "secondRun": {
+    "id": "d432324e-99f4-4036-9a37-f32a947567db",
+    "name": "Research",
+    "session": "2730590d-4ad4-4643-a92f-1acb8bc36cb9",
+    "revision": "4d361a17-915e-47bf-ad71-1a1b028f51a4",
+    "activation": "v1_f36e588a1dc7f5d46deaaaeb12d9dad87f0be89a96e70d8eac59d7956e49ee7b",
+    "status": "completed",
+    "fixture": false,
+    "input": "Research request — use the Reading List tool for the topic \"planning\".",
+    "output": "Here are the findings from the Reading List tool for the topic \"planning\":\n\n**Finding 1 — Weekly Planning Guide**\n- **Reference ID (exact):** READING-29\n- **Source label:** Reading List tool (reading-list@1), topic: planning\n- **Summary:** The approved synthetic weekly planning guide recommends reserving dedicated time for a weekly review.\n\n**Suggested next step:** Block a recurring 30–60 minute calendar slot (e.g., end of Friday or start of Monday) for your weekly review — use it to check off completed items, carry over unfinished tasks, and set priorities for the coming week, as prescribed in READING-29.",
+    "context": {
+      "source": "studio-research@1",
+      "trigger": "explicit-turn-demand",
+      "budgetBytes": 512,
+      "reads": 0,
+      "status": "omitted",
+      "reason": "no-demand"
+    },
+    "scripts": [
+      {
+        "id": "tori.script.reading-list",
+        "revision": "1",
+        "grant": "tori.script.reading-list.read",
+        "entry": "reading-list.mjs",
+        "invocationId": "8d96ead9-1d5f-4176-a336-97ebf47c969d",
+        "key": "planning",
+        "calls": 1,
+        "started": "2026-11-11T18:57:27.925Z",
+        "result": {
+          "text": "READING-29: Synthetic weekly planning guide. Reserve time for a weekly review."
+        },
+        "status": "completed",
+        "ended": "2026-11-11T18:57:28.003Z"
+      }
+    ],
+    "children": []
+  },
+  "finalRevision": {
+    "id": "4d361a17-915e-47bf-ad71-1a1b028f51a4",
+    "number": 3
+  },
+  "probes": {},
+  "product": "0971471b3a2803c8e47493fa82b6f2974a50b7d9"
+}
