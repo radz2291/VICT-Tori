@@ -1,16 +1,24 @@
-# TORI Studio authoring foundation
+# TORI-005 — Studio authoring foundation
 
-The next slice extends the Authoring Agent from an instruction editor into a workspace collaborator. From the existing left dock, the operator describes what they want to build, asks for a review, and requests changes. The agent uses real Studio actions and checks their results against the workspace. The first end-to-end scenario builds Quellight and a Research specialist from an empty agent library.
+The next slice extends the Authoring Agent from an instruction editor into a workspace collaborator. From the existing left dock, the operator describes what they want to build, asks for a review, and requests changes. The agent uses real Studio actions and checks their results against the workspace. The first end-to-end scenario builds Quellight and a Research specialist in a workspace where only the persisted Authoring Agent and approved resources are prepared.
 
-Radzi agreed this direction in the TORI-004 discussion on 12 November 2026. This slice follows the reviewed V1b implementation and precedes V1c. The product baseline is `59e568426183d2199be90ca96dd0d31bdd53fbd5`. The starting repository commit with review evidence is `aabc80737905671911942c0435b85c5dee285aed` on `codex/tori-v1b`. Owner review of TORI-004 continues on that candidate. The follow-on needs its own assignment and implementation handoff. [V1b integration evidence](../evidence/v1b/INTEGRATION.md) · [Stage sequence](ROADMAP.md)
+Radzi agreed this direction in the TORI-004 discussion on 12 November 2026. This slice follows the reviewed V1b implementation and precedes V1c. The product baseline is `59e568426183d2199be90ca96dd0d31bdd53fbd5`. The starting repository commit with review evidence is `aabc80737905671911942c0435b85c5dee285aed` on `codex/tori-v1b`. Owner review of TORI-004 continues on that candidate. The follow-on is assigned as TORI-005 in Rolladice Work and is ready for local implementation handoff on `codex/tori-authoring-foundation`. Start from the exact specification commit pinned in that ticket. [V1b integration evidence](../evidence/v1b/INTEGRATION.md) · [Stage sequence](ROADMAP.md)
+
+## Outcome and scope
+
+The longer-term experience is a natural conversation about designing, building, reviewing and improving real agents and workflows. The operator can ask for suggestions, inspect why an agent behaved as it did, and authorize changes. Quellight, specialist networks, custom tools and creative work should compose the same discoverable capabilities as they become available. This slice proves reusable Studio actions and registered tools. The roadmap carries the scoped coding workspace, tool creation, background operation and broader domain integrations.
+
+Use the existing persisted Authoring Agent activation, created through ordinary Studio controls as proven in V1b. If the isolated workspace needs bootstrap, create that agent through the same controls and document the setup. Start the walkthrough with Quellight and Research absent. Pre-register the approved knowledge and tools as test resources. Their implementation and sample data are builder-owned choices.
 
 ## Studio experience
 
 Use the approved Studio as the visual and interaction reference. Authoring stays in the left dock, with the draft and results visible in the existing Configure, Canvas, Sessions and Runs views. Keep the current draft, selection, viewport and focus when opening or closing the dock. Use installed public VICT controls for every covered role, including fixed-choice pickers, and audit the actual controls at each walkthrough. [Studio Design Constitution](../specs/STUDIO-DESIGN-CONSTITUTION.md)
 
-Keep enough Session context to resolve a follow-up to the same workspace, definition or Run. Derive actor, project and current selection from trusted Studio context. Keep exact references to the definition, draft instance, revision, node or Run being discussed. Recheck these references before acting when selection or revision has changed. Ask which object the operator means if the request could change more than one.
+Keep enough Session context to resolve a follow-up to the same workspace, definition or Run. Derive actor, project and current selection from trusted Studio context. Keep exact references to the definition, draft instance, revision, node or Run being discussed. Recheck these references before acting when selection or revision has changed. Resolve references from the conversation and trusted workspace context. Ask a focused question when ambiguity would materially change the target or result.
 
 A request to review or suggest improvements uses inspection actions and leaves drafts, saved revisions and activations untouched. Cite the actual definition or Run behind each recommendation. A request to apply a change uses the authorized Studio actions and shows the affected objects, what changed and the result. Make draft changes undoable through the regular history. Report completed changes and remaining work separately when a multi-step request stops partway through.
+
+The agent should select and combine actions from the discovered catalog based on the request. Exercise different names or a paraphrased request and a follow-up chosen during review. Keep action behavior independent of the Quellight/Research display names and the example prompt. Discussing a possible feature should produce grounded guidance about available capabilities and concrete gaps.
 
 ## Studio action boundary
 
@@ -25,15 +33,21 @@ Start by mapping the installed VICT public APIs for definition creation, graph e
 
 Register actions with stable IDs and revisions, typed inputs and outputs, and declared effects and grants. Describe what each action can do and expose it only within the current scope. The model selects from that catalog. A prompt, resource, script or tool result cannot grant permission or broaden the workspace. Apply the same rules to the specialist the Authoring Agent creates.
 
-For a draft edit, verify the expected revision at commit, preserve intervening manual work and use the existing Stop fence. Record the actual outcome in the linked Run. Correlate the turn, operation, target and relevant revisions. A stale edit, scope denial or cancellation before commit leaves the target unchanged. Retrying an operation after a lost acknowledgement reconciles its original result. A committed change retains its receipt and remains undoable. Keep activation immutable and gate protected effects through the existing authority path.
+For a draft edit, verify the expected revision at commit, preserve intervening manual work and use the existing Stop fence. Record the actual outcome in the linked Run. Correlate the turn, operation, target and relevant revisions. A stale edit, scope denial or cancellation before commit leaves the target unchanged. Retrying an operation after a lost acknowledgement reconciles its original result. A committed change retains its receipt and remains undoable. Extend retry reconciliation to definition creation and Save so a lost acknowledgement cannot duplicate agents or revisions. Test execution must reconcile an already-started Run before starting another one for the same operation. If a multi-action turn fails, show the completed operations and the point of failure so the operator can safely continue. Keep activation immutable and gate protected effects through the existing authority path.
 
 ## Registered tools and later coding work
 
 For this slice, use an already registered read-only script-backed tool. Give it a stable identity and revision, typed input and output, a declared read scope and a permitted script entry point. The registered adapter resolves the implementation from trusted configuration, validates the request and returns the actual bounded result and invocation evidence. Use the same capability discovery, admission, invocation and trace contracts as other tool backends. Start with approved fixture knowledge and synthetic data in an isolated workspace. [Capability catalog](../specs/CAPABILITY-CATALOG.md) · [Effect and adapter contracts](../specs/CONTRACTS.md)
 
-Prove extensibility by registering a second compatible script-backed tool through that same catalog. The Authoring Agent discovers it, connects it and tests it using the same chat and Studio action integration. Capture the separate tool identity, revision, grants and result. Include a refused call outside the tool’s read scope.
+Prove extensibility by registering a second compatible script-backed tool through that same catalog. The Authoring Agent discovers it, connects it and tests it using the same chat and Studio action integration. Capture the separate tool identity, revision, grants and result. Include a refused call outside the tool’s read scope, with zero script invocations confirmed by the runner. Validate admission before dispatch and enforce the declared scope through the registered adapter. Record which process actually runs the script, its permitted entry point, timeout/cancellation behavior and bounded output handling.
 
 Carry forward the scoped CLI and workspace for investigating, writing scripts and testing new tools. Agents should later be able to use reusable tools backed by scripts, CLI programs, APIs or MCP servers through defined inputs, outputs and permissions. The first slice proves registered-tool discovery and use. Tool creation, arbitrary script authoring and the fuller coding workspace follow with their own containment and execution proof.
+
+## Live proof and deterministic verification
+
+Run the conversational happy path below with a permitted live model through the installed VICT–Mastra stack in the real Studio browser. Include the Authoring Agent's build, review and apply turns, the resulting Quellight/Research test execution, and discovery and testing of the second tool. Use synthetic knowledge and the actual registered scripts. Record the provider route, model, exact activations and Run IDs, plus observed script invocations and results. Use existing recorded provider permission where it covers this test. A missing credential or permission is a concrete dependency for live proof.
+
+Use deterministic fixtures for repeatable scope, cancellation, stale-revision and retry probes and relevant V1a/V1b regressions. Label fixture Runs and retain failed evidence. A live review should draw its recommendation from the actual Run. An efficiency claim needs a measured comparison under stated conditions; otherwise describe the change as a proposed improvement.
 
 ## Acceptance walkthrough
 
@@ -44,3 +58,14 @@ Carry forward the scoped CLI and workspace for investigating, writing scripts an
 
 This authoring walkthrough adds an earlier Quellight assembly scenario. The existing real-world acceptance scenarios and their requirements remain in force, including Quellight domain parity in T08 and contained coding in T09. V1c retains its background, recovery, memory and advanced child execution scope. Workflow and creative authoring remain on the roadmap. [Product acceptance](../specs/ACCEPTANCE.md)
 
+## Implementation handoff
+
+One local Codex stage owner takes TORI-005 through a working candidate, independent verification, in-scope repair and owner Review. Read the live Work handoff, discussion and pinned standard, then [AGENTS](../../AGENTS.md), [STATE](../../STATE.md), [HANDOFF](../../HANDOFF.md) and [CODEX_START](../../CODEX_START.md). Resolve the exact branch and worktree state before editing. Follow the existing Work run-claim and reporting protocol when local implementation starts.
+
+First reproduce the V1b baseline and inventory current manual Studio authoring actions. Map the required action families above to canonical operations and installed public APIs, including public reuse from a separate consumer. Record verified support, TORI adapter work, and exact upstream gaps. Routine host adapters remain implementation choices within this slice. Bring a necessary change in the VICT repository back with its specific contract gap and affected acceptance check.
+
+Deliver an early browser path that creates and saves a real definition from the Authoring Agent, then complete the two-agent scenario, actual script execution, review/apply flow and second-tool proof. This sequence guides delivery while the stage owner chooses implementation details. Reuse current checks and add focused probes for the new behavior. Have a fresh verifier challenge the exact candidate and the installed public boundary, including a varied authoring request and correct behavior after an intervening manual edit.
+
+Publish the candidate and reproducible evidence under `docs/evidence/authoring-foundation/`. Include the source/package pins, action map, script registrations, fixture identities, live and deterministic results, verifier identity, known gaps and desktop/narrow walkthrough. Submit TORI-005 to Review with a running preview and an owner-readable account of what can be tried. TORI-004 retains its own owner review record. Broader T01–T09 product acceptance is cumulative.
+
+**Readiness.** The slice is ready for local implementation handoff. Package mapping is its first engineering task. The live walkthrough depends on access to the permitted provider configuration. Creating this assignment prepares the work; the local Codex session starts when launched with [CODEX_START](../../CODEX_START.md).
