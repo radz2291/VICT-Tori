@@ -2,7 +2,7 @@
 
 **12 November 2026 — TORI-004 authoring candidate offered for owner review.** Product `59e568426183d2199be90ca96dd0d31bdd53fbd5` on `codex/tori-v1b` uses the approved VICT public interface at `02c63c31f8f4dc42840fc8975927c98b21f30058`. A browser-created Authoring Agent completed a live Research instruction edit and persisted the matching Session, Run and applied receipt. See [integration evidence and preview](docs/evidence/v1b/INTEGRATION.md). The [11 November dock checkpoint](docs/evidence/v1b/README.md) preserves earlier evidence. Owner acceptance remains open.
 
-**Next slice prepared.** Radzi placed the [Studio authoring foundation](docs/implementation/AUTHORING-FOUNDATION.md) ahead of V1c. It builds on the reviewed V1b transaction path and proves the Quellight and Research authoring workflow with registered tools. The [handoff](HANDOFF.md) records its implementation gate.
+**TORI-005 prepared for implementation handoff.** Radzi requested the next ticket and full slice spec. The [Studio authoring foundation](docs/implementation/AUTHORING-FOUNDATION.md) is assigned ahead of V1c on `codex/tori-authoring-foundation`, building on the delivered V1b candidate. It requires live conversational creation and testing of Quellight/Research, Run review, an undoable improvement and discovery/use of a second registered script tool. The [handoff](HANDOFF.md) and [local start instruction](CODEX_START.md) describe the prepared work. Local implementation begins when the owner launches the Codex session.
 
 The accepted V1a Studio is the reference for later TORI UI/UX. V1b adds the left Authoring Agent dock and the consolidated right-hand Assembly / Selection dock in Agents. See the [owner decision](docs/governance/DECISIONS.md) and [current handoff](HANDOFF.md).
 
