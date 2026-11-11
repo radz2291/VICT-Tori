@@ -394,6 +394,7 @@ export function createStudio({getAssembly,dataDirectory,turnDeadlineMs=90000,con
           if(!await controlStores.actors.get(actor))await controlStores.actors.upsert({actorId:actor,status:'active',roles:['developer'],createdAt:Date.now()});
           outcome=await governedReadTurn({activation,stores:controlStores,agentConfig,actorId:actor,threadId,input:text,deadline,onEvent,draftTurn,runId:run.id});
           run.authoringOutcomes=draftTurn.outcomes.map(result=>result.status==='confirmed'?result.receipt.status:result.status);
+          run.events.push(...draftTurn.refusals);
         }else if(pin.tool||pin.child){
           if(!fixture)throw new Error('TORI_MCP_FIXTURE_REQUIRED');
           if(!await controlStores.actors.get(actor))await controlStores.actors.upsert({actorId:actor,status:'active',roles:['developer'],createdAt:Date.now()});

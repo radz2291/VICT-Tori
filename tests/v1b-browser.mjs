@@ -182,6 +182,7 @@ try {
     const denied = await runFrom((await send('Scope denial fixture.')).reply);
     assert.deepEqual(denied.draftReceipts, []);
     assert.deepEqual(denied.authoringOutcomes, ['denied']);
+    assert.ok(denied.events.some(event => event.label === 'Draft edit · denied'));
     const waiting = interceptProposal();
     const stopped = await send('Test Stop before the browser commit.');
     const late = await waiting;

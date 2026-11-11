@@ -86,6 +86,7 @@ export function createAuthoringTransport(db) {
       },
     });
     const outcomes = [];
+    const refusals = [];
     const capabilities = [
       {
         ...authoringRefs[0], effect: 'read', description: 'Discover the exact open instruction field, its current revision and text.',
@@ -116,12 +117,15 @@ export function createAuthoringTransport(db) {
             operationId: context.victIdempotencyKey, signal: context.signal,
           }, args);
           outcomes.push(result);
+          if (result.status !== 'confirmed') {
+            refusals.push({ at: new Date().toISOString(), label: 'Draft edit · ' + result.status });
+          }
           return result;
         },
       },
     ];
     return {
-      capabilities, outcomes, signal: stop.signal,
+      capabilities, outcomes, refusals, signal: stop.signal,
       setInstructions: instructions => { scope.instructions = instructions; },
       matches: candidate => validToken(candidate) && tokenHash(candidate) === hash,
       stop: () => stop.abort(),
