@@ -471,6 +471,7 @@ try {
       await page.screenshot({path:join(directory,'v1b-selection-phone.png'),animations:'disabled'});
       await assemblySheet.getByRole('button',{name:'Close',exact:true}).click();
       await page.setViewportSize({width:1531,height:668});
+      await library.waitFor();
       await openNodes();
       await layer('A1 Fixture Agent').click();
       await renameAgent('A1 Fixture Agent','Quellight · delegation fixture');
