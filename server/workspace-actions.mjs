@@ -129,7 +129,6 @@ export function workspaceCapabilities({
       const create = (role, fields) => {
         const patch = { ...fields };
         if (role === 'agent' && args.specialist && args.save) patch.childRevision = revisions[0].savedRevision;
-        if ((patch.tool || patch.childRevision) && patch.maxSteps === undefined) patch.maxSteps = 2;
         const initial = initialGraph(assembly, patch, context, role);
         if (initial.receipt.status !== 'applied') return false;
         const id = createDefinition(state);

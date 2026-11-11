@@ -169,7 +169,7 @@ export async function governedReadTurn({activation,stores,agentConfig,actorId,th
     await composition.productAgent.flush();
     const invocations=await stores.invocations.listInvocationsForTurn(turn.turnId);
     return {status:outcome.status,text,usage,errorCode:outcome.errorCode,events,governance:{
-      ...governance,turnId:turn.turnId,streamId,invocations:invocations.map(({invocationId,status})=>({invocationId,status})),
+      ...governance,admittedCalls:admitted,turnId:turn.turnId,streamId,invocations:invocations.map(({invocationId,status})=>({invocationId,status})),
     }};
   }finally{
     if(cancel)deadline.removeEventListener('abort',cancel);

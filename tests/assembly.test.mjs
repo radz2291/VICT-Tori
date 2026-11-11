@@ -43,6 +43,7 @@ test('output limit upgrades older graphs, rejects wrong wires and checks numeric
   graph.nodeTypes.find(node=>node.id==='agent').ports=graph.nodeTypes.find(node=>node.id==='agent').ports.filter(port=>['instructions','model'].includes(port.id));
   delete graph.nodeTypes.find(node=>node.id==='agent').parameters.maxSteps;
   delete graph.nodeTypes.find(node=>node.id==='agent').parameters.maxRetries;
+  delete graph.nodeTypes.find(node=>node.id==='agent').parameters.maxToolCalls;
   delete graph.nodeTypes.find(node=>node.id==='model').parameters.temperature;
   delete graph.nodeTypes.find(node=>node.id==='model').parameters.topP;
   graph.nodeTypes.find(node=>node.id==='model').ports=
@@ -58,6 +59,28 @@ test('output limit upgrades older graphs, rejects wrong wires and checks numeric
     assert.equal(readiness(draft.graph),'');
     assert.equal(resolved(draft.graph).tokens,cap);
   }
+});
+
+test('a legacy workspace authoring graph keeps its budget and can activate with a different policy',async()=>{
+  const {emptyAssembly,history,checkedAssembly,add,change,wire,modelId,executionSettings,readiness}=assembly;
+  const author=history(emptyAssembly());
+  assert.equal(author.apply([
+    add('agent'),add('model'),add('authoring'),change('agent','instructions','Inspect synthetic Studio drafts.'),
+    change('model','model',modelId),wire('model','model'),change('authoring','reference','workspace@1'),
+    wire('authoring','authoring'),change('agent','maxSteps',4),
+  ]).ok,true);
+  const legacy=structuredClone(author.graph);
+  delete legacy.nodeTypes.find(node=>node.id==='agent').parameters.maxToolCalls;
+  const upgraded=history(checkedAssembly(legacy));
+  assert.equal(upgraded.graph.revision,legacy.revision);
+  assert.deepEqual(structuredClone(upgraded.graph.nodes),legacy.nodes);
+  assert.equal(executionSettings(upgraded.graph).maxToolCalls,3);
+  assert.equal(upgraded.apply([change('agent','maxSteps',1),change('agent','maxToolCalls',0),change('agent','maxRetries',8)]).ok,true);
+  assert.equal(readiness(upgraded.graph),'');
+  const definition=(await service.dispatch('/definitions',{})).definition;
+  const saved=await service.dispatch('/save',{definition,graph:upgraded.graph});
+  const active=await service.dispatch('/activate',{definition,revision:saved.revision});
+  assert.deepEqual(active.activation.execution,{maxSteps:1,maxToolCalls:0,maxRetries:8});
 });
 
 test('save incomplete, reject stale writes, pin and restore activation after restart',async()=>{

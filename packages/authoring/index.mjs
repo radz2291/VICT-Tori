@@ -3,6 +3,14 @@ import { z } from 'zod';
 export const workspaceBinding = 'workspace@1';
 export const workspaceOccurrence = 'agent.assembly';
 
+// The installed VICT bounded AgentProfile validates these ranges but does not
+// export them. Share one copy across Studio and the portable action schemas.
+export const executionBounds = Object.freeze({
+  maxSteps: Object.freeze({ min: 1, max: 64 }),
+  maxToolCalls: Object.freeze({ min: 0, max: 64 }),
+  maxRetries: Object.freeze({ min: 0, max: 8 }),
+});
+
 const string = maxLength => ({ type: 'string', minLength: 1, maxLength });
 const integer = (minimum, maximum) => ({ type: 'integer', minimum, maximum });
 const object = (properties, required = []) => ({
@@ -12,14 +20,18 @@ const boolean = { type: 'boolean' };
 const revision = integer(0, Number.MAX_SAFE_INTEGER);
 const text = max => z.string().trim().min(1).max(max);
 const uuid = z.string().uuid();
+const executionSchema = Object.fromEntries(Object.entries(executionBounds).map(([key, { min, max }]) =>
+  [key, integer(min, max)]));
+const executionInput = Object.fromEntries(Object.entries(executionBounds).map(([key, { min, max }]) =>
+  [key, z.number().int().min(min).max(max).optional()]));
 const patchProperties = {
   name: string(100), instructions: string(12000), model: string(80), context: string(80),
-  tool: string(80), childRevision: string(36), maxSteps: integer(1, 4),
+  tool: string(80), childRevision: string(36), ...executionSchema,
 };
 export const patchInput = z.object({
   name: text(100).optional(), instructions: text(12000).optional(), model: text(80).optional(),
   context: text(80).optional(), tool: text(80).optional(), childRevision: uuid.optional(),
-  maxSteps: z.number().int().min(1).max(4).optional(),
+  ...executionInput,
 }).strict();
 const newAgent = patchInput.omit({ childRevision: true }).extend({
   name: text(100), instructions: text(12000),
@@ -29,7 +41,7 @@ const newAgentSchema = object(newAgentProperties, ['name', 'instructions']);
 const values = z.object({
   name: z.string(), instructions: z.string(), model: z.string(), context: z.string(), tool: z.string(),
   memory: z.string(), child: z.string(), output: z.string(), authoring: z.string(), tokens: z.number(),
-  temperature: z.number(), topP: z.number(), maxSteps: z.number(), maxRetries: z.number(),
+  temperature: z.number(), topP: z.number(), maxSteps: z.number(), maxToolCalls: z.number(), maxRetries: z.number(),
 }).partial();
 const revisionId = z.number().int().nonnegative();
 const draftReceipt = z.object({

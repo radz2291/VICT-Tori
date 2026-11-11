@@ -414,6 +414,66 @@ try {
     assert.equal(separateSave.run.draftReceipts[0].revision, reopened.revision.id);
     assert.ok(reopened.graph);
     probes.variant = variant.run.id;
+
+    await openDefinition(pinned.name);
+    await button('Canvas').click();
+    const execution = page.locator('.graph-node[data-kind="agent"]').getByRole('button',{name:/^Execution /});
+    if (await execution.getAttribute('aria-expanded') !== 'true') await execution.click();
+    await field('canvas-agent-steps').fill('7');
+    await field('canvas-agent-tool-calls').fill('5');
+    await field('canvas-agent-retries').fill('2');
+    await page.screenshot({ path: join(evidence, 'desktop-node-execution.png') });
+    await button('Configure').click();
+    assert.equal(await field('settings-agent-steps').inputValue(), '7');
+    assert.equal(await field('settings-agent-tool-calls').inputValue(), '5');
+    assert.equal(await field('settings-agent-retries').inputValue(), '2');
+    await clickRequest(button('Save'), 'save');
+    const configured = (await clickRequest(page.getByRole('button', { name: /^Activate r\d+$/ }), 'activate')).activation;
+    assert.notEqual(configured.version, pinned.version);
+    assert.deepEqual(configured.execution, { maxSteps: 7, maxToolCalls: 5, maxRetries: 2 });
+    await page.reload();
+    await openAuthoring(pinned.version);
+    await dock().getByText('Per turn: 4 model steps · 3 tool calls', { exact: true }).waitFor();
+    const legacyBudget = (await result(await send('Please compare execution budgets.', false))).run;
+    assert.equal(legacyBudget.activation, pinned.version);
+    assert.equal(legacyBudget.errorCode, 'TORI_CAPABILITY_CALL_LIMIT');
+    assert.equal(legacyBudget.modelSteps, 4);
+    assert.equal(legacyBudget.toolCalls, 3);
+    assert.equal(legacyBudget.authoringActions.length, 3);
+    assert.equal(legacyBudget.draftReceipts?.length ?? 0, 0);
+    await openAuthoring(configured.version);
+    await dock().getByText('Per turn: 7 model steps · 5 tool calls', { exact: true }).waitFor();
+    const expandedBudget = (await result(await send('Please compare execution budgets.', false))).run;
+    assert.equal(expandedBudget.activation, configured.version);
+    assert.equal(expandedBudget.status, 'completed', JSON.stringify(expandedBudget));
+    assert.equal(expandedBudget.modelSteps, 6);
+    assert.equal(expandedBudget.providerAttempts, 6);
+    assert.equal(expandedBudget.toolCalls, 5);
+    assert.equal(expandedBudget.authoringActions.length, 5);
+    assert.equal(expandedBudget.draftReceipts?.length ?? 0, 0);
+    await dock().getByText('Five synthetic inspections completed.', { exact: true }).waitFor();
+    await page.screenshot({ path: join(evidence, 'desktop-authoring-budget.png') });
+
+    await page.setViewportSize({ width: 390, height: 844 });
+    await button('Canvas').click();
+    if (await execution.getAttribute('aria-expanded') !== 'true') await execution.click();
+    await field('canvas-agent-steps').fill('1');
+    await field('canvas-agent-tool-calls').fill('0');
+    await field('canvas-agent-tool-calls').scrollIntoViewIfNeeded();
+    await page.screenshot({ path: join(evidence, 'narrow-node-execution.png') });
+    await clickRequest(button('Save'), 'save');
+    const zeroTools = (await clickRequest(page.getByRole('button', { name: /^Activate r\d+$/ }), 'activate')).activation;
+    assert.deepEqual(zeroTools.execution, { maxSteps: 1, maxToolCalls: 0, maxRetries: 2 });
+    await openAuthoring(zeroTools.version);
+    await dock().getByText('Per turn: 1 model step · 0 tool calls', { exact: true }).waitFor();
+    const noTools = (await result(await send('Please check disabled tool calls.', false))).run;
+    assert.equal(noTools.status, 'completed', JSON.stringify(noTools));
+    assert.equal(noTools.modelSteps, 1);
+    assert.equal(noTools.toolCalls, 0);
+    assert.equal(noTools.authoringActions.length, 0);
+    await dock().getByText('No Studio tools were exposed.', { exact: true }).waitFor();
+    await page.screenshot({ path: join(evidence, 'narrow-authoring-budget.png') });
+    probes.execution = { legacy: legacyBudget, configured: expandedBudget, noTools };
   }
   const report = {
     live, chromium: browser.version(), authoringActivation: pinned, workspace: initial.workspace,

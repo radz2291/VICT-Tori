@@ -330,6 +330,7 @@ dt{color:#a4adbb}dd{margin:0;overflow-wrap:anywhere}.hash{font:11px/1.5 ui-monos
 .assembly-node-section .layers-list{padding-inline:0;overflow:visible}
 .draft-authoring-form{display:grid;gap:var(--vict-space-1);margin-block-start:var(--vict-space-3)}
 .draft-authoring-form label{margin:0}
+.draft-authoring-form .authoring-budget{margin:0;font-size:12px}
 .authoring-dock-content{
   display:flex;flex-direction:column;flex:1;min-height:0;min-width:0
 }

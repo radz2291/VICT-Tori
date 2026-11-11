@@ -10,7 +10,7 @@
   import { Button, Dialog } from '@victframework/ui-svelte/primitives';
   import { DropdownMenu } from '@victframework/ui-svelte/catalog/dropdown-menu';
   import { Input, Textarea } from '@victframework/ui-ai-svelte';
-  import { agentResources, binding, canWire, field, instructions, modelId, modelName, outputTokens, resourceChoices, tokenSourceId, optionalBindings, inlineAgentSettings, nodeVisibilityLabel } from './assembly';
+  import { agentResources, binding, canWire, executionSettings, field, instructions, modelId, modelName, outputTokens, resourceChoices, tokenSourceId, optionalBindings, inlineAgentSettings, nodeVisibilityLabel } from './assembly';
   import ModelSampling from './ModelSampling.svelte';
   import ExecutionLimits from './ExecutionLimits.svelte';
   import AssemblyGlyph from './AssemblyGlyph.svelte';
@@ -43,8 +43,7 @@
   let shownInteger=$derived(tokenWire&&data.canvasIds.has(tokenSourceId));
   let samplingOpen=$state(false);
   let executionOpen=$state(false);
-  let stepLimit=$derived(field(data.graph,id,'maxSteps'));
-  let retryLimit=$derived(field(data.graph,id,'maxRetries'));
+  let execution=$derived(executionSettings(data.graph));
   const modelChoices=[{value:modelId,label:modelName}];
   let modelWire=$derived(binding(data.graph,'model'));
   let textWire=$derived(binding(data.graph,'instructions'));
@@ -185,7 +184,7 @@
       <Button.Root class="vict-btn vict-btn--quiet node-execution-trigger" aria-expanded={executionOpen}
         onclick={()=>executionOpen=!executionOpen}>
         <span>Execution <span aria-hidden="true">{executionOpen?'⌄':'›'}</span></span>
-        <span class="muted">{stepLimit} {stepLimit===1?'step':'steps'} · {retryLimit} {retryLimit===1?'retry':'retries'}</span>
+        <span class="muted">{execution.maxSteps} {execution.maxSteps===1?'step':'steps'} · {execution.maxToolCalls} {execution.maxToolCalls===1?'call':'calls'}</span>
       </Button.Root>
       {#if executionOpen}
         <ExecutionLimits graph={data.graph} edit={data.fields.edit} prefix="canvas-agent" hostDeadlineMs={data.hostDeadlineMs} compact/>

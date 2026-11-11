@@ -19,6 +19,7 @@
         <dt>Provider attempts</dt><dd>{run.providerAttempts??'Not reported'}</dd>
       {/if}
       {#if run.modelSteps!==undefined}<dt>Observed model steps</dt><dd>{run.modelSteps}</dd>{/if}
+      {#if run.toolCalls!==undefined}<dt>Admitted tool calls</dt><dd>{run.toolCalls}</dd>{/if}
       <dt>Usage</dt><dd>{run.usage?run.usage.inputTokens+' input / '+run.usage.outputTokens+' output':'Not reported'}</dd>
     </dl>
   </section>

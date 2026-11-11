@@ -1,6 +1,6 @@
 import { GraphSessionV3, validateGraphV3, type GraphDocumentV3, type GraphOperationV3 } from '@victframework/ui-flow-svelte/model';
 
-import { workspaceBinding } from '../packages/authoring/index.mjs';
+import { executionBounds, workspaceBinding } from '../packages/authoring/index.mjs';
 import { registeredTool, registeredTools } from './registered-tools.mjs';
 
 export const modelId = 'glm-5.3-flash';
@@ -46,7 +46,6 @@ const a1Definitions: GraphDocumentV3['nodeTypes'] = [
     ports:[{id:'value',label:'Integer',type:'integer',direction:'output'}]},
 ];
 
-export const executionBounds = {minSteps:1,maxSteps:4,minRetries:0,maxRetries:1,deadlineMs:90000} as const;
 const a2Definitions = a1Definitions.map(node => {
   if (node.id === rootId) return {...node,parameters:{...node.parameters,
     maxSteps:{type:'number' as const,default:1},maxRetries:{type:'number' as const,default:0}}};
@@ -89,10 +88,12 @@ export const inlineAgentSettings=[
   {id:'output',label:'Output format',options:[{value:'default',label:'Text (default)'},...resourceChoices.output]},
 ] as const;
 const a3Definitions=resourceCatalog(a3Resources);
-const definitions=resourceCatalog(agentResources);
+const authoringDefinitions=resourceCatalog(agentResources);
+const definitions=authoringDefinitions.map(node=>node.id===rootId?{...node,parameters:{...node.parameters,
+  maxToolCalls:{type:'number' as const,default:0}}}:node);
 
 function upgrade(graph:GraphDocumentV3):GraphDocumentV3 {
-  return [legacyDefinitions,a1Definitions,a2Definitions,a3Definitions,resourceCatalog(a4Resources)].some(catalog=>JSON.stringify(graph.nodeTypes)===JSON.stringify(catalog))
+  return [legacyDefinitions,a1Definitions,a2Definitions,a3Definitions,resourceCatalog(a4Resources),authoringDefinitions].some(catalog=>JSON.stringify(graph.nodeTypes)===JSON.stringify(catalog))
     ? {...graph,nodeTypes:structuredClone(definitions)} : graph;
 }
 
@@ -134,15 +135,39 @@ export const instructions = (graph:GraphDocumentV3) => String(binding(graph,'ins
 export const outputTokens = (graph:GraphDocumentV3) =>
   Number(field(graph,binding(graph,'tokens')?tokenSourceId:modelNodeId,'tokens')??4096);
 
+export function executionSettings(graph:GraphDocumentV3) {
+  const authoring=binding(graph,'authoring')&&field(graph,'authoring','reference');
+  // Preserve the budget of already saved definitions that predate this field.
+  const defaultToolCalls=authoring===workspaceBinding?3:authoring?2:binding(graph,'tool')||binding(graph,'child')?1:0;
+  const authoredToolCalls=graph.nodes.find(node=>node.id===rootId)?.values.maxToolCalls as number|undefined;
+  return {
+    maxSteps:Number(field(graph,rootId,'maxSteps')??executionBounds.maxSteps.min),
+    maxRetries:Number(field(graph,rootId,'maxRetries')??executionBounds.maxRetries.min),
+    maxToolCalls:authoredToolCalls??defaultToolCalls,
+    authoredToolCalls,defaultToolCalls,
+  };
+}
+
 export function resolved(graph:GraphDocumentV3) {
   const modelValues=graph.nodes.find(node=>node.id===modelNodeId)?.values;
   const temperature=modelValues?.temperature as number|undefined;
   const topP=modelValues?.topP as number|undefined;
   const resource=(id:string)=>binding(graph,id)?field(graph,id,'reference'):undefined;
+  const {maxSteps,maxRetries,maxToolCalls}=executionSettings(graph);
   return {authoring:resource('authoring'),output:resource('output'),child:resource('child'),context:resource('context'),memory:resource('memory'),tool:resource('tool'),name:String(field(graph,rootId,'name')??''),instructions:instructions(graph),
     model:binding(graph,'model') ? String(field(graph,modelNodeId,'model')??'') : '',
     tokens:outputTokens(graph),temperature,topP,
-    maxSteps:Number(field(graph,rootId,'maxSteps')??1),maxRetries:Number(field(graph,rootId,'maxRetries')??0)};
+    maxSteps,maxRetries,maxToolCalls};
+}
+
+function executionIssue(value:ReturnType<typeof resolved>) {
+  const labels={maxSteps:'step limit',maxRetries:'retry limit',maxToolCalls:'tool call limit'} as const;
+  for(const key of Object.keys(labels) as (keyof typeof labels)[]){
+    const {min,max}=executionBounds[key];
+    if(!Number.isInteger(value[key])||value[key]<min||value[key]>max)
+      return `Enter a whole ${labels[key]} from ${min} to ${max}.`;
+  }
+  return '';
 }
 export function readiness(graph:GraphDocumentV3,route?:string) {
   const value=resolved(graph);
@@ -156,17 +181,12 @@ export function readiness(graph:GraphDocumentV3,route?:string) {
     value.child!==undefined && value.child!=='reference-reviewer@1' && !/^saved:[0-9a-f-]{36}$/.test(String(value.child)) ? 'Select the allowlisted Child Agent.' :
     value.authoring!==undefined && value.authoring!=='instructions@1' && value.authoring!==workspaceBinding ? 'Select the supported Draft Authoring capability.' :
     value.authoring && (value.tool||value.child||value.output) ? 'Remove MCP, delegation and structured output from this authoring activation.' :
-    value.authoring===workspaceBinding && value.maxSteps<4 ? 'Set 4 model steps for workspace authoring.' :
-    value.authoring && value.maxSteps<3 ? 'Set at least 3 model steps for draft authoring.' :
     value.tool!==undefined && value.tool!=='local-reference@1' && !registeredTool(value.tool) ? 'Select a registered read-only tool revision.' :
     route!==undefined && route!=='coding' && (value.temperature!==undefined||value.topP!==undefined) ? 'Clear sampling overrides or select the supported Coding route on the host.' :
     !Number.isInteger(value.tokens)||value.tokens<64||value.tokens>32768 ? 'Enter a whole output limit from 64 to 32,768 tokens.' :
     value.temperature!==undefined && (!Number.isFinite(value.temperature)||value.temperature<0||value.temperature>1) ? 'Enter a temperature from 0 to 1, or leave it blank.' :
     value.topP!==undefined && (!Number.isFinite(value.topP)||value.topP<=0||value.topP>1) ? 'Enter a top-p greater than 0 and at most 1, or leave it blank.' :
-    !Number.isInteger(value.maxSteps)||value.maxSteps<executionBounds.minSteps||value.maxSteps>executionBounds.maxSteps ?
-      `Enter a whole step limit from ${executionBounds.minSteps} to ${executionBounds.maxSteps}.` :
-    !Number.isInteger(value.maxRetries)||value.maxRetries<executionBounds.minRetries||value.maxRetries>executionBounds.maxRetries ?
-      `Enter ${executionBounds.minRetries} or ${executionBounds.maxRetries} model retries.` : '';
+    executionIssue(value);
 
 }
 export const change = (nodeId:string,key:string,value:string|number|undefined):GraphOperationV3 => value===undefined ? {type:'unsetParameter',nodeId,key} : {type:'setParameter',nodeId,key,value};
@@ -186,17 +206,23 @@ export function configureOperations(graph:GraphDocumentV3,id:string,key:string,v
 
 type AssemblyPatch = {
   name?:string; instructions?:string; model?:string; context?:string; tool?:string;
-  childRevision?:string; maxSteps?:number;
+  childRevision?:string; maxSteps?:number; maxToolCalls?:number; maxRetries?:number;
 };
 
 export function assemblyPatchOperations(graph:GraphDocumentV3,patch:AssemblyPatch) {
   const operations:GraphOperationV3[]=[];
-  if(!graph.nodes.some(node=>node.id===rootId))operations.push(add(rootId));
+  const creating=!graph.nodes.some(node=>node.id===rootId);
+  if(creating)operations.push(add(rootId));
   if(patch.name!==undefined)operations.push(change(rootId,'name',patch.name));
   if(patch.instructions!==undefined)operations.push(binding(graph,'instructions')
     ? change(instructionId,'text',patch.instructions)
     : change(rootId,'instructions',patch.instructions));
-  if(patch.maxSteps!==undefined)operations.push(change(rootId,'maxSteps',patch.maxSteps));
+  // A new tool-using agent starts with room for one tool result and a reply.
+  // Once authored, its step budget is never adjusted by a binding edit.
+  const maxSteps=patch.maxSteps??(creating&&(patch.tool||patch.childRevision)?2:undefined);
+  if(maxSteps!==undefined)operations.push(change(rootId,'maxSteps',maxSteps));
+  if(patch.maxToolCalls!==undefined)operations.push(change(rootId,'maxToolCalls',patch.maxToolCalls));
+  if(patch.maxRetries!==undefined)operations.push(change(rootId,'maxRetries',patch.maxRetries));
   if(patch.model!==undefined)operations.push(...configureOperations(graph,modelNodeId,'model',patch.model));
   if(patch.context!==undefined)operations.push(...configureOperations(graph,'context','reference',patch.context));
   if(patch.tool!==undefined)operations.push(...configureOperations(graph,'tool','reference',patch.tool));

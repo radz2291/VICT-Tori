@@ -416,7 +416,7 @@ try {
     assert.equal(low.modelSteps,1);
     assert.equal(low.governance.calls,1);
     await inspectRuns();
-    await page.getByText('Model step limit reached before the next call.',{exact:true}).waitFor();
+    await page.getByText('Model step budget reached (1 of 1). Inspect this Run for completed actions.',{exact:true}).waitFor();
     await page.screenshot({path:join(directory,'a3-step-limit.png'),animations:'disabled'});
     const failedTurn=page.getByRole('region',{name:'Turn',exact:true});
     await failedTurn.getByText('Read the synthetic observatory reference.',{exact:true}).waitFor();

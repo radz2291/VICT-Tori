@@ -91,14 +91,16 @@
   let sessionActionGroup:HTMLElement|null=null;
   let launchOpen=$state(false),launchError=$state(''),launchQuery=$state('');
   let sessionLauncherButton:HTMLButtonElement|null=$state(null);
-  type AgentActivation={definition:string;version:string;number:number;name:string;route?:string;authoring?:boolean;workspaceAuthoring?:boolean};
+  type AgentActivation={definition:string;version:string;number:number;name:string;route?:string;authoring?:boolean;workspaceAuthoring?:boolean;
+    execution?:{maxSteps:number;maxToolCalls:number;maxRetries:number}};
   type ActiveAgent=AgentActivation&{revisions:AgentActivation[]};
   type AgentDefinitionSummary={id:string;name:string;savedRevision?:number};
   let activeAgents:ActiveAgent[]=$derived(state.activeAgents??[]);
   const agentDefinitions:AgentDefinitionSummary[]=$derived(state.definitions??[]);
   const authoringActivations=$derived(activeAgents.flatMap(agent=>agent.revisions)
     .filter(revision=>revision.authoring&&(revision.workspaceAuthoring||revision.definition!==state.definition)&&revision.route===state.route));
-  const workspaceAuthoring=$derived(!!authoringActivations.find(revision=>revision.version===authoringActivation)?.workspaceAuthoring);
+  const selectedAuthoringActivation=$derived(authoringActivations.find(revision=>revision.version===authoringActivation));
+  const workspaceAuthoring=$derived(!!selectedAuthoringActivation?.workspaceAuthoring);
   const dockSession=$derived(workspaceAuthoring?state.sessions.find(session=>session.activation===authoringActivation&&session.authoringDock):undefined);
   const authoringChoices=$derived(authoringActivations.map(revision=>({value:revision.version,label:revision.name+' · r'+revision.number})));
   const activeDefinitionIds=$derived(new Set(activeAgents.map(agent=>agent.definition)));
@@ -2292,6 +2294,10 @@
         {/if}
         <label for="authoring-instructions">{workspaceAuthoring?'Message':'Requested change'}</label>
         <Textarea id="authoring-instructions" class="tori-field" rows={4} bind:value={authoringInput} disabled={sending}/>
+        {#if selectedAuthoringActivation?.execution}
+          {@const limits=selectedAuthoringActivation.execution}
+          <p class="muted authoring-budget">Per turn: {limits.maxSteps} model {limits.maxSteps===1?'step':'steps'} · {limits.maxToolCalls} tool {limits.maxToolCalls===1?'call':'calls'}</p>
+        {/if}
         <Button label="Send" type="submit" disabled={!authoringActivation||!authoringInput.trim()||sending||pending||(!workspaceAuthoring&&!state.revision)||!state.provider}/>
         {#if draftTurn}<Button label="Stop" variant="secondary" disabled={draftTurn.stop.signal.aborted||authoringStatus==='Stopping…'}
           onclick={stopAuthoring}/>{/if}

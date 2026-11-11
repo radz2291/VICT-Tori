@@ -28,8 +28,16 @@ async function fixtureFetch(url, init) {
   const say = content => { delta = { role: 'assistant', content }; };
   const step = results.length;
 
-  if (toolNames.some(name => name.endsWith('workspace_inspect'))) {
-    if (prompt.includes('review that Run')) {
+  if (prompt.includes('check disabled tool calls')) {
+    assert.deepEqual(toolNames, [], 'The provider receives no tools with a zero tool budget.');
+    assert.equal(body.tool_choice, undefined);
+    say('No Studio tools were exposed.');
+  } else if (toolNames.some(name => name.endsWith('workspace_inspect'))) {
+    if (prompt.includes('compare execution budgets')) {
+      assert.equal(toolNames.length, 1, 'Review exposes only inspection to the provider.');
+      if (step < 5) call('workspace_inspect', {});
+      else say('Five synthetic inspections completed.');
+    } else if (prompt.includes('review that Run')) {
       assert.equal(toolNames.length, 1, 'Review exposes only inspection to the provider.');
       if (!step) call('workspace_inspect', {});
       else {

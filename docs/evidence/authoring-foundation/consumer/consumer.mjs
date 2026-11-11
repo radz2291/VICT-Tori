@@ -42,10 +42,12 @@ const actions = createWorkspaceCapabilities({
 });
 assert.deepEqual(actions.map(({ id, revision }) => ({ id, revision })), workspaceRefs);
 const edit = actions.find(item => item.id.endsWith('.edit'));
-const valid = edit.input.parse({ draftId, expectedRevision: 7, patch: { name: 'Field Notes' } });
+const budget = { maxSteps: 7, maxToolCalls: 5, maxRetries: 2 };
+const valid = edit.input.parse({ draftId, expectedRevision: 7, patch: { name: 'Field Notes', ...budget } });
 assert.equal(valid.ok, true);
 assert.equal(edit.input.parse({ ...valid.value, grants: ['admin'] }).ok, false);
 assert.equal(edit.input.parse({ ...valid.value, patch: { shell: 'example' } }).ok, false);
+assert.equal(edit.input.parse({ ...valid.value, patch: { ...budget, maxSteps: 65 } }).ok, false);
 const operation = (id, signal = new AbortController().signal) => ({
   victActorId: actorId, victTurnId: turnId, victIdempotencyKey: id, signal,
 });
@@ -61,6 +63,6 @@ assert.equal((await permitted({ ...valid.value, patch: { name: 'Other' } }, oper
 assert.equal((await permitted(valid.value, operation('stale'))).status, 'stale');
 const stopped = AbortSignal.abort();
 assert.equal((await permitted({ ...valid.value, expectedRevision: 8 }, operation('stop', stopped))).status, 'cancelled');
-assert.deepEqual(document, { name: 'Field Notes', revision: 8 });
+assert.deepEqual(document, { name: 'Field Notes', revision: 8, ...budget });
 assert.equal(commits, 1);
 console.log(JSON.stringify({ package: '@tori-studio/authoring', references: workspaceRefs, commits, receipt: exact.receipt }));

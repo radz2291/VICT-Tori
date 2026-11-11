@@ -83,7 +83,8 @@ test(live?'A2 permitted Coding route sampling':'A2 sampling, retry limit, and de
     assert.deepEqual(capture.at(-1),{temperature:undefined,topP:undefined});
     for(const [id,key,value,issue] of [
       ['model','temperature',1.1,/temperature/],['model','topP',0,/top-p/],
-      ['agent','maxSteps',5,/step limit/],['agent','maxRetries',2,/retries/],
+      ['agent','maxSteps',65,/step limit/],['agent','maxRetries',9,/retry limit/],
+      ['agent','maxToolCalls',65,/tool call limit/],
     ]){
       edit(change(id,key,value));
       await save();
@@ -136,6 +137,12 @@ test(live?'A2 permitted Coding route sampling':'A2 sampling, retry limit, and de
     assert.equal(refused.execution.maxToolCalls,0);
     assert.equal(refused.providerAttempts,2);
     assert.equal(capture.length,11);
+    mode='retry';
+    edit(change('agent','maxRetries',2));
+    await save();
+    const twoRetries=await send(await activate());
+    assert.equal(twoRetries.execution.maxRetries,2);
+    assert.equal(twoRetries.providerAttempts,3);
   }finally{
     globalThis.fetch=originalFetch;
     await service?.close();
