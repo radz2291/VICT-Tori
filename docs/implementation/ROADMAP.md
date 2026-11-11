@@ -1,9 +1,8 @@
 # Implementation roadmap
 
-**Active owner pivot, 7 November 2026:** [Issue #3](https://github.com/radz2291/VICT-Tori/issues/3) authorizes the fresh [V1a slice](V1A.md) on a clean base. U0 remains historical reference; its product acceptance is no longer a prerequisite for V1a. The stage table retains the cumulative runtime objectives. Issue #3 governs the first working V1a checkpoint and does not authorize V1b or subsequent stages.
+**Current handoff, 11 November 2026.** Radzi accepted the V1a Studio and directed continuation with [V1b](V1B.md). Use the approved `633e34d` build as the experience reference. The [handoff](../../HANDOFF.md) records the active scope.
 
-
-The owner agreed the delivery approach and final expectations. This is a proposed execution breakdown. Current authorization is in [HANDOFF](../../HANDOFF.md); a roadmap row is not permission to execute every stage. G0/U0 is the prepared next implementation task. All runtime stages remain unstarted.
+**Historical owner pivot, 7 November 2026.** [Issue #3](https://github.com/radz2291/VICT-Tori/issues/3) authorized the fresh [V1a slice](V1A.md) on a clean base, with U0 retained as reference. The stage table preserves the cumulative product objectives.
 
 ## Stage sequence
 
@@ -14,7 +13,7 @@ Each functional slice couples necessary VICT–Mastra exposure work with reusabl
 | G0 | Confirmed foundation and minimum domain mappings | Public-package install/build proof, exact source/artifact identities, UI reuse map, authoring/store/graph contracts and open-decision register |
 | U0 | Actual production Studio with real editing/persistence and labelled execution simulations | U0-01–U0-14 engineering proof, independent verdict, reproducible launch and owner UI review |
 | V1a | Real single-agent Session using provider, model, mode, Skills/tools and basic evaluation | T01 core; X01–X07/X12/X15 applicable baseline; real stream, persistent conversation and truthful recovery limits |
-| V1b | Studio-created TORI authoring agent | T07 ordinary browser assembly and real governed authoring; manual-work/revision/history protection |
+| V1b | [Studio-created TORI authoring agent](V1B.md) | T07 ordinary browser assembly and real governed authoring, manual-work/revision/history protection, independent consumer and owner walkthrough |
 | V1c | Advanced agent operation | Delegation, background/recovery, richer memory/trace and child budgets; remaining T01/X05/X08/X09/X12 obligations |
 | V2 | Executable AI and VICT business workflows | T02/T03; data/branch/wait/restart/uncertain-effect evidence |
 | V3 | Real generation and useful creative exploration | T04/T05; actual media operators/artifacts/versions and owner experience review |

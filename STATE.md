@@ -1,6 +1,12 @@
 # TORI current state
 
-**V1a Studio closeout.** Candidate `f73d114` consolidates the owner’s Agents, Sessions and Runs refinements. The [closeout evidence](docs/evidence/v1a/STUDIO-CLOSEOUT.md) records the final fixture regression and separates it from earlier live receipts. TORI-003 remains in Review.
+**11 November 2026 — V1a accepted. V1b prepared for local implementation.** Radzi approved the V1a experience after hands-on refinement. Work records TORI-003 as Done. The approved Studio baseline is `633e34d0a89a8d89a5d4477f6642be2a27f08501` on `codex/tori-v1a-a4`. Continue with the [V1b slice](docs/implementation/V1B.md) on `codex/tori-v1b`. V1b implementation and T07 verification are pending.
+
+The accepted V1a Studio is the reference for later TORI UI/UX. V1b adds the left Authoring Agent dock and the consolidated right-hand Assembly / Selection dock in Agents. See the [owner decision](docs/governance/DECISIONS.md) and [current handoff](HANDOFF.md).
+
+## V1a delivery history
+
+**V1a Studio closeout.** Candidate `f73d114` consolidates the owner’s Agents, Sessions and Runs refinements. The [closeout evidence](docs/evidence/v1a/STUDIO-CLOSEOUT.md) records the final fixture regression and separates it from earlier live receipts.
 
 **Saved Research composition ready for V1a review.** Candidate `496d90b` supports direct and delegated execution of the same saved Research Agent with a fixed Quellight revision pin. The [running previews and evidence](docs/evidence/v1a/INTEGRATED-PREVIEW.md#saved-research-review) cover admitted Project Knowledge, governed MCP and a zero-call denial. TORI-003 remains in Review.
 
@@ -20,7 +26,7 @@
 
 **R-VIS-01 review repair:** Product `8329b64f5c3297736758945e7e50299b34ccea20` verifies the installed reasoning boundary. [Public reasoning visibility is BLOCKED](docs/evidence/v1a/R-VIS-01.md) by VICT's adapter/stream contract; the same preview keeps the live Session and shows an honest unavailable state. The earlier provider-only projection is historical and does not pass this criterion.
 
-V1a covers one Agent Assembly, explicit VICT activation, a real Z.AI Session and truthful turn evidence. The early hands-on candidate is `caa6411b31d0d32bb8cf7a7e2425a3288598f7a6`. [Builder evidence](docs/evidence/v1a/VERIFICATION.md) and the [independent UX challenge](docs/evidence/v1a/INDEPENDENT.md) record verified paths and remaining gaps. Owner visual/interaction acceptance remains open. VICT Studio, its current agent and paused Milestone 2 are outside this handoff.
+The early V1a candidate `caa6411b31d0d32bb8cf7a7e2425a3288598f7a6` covered Agent Assembly, explicit VICT activation, a real Z.AI Session and turn evidence. [Builder evidence](docs/evidence/v1a/VERIFICATION.md) and the [independent UX challenge](docs/evidence/v1a/INDEPENDENT.md) describe that checkpoint.
 
 ## Historical bootstrap and U0 context
 

@@ -1,5 +1,7 @@
 # Decision and open-question register
 
+**V1a acceptance and V1b layout — 11 November 2026, owner adopted.** Radzi reviewed, refined and approved the V1a Studio at `633e34d0a89a8d89a5d4477f6642be2a27f08501` and directed later stages to use that experience as their UI/UX reference. For V1b the owner reserved the left dock for the Authoring Agent and directed the Agents Library and Nodes to share the right dock using VICT Designer's pattern. The [Design Constitution amendment](../specs/STUDIO-DESIGN-CONSTITUTION.md) and [V1b spec](../implementation/V1B.md) define the updated arrangement and browser proof. This supersedes the earlier Agents Library placement and V1a Review status.
+
 **D-V1A — 7 November 2026, owner adopted.** [Issue #3](https://github.com/radz2291/VICT-Tori/issues/3) supersedes P-01 where U0 completion or acceptance was a dependency for V1a. U0 implementations, reports and acceptance status remain historical. V1a independently composes installed VICT artifacts from a clean repository baseline. The Design Constitution remains the UI authority, and V1a requires its own hands-on owner review. No upstream or live installation change is authorized.
 
 

@@ -1,4 +1,10 @@
-# Start the TORI UI foundation
+# Start TORI V1b
+
+> Work in `radz2291/VICT-Tori` on `codex/tori-v1b`, based on approved V1a `633e34d0a89a8d89a5d4477f6642be2a27f08501`. Read AGENTS.md, STATE.md, HANDOFF.md and [the full V1b spec](docs/implementation/V1B.md). Resolve the V1b assignment in Work project TORI, read its pinned standard, and claim execution when starting in a clean worktree.
+>
+> Own V1b through a working Studio candidate and independent verification. Carry forward the approved V1a experience with the specified left Authoring Agent dock and right Assembly / Selection dock. Create and activate the Authoring Agent through the ordinary browser UI, use it to make a real scoped Research draft edit, and prove every T07 criterion. Bring an early runnable walkthrough, resolve in-scope findings, and return the final candidate and evidence to Review for Radzi.
+
+## Historical start instruction — U0
 
 Copy the following into the implementation Codex session after cloning this repository. Sending this instruction activates the prepared G0 → U0 scope; it does not accept the future UI or runtime.
 

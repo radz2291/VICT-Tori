@@ -1,6 +1,14 @@
 # TORI handoff
 
-**V1a Studio closeout.** Candidate `f73d114` consolidates the owner’s Agents, Sessions and Runs refinements. See the [closeout evidence and walkthrough](docs/evidence/v1a/STUDIO-CLOSEOUT.md). TORI-003 remains in Review.
+## Current authority — V1b
+
+Radzi accepted the V1a Studio and directed continuation with the V1b assignment. Start from accepted V1a at `633e34d0a89a8d89a5d4477f6642be2a27f08501` on the dedicated `codex/tori-v1b` branch. [V1b full slice specification](docs/implementation/V1B.md) defines the operator experience, shared authoring contract, complete T07 acceptance and scope. [V1a Studio closeout](docs/evidence/v1a/STUDIO-CLOSEOUT.md) anchors the approved UI/UX.
+
+Resolve the V1b ticket in Work project `TORI` and read its pinned standard and predecessor TORI-003. Own the slice through implementation, a live Studio walkthrough, independent verification and in-scope repairs. Submit the runnable candidate and evidence to Review for Radzi. [Start instruction](CODEX_START.md) · [Work protocol](docs/governance/ROLLADICE-WORK.md)
+
+## V1a delivery history
+
+**V1a Studio closeout.** Candidate `f73d114` consolidates the owner’s Agents, Sessions and Runs refinements. See the [closeout evidence and walkthrough](docs/evidence/v1a/STUDIO-CLOSEOUT.md). Work records TORI-003 as Done after owner approval.
 
 **Saved Research composition ready for V1a review.** Candidate `496d90b` supports direct and delegated execution of the same saved Research Agent with a fixed Quellight revision pin. The [running previews and evidence](docs/evidence/v1a/INTEGRATED-PREVIEW.md#saved-research-review) cover admitted Project Knowledge, governed MCP and a zero-call denial. TORI-003 remains in Review.
 
@@ -16,7 +24,7 @@
 
 **A1 historical review evidence.** Radzi accepted the Essential Agent Capability Baseline v0.1.0 and authorized A1. Candidate `c28b28c0d1d52818461eefbe456d7b026a4a046d` passed deterministic browser and fresh installed-consumer checks. See [A1 evidence and isolated fixture preview](docs/evidence/v1a/A1.md) and [baseline with accepted A3 criteria](docs/implementation/ESSENTIAL-AGENT-CAPABILITY-BASELINE.md). The [fresh independent rerun](docs/evidence/v1a/A1-INDEPENDENT.md) passed A1, EAC-02 and EAC-03. Radzi subsequently accepted A1.
 
-**Current authority — V1a:** [GitHub issue #3](https://github.com/radz2291/VICT-Tori/issues/3) and Rolladice Work TORI-003. Use the [V1a contract](docs/implementation/V1A.md), [ownership and pins](docs/evidence/v1a/OWNERSHIP.md), and root [launch instructions](README.md). Use the adopted [Design Constitution](docs/specs/STUDIO-DESIGN-CONSTITUTION.md) for all presented surfaces. U0 code and tests are read-only and do not gate or form the implementation base. The early hands-on product candidate is `caa6411b31d0d32bb8cf7a7e2425a3288598f7a6`: [local Studio](http://127.0.0.1:48761/), [builder evidence](docs/evidence/v1a/VERIFICATION.md) and [independent findings](docs/evidence/v1a/INDEPENDENT.md). The owner reviews the actual candidate; engineering evidence is not owner acceptance.
+**V1a entry and first candidate.** [GitHub issue #3](https://github.com/radz2291/VICT-Tori/issues/3) and Work TORI-003 coordinated the [V1a contract](docs/implementation/V1A.md). The [ownership and pins](docs/evidence/v1a/OWNERSHIP.md), [builder evidence](docs/evidence/v1a/VERIFICATION.md) and [independent findings](docs/evidence/v1a/INDEPENDENT.md) document the early candidate `caa6411b31d0d32bb8cf7a7e2425a3288598f7a6`.
 
 **R-VIS-01 review repair:** Product `8329b64f5c3297736758945e7e50299b34ccea20` verifies the installed reasoning boundary. [Public reasoning visibility is BLOCKED](docs/evidence/v1a/R-VIS-01.md) by VICT's adapter/stream contract; the same preview keeps the live Session and shows an honest unavailable state. The earlier provider-only projection is historical and does not pass this criterion.
 
