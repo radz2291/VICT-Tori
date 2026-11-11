@@ -6,7 +6,7 @@ Radzi accepted the V1a Studio and directed continuation with the V1b assignment.
 
 Resolve the V1b ticket in Work project `TORI` and read its pinned standard and predecessor TORI-003. Own the slice through implementation, a live Studio walkthrough, independent verification and in-scope repairs. Submit the runnable candidate and evidence to Review for Radzi. [Start instruction](CODEX_START.md) · [Work protocol](docs/governance/ROLLADICE-WORK.md)
 
-**TORI-004 checkpoint:** Product `e73290100da9fd89728f134617c05b4dce79400c` has a [desktop and narrow walkthrough](docs/evidence/v1b/README.md) for the approved dock layout. The current blocker is the [public authoring boundary](docs/evidence/v1b/PUBLIC-BOUNDARY.md), specifically binding an authenticated turn to an open draft and reconciling its fenced commit or cancellation with an authoritative receipt. The next owner decision is where to implement that shared transaction: in VICT with a public interface, or as a scoped TORI adapter using the lower-level VICT contracts. Resume live activation and T07 proof after resolving that boundary. TORI-004 is incomplete; this checkpoint does not accept V1b or authorize V1c.
+**TORI-004 owner review.** The owner selected the public VICT authoring interface. Install the VICT `control` and `contracts` tarballs from `02c63c31f8f4dc42840fc8975927c98b21f30058` together. The lockfile checks their exact integrity. Product `59e568426183d2199be90ca96dd0d31bdd53fbd5` has the live browser walkthrough and recorded Run. The [integration report](docs/evidence/v1b/INTEGRATION.md) identifies the installed interface, receipt, independent checks, and local review route. Owner review is the next gate. V1c has its own handoff.
 
 ## V1a delivery history
 

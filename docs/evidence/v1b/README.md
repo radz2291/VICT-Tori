@@ -1,5 +1,7 @@
 # TORI-004 — Agents dock checkpoint
 
+This is the 11 November dock checkpoint. The current live authoring candidate and owner walkthrough are in [the integration report](INTEGRATION.md).
+
 **Scope: partial delivery.** V1b starts from approved V1a `633e34d0a89a8d89a5d4477f6642be2a27f08501` plus the docs-only handoff `ef1cc19cc0a49ff569f2833092a90ac4eea5b597`. Review the Agents dock changes on `codex/tori-v1b`. Live authoring and T07 are blocked by the [installed public boundary](PUBLIC-BOUNDARY.md). The Authoring Agent dock shows the current draft and reports the unavailable state. It has no composer or activation picker until a real authoring turn can run.
 
 ## Walkthrough
