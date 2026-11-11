@@ -573,11 +573,12 @@
   async function action(work:()=>Promise<void>){if(pending)return;pending=true;error='';try{await work();}catch(e){error=(e as Error).message;}finally{pending=false;}}
   const save=()=>action(async()=>{const snapshot=graph;applyState(await request('/save',{graph:snapshot,expected:state.revision}));baseline=authoringBytes(snapshot);});
   async function switchDefinition(next:any){
+    const canvasWasMounted=agentView==='Canvas'&&graph.nodes.length>0;
     applyState(next);selection='';layerQuery='';componentQuery='';graphError='';reopen(next);
-    canvasInitialized=false;
+    canvasInitialized=canvasWasMounted&&graph.nodes.length>0;
     view={x:0,y:0,zoom:1};
-    // A blank definition unmounts the canvas. Fitting must never block authoring.
-    if(agentView==='Canvas'&&graph.nodes.length)void fit();
+    // If Flow stays mounted, fit the new document here. Otherwise oninit owns the first fit.
+    if(canvasInitialized)void fit();
   }
   const openDefinition=(id:string)=>action(async()=>switchDefinition(await request('',undefined,id)));
   const newDefinition=()=>action(async()=>{
