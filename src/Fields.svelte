@@ -18,7 +18,7 @@
   let selectedChild=$derived(childRevisions.find(item=>'saved:'+item.id===field(graph,id,'reference')));
   let activeChild=$derived(childRevisions.find(item=>item.id===pinnedChild));
   let toolChoices=$derived(choices.tool.filter(option=>fixture||option.value!=='local-reference@1'||field(graph,'tool','reference')===option.value));
-  const capabilityLabel=(capability:{id:string;label:string})=>capability.id==='tool'&&(!fixture||field(graph,'tool','reference')!=='local-reference@1')?'Read-only Tool':capability.label;
+  const capabilityLabel=(capability:{id:string;label:string})=>capability.id==='tool'&&(!fixture||(field(graph,'tool','reference')??'local-reference@1')!=='local-reference@1')?'Read-only Tool':capability.label;
   let childChoices=$derived([...(fixture||field(graph,'child','reference')==='reference-reviewer@1'?choices.child:[]),...childRevisions.map(item=>({value:'saved:'+item.id,label:item.name+' · r'+item.number}))]);
   let modelWire=$derived(binding(graph,'model'));
   let existingCapabilities=$derived(agentResources.filter(item=>['context','tool','child','authoring'].includes(item.id)&&binding(graph,item.id)));

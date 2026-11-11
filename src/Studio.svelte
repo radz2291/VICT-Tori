@@ -290,7 +290,7 @@
     return Number.isFinite(value)?Math.max(min,Math.min(max,Math.round(value))):min;
   }
   const defaultNodeTitle=(id:string)=>id==='agent'?'Agent Definition':id==='model'?'Model Reference':
-    id===tokenSourceId?'Output limit Integer':id==='tool'&&(!state.fixture||field(graph,'tool','reference')!=='local-reference@1')?'Read-only Tool':agentResources.find(item=>item.id===id)?.label??'System prompt';
+    id===tokenSourceId?'Output limit Integer':id==='tool'&&(!state.fixture||(field(graph,'tool','reference')??'local-reference@1')!=='local-reference@1')?'Read-only Tool':agentResources.find(item=>item.id===id)?.label??'System prompt';
   function customNodeTitle(id:string){
     const node=graph.nodes.find(item=>item.id===id);
     const original=graph.nodeTypes.find(type=>type.id===node?.type)?.label;
