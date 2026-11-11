@@ -53,7 +53,7 @@
   let authoringActivation=$state('');
   let authoringInput=$state('');
   let authoringError=$state('');
-  let authoringResult=$state<{session:string;run?:string;message:string}|null>(null);
+  let authoringResult=$state<{session:string;run?:string;message:string;kind?:'status'|'error'|'denied'}|null>(null);
   let authoringStatus=$state('');
   type DraftTurn = {
     channel:string; definition:string; savedRevision:string; draftId:string;
@@ -1027,11 +1027,19 @@
     if(!updated||state.definition!==definition)return;
     applyState({...state,runs:state.runs.map(item=>item.id===id?updated:item)});
     if(authoringResult?.run===id&&updated.draftReceipts?.length){
-      authoringResult={...authoringResult,message:draftReceiptMessage(updated.draftReceipts.at(-1).status)};
+      authoringResult={...authoringResult,...draftOutcome(updated.draftReceipts.at(-1).status)};
     }
   }
-  function draftReceiptMessage(status:string){
-    return status==='applied'?'Instructions updated. Save the draft to retain the new revision.':'Draft edit: '+status+'.';
+  function draftOutcome(status:string):{message:string;kind:'status'|'error'|'denied'}{
+    switch(status){
+      case 'applied': return {kind:'status',message:'Instructions updated. Save the draft to retain the new revision.'};
+      case 'cancelled': return {kind:'status',message:'The draft edit was cancelled.'};
+      case 'denied': return {kind:'denied',message:'The edit was outside the authorized draft scope.'};
+      case 'stale': return {kind:'error',message:'The draft changed during the turn. Your current edits are intact.'};
+      case 'invalid': return {kind:'error',message:'The draft edit failed validation.'};
+      case 'operation-conflict': return {kind:'error',message:'The edit conflicts with a prior operation. Inspect the Run.'};
+      default: return {kind:'error',message:'The edit could not be confirmed. Inspect the Run before retrying.'};
+    }
   }
   function stopAuthoring(){
     const turn=draftTurn;
@@ -1084,7 +1092,7 @@
       const run=result.runs.find(item=>item.session===turn.session);
       const status=run?.draftReceipts?.at(-1)?.status??run?.authoringOutcomes?.at(-1);
       authoringResult={session:turn.session!,run:run?.id,
-        message:status?draftReceiptMessage(status):run?.message??'The turn ended without a confirmed draft edit.'};
+        ...(status?draftOutcome(status):{message:run?.message??'The turn ended without a confirmed draft edit.'})};
       if(authoringInput.trim()===input)authoringInput='';
     }catch(e){authoringError=(e as Error).message;}
     finally{
@@ -2222,7 +2230,7 @@
     {#if authoringStatus}<Feedback message={authoringStatus}/>{/if}
     {#if authoringError}<Feedback kind="error" message={authoringError}/>{/if}
     {#if authoringResult}
-      <Feedback message={authoringResult.message}/>
+      <Feedback kind={authoringResult.kind} message={authoringResult.message}/>
       {#if authoringResult.run}
         <Button label="Inspect authoring Run" variant="secondary" onclick={inspectAuthoringRun}/>
       {/if}
