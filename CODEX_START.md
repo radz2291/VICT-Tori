@@ -4,6 +4,10 @@
 >
 > Own V1b through a working Studio candidate and independent verification. Carry forward the approved V1a experience with the specified left Authoring Agent dock and right Assembly / Selection dock. Create and activate the Authoring Agent through the ordinary browser UI, use it to make a real scoped Research draft edit, and prove every T07 criterion. Bring an early runnable walkthrough, resolve in-scope findings, and return the final candidate and evidence to Review for Radzi.
 
+## Prepared next slice — Studio authoring foundation
+
+The [Studio authoring foundation spec](docs/implementation/AUTHORING-FOUNDATION.md) follows the TORI-004 review baseline and precedes V1c. Use its own Work assignment and handoff to start the implementation. The existing V1b walkthrough remains available for owner review.
+
 ## Historical start instruction — U0
 
 Copy the following into the implementation Codex session after cloning this repository. Sending this instruction activates the prepared G0 → U0 scope; it does not accept the future UI or runtime.

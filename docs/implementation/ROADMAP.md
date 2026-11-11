@@ -1,6 +1,6 @@
 # Implementation roadmap
 
-**Current handoff, 11 November 2026.** Radzi accepted the V1a Studio and directed continuation with [V1b](V1B.md). Use the approved `633e34d` build as the experience reference. The [handoff](../../HANDOFF.md) records the active scope.
+**Current direction, 12 November 2026.** TORI-004 is in owner Review. Radzi placed the [Studio authoring foundation](AUTHORING-FOUNDATION.md) after the reviewed V1b baseline and ahead of V1c. The approved V1a Studio remains the visual and interaction reference. The [handoff](../../HANDOFF.md) distinguishes the active review from the prepared follow-on.
 
 **Historical owner pivot, 7 November 2026.** [Issue #3](https://github.com/radz2291/VICT-Tori/issues/3) authorized the fresh [V1a slice](V1A.md) on a clean base, with U0 retained as reference. The stage table preserves the cumulative product objectives.
 
@@ -13,7 +13,7 @@ Each functional slice couples necessary VICT–Mastra exposure work with reusabl
 | G0 | Confirmed foundation and minimum domain mappings | Public-package install/build proof, exact source/artifact identities, UI reuse map, authoring/store/graph contracts and open-decision register |
 | U0 | Actual production Studio with real editing/persistence and labelled execution simulations | U0-01–U0-14 engineering proof, independent verdict, reproducible launch and owner UI review |
 | V1a | Real single-agent Session using provider, model, mode, Skills/tools and basic evaluation | T01 core; X01–X07/X12/X15 applicable baseline; real stream, persistent conversation and truthful recovery limits |
-| V1b | [Studio-created TORI authoring agent](V1B.md) | T07 ordinary browser assembly and real governed authoring, manual-work/revision/history protection, independent consumer and owner walkthrough |
+| V1b | [Studio-created Authoring Agent](V1B.md), followed by the [Studio authoring foundation](AUTHORING-FOUNDATION.md) | T07 baseline evidence, then plain-language creation and testing of Quellight and Research, review without mutation, undoable improvement and registered-tool extensibility |
 | V1c | Advanced agent operation | Delegation, background/recovery, richer memory/trace and child budgets; remaining T01/X05/X08/X09/X12 obligations |
 | V2 | Executable AI and VICT business workflows | T02/T03; data/branch/wait/restart/uncertain-effect evidence |
 | V3 | Real generation and useful creative exploration | T04/T05; actual media operators/artifacts/versions and owner experience review |
@@ -51,7 +51,9 @@ V1a begins with one permitted connection → one Studio-defined activation → o
 
 V1b uses the normal UI to create TORI's authoring agent, not a hardcoded privileged backend profile. Its real edits use VICT discovery/canonical-edit/observe/cancel and revision protections. Integrate manual and AI edits into the same source/history rules.
 
-V1c introduces child execution and background durability only after exact-version conformance. Prove child authority, aggregate budgets, cancellation, process restart, stream replay and memory scopes with effect fencing. Surface unsupported resume behavior honestly. Add semantic/observational memory through explicit policy, not by enabling everything by default.
+The authoring foundation follows V1b before V1c. The existing left dock gains discoverable Studio actions for inspecting, creating, configuring, validating, saving and testing agents. Its first walkthrough builds Quellight and Research, uses an already registered read-only script-backed tool, and reviews the actual Run before applying an undoable improvement. [Follow-on spec](AUTHORING-FOUNDATION.md)
+
+V1c advances child execution and background durability after exact-version conformance. Prove child authority, aggregate budgets, cancellation, process restart, stream replay and memory scopes with effect fencing. Surface unsupported resume behavior honestly. Add semantic/observational memory through explicit policy, not by enabling everything by default.
 
 **Stop:** Missing provider/auth eligibility, unreconcilable effect uncertainty, unsupported durable mechanism or required regression failure. A working chat response does not waive the remaining catalog/test requirements.
 

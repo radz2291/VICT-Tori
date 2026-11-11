@@ -6,7 +6,13 @@ Radzi accepted the V1a Studio and directed continuation with the V1b assignment.
 
 Resolve the V1b ticket in Work project `TORI` and read its pinned standard and predecessor TORI-003. Own the slice through implementation, a live Studio walkthrough, independent verification and in-scope repairs. Submit the runnable candidate and evidence to Review for Radzi. [Start instruction](CODEX_START.md) · [Work protocol](docs/governance/ROLLADICE-WORK.md)
 
-**TORI-004 owner review.** The owner selected the public VICT authoring interface. Install the VICT `control` and `contracts` tarballs from `02c63c31f8f4dc42840fc8975927c98b21f30058` together. The lockfile checks their exact integrity. Product `59e568426183d2199be90ca96dd0d31bdd53fbd5` has the live browser walkthrough and recorded Run. The [integration report](docs/evidence/v1b/INTEGRATION.md) identifies the installed interface, receipt, independent checks, and local review route. Owner review is the next gate. V1c has its own handoff.
+**TORI-004 owner review.** The owner selected the public VICT authoring interface. Install the VICT `control` and `contracts` tarballs from `02c63c31f8f4dc42840fc8975927c98b21f30058` together. The lockfile checks their exact integrity. Product `59e568426183d2199be90ca96dd0d31bdd53fbd5` has the live browser walkthrough and recorded Run. The [integration report](docs/evidence/v1b/INTEGRATION.md) identifies the installed interface, receipt, independent checks, and local review route. Owner review is the next gate.
+
+## Prepared follow-on — Studio authoring foundation
+
+Radzi directed the broader authoring slice to come before V1c. The next implementation spec starts from the TORI-004 review baseline and defines the blank-library Quellight and Research walkthrough, review without edits, undoable application and registered script-tool extensibility. Use the approved left dock and the VICT authority, Flow history, Stop and Run receipt path demonstrated in V1b. [Implementation spec](docs/implementation/AUTHORING-FOUNDATION.md) · [Stage sequence](docs/implementation/ROADMAP.md)
+
+Start implementation under its own Work assignment and handoff. Keep the TORI-004 candidate and live walkthrough available for owner review.
 
 ## V1a delivery history
 

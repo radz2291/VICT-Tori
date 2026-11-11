@@ -74,6 +74,16 @@ The nine tests replace the earlier three-test-only acceptance framing: old A →
 
 **Migration / next proof:** No implemented TORI schema or saved application exists to migrate. G0 records public API/domain/projection mappings and support gaps; U0 proves real editing/history/persistence with simulated execution, followed by owner review. Live conformance remains in the assigned runtime slices.
 
+### Studio authoring foundation before V1c — 12 November 2026, owner adopted
+
+**Authority.** Radzi agreed the direction in the TORI-004 discussion. Use its reviewed V1b implementation as the baseline for the follow-on. Keep the approved Studio experience and existing Authoring Agent dock.
+
+**Prior sequence.** The roadmap moved from V1b's governed Research instruction edit directly to V1c's advanced operation.
+
+**Decision.** Insert the broader authoring slice before V1c. Begin with discoverable Studio actions for agent creation, typed editing, review and testing. Prove the plain-language Quellight and Research assembly, a review that leaves the draft untouched, an undoable follow-up edit, and discovery and use of a second registered script-backed tool without chat integration changes. Carry the scoped CLI and tool creation forward on the same foundation.
+
+**Scope and next proof.** The existing T01–T09 scenarios and V1c obligations remain. Use the reviewed V1b candidate and installed public VICT artifacts as the starting point. The follow-on implementation uses its own assignment and handoff. [Next implementation spec](../implementation/AUTHORING-FOUNDATION.md) · [V1b review evidence](../evidence/v1b/INTEGRATION.md)
+
 ## Amendment format
 
 Append: decision ID/date; concrete question; owner instruction or implementation evidence; prior rule; selected option and reason; affected contracts/tests/stages; migration; next proof. Preserve old evidence. Only the owner can accept a product-scope reduction or custom-UI exception; an agent may resolve routine implementation choices inside existing scope.
