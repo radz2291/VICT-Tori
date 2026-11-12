@@ -1,5 +1,7 @@
 # TORI current state
 
+**12 November 2026 — V1c Memory Foundation accepted for implementation.** TORI-005 is complete in Work. The first V1c slice uses [the accepted memory contract](docs/implementation/MEMORY-FOUNDATION.md) at `8854562dda920f583e6cc1d80de51f6add6d7ba9` on `codex/tori-v1c-memory-foundation`. Record the pinned-version probes and select the Mastra or SQLite backing before implementation commits. See the [handoff](HANDOFF.md#v1c-memory-foundation) and [adopted decision](docs/governance/DECISIONS.md).
+
 **12 November 2026 — TORI-005 Authoring continuity.** Product `b349e547f4e144db47d63f89e0ef3c7c49db8c75` on `codex/tori-authoring-foundation` restores the Authoring chat on refresh, continues the same Session after Stop or deadline and keeps the last completed test available. [Preview and verification](docs/evidence/authoring-foundation/CHAT-CONTINUITY.md). Radzi owns the Review decision.
 
 **12 November 2026 — TORI-005 Authoring chat space.** Product `25980a86a200269cb8e725705a0c22b673439469` on `codex/tori-authoring-foundation` moves the revision and draft information into the activation dialog, removes budget counts from chat and themes public Select options across Studio. [Preview and verification](docs/evidence/authoring-foundation/CHAT-CHROME.md). Radzi owns the Review decision.
