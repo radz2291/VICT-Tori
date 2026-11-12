@@ -1,5 +1,7 @@
 # TORI current state
 
+**12 November 2026 — TORI-005 Authoring chat space.** Product `25980a86a200269cb8e725705a0c22b673439469` on `codex/tori-authoring-foundation` moves the revision and draft information into the activation dialog, removes budget counts from chat and themes public Select options across Studio. [Preview and verification](docs/evidence/authoring-foundation/CHAT-CHROME.md). Radzi owns the Review decision.
+
 **12 November 2026 — TORI-005 Authoring chat layout.** Product `557288a90e74ea07de8e001f8545ca8bd00d6480` on `codex/tori-authoring-foundation` uses the Sessions chat composer in the Authoring dock and opens activation selection in a centered dialog from header options. [Desktop and narrow verification](docs/evidence/authoring-foundation/QUIET-AUTHORING.md). Radzi owns the Review decision.
 
 **12 November 2026 — TORI-005 authoring permission.** Product `950d20a133bec3dc44577027bd3a1387a4306791` on `codex/tori-authoring-foundation` preserves the selected Turn permission between messages, activation changes and reloads. [Verification](docs/evidence/authoring-foundation/TURN-PERMISSION.md). Radzi owns the Review decision.

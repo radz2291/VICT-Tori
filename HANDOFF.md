@@ -1,5 +1,9 @@
 # TORI handoff
 
+## TORI-005 Authoring chat space
+
+In the [Studio preview](http://127.0.0.1:48797/) on product `25980a86a200269cb8e725705a0c22b673439469`, open **⋯** in the Authoring Agent dock to see the current draft and choose the revision. The chat shows the transcript and composer, with Run inspection after a turn. Configure budgets in the Agent's **Execution** settings. [Shared Select styling and verification](docs/evidence/authoring-foundation/CHAT-CHROME.md)
+
 ## TORI-005 Authoring chat layout
 
 In the [Studio preview](http://127.0.0.1:48797/) on product `557288a90e74ea07de8e001f8545ca8bd00d6480`, open the Authoring Agent dock and click **⋯** to choose a revision in the centered activation dialog. Turn permission sits beside Send, and the budgets and Run link sit below the composer. [Desktop and narrow verification](docs/evidence/authoring-foundation/QUIET-AUTHORING.md)
