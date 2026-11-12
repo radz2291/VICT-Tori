@@ -94,6 +94,18 @@ The nine tests replace the earlier three-test-only acceptance framing: old A →
 
 **Scope and next proof.** This slice contributes to CAP-16, X04, X09 and T01-06 under the accepted spec. Record the exact probe results and selected architecture before implementation commits. Preserve the existing history policy and approved Studio controls. Give observational memory its own opt-in proof and retain the planned exact-version conformance check for semantic retrieval. Keep the T01–T09 scenarios cumulative. [Roadmap](../implementation/ROADMAP.md) · [Memory contracts](../specs/CONTRACTS.md#8-skills-context-memory-and-authorization)
 
+### TORI-006 owner review and memory follow-ons — 12 November 2026
+
+**Authority and current scope.** Radzi reviewed the `2e95a06` Memory Foundation preview and made final acceptance conditional on the [bounded repair](../evidence/v1c-memory/OWNER-REVIEW.md) at `129c6dca734b328d85cff5108ed47bdcef396998`. Move proposals onto their originating turns, extend deterministic phrasing with tested negation twins, and reserve record lineage, organizer off and an explicit store schema version. Keep the prior evidence attributed to its candidate. The repaired product needs a fresh exact-candidate review and Radzi's walkthrough.
+
+**Upstream VICT extension request.** [Probe 1](../evidence/v1c-memory/PROBES.md) produced `VICT_AGENT_UNKNOWN_ARTIFACT_FIELD` for resource-scoped, schema-based working memory. The pinned public adapter binds the resource to actor alone. Request an upstream `vict-02` extension in a future scoped change so VICT can carry a trusted actor/project/agent resource identity and schema through the public artifact and adapter. After an upstream candidate proves the required behavior at exact installed pins, evaluate a governed migration from the SQLite backing to the primary Mastra architecture.
+
+**Future organizer.** Reserve `tori.memory.organize` for an opt-in governed operation through the reserved policy slot. Its explicit thresholds trigger compaction. It reorganizes existing content without originating facts or authority. Every compaction records input and output lineage and a reversible receipt. Evaluate the Observational Memory mechanism as a candidate engine when that work is scoped.
+
+**Memory node family.** Its future spec must support a user-settable admission budget, per-record mute or pause, management in the node or inspector, visible actor/project/agent scope, and first-class versioned named Memory Policy resources. Controls select how much and which saved memory can be used. Trusted scope composition, ordering and grant mechanics stay in the governed runtime. The current two-dropdown configuration is the reference for that follow-up.
+
+**Nudges, forgetting and language packs.** A later near-miss classifier may ask whether the operator meant to save a memory when phrasing, abbreviations, another language or an implicit preference make intent unclear. Its authority is limited to asking. Explicit human confirmation governs any save. Forgetting uses the Studio action for this slice. Revisit voice-triggered forgetting with the nudge slice and apply the same confirmation principle if it is approved. Defer language packs until needed. Each pack will specify prefixes, verbs and negation twins, including affirmative inversions such as Malay `jangan lupa`.
+
 ## Amendment format
 
 Append: decision ID/date; concrete question; owner instruction or implementation evidence; prior rule; selected option and reason; affected contracts/tests/stages; migration; next proof. Preserve old evidence. Only the owner can accept a product-scope reduction or custom-UI exception; an agent may resolve routine implementation choices inside existing scope.
