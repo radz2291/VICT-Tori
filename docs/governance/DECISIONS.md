@@ -84,6 +84,16 @@ The nine tests replace the earlier three-test-only acceptance framing: old A →
 
 **Scope and next proof.** The existing T01–T09 scenarios and V1c obligations remain. Use the reviewed V1b candidate and installed public VICT artifacts as the starting point. The follow-on implementation uses its own assignment and handoff. [Next implementation spec](../implementation/AUTHORING-FOUNDATION.md) · [V1b review evidence](../evidence/v1b/INTEGRATION.md)
 
+### V1c memory foundation and architecture contingency — 12 November 2026, owner adopted
+
+**Authority.** Radzi accepted the slice contract at `0900305` with retention independence and missing-memory reconciliation clarified in the [accepted specification](../implementation/MEMORY-FOUNDATION.md) at `8854562dda920f583e6cc1d80de51f6add6d7ba9`. The accepted TORI-005 baseline is `4c035cd75f63c68bd002dee5683ca3fa02e778cf`, with tested product `b349e547f4e144db47d63f89e0ef3c7c49db8c75`.
+
+**Prior sequence.** The roadmap groups memory, background recovery and specialist Run work in V1c. The draft memory slice documented dedicated SQLite tables before governed Mastra working memory was evaluated as the primary path.
+
+**Decision.** Deliver V1c in slices, starting with explicit saved memory, then background execution and recovery, then specialist Run visibility and controls. Select governed Mastra working memory only when all three pinned-version probes pass, including retention independence for saved records in the LibSQL-backed store. A failed or inconclusive probe selects dedicated SQLite memory tables under the same governed contract and acceptance criteria. If a live ledger record has missing Mastra-side memory, omit it from recall and show the missing storage state in Run evidence.
+
+**Scope and next proof.** This slice contributes to CAP-16, X04, X09 and T01-06 under the accepted spec. Record the exact probe results and selected architecture before implementation commits. Preserve the existing history policy and approved Studio controls. Give observational memory its own opt-in proof and retain the planned exact-version conformance check for semantic retrieval. Keep the T01–T09 scenarios cumulative. [Roadmap](../implementation/ROADMAP.md) · [Memory contracts](../specs/CONTRACTS.md#8-skills-context-memory-and-authorization)
+
 ## Amendment format
 
 Append: decision ID/date; concrete question; owner instruction or implementation evidence; prior rule; selected option and reason; affected contracts/tests/stages; migration; next proof. Preserve old evidence. Only the owner can accept a product-scope reduction or custom-UI exception; an agent may resolve routine implementation choices inside existing scope.
