@@ -20,6 +20,20 @@ function saveIdentity(operationId) {
 
 const present = value => Object.fromEntries(Object.entries(value).filter(([, item]) => item !== undefined));
 
+export function authoringChatSessions(state, session) {
+  const index = state.sessions.findIndex(item => item.id === session.id);
+  if (index < 0 || !session.authoringDock) return [session];
+  // Older Studio versions started a new dock Session after an interrupted turn.
+  return state.sessions.slice(index).filter(item =>
+    item.authoringDock && item.activation === session.activation && item.fixture === session.fixture);
+}
+
+export function lastAuthoringTest(state, sessions) {
+  const ids = new Set(sessions.map(session => session.id));
+  const tests = state.runs.filter(run => !run.parentRun && ids.has(run.authoringSession));
+  return tests.find(run => run.status === 'completed') ?? tests[0];
+}
+
 export function runEvidence(state, run) {
   if (!run) return undefined;
   const session = state.sessions.find(item => item.id === run.session);
@@ -87,7 +101,7 @@ export function workspaceCapabilities({
       const saved = state.drafts.filter((item, index, all) =>
         all.findIndex(candidate => definitionOf(candidate) === definitionOf(item)) === index);
       const tested = runId ? state.runs.find(item => item.id === runId) :
-        state.runs.find(item => item.authoringSession === session.id && !item.parentRun);
+        lastAuthoringTest(state, authoringChatSessions(state, session));
       const requested = definitionId && saved.find(item => definitionOf(item) === definitionId);
       const observed = runEvidence(state, tested);
       const result = {

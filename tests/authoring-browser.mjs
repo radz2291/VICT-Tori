@@ -431,7 +431,7 @@ try {
     await page.unroute('**/api/studio/authoring-poll');
 
     const stop = await holdProposal();
-    const stopping = await send('Please revise the instructions to include a source label.');
+    const stopping = await send('Please revise the instructions to include a source label for this stopped request.');
     await stop.seen;
     await dock().getByRole('button', { name: 'Stop', exact: true }).click();
     stop.release();
@@ -442,8 +442,23 @@ try {
     assert.equal((await api(specialist.definitionId)).revision.id, finalResearch.revision.id);
     probes.stopped = stopped.run.id;
     await page.unroute('**/api/studio/authoring-poll');
-
     await clickRequest(button('Save'), 'save');
+    await page.reload();
+    await dock().getByText(/Your chat is saved/).waitFor();
+    await dock().getByText(/build and save Quellight with a Research specialist/).waitFor();
+    await dock().getByText(/a source label for this stopped request/).waitFor();
+    await dock().getByRole('button', { name: 'Inspect last test Run', exact: true }).click();
+    const restoredTest = await openDetails('Script evidence');
+    await restoredTest.getByText('READING-29:', { exact: false }).waitFor();
+    await tab('Agents').click();
+    const resumed = await result(await send('What did the specialist return? Please review that Run after Stop.', false));
+    assert.equal(resumed.run.status, 'completed', JSON.stringify(resumed.run));
+    assert.equal(resumed.run.session, stopped.run.session);
+    assert.equal(resumed.run.session, built.run.session);
+    assert.equal(actions(resumed.run, 'inspect').runId, secondRun.id);
+    assert.equal(resumed.state.sessions.filter(item => item.authoringDock && item.activation === pinned.version).length, 1);
+    probes.resumed = resumed.run.id;
+
     const variant = await result(await send('Could you draft a new weekly reviewer and leave it unsaved?'));
     assert.equal(actions(variant.run, 'assemble').status, 'created');
     await openDefinition('Weekly Reviewer');
@@ -514,6 +529,21 @@ try {
     await dock().getByText('No Studio tools were exposed.', { exact: true }).waitFor();
     await page.screenshot({ path: join(evidence, 'narrow-authoring-budget.png') });
     probes.execution = { legacy: legacyBudget, configured: expandedBudget, noTools };
+
+    const refreshPrompt = 'Please keep this message during refresh.';
+    await dock().getByRole('textbox', { name: 'Message', exact: true }).fill(refreshPrompt);
+    await dock().getByRole('button', { name: 'Send', exact: true }).click();
+    await page.waitForFunction(async session => (await (await fetch('/api/studio')).json()).runs.some(run =>
+      run.session === session && run.status === 'running'), noTools.session);
+    await page.reload();
+    await dock().getByText('The last message is still running…', { exact: true }).waitFor();
+    await dock().getByText(refreshPrompt, { exact: true }).waitFor();
+    await dock().getByText('The pending message completed after refresh.', { exact: true }).waitFor();
+    const refreshed = await api();
+    const refreshedSession = refreshed.sessions.find(item => item.id === noTools.session);
+    assert.equal(refreshedSession.messages.filter(message => message.text === refreshPrompt).length, 1);
+    assert.equal(refreshed.sessions.filter(item => item.authoringDock && item.activation === zeroTools.version).length, 1);
+    probes.refreshed = refreshed.runs.find(run => run.session === noTools.session).id;
   }
   const report = {
     live, chromium: browser.version(), authoringActivation: pinned, workspace: initial.workspace,

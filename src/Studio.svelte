@@ -52,6 +52,8 @@
   let sheetInvoker:HTMLElement|SVGElement|null=null;
   let loaded=$state(false), pending=$state(false), sending=$state(false);
   let authoringActivation=$state('');
+  let authoringActivationUnavailable=$state(false);
+  const authoringActivationKey=(workspace:string)=>'tori-authoring-activation:'+workspace;
   let authoringInput=$state('');
   let authoringMode=$state<'inspect'|'change'>('inspect');
   let authoringOptionsOpen=$state(false);
@@ -103,7 +105,16 @@
     .filter(revision=>revision.authoring&&(revision.workspaceAuthoring||revision.definition!==state.definition)&&revision.route===state.route));
   const selectedAuthoringActivation=$derived(authoringActivations.find(revision=>revision.version===authoringActivation));
   const workspaceAuthoring=$derived(!!selectedAuthoringActivation?.workspaceAuthoring);
-  const dockSession=$derived(workspaceAuthoring?state.sessions.find(session=>session.activation===authoringActivation&&session.authoringDock):undefined);
+  const dockChat=$derived(workspaceAuthoring?state.authoringChats?.find(chat=>chat.activation===authoringActivation):undefined);
+  const dockSession=$derived(state.sessions.find(session=>session.id===dockChat?.session));
+  const dockMessages=$derived((dockChat?.sessionIds??[]).flatMap(id=>state.sessions.find(session=>session.id===id)?.messages??[]));
+  const dockRun=$derived(dockSession&&state.runs.find(run=>run.session===dockSession.id&&!run.parentRun));
+  const dockBusy=$derived(dockRun?.status==='running');
+  const dockTestRun=$derived(dockChat?.testRun&&state.runs.find(run=>run.id===dockChat.testRun));
+  const dockRunLink=$derived(authoringResult?.run?state.runs.find(run=>run.id===authoringResult.run):dockRun);
+  const dockInterruption=$derived(dockSession?.interrupted&&!sending&&!dockBusy
+    ? (dockRun?.message??'The last turn was interrupted.')+' Your chat is saved. Send a new message to continue.'
+    : '');
   const authoringChoices=$derived(authoringActivations.map(revision=>({value:revision.version,label:revision.name+' · r'+revision.number})));
   const activeDefinitionIds=$derived(new Set(activeAgents.map(agent=>agent.definition)));
   const agentsNeedingActivation=$derived(agentDefinitions.filter(agent=>agent.savedRevision!==undefined&&!activeDefinitionIds.has(agent.id)));
@@ -321,7 +332,8 @@
     return result;
   }
   function applyState(next:any){
-    if(next.workspace!==state.workspace){
+    const workspaceChanged=next.workspace!==state.workspace;
+    if(workspaceChanged){
       authoringMode='inspect';
       if(next.workspace){
         try{
@@ -342,9 +354,28 @@
       }
     }
     state=next;
+    if(workspaceChanged)restoreAuthoringActivation();
     if(!next.sessions.some(item=>item.id===activeSession))activeSession=next.sessions[0]?.id??'';
     if(page==='Runs')syncRunSelection();
     else if(!next.runs.some(item=>item.id===activeRun))activeRun=next.runs[0]?.id??'';
+  }
+  function restoreAuthoringActivation(){
+    let saved:string|null=null;
+    try{saved=localStorage.getItem(authoringActivationKey(state.workspace));}catch{}
+    const available=(version:string)=>authoringActivations.some(item=>item.version===version);
+    authoringActivationUnavailable=!!saved&&!available(saved);
+    authoringActivation=saved?(authoringActivationUnavailable?'':saved):
+      state.authoringChats?.find(chat=>available(chat.activation))?.activation??'';
+  }
+  function selectAuthoringActivation(value:string){
+    authoringActivation=value;
+    authoringActivationUnavailable=false;
+    authoringOptionsOpen=false;
+    authoringResult=null;
+    authoringError='';
+    if(state.workspace){
+      try{localStorage.setItem(authoringActivationKey(state.workspace),value);}catch{}
+    }
   }
   function setAuthoringMode(value:string){
     authoringMode=value==='change'?'change':'inspect';
@@ -382,6 +413,8 @@
       const prefs=JSON.parse(localStorage.getItem('tori-v1a-layout')??'{}');
       layoutWidth=prefs.width??'Standard';
       assemblyDock=prefs.assemblyDock??prefs.layers??true;
+      if(mobile&&prefs.authoringOpen){sheet='Authoring Agent';mobileOpen=true;}
+      else authoringDock=prefs.authoringOpen===true;
       selection=prefs.selection??'';
       sessionSidebar=prefs.sessionSidebar??prefs.sessionLibrary??true;
       showSessionDescriptions=prefs.showSessionDescriptions??prefs.showSessionRevision??true;
@@ -397,7 +430,23 @@
       clearInterval(dayCheck);
     };
   });
-  $effect(()=>{if(loaded)localStorage.setItem('tori-v1a-layout',JSON.stringify({assemblyDock,width:layoutWidth,selection,sessionSidebar,showSessionDescriptions,runSidebar,showRunDescriptions,runGrouping,runScopePreference}));});
+  $effect(()=>{if(loaded)localStorage.setItem('tori-v1a-layout',JSON.stringify({assemblyDock,authoringOpen:mobile?mobileOpen&&sheet==='Authoring Agent':authoringDock,width:layoutWidth,selection,sessionSidebar,showSessionDescriptions,runSidebar,showRunDescriptions,runGrouping,runScopePreference}));});
+  $effect(()=>{
+    if(sending||!dockBusy)return;
+    const definition=state.definition;
+    const run=dockRun.id;
+    let disposed=false;
+    let timer:ReturnType<typeof setTimeout>;
+    const refresh=async()=>{
+      try{
+        const next=await request('',undefined,definition);
+        if(!disposed&&state.definition===definition&&dockRun?.id===run)applyState(next);
+      }catch{/* Keep the saved chat visible while the connection recovers. */}
+      if(!disposed)timer=setTimeout(refresh,500);
+    };
+    timer=setTimeout(refresh,500);
+    return ()=>{disposed=true;clearTimeout(timer);};
+  });
   $effect(()=>{
     const g=graph;
     const selected=untrack(()=>selection);
@@ -1110,7 +1159,7 @@
     const activation=authoringActivations.find(item=>item.version===authoringActivation);
     const workspace=!!activation?.workspaceAuthoring;
     const occurrenceId=workspace?workspaceOccurrence:editableOccurrence();
-    if(!activation||!occurrenceId||(!workspace&&!state.revision)||pending||sending)return;
+    if(!activation||!occurrenceId||(!workspace&&!state.revision)||pending||sending||dockBusy)return;
     const input=authoringInput.trim();
     if(!input)return;
     const turn:DraftTurn={
@@ -1120,7 +1169,7 @@
     const target={channel:turn.channel,draftId:turn.draftId,occurrenceId,revision:graph.revision,
       savedRevision:turn.savedRevision,...(workspace?{mode:authoringMode,hasDraft:graph.nodes.length>0,graph}:{instructions:instructions(graph)})};
     draftTurn=turn; sending=true; authoringError='';authoringResult=null;
-    authoringStatus='Starting authoring Session…';
+    authoringStatus='Opening authoring chat…';
     let pollTimer:ReturnType<typeof setTimeout>|undefined;
     try{
       const next=await request('/sessions',{activation:activation.version,sessionDefinition:activation.definition,authoringDock:workspace},turn.definition);
@@ -1178,14 +1227,12 @@
       authoringStatus='';
     }
   }
-  async function inspectAuthoringRun(){
-    const result=authoringResult;
-    if(!result?.run)return;
+  async function inspectAuthoringRun(run:{id:string;session:string}){
     changePage('Runs');
     inspectSessionScope=true;
-    activeSession=result.session;
-    runReturnSession=result.session;
-    await openRun(result.run,true);
+    activeSession=run.session;
+    runReturnSession=run.session;
+    await openRun(run.id,true);
   }
   type LayerBranch={id:string;title:string;connection?:string;children:LayerBranch[]};
   const layerRoots=$derived.by(()=>{
@@ -2290,24 +2337,20 @@
   {#if authoringChoices.length}
     <Dialog.Root bind:open={authoringOptionsOpen}>
       <Dialog.Trigger class="vict-btn vict-btn--quiet panel-shortcut history-options"
-        aria-label="Authoring options" title="Authoring options" disabled={sending}>
+        aria-label="Authoring options" title="Authoring options" disabled={sending||dockBusy}>
         <span aria-hidden="true">⋮</span>
       </Dialog.Trigger>
       <Dialog.Portal>
         <Dialog.Overlay class="sheet-shade studio-dialog-shade"/>
         <Dialog.Content class="mobile-sheet studio-dialog authoring-options-dialog">
           <Dialog.Title>Choose authoring activation</Dialog.Title>
-          {#if graph.nodes.length}
-            <Dialog.Description>Draft: {objectTitle('agent')}</Dialog.Description>
-          {:else}
-            <Dialog.Description class="visually-hidden">Choose which revision will respond in the Authoring Agent dock.</Dialog.Description>
-          {/if}
+          <Dialog.Description>
+            {#if graph.nodes.length}Draft: {objectTitle('agent')}. {/if}Each revision has its own chat.
+          </Dialog.Description>
           <div class="authoring-activation-field">
             <label for="authoring-activation">Authoring activation</label>
             <Select id="authoring-activation" name="authoring-activation" options={authoringChoices}
-              value={authoringActivation} disabled={sending} onChange={value=>{
-                authoringActivation=value;authoringOptionsOpen=false;authoringResult=null;authoringError='';
-              }}/>
+              value={authoringActivation} disabled={sending||dockBusy} onChange={selectAuthoringActivation}/>
           </div>
           <div class="launch-actions">
             <Dialog.Close class="vict-btn vict-btn--quiet">Cancel</Dialog.Close>
@@ -2323,30 +2366,41 @@
     <div class="authoring-feedback">
       {#if !state.provider}
         <Feedback message="Connect the provider for the selected activation on the local server."/>
-      {:else if authoringActivation&&!workspaceAuthoring&&!state.revision}
-        <Feedback message="Save this Agent Definition before authoring."/>
+      {:else if authoringActivationUnavailable}
+        <Feedback kind="error" message="The previous authoring activation is unavailable. Choose a revision in Authoring options to open its chat."/>
+      {:else if authoringActivation&&!workspaceAuthoring}
+        <Feedback message={state.revision?'This revision handles one instruction edit per Session. Choose a workspace authoring revision for a continuing chat.':'Save this Agent Definition before authoring.'}/>
       {/if}
-      {#if authoringStatus}<Feedback message={authoringStatus}/>{/if}
+      {#if authoringStatus||dockBusy}<Feedback message={authoringStatus||'The last message is still running…'}/>{/if}
       {#if authoringError}<Feedback kind="error" message={authoringError}/>{/if}
-      {#if authoringResult?.message}<Feedback kind={authoringResult.kind} message={authoringResult.message}/>{/if}
+      {#if dockInterruption}
+        <Feedback kind="error" message={dockInterruption}/>
+      {:else if authoringResult?.message}
+        <Feedback kind={authoringResult.kind} message={authoringResult.message}/>
+      {/if}
     </div>
-    <Patterns.PromptInput bind:value={authoringInput} busy={sending}
+    <Patterns.PromptInput bind:value={authoringInput} busy={sending||dockBusy}
       label={!authoringActivation||workspaceAuthoring?'Message':'Requested change'}
       placeholder={!authoringActivation||workspaceAuthoring?'Write a message…':'Describe an instruction change…'}
-      onSend={authoringActivation&&!sending&&!pending&&state.provider&&(workspaceAuthoring||state.revision)
+      onSend={authoringActivation&&!sending&&!dockBusy&&!pending&&state.provider&&(workspaceAuthoring||state.revision)
         ? ()=>void sendAuthoring() : undefined}
       onStop={draftTurn&&!draftTurn.stop.signal.aborted&&authoringStatus!=='Stopping…'?stopAuthoring:undefined}>
       {#snippet footer()}
         {#if workspaceAuthoring}
           <label class="visually-hidden" for="authoring-mode">Turn permission</label>
           <Select id="authoring-mode" name="authoring-mode" options={authoringModes}
-            value={authoringMode} disabled={sending} onChange={setAuthoringMode}/>
+            value={authoringMode} disabled={sending||dockBusy} onChange={setAuthoringMode}/>
         {/if}
       {/snippet}
     </Patterns.PromptInput>
-    {#if authoringResult?.run}
+    {#if dockRunLink||dockTestRun}
       <div class="authoring-run-action">
-        <ControlButton.Root class="vict-btn vict-btn--quiet" onclick={inspectAuthoringRun}>Inspect authoring Run</ControlButton.Root>
+        {#if dockRunLink}
+          <ControlButton.Root class="vict-btn vict-btn--quiet" onclick={()=>inspectAuthoringRun(dockRunLink)}>Inspect authoring Run</ControlButton.Root>
+        {/if}
+        {#if dockTestRun}
+          <ControlButton.Root class="vict-btn vict-btn--quiet" onclick={()=>inspectAuthoringRun(dockTestRun)}>Inspect last test Run</ControlButton.Root>
+        {/if}
       </div>
     {/if}
   </div>
@@ -2358,7 +2412,7 @@
       <Feedback kind="empty" message="Create and activate an agent with Draft Authoring to use this dock."/>
     {:else}
       {#key authoringActivation}
-        <Conversation messages={dockSession?.messages??[]} busy={sending} composer={authoringComposer}
+        <Conversation messages={dockMessages} busy={sending||dockBusy} composer={authoringComposer}
           emptyMessage={!authoringActivation?'Choose an activation from Authoring options.':workspaceAuthoring?'Start a conversation.':'Request an instruction change.'}/>
       {/key}
     {/if}

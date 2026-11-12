@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import { randomUUID } from 'node:crypto';
+import { setTimeout as delay } from 'node:timers/promises';
 
 process.env.TORI_EXECUTION_FIXTURE = 'a1-request-capture';
 
@@ -28,7 +29,15 @@ async function fixtureFetch(url, init) {
   const say = content => { delta = { role: 'assistant', content }; };
   const step = results.length;
 
-  if (prompt.includes('check disabled tool calls')) {
+  if (prompt.includes('wait for the authoring deadline')) {
+    await delay(30000, undefined, { signal: init.signal });
+    throw new Error('The host should interrupt the fixture.');
+  } else if (prompt.includes('keep this message during refresh')) {
+    await delay(5000, undefined, { signal: init.signal });
+    say('The pending message completed after refresh.');
+  } else if (prompt.startsWith('Authoring memory marker ')) {
+    say('Acknowledged ' + prompt);
+  } else if (prompt.includes('check disabled tool calls')) {
     assert.deepEqual(toolNames, [], 'The provider receives no tools with a zero tool budget.');
     assert.equal(body.tool_choice, undefined);
     say('No Studio tools were exposed.');
@@ -38,6 +47,13 @@ async function fixtureFetch(url, init) {
       if (step < 5) call('workspace_inspect', {});
       else say('Five synthetic inspections completed.');
     } else if (prompt.includes('review that Run')) {
+      if (prompt.includes('after Stop') || prompt.includes('after the deadline')) {
+        const history = body.messages.slice(0, lastUser);
+        assert.ok(history.some(message => message.role === 'user' && message.content.includes('build and save Quellight')));
+        assert.ok(history.some(message => message.role === 'assistant' && message.content.includes('I saved the composition')));
+        assert.ok(!history.some(message => message.role === 'tool' || message.tool_calls ||
+          (message.role === 'user' && /wait for the authoring deadline|stopped request/.test(message.content))));
+      }
       assert.equal(toolNames.length, 1, 'Review exposes only inspection to the provider.');
       if (!step) call('workspace_inspect', {});
       else {

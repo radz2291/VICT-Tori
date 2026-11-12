@@ -73,7 +73,7 @@ const refusal = z.object({
 const entries = [
   {
     key: 'inspect', effect: 'read',
-    description: 'Discover the current open draft, authorized actions, registered resources, saved definitions and recent Runs. To review evidence, give the exact Run ID or omit it to inspect the latest test in this conversation.',
+    description: 'Discover the current open draft, authorized actions, registered resources, saved definitions and recent Runs. To review evidence, give the exact Run ID or omit it to inspect the most recent completed test in this conversation, or the latest attempt if none completed.',
     schema: object({ runId: string(36), definitionId: string(80) }),
     input: z.object({ runId: uuid.optional(), definitionId: text(80).optional() }).strict(),
     output: z.object({
