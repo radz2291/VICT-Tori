@@ -9,10 +9,16 @@ const saveVerb=String.raw`(?:${verbs}|remembering|save|store|retain|record|keep|
 const hint=new RegExp(String.raw`\b(?:${verbs}|forget|remembering|save\s+(?:it|my\s+(?:memory|preference)))\b`,'iu');
 const command=new RegExp(String.raw`^(${verbs})\b([\s\S]*)$`,'iu');
 const negation=String.raw`(?:(?:do\s+not|don['’]t|never|must\s+not|should\s+not|not)\s+${saveVerb}\b|(?:do\s+not|don['’]t)\s+want\s+(?:you\s+)?to\s+${saveVerb}\b)`;
-const rescinded=new RegExp(String.raw`(?:^|[.:;,!?\n]\s*|\b(?:but|and|actually|instead)[, ]+)(?:please\s+)?${negation}`,'iu');
+const rescinded=new RegExp(String.raw`(?:^|[.:;,!?()\n\u2013\u2014]\s*|\b(?:but|and|actually|instead)[, ]+)(?:please\s+)?(?:${negation}|(?:never\s+mind|scratch\s+that)\b)`,'iu');
 const inverse=/^(?:don['’]t|do\s+not|never)\s+forget\b([\s\S]*)$/iu;
 const noPersistence=/\b(?:not\s+to\s+(?:save|store|retain|record|memorize|persist)|not\s+(?:as|in)\s+(?:a\s+)?(?:saved\s+)?memory|without\s+(?:saving|storing|retaining|memorizing|persisting))\b/iu;
-const temporary=/\b(?:(?:just|only)\s+(?:for|in)\s+|for\s+)(?:this|the current)\s+(?:reply|response|answer|turn|message|session|conversation|chat)\s*(?:only\b|[.;!,]|$)|\b(?:just|only)\s+(?:for\s+)?(?:now|today)\b/iu;
+const currentScope=String.raw`(?:this|the\s+current)\s+(?:reply|response|answer|turn|message|session|conversation|chat)`;
+const temporary=new RegExp([
+  String.raw`\b(?:just|only)\s+(?:for|in)\s+(?:the\s+rest\s+of\s+)?${currentScope}\b`,
+  String.raw`\bfor\s+(?:the\s+rest\s+of\s+)?${currentScope}(?:\s+only\b|\s*[:;,.!?\u2013\u2014]|\s*$)`,
+  String.raw`\b${currentScope}\s+only\b`,
+  String.raw`\b(?:just|only)\s+(?:for\s+)?(?:now|today)\b`,
+].join('|'),'iu');
 const metalinguistic=/^(?:is|was|means|refers to|stands for)\b|^(?:['"“‘\x60]).*\b(?:is|was|means)\s+(?:an? |the )?(?:quote|phrase|example|quotation)\b/iu;
 const courtesy=/^(?:(?:please|kindly|pls+|plz)\s+)+/iu;
 const wrapper=/^(?:(?:i\s+(?:want|need)\s+you\s+to|i['’]d\s+like\s+you\s+to|make\s+sure\s+you|be\s+sure\s+to)\s+)/iu;

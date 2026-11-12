@@ -167,6 +167,9 @@ test('real Studio turns pin policy, admit stored values and refuse scope, replay
       ['Please remember that these are words to quote, not to store.','negated-request'],
       ['Remember this for me.','clarification-needed'],
       ['Remember to send the update.','memory-or-reminder'],
+      ['Remember that our marker is amber — do not save it.','negated-request'],
+      ['Remember this for this chat: The temporary marker is amber.','temporary-request'],
+      ['Remember that I prefer an amber marker just for the rest of this chat.','temporary-request'],
       ["Don't forget to send the update.",'memory-or-reminder'],
     ]){
       const run=await turn(saveSession,prompt);
@@ -189,13 +192,15 @@ test('real Studio turns pin policy, admit stored values and refuse scope, replay
     assert.deepEqual((await memoryView(saveSession)).records,[]);
     await assert.rejects(req('/memory/confirm',{session:saveSession,run:ordinary.id,operation:randomUUID(),text:'not granted'}),/No confirmable/);
 
-    const fakeSession=await session(on.version);
-    const falseClaim=await turn(fakeSession,'Remember the false confirmation preference.');
-    assert.equal(falseClaim.status,'failed');
-    assert.equal(falseClaim.errorCode,'TORI_MEMORY_REPLY_UNCONFIRMED');
-    assert.equal((await runView(falseClaim.id)).draft,undefined);
-    assert.equal((await runView(falseClaim.id)).receipt,undefined);
-    assert.equal((await req('')).sessions.find(item=>item.id===fakeSession).messages.length,1);
+    for(const phrase of ['false confirmation','past-tense confirmation']){
+      const fakeSession=await session(on.version);
+      const falseClaim=await turn(fakeSession,'Remember the '+phrase+' preference.');
+      assert.equal(falseClaim.status,'failed');
+      assert.equal(falseClaim.errorCode,'TORI_MEMORY_REPLY_UNCONFIRMED');
+      assert.equal((await runView(falseClaim.id)).draft,undefined);
+      assert.equal((await runView(falseClaim.id)).receipt,undefined);
+      assert.equal((await req('')).sessions.find(item=>item.id===fakeSession).messages.length,1);
+    }
 
     const stoppedSession=await session(on.version);
     const stopping=turn(stoppedSession,'Remember the slow review preference.');
