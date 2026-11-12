@@ -2,7 +2,7 @@
 
 ## TORI-005 Authoring chat layout
 
-In the [Studio preview](http://127.0.0.1:48797/) on product `858b0ba09172a889db8a69d81d7f4a8766074f8b`, open the Authoring Agent dock and use **⋯ → Authoring activation** to select or switch the agent revision. Turn permission sits beside Send, and the budgets and Run link sit below the composer. [Desktop and narrow verification](docs/evidence/authoring-foundation/QUIET-AUTHORING.md)
+In the [Studio preview](http://127.0.0.1:48797/) on product `557288a90e74ea07de8e001f8545ca8bd00d6480`, open the Authoring Agent dock and click **⋯** to choose a revision in the centered activation dialog. Turn permission sits beside Send, and the budgets and Run link sit below the composer. [Desktop and narrow verification](docs/evidence/authoring-foundation/QUIET-AUTHORING.md)
 
 ## TORI-005 turn permission
 
