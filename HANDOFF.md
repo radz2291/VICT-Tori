@@ -1,5 +1,11 @@
 # TORI handoff
 
+## V1c Memory Foundation
+
+Use `codex/tori-v1c-memory-foundation` and the Work ticket for **V1c — Memory Foundation**. The [accepted slice contract](docs/implementation/MEMORY-FOUNDATION.md) is pinned at `8854562dda920f583e6cc1d80de51f6add6d7ba9` and starts from the accepted TORI-005 baseline. Follow the [Work protocol](docs/governance/ROLLADICE-WORK.md) when claiming the local implementation.
+
+First run and record all three probes against the pinned VICT and Mastra versions, including saved-memory retention independence in the LibSQL-backed store. Select and record one backing implementation before making implementation commits. Use the documented SQLite fallback if any probe fails or is inconclusive. Deliver the live save, fresh-Session recall, correct and forget walkthrough, the deterministic isolation and governance checks, and the independent candidate verdict for Radzi's review.
+
 ## TORI-005 Authoring continuity
 
 In the [Studio preview](http://127.0.0.1:48797/) on product `b349e547f4e144db47d63f89e0ef3c7c49db8c75`, reopen the Authoring Agent dock to see the remembered revision and its saved messages. After Stop or a deadline, send the next message in the same chat. **Inspect last test Run** opens the previous completed test. [Continuity verification](docs/evidence/authoring-foundation/CHAT-CONTINUITY.md)
