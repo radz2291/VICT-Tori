@@ -46,7 +46,7 @@ Before dependent implementation, prove that the pinned public delegation and exe
 
 Keep the parent and child pins and enforce the aggregate parent envelope across both. Reserve work before dispatch using the available parent allowance and the child's own limits. Count parent work and child work once each, including steps consumed by the question and answer. Track model steps, admitted tool calls and retries according to the installed counters. Keep deadlines and any available token or cost limits tied to their actual governing policy. Show limits, consumed and remaining amounts, and the applicable stop reason for the parent total and the child contribution. Render missing provider usage as unknown. Reopening or continuing the exchange keeps its prior budget accounting. This covers the applicable remainder of CAP-11. [Budget contracts](../specs/CONTRACTS.md#9-budgets-automation-and-evaluations)
 
-**Scope boundary.** This slice covers existing linked parent/child Runs and synchronous questions. Mode 2 and async Mode 3 belong to later work after Background Foundation is accepted. Wiring-level agent networks and handoffs are outside this slice. The existing governed runtime owns execution.
+**Scope boundary.** This slice covers existing linked parent/child Runs and synchronous questions. Mode 2 and async Mode 3 belong to later work after Background Foundation is accepted. Wiring-level agent networks, handoffs and a second runtime are outside this slice. The existing governed runtime owns execution.
 
 ## Acceptance
 
