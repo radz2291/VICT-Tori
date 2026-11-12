@@ -69,12 +69,16 @@ try {
   async function openAuthoring(version) {
     const toggle = page.locator('.agent-dock-actions').getByRole('button', { name: 'Authoring Agent', exact: true });
     if (await toggle.getAttribute('aria-expanded') !== 'true') await toggle.click();
-    const picker = dock().locator('#authoring-activation');
+    const options = page.getByRole('button', { name: 'Authoring options', exact: true });
+    await options.click();
+    const picker = page.getByLabel('Authoring activation', { exact: true });
     if (await picker.inputValue() !== version) await picker.selectOption(version);
+    else await page.keyboard.press('Escape');
+    await picker.waitFor({ state: 'hidden' });
   }
   async function send(prompt, change = true) {
     if (change !== null) await dock().locator('#authoring-mode').selectOption(change ? 'change' : 'inspect');
-    await dock().locator('#authoring-instructions').fill(prompt);
+    await dock().getByRole('textbox', { name: 'Message', exact: true }).fill(prompt);
     const reply = page.waitForResponse(response => response.url() === url + '/api/studio/turn' &&
       response.request().method() === 'POST', { timeout: 130000 });
     await dock().getByRole('button', { name: 'Send', exact: true }).click();
@@ -168,6 +172,9 @@ try {
         label + ' should stay within the authoring panel');
     }
     const feed = await container.locator('.vict-conversation').boundingBox();
+    const dockContent = await container.locator('.authoring-dock-content').boundingBox();
+    assert.ok(feed && dockContent && feed.height >= dockContent.height * 0.55,
+      'The transcript should occupy most of the authoring panel');
     const scrollControl = container.getByRole('button', { name: 'Scroll to latest message' });
     const scrollBounds = await scrollControl.boundingBox();
     assert.ok(feed && scrollBounds && feed.y + feed.height <= scrollBounds.y + 1,
@@ -263,7 +270,7 @@ try {
   assert.deepEqual((await api(specialist.definitionId)).activation, unchanged.activation);
 
   if (!live) {
-    await page.setViewportSize({ width: 1531, height: 668 });
+    await page.setViewportSize({ width: 1106, height: 668 });
     const desktopDock = page.getByRole('complementary', { name: 'Authoring Agent' });
     const desktopReply = await checkMarkdown(desktopDock, 'Authoring dock');
     await desktopReply.getByText('Bindings', { exact: true }).scrollIntoViewIfNeeded();
@@ -437,7 +444,7 @@ try {
     assert.deepEqual(configured.execution, { maxSteps: 7, maxToolCalls: 5, maxRetries: 2 });
     await page.reload();
     await openAuthoring(pinned.version);
-    await dock().getByText('Per turn: 4 model steps · 3 tool calls', { exact: true }).waitFor();
+    await dock().getByText('4 steps · 3 tool calls', { exact: true }).waitFor();
     const legacyBudget = (await result(await send('Please compare execution budgets.', false))).run;
     assert.equal(legacyBudget.activation, pinned.version);
     assert.equal(legacyBudget.errorCode, 'TORI_CAPABILITY_CALL_LIMIT');
@@ -448,7 +455,7 @@ try {
     await dock().locator('#authoring-mode').selectOption('change');
     await openAuthoring(configured.version);
     assert.equal(await dock().locator('#authoring-mode').inputValue(), 'change');
-    await dock().getByText('Per turn: 7 model steps · 5 tool calls', { exact: true }).waitFor();
+    await dock().getByText('7 steps · 5 tool calls', { exact: true }).waitFor();
     const expandedBudget = (await result(await send('Please compare execution budgets.', false))).run;
     assert.equal(expandedBudget.activation, configured.version);
     assert.equal(expandedBudget.status, 'completed', JSON.stringify(expandedBudget));
@@ -471,7 +478,7 @@ try {
     const zeroTools = (await clickRequest(page.getByRole('button', { name: /^Activate r\d+$/ }), 'activate')).activation;
     assert.deepEqual(zeroTools.execution, { maxSteps: 1, maxToolCalls: 0, maxRetries: 2 });
     await openAuthoring(zeroTools.version);
-    await dock().getByText('Per turn: 1 model step · 0 tool calls', { exact: true }).waitFor();
+    await dock().getByText('1 step · 0 tool calls', { exact: true }).waitFor();
     const noTools = (await result(await send('Please check disabled tool calls.', false))).run;
     assert.equal(noTools.status, 'completed', JSON.stringify(noTools));
     assert.equal(noTools.modelSteps, 1);

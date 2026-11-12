@@ -5,10 +5,11 @@
   import { Button, ControlScope, Feedback, Select, StatusBadge } from '@victframework/ui-svelte';
   import { Button as ControlButton, Dialog, Menubar, Tooltip } from '@victframework/ui-svelte/primitives';
   import { DropdownMenu } from '@victframework/ui-svelte/catalog/dropdown-menu';
+  import { Popover } from '@victframework/ui-svelte/catalog/popover';
   import { Accordion } from '@victframework/ui-svelte/catalog/accordion';
   import { Tabs } from '@victframework/ui-svelte/catalog/tabs';
   import { Toggle } from '@victframework/ui-svelte/catalog/toggle';
-  import { Badge, Conversation, Input, Patterns, Textarea, type ConversationMessage } from '@victframework/ui-ai-svelte';
+  import { Badge, Conversation, Input, Patterns, type ConversationMessage } from '@victframework/ui-ai-svelte';
   import { SvelteFlow, SvelteFlowProvider, Background, connectionIssueForTopology, type Connection, type Edge, type IsValidConnection } from '@victframework/ui-flow-svelte';
   import AssemblyNode, { promptWidths, promptHeights } from './AssemblyNode.svelte';
   import AssemblyWire, { type AssemblyWireEdge } from './AssemblyWire.svelte';
@@ -54,6 +55,7 @@
   let authoringActivation=$state('');
   let authoringInput=$state('');
   let authoringMode=$state<'inspect'|'change'>('inspect');
+  let authoringOptionsOpen=$state(false);
   const authoringModeKey=(workspace:string)=>'tori-authoring-permission:'+workspace;
   const authoringModes=[
     {value:'inspect',label:'Review only'},
@@ -1848,7 +1850,7 @@
       <div class="agent-workspace" class:has-agent-dock={!mobile&&authoringVisible} class:has-inspector-dock={!mobile&&assemblyVisible}>
         {#if !mobile&&authoringVisible}
           <aside class="agent-left-dock" aria-label="Authoring Agent">
-            <div class="library-tabbar"><h2>Authoring Agent</h2></div>
+            <div class="library-tabbar"><h2>Authoring Agent</h2>{@render authoringOptions()}</div>
             {@render authoringBody()}
           </aside>
         {/if}
@@ -2145,6 +2147,7 @@
       <Dialog.Title class={executionPage?'execution-sidebar-title':undefined}>{executionPage?page:sheet}</Dialog.Title>
       <div class="sheet-top-actions">
         {#if executionPage}{@render executionHeaderActions()}{/if}
+        {#if !executionPage&&sheet==='Authoring Agent'}{@render authoringOptions()}{/if}
         <Dialog.Close class="menu-trigger">Close</Dialog.Close>
       </div>
     </div>
@@ -2284,48 +2287,88 @@
   </Tabs.Root>
 {/snippet}
 
-{#snippet authoringBody()}
-  <div class="authoring-dock-content">
-    {#if graph.nodes.length}
-      <p>Current draft: <strong>{objectTitle('agent')}</strong></p>
-    {/if}
-    {#if !authoringChoices.length}
-      <Feedback kind="empty" message="Create and activate an agent with Draft Authoring to use this dock."/>
-    {:else}
-      <label for="authoring-activation">Authoring activation</label>
-      <Select id="authoring-activation" name="authoring-activation" options={authoringChoices}
-        value={authoringActivation} disabled={sending} onChange={value=>{
-          authoringActivation=value;authoringResult=null;authoringError='';
-        }}/>
-      {#if dockSession?.messages.length}
-        <Conversation messages={dockSession.messages} composer={readOnlyTurn} inputLabel="Authoring conversation"/>
+{#snippet authoringOptions()}
+  {#if authoringChoices.length}
+    <Popover.Root bind:open={authoringOptionsOpen}>
+      <Popover.Trigger class="vict-btn vict-btn--quiet panel-shortcut history-options"
+        aria-label="Authoring options" title="Authoring options" disabled={sending}>
+        <span aria-hidden="true">⋮</span>
+      </Popover.Trigger>
+      <Popover.Portal>
+        <Popover.Content class="menu-content history-options-menu authoring-options-panel" align="end" sideOffset={4}
+          collisionPadding={10} aria-label="Authoring options">
+          <label for="authoring-activation">Authoring activation</label>
+          <Select id="authoring-activation" name="authoring-activation" options={authoringChoices}
+            value={authoringActivation} disabled={sending} onChange={value=>{
+              authoringActivation=value;authoringOptionsOpen=false;authoringResult=null;authoringError='';
+            }}/>
+        </Popover.Content>
+      </Popover.Portal>
+    </Popover.Root>
+  {/if}
+{/snippet}
+
+{#snippet authoringComposer()}
+  <div class="authoring-composer">
+    <div class="authoring-feedback">
+      {#if !state.provider}
+        <Feedback message="Connect the provider for the selected activation on the local server."/>
+      {:else if authoringActivation&&!workspaceAuthoring&&!state.revision}
+        <Feedback message="Save this Agent Definition before authoring."/>
       {/if}
-      <form class="draft-authoring-form" onsubmit={event=>{event.preventDefault();void sendAuthoring();}}>
+      {#if authoringStatus}<Feedback message={authoringStatus}/>{/if}
+      {#if authoringError}<Feedback kind="error" message={authoringError}/>{/if}
+      {#if authoringResult?.message}<Feedback kind={authoringResult.kind} message={authoringResult.message}/>{/if}
+    </div>
+    <Patterns.PromptInput bind:value={authoringInput} busy={sending}
+      label={!authoringActivation||workspaceAuthoring?'Message':'Requested change'}
+      placeholder={!authoringActivation||workspaceAuthoring?'Write a message…':'Describe an instruction change…'}
+      onSend={authoringActivation&&!sending&&!pending&&state.provider&&(workspaceAuthoring||state.revision)
+        ? ()=>void sendAuthoring() : undefined}
+      onStop={draftTurn&&!draftTurn.stop.signal.aborted&&authoringStatus!=='Stopping…'?stopAuthoring:undefined}>
+      {#snippet footer()}
         {#if workspaceAuthoring}
-          <label for="authoring-mode">Turn permission</label>
+          <label class="visually-hidden" for="authoring-mode">Turn permission</label>
           <Select id="authoring-mode" name="authoring-mode" options={authoringModes}
             value={authoringMode} disabled={sending} onChange={setAuthoringMode}/>
         {/if}
-        <label for="authoring-instructions">{workspaceAuthoring?'Message':'Requested change'}</label>
-        <Textarea id="authoring-instructions" class="tori-field" rows={4} bind:value={authoringInput} disabled={sending}/>
+      {/snippet}
+    </Patterns.PromptInput>
+    {#if selectedAuthoringActivation?.execution||authoringResult?.run}
+      <div class="authoring-meta">
         {#if selectedAuthoringActivation?.execution}
           {@const limits=selectedAuthoringActivation.execution}
-          <p class="muted authoring-budget">Per turn: {limits.maxSteps} model {limits.maxSteps===1?'step':'steps'} · {limits.maxToolCalls} tool {limits.maxToolCalls===1?'call':'calls'}</p>
+          <p class="muted authoring-budget" title="Model steps and tool calls per turn">{limits.maxSteps} {limits.maxSteps===1?'step':'steps'} · {limits.maxToolCalls} tool {limits.maxToolCalls===1?'call':'calls'}</p>
         {/if}
-        <Button label="Send" type="submit" disabled={!authoringActivation||!authoringInput.trim()||sending||pending||(!workspaceAuthoring&&!state.revision)||!state.provider}/>
-        {#if draftTurn}<Button label="Stop" variant="secondary" disabled={draftTurn.stop.signal.aborted||authoringStatus==='Stopping…'}
-          onclick={stopAuthoring}/>{/if}
-      </form>
-      {#if !state.provider}<Feedback message="Connect the provider for the selected activation on the local server."/>{/if}
-      {#if !workspaceAuthoring&&!state.revision}<Feedback message="Save this Agent Definition before authoring."/>{/if}
+        {#if authoringResult?.run}
+          <ControlButton.Root class="vict-btn vict-btn--quiet" onclick={inspectAuthoringRun}>Inspect authoring Run</ControlButton.Root>
+        {/if}
+      </div>
     {/if}
-    {#if authoringStatus}<Feedback message={authoringStatus}/>{/if}
-    {#if authoringError}<Feedback kind="error" message={authoringError}/>{/if}
-    {#if authoringResult}
-      {#if authoringResult.message}<Feedback kind={authoringResult.kind} message={authoringResult.message}/>{/if}
-      {#if authoringResult.run}
-        <Button label="Inspect authoring Run" variant="secondary" onclick={inspectAuthoringRun}/>
-      {/if}
+  </div>
+{/snippet}
+
+{#snippet authoringBody()}
+  <div class="authoring-dock-content">
+    {#if !authoringChoices.length}
+      <Feedback kind="empty" message="Create and activate an agent with Draft Authoring to use this dock."/>
+    {:else}
+      <div class="authoring-context">
+        {#if selectedAuthoringActivation}
+          {@const label=selectedAuthoringActivation.name+' · r'+selectedAuthoringActivation.number}
+          <p title={'Authoring activation: '+label}>{label}</p>
+        {/if}
+        {#if graph.nodes.length}
+          <p class="muted" title={objectTitle('agent')}>Draft: {objectTitle('agent')}</p>
+        {/if}
+      </div>
+      {#key authoringActivation}
+        <Conversation messages={dockSession?.messages??[]} busy={sending} composer={authoringComposer}
+          emptyMessage={!authoringActivation?'Choose an activation from Authoring options.':workspaceAuthoring?'Start a conversation.':'Request an instruction change.'}/>
+      {/key}
+    {/if}
+    {#if !authoringChoices.length&&authoringError}
+      <Feedback kind="error" message={authoringError}/>
     {/if}
   </div>
 {/snippet}

@@ -66,10 +66,14 @@ try {
   const openAuthoring = async (version) => {
     const toggle=page.locator('.agent-dock-actions').getByRole('button',{name:'Authoring Agent',exact:true});
     if (await toggle.getAttribute('aria-expanded') !== 'true') await toggle.click();
-    await field('authoring-activation').selectOption(version);
+    await authoring.getByRole('button', { name: 'Authoring options', exact: true }).click();
+    const picker = page.getByLabel('Authoring activation', { exact: true });
+    if (await picker.inputValue() !== version) await picker.selectOption(version);
+    else await page.keyboard.press('Escape');
+    await picker.waitFor({ state: 'hidden' });
   };
   async function send(prompt) {
-    await field('authoring-instructions').fill(prompt);
+    await page.getByRole('textbox', { name: 'Requested change', exact: true }).fill(prompt);
     const reply = page.waitForResponse(r => r.url() === url + '/api/studio/turn' && r.request().method() === 'POST', { timeout: 120000 });
     await authoring.getByRole('button', { name: 'Send', exact: true }).click();
     return { reply };

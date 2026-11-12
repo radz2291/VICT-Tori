@@ -328,19 +328,36 @@ dt{color:#a4adbb}dd{margin:0;overflow-wrap:anywhere}.hash{font:11px/1.5 ui-monos
 .agent-selection-content .configure-identity{grid-template-columns:minmax(0,1fr)}
 .assembly-node-section .layers-body > .library-filter{margin-inline:0}
 .assembly-node-section .layers-list{padding-inline:0;overflow:visible}
-.draft-authoring-form{display:grid;gap:var(--vict-space-1);margin-block-start:var(--vict-space-3)}
-.draft-authoring-form label{margin:0}
-.draft-authoring-form .authoring-budget{margin:0;font-size:12px}
 .authoring-dock-content{
   display:flex;flex-direction:column;flex:1;min-height:0;min-width:0
 }
-.authoring-dock-content > :not(.vict-ai-conversation){flex:none}
-.authoring-dock-content > p{margin:0 0 var(--vict-space-2)}
-.authoring-dock-content > .vict-btn{align-self:flex-start;margin-block-start:var(--vict-space-2)}
-.authoring-dock-content > .vict-ai.vict-ai-conversation{
-  flex:1 1 auto;height:auto;min-height:5rem;max-height:min(36dvh,23rem);
-  margin-block-start:var(--vict-space-3)
+.authoring-context{flex:none;min-width:0;padding-block-end:var(--vict-space-2)}
+.authoring-context p{margin:0;padding-inline:var(--vict-space-1);font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tori-scope .authoring-composer .vict-select{
+  width:auto;max-width:100%;min-height:28px;margin:0;padding:2px var(--vict-space-1);
+  border-color:transparent;background-color:transparent;font-size:12px;text-overflow:ellipsis
 }
+.tori-scope .authoring-composer .vict-select:hover:not(:disabled){border-color:var(--vict-color-border)}
+.authoring-options-panel{display:grid;gap:var(--vict-space-1);width:min(230px,calc(100vw - 24px));padding:var(--vict-space-2)}
+.authoring-options-panel label{font-size:12px}
+.authoring-options-panel .vict-select{min-width:0;width:100%;margin:0}
+.authoring-dock-content > .vict-ai.vict-ai-conversation{
+  flex:1 1 auto;height:auto;min-height:10rem
+}
+.authoring-composer{flex:none;min-width:0;padding-block-start:var(--vict-space-1)}
+.tori-scope .authoring-composer .vict-conversation-input{padding:0}
+.tori-scope .authoring-composer .vict-ai-composer{border-color:var(--vict-color-border)}
+.tori-scope .authoring-composer .vict-conversation-textarea{min-height:40px;max-height:112px;padding:8px}
+.tori-scope .authoring-composer .vict-conversation-input-row{justify-content:space-between;padding:2px 6px 6px;gap:var(--vict-space-1)}
+.authoring-composer .vict-conversation-input-row > span{min-width:0}
+.authoring-feedback .vict-state[role='status']{
+  margin:0 0 var(--vict-space-1);padding:0 var(--vict-space-1);border:0;background:transparent;
+  color:var(--vict-color-textMuted);font-size:12px
+}
+.authoring-feedback .vict-alert{margin:0 0 var(--vict-space-1);padding:var(--vict-space-1) var(--vict-space-2)}
+.authoring-meta{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:0 var(--vict-space-2);margin-top:var(--vict-space-1)}
+.authoring-meta .authoring-budget{margin:0;padding-inline:var(--vict-space-1);font-size:11px}
+.tori-scope .authoring-meta .vict-btn{margin:0 0 0 auto;padding-inline:var(--vict-space-1);font-size:11px}
 .authoring-dock-content .vict-ai.vict-ai-conversation .vict-conversation{
   overscroll-behavior:contain;
   --scroll-fade-b-size:.5rem
@@ -367,7 +384,7 @@ dt{color:#a4adbb}dd{margin:0;overflow-wrap:anywhere}.hash{font:11px/1.5 ui-monos
   .vict-controls .mobile-sheet[data-dialog-content]:has(> .authoring-dock-content > .vict-ai-conversation){
     display:flex;flex-direction:column;height:78dvh
   }
-  .mobile-sheet .authoring-dock-content > .vict-ai.vict-ai-conversation{max-height:25dvh}
+  .tori-scope .mobile-sheet .authoring-composer .vict-select{min-height:36px}
 }
 @media(max-width:720px){.tori-scope .agent-dock-tablist [role=tab]{min-height:42px}}
 .layers-body{display:flex;flex-direction:column;min-width:0;min-height:0;flex:1}
