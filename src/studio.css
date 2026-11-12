@@ -91,6 +91,7 @@ aside h2,.mobile-sheet h2{font-size:13px;margin:0 0 20px}aside h3,.mobile-sheet 
 :is(.graph-node[data-kind=child],.node-port[data-port=child]){--port-color:#b8a8e1}
 .tori-field,.studio .vict-select,.mobile-sheet .vict-select{width:100%;border:1px solid var(--vict-color-border);border-radius:5px;padding:6px 8px;min-height:31px}
 .tori-scope :is(.tori-field,select.vict-select,.vict-ai-composer){background:var(--studio-field);color:var(--vict-color-text);border-color:var(--vict-color-border)}
+.tori-scope select.vict-select option{background-color:var(--studio-field);color:var(--vict-color-text)}
 textarea.tori-field{resize:vertical;max-height:145px}
 label{display:block;font-weight:550;font-size:11px;color:#c4cbd7;margin:5px 0 3px}label span{font-weight:400;color:#a9bbec}
 .inspector .vict-btn,.mobile-sheet .vict-btn{white-space:normal}
@@ -331,11 +332,9 @@ dt{color:#a4adbb}dd{margin:0;overflow-wrap:anywhere}.hash{font:11px/1.5 ui-monos
 .authoring-dock-content{
   display:flex;flex-direction:column;flex:1;min-height:0;min-width:0
 }
-.authoring-context{flex:none;min-width:0;padding-block-end:var(--vict-space-2)}
-.authoring-context p{margin:0;padding-inline:var(--vict-space-1);font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .tori-scope .authoring-composer .vict-select{
   width:auto;max-width:100%;min-height:28px;margin:0;padding:2px var(--vict-space-1);
-  border-color:transparent;background-color:transparent;font-size:12px;text-overflow:ellipsis
+  border-color:transparent;font-size:12px;text-overflow:ellipsis
 }
 .tori-scope .authoring-composer .vict-select:hover:not(:disabled){border-color:var(--vict-color-border)}
 .authoring-dock-content > .vict-ai.vict-ai-conversation{
@@ -352,9 +351,8 @@ dt{color:#a4adbb}dd{margin:0;overflow-wrap:anywhere}.hash{font:11px/1.5 ui-monos
   color:var(--vict-color-textMuted);font-size:12px
 }
 .authoring-feedback .vict-alert{margin:0 0 var(--vict-space-1);padding:var(--vict-space-1) var(--vict-space-2)}
-.authoring-meta{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:0 var(--vict-space-2);margin-top:var(--vict-space-1)}
-.authoring-meta .authoring-budget{margin:0;padding-inline:var(--vict-space-1);font-size:11px}
-.tori-scope .authoring-meta .vict-btn{margin:0 0 0 auto;padding-inline:var(--vict-space-1);font-size:11px}
+.authoring-run-action{display:flex;justify-content:flex-end;margin-top:var(--vict-space-1)}
+.tori-scope .authoring-run-action .vict-btn{margin:0;padding-inline:var(--vict-space-1);font-size:11px}
 .authoring-dock-content .vict-ai.vict-ai-conversation .vict-conversation{
   overscroll-behavior:contain;
   --scroll-fade-b-size:.5rem

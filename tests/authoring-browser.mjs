@@ -73,6 +73,7 @@ try {
     await options.click();
     const dialog = page.getByRole('dialog', { name: 'Choose authoring activation', exact: true });
     const picker = dialog.getByLabel('Authoring activation', { exact: true });
+    await checkSelectTheme(picker);
     const bounds = await dialog.boundingBox();
     const viewport = page.viewportSize();
     assert.ok(bounds && Math.abs(bounds.x + bounds.width / 2 - viewport.width / 2) < 3 &&
@@ -105,6 +106,26 @@ try {
     const details = page.getByRole('region', { name: 'Run details content' });
     await details.getByRole('heading', { name, exact: true }).scrollIntoViewIfNeeded();
     return details;
+  }
+  async function checkSelectTheme(picker) {
+    const options = await picker.evaluate(select => {
+      const luminance = color => color.match(/\d+/g).slice(0, 3).map(Number)
+        .map(value => value / 255)
+        .map(value => value <= .04045 ? value / 12.92 : ((value + .055) / 1.055) ** 2.4)
+        .reduce((sum, value, channel) => sum + value * [.2126, .7152, .0722][channel], 0);
+      const field = getComputedStyle(select);
+      return Array.from(select.options, option => {
+        const style = getComputedStyle(option);
+        const light = luminance(style.color);
+        const dark = luminance(style.backgroundColor);
+        return {
+          shared: style.color === field.color && style.backgroundColor === field.backgroundColor,
+          contrast: (Math.max(light, dark) + .05) / (Math.min(light, dark) + .05),
+        };
+      });
+    });
+    assert.ok(options.length && options.every(option => option.shared && option.contrast >= 4.5),
+      'Select options should inherit the same readable Studio colors as the field');
   }
   async function checkMarkdown(container, view) {
     const markdown = container.locator('.vict-ai-markdown').filter({
@@ -171,6 +192,9 @@ try {
     return markdown;
   }
   async function checkComposer(container) {
+    await checkSelectTheme(container.getByRole('combobox', { name: 'Turn permission', exact: true }));
+    assert.equal(await container.getByText(/^(?:Draft: |Authoring Agent · r\d+$|\d+ steps? · \d+ tool calls?$)/).count(), 0,
+      'Authoring context and budgets should stay out of the chat');
     const bounds = await container.boundingBox();
     for (const label of ['Send', 'Inspect authoring Run']) {
       const control = await container.getByRole('button', { name: label, exact: true }).boundingBox();
@@ -450,7 +474,6 @@ try {
     assert.deepEqual(configured.execution, { maxSteps: 7, maxToolCalls: 5, maxRetries: 2 });
     await page.reload();
     await openAuthoring(pinned.version);
-    await dock().getByText('4 steps · 3 tool calls', { exact: true }).waitFor();
     const legacyBudget = (await result(await send('Please compare execution budgets.', false))).run;
     assert.equal(legacyBudget.activation, pinned.version);
     assert.equal(legacyBudget.errorCode, 'TORI_CAPABILITY_CALL_LIMIT');
@@ -461,7 +484,6 @@ try {
     await dock().locator('#authoring-mode').selectOption('change');
     await openAuthoring(configured.version);
     assert.equal(await dock().locator('#authoring-mode').inputValue(), 'change');
-    await dock().getByText('7 steps · 5 tool calls', { exact: true }).waitFor();
     const expandedBudget = (await result(await send('Please compare execution budgets.', false))).run;
     assert.equal(expandedBudget.activation, configured.version);
     assert.equal(expandedBudget.status, 'completed', JSON.stringify(expandedBudget));
@@ -484,7 +506,6 @@ try {
     const zeroTools = (await clickRequest(page.getByRole('button', { name: /^Activate r\d+$/ }), 'activate')).activation;
     assert.deepEqual(zeroTools.execution, { maxSteps: 1, maxToolCalls: 0, maxRetries: 2 });
     await openAuthoring(zeroTools.version);
-    await dock().getByText('1 step · 0 tool calls', { exact: true }).waitFor();
     const noTools = (await result(await send('Please check disabled tool calls.', false))).run;
     assert.equal(noTools.status, 'completed', JSON.stringify(noTools));
     assert.equal(noTools.modelSteps, 1);

@@ -41,7 +41,7 @@ For a draft edit, verify the expected revision at commit, preserve intervening m
 
 The Agent node's Execution fields and Configure's Advanced fields edit the same draft. Max model steps, Max tool calls and Max model retries are saved with the definition and pinned by VICT on activation. Workspace authoring accepts the installed bounded policy ranges (1–64 steps, 0–64 tool calls and 0–8 retries). Defaults help start a draft and can be overridden. An existing activation keeps its settings until the operator explicitly selects a new activation. A zero tool budget gives the model a turn without a tool catalog.
 
-The authoring dock displays the selected activation's step and tool budgets before Send. The Run records its limits and observed usage and distinguishes a step stop from a refused additional tool call. Node settings operate within the host deadline, the registered capability scope, and the operator's per-turn permission. They do not widen grants, child or test boundaries, or replay an action.
+Execution settings show the agent's step and tool budgets. Run details record the limits used by that turn and observed usage, and distinguish a step stop from a refused additional tool call. Node settings operate within the host deadline, the registered capability scope, and the operator's per-turn permission. They do not widen grants, child or test boundaries, or replay an action.
 
 ## Registered tools and later coding work
 

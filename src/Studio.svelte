@@ -2297,7 +2297,11 @@
         <Dialog.Overlay class="sheet-shade studio-dialog-shade"/>
         <Dialog.Content class="mobile-sheet studio-dialog authoring-options-dialog">
           <Dialog.Title>Choose authoring activation</Dialog.Title>
-          <Dialog.Description class="visually-hidden">Choose which revision will respond in the Authoring Agent dock.</Dialog.Description>
+          {#if graph.nodes.length}
+            <Dialog.Description>Draft: {objectTitle('agent')}</Dialog.Description>
+          {:else}
+            <Dialog.Description class="visually-hidden">Choose which revision will respond in the Authoring Agent dock.</Dialog.Description>
+          {/if}
           <div class="authoring-activation-field">
             <label for="authoring-activation">Authoring activation</label>
             <Select id="authoring-activation" name="authoring-activation" options={authoringChoices}
@@ -2340,15 +2344,9 @@
         {/if}
       {/snippet}
     </Patterns.PromptInput>
-    {#if selectedAuthoringActivation?.execution||authoringResult?.run}
-      <div class="authoring-meta">
-        {#if selectedAuthoringActivation?.execution}
-          {@const limits=selectedAuthoringActivation.execution}
-          <p class="muted authoring-budget" title="Model steps and tool calls per turn">{limits.maxSteps} {limits.maxSteps===1?'step':'steps'} · {limits.maxToolCalls} tool {limits.maxToolCalls===1?'call':'calls'}</p>
-        {/if}
-        {#if authoringResult?.run}
-          <ControlButton.Root class="vict-btn vict-btn--quiet" onclick={inspectAuthoringRun}>Inspect authoring Run</ControlButton.Root>
-        {/if}
+    {#if authoringResult?.run}
+      <div class="authoring-run-action">
+        <ControlButton.Root class="vict-btn vict-btn--quiet" onclick={inspectAuthoringRun}>Inspect authoring Run</ControlButton.Root>
       </div>
     {/if}
   </div>
@@ -2359,15 +2357,6 @@
     {#if !authoringChoices.length}
       <Feedback kind="empty" message="Create and activate an agent with Draft Authoring to use this dock."/>
     {:else}
-      <div class="authoring-context">
-        {#if selectedAuthoringActivation}
-          {@const label=selectedAuthoringActivation.name+' · r'+selectedAuthoringActivation.number}
-          <p title={'Authoring activation: '+label}>{label}</p>
-        {/if}
-        {#if graph.nodes.length}
-          <p class="muted" title={objectTitle('agent')}>Draft: {objectTitle('agent')}</p>
-        {/if}
-      </div>
       {#key authoringActivation}
         <Conversation messages={dockSession?.messages??[]} busy={sending} composer={authoringComposer}
           emptyMessage={!authoringActivation?'Choose an activation from Authoring options.':workspaceAuthoring?'Start a conversation.':'Request an instruction change.'}/>
