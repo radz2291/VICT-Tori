@@ -172,6 +172,10 @@ test('real Studio turns pin policy, admit stored values and refuse scope, replay
       ['Remember that I prefer an amber marker just for the rest of this chat.','temporary-request'],
       ['Remember that for the rest of this chat I want short notes.','temporary-request'],
       ['Remember: for this conversation use short titles.','temporary-request'],
+      ['Remember: use short titles in this chat.','temporary-request'],
+      ['Remember that I want short notes during this chat.','temporary-request'],
+      ['Remember that I want short notes until this chat ends.','temporary-request'],
+      ['Remember that I prefer short notes, but please do not put that in your memory.','negated-request'],
       ['Remember that I prefer short notes — on second thought don’t save it.','negated-request'],
       ['Remember that I prefer short notes. Actually, I don’t want you to save it.','negated-request'],
       ["Don't forget to send the update.",'memory-or-reminder'],
@@ -187,6 +191,12 @@ test('real Studio turns pin policy, admit stored values and refuse scope, replay
         assert.equal((await memoryView(saveSession)).turns.find(turn=>turn.run===run.id).request.reason,reason);
       }
     }
+    const priorRecall=await turn(saveSession,'Do you remember when the last planning brief was due?');
+    assert.equal(priorRecall.status,'completed');
+    assert.equal((await runView(priorRecall.id)).request.reason,'recall-question');
+    assert.equal((await runView(priorRecall.id)).proposal,undefined);
+    assert.equal((await req('')).sessions.find(item=>item.id===saveSession).messages.at(-1).text,
+      'I remember that the last planning brief was due on Monday.');
     const noContext=await turn(await session(on.version),contextPrompt);
     assert.equal((await runView(noContext.id)).request.reason,'context-unavailable');
     const ordinary=await turn(saveSession,'A regular chat request.');
@@ -203,6 +213,8 @@ test('real Studio turns pin policy, admit stored values and refuse scope, replay
       'Remember the expanded preference claim preference.',
       'Remember the stored location claim preference.',
       'Remember the revision claim preference.',
+      'Remember the progressive storage claim preference.',
+      'Remember the permanent preference claim preference.',
       'Please don’t remember that I prefer blue cards.',
     ]){
       const fakeSession=await session(on.version);

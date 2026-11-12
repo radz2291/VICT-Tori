@@ -5,8 +5,9 @@ export const draftContextBytes=64*1024;
 export const proposalLifetimeMs=10*60*1000;
 
 const verbs=String.raw`(?:always\s+remember|remember|rmb|memorize(?:\s+this\s+preference)?|save\s+(?:this|that)(?:\s+as\s+a\s+(?:memory|preference))?|(?:keep|bear)\s+in\s+mind|take\s+note|note(?=\s+that\b)|make\s+a\s+note|(?:jot|write)\s+this\s+down|keep\s+a\s+record\s+of\s+this|for\s+future\s+reference|(?:update|add\s+to)\s+your\s+(?:memory|notes))`;
-const saveVerb=String.raw`(?:${verbs}|remembering|save|store|retain|record|keep|persist)`;
-const hint=new RegExp(String.raw`\b(?:${verbs}|forget|remembering|save\s+(?:it|my\s+(?:memory|preference)))\b`,'iu');
+const writeLocation=String.raw`(?:put|add|place|commit|log|file|include)\s+(?:[^.!?\n]{1,96}\s+)?(?:in|into|to)\s+(?:(?:your|my|our|the)\s+)?(?:(?:saved|persistent|long[- ]term)\s+)?memory`;
+const saveVerb=String.raw`(?:${verbs}|remembering|save|store|retain|record|keep|persist|${writeLocation})`;
+const hint=new RegExp(String.raw`\b(?:${verbs}|forget|remembering|save\s+(?:it|my\s+(?:memory|preference))|${writeLocation})\b`,'iu');
 const command=new RegExp(String.raw`^(${verbs})\b([\s\S]*)$`,'iu');
 const negation=String.raw`(?:
   (?:do\s+not|don['’]t|never|must\s+not|should\s+not|not)\s+${saveVerb}\b
@@ -20,15 +21,18 @@ const inverse=/^(?:don['’]t|do\s+not|never)\s+forget\b([\s\S]*)$/iu;
 const noPersistence=/\b(?:not\s+to\s+(?:save|store|retain|record|memorize|persist)|not\s+(?:as|in)\s+(?:a\s+)?(?:saved\s+)?memory|without\s+(?:saving|storing|retaining|memorizing|persisting))\b/iu;
 const currentScope=String.raw`(?:this|the\s+current)\s+(?:reply|response|answer|turn|message|session|conversation|chat|thread|exchange)`;
 const temporary=new RegExp([
-  String.raw`\b(?:just|only)\s+(?:for|in)\s+${currentScope}\b`,
+  String.raw`\b(?:just|only)\s+(?:for|in|during)\s+${currentScope}\b`,
+  String.raw`\buntil\s+(?:the\s+end\s+of\s+${currentScope}\b|${currentScope}\s+(?:ends|closes|is\s+over)\b)`,
   String.raw`\bfor\s+the\s+(?:rest|duration)\s+of\s+${currentScope}\b`,
   String.raw`\bfor\s+${currentScope}(?=\s*(?:[:;,.!?()\u2013\u2014]|$))`,
   String.raw`\b${currentScope}\s+only\b`,
-  String.raw`\b(?:(?:just|only)\s+(?:for\s+)?(?:now|today)|for\s+the\s+time\s+being)\b`,
+  String.raw`\b(?:(?:just|only)\s+(?:for\s+)?(?:now|today)|for\s+(?:now|the\s+time\s+being))\b`,
 ].join('|'),'iu');
 // A bare scope at the start of the request's object limits the instruction.
 // Elsewhere it may describe the source, e.g. a plan made for this Session.
-const scopedTarget=new RegExp(String.raw`^(?:(?:that|this|it)\s+)?for\s+${currentScope}\b`,'iu');
+const scopedTarget=new RegExp(String.raw`^(?:(?:that|this|it)\s+)?(?:for|in|during)\s+${currentScope}\b`,'iu');
+const scopeInTarget=new RegExp(String.raw`\b(?:in|during)\s+${currentScope}\b`,'iu');
+const sourceContext=/^(?:how|what|the way)\b|\bwe (?:just|did|agreed|used)\b|\bwhat (?:we|you|i) (?:did|said)\b/iu;
 const metalinguistic=/^(?:is|was|means|refers to|stands for)\b|^(?:['"“‘\x60]).*\b(?:is|was|means)\s+(?:an? |the )?(?:quote|phrase|example|quotation)\b/iu;
 const courtesy=/^(?:(?:please|kindly|pls+|plz)\s+)+/iu;
 const wrapper=/^(?:(?:i\s+(?:want|need)\s+you\s+to|i['’]d\s+like\s+you\s+to|make\s+sure\s+you|be\s+sure\s+to)\s+)/iu;
@@ -68,7 +72,8 @@ export function memoryIntent(text,origin='operator') {
   const verb=match?.[1]??'forget';
   const target=(inverted?.[1]??match[2]).replace(/^[\s:,\u2013\u2014-]+/u,'').trimEnd();
   if(rescinded.test(target))return ineligible('negated-request');
-  if(scopedTarget.test(target))return ineligible('temporary-request');
+  const basedOnEarlierExchange=sourceContext.test(target);
+  if(scopedTarget.test(target)||(!basedOnEarlierExchange&&scopeInTarget.test(target)))return ineligible('temporary-request');
   if(!target||/^[.!?]+$/u.test(target)||vague.test(target))return {kind:'ambiguous',reason:'clarification-needed'};
   if(metalinguistic.test(target.replace(/^[*_]+/u,'')))return ineligible('mentioned-phrase');
   if(/^(?:always\s+)?(?:remember|rmb|forget)$/iu.test(verb)&&/^to\s+\S/iu.test(target))
@@ -81,7 +86,7 @@ export function memoryIntent(text,origin='operator') {
   const previouslyTold=/^the\s+[^?]+\b(?:i|we)\s+(?:told|showed|gave|mentioned to)\s+you\b/iu.test(target);
   if(/^when\b/iu.test(target)||(question&&(!ask||!asksToSave||previouslyTold||/^(?:what|who|where|whether|if)\b/iu.test(target))))
     return ineligible('recall-question');
-  const contextual=/^(?:how|what|the way)\b|\b(?:this session|we (?:just|did|agreed|used)|what (?:we|you|i) (?:did|said)|above|earlier)\b/iu.test(target);
+  const contextual=basedOnEarlierExchange||/\b(?:this session|above|earlier)\b/iu.test(target);
   return {kind:'explicit',contextual};
 }
 

@@ -68,6 +68,9 @@ export async function memoryProvider(url,init) {
   else if(prompt.includes('expanded preference claim'))reply='I saved your project update preference.';
   else if(prompt.includes('stored location claim'))reply='Your preference is now in my long-term memory.';
   else if(prompt.includes('revision claim'))reply='I have updated your saved preferences.';
+  else if(prompt.includes('progressive storage claim'))reply='I’m saving that preference for future sessions.';
+  else if(prompt.includes('permanent preference claim'))reply='We have made that preference permanent.';
+  else if(prompt==='Do you remember when the last planning brief was due?')reply='I remember that the last planning brief was due on Monday.';
   else {
     if(prompt.includes('slow review'))await delay(20000,undefined,{signal:init.signal});
     reply='Let’s keep the project update clear and easy to scan.';
