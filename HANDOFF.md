@@ -1,5 +1,11 @@
 # TORI handoff
 
+## TORI-006 owner review repair
+
+Resume TORI-006 in Rolladice Work on `codex/tori-v1c-memory-foundation`. Use the [owner repair addendum](docs/evidence/v1c-memory/OWNER-REVIEW.md) at `129c6dca734b328d85cff5108ed47bdcef396998` and the accepted base contract at `8854562dda920f583e6cc1d80de51f6add6d7ba9`. The current product baseline is `2e95a06639244b78b7f00d190b85e303eb1b55df`. Use the appendix to extend the permanent phrasing tests and return observed results in the evidence. The [decision register](docs/governance/DECISIONS.md) carries the future-slice requirements.
+
+Return a runnable preview with the repaired in-character memory turn and exact confirmation. Rerun the affected deterministic and browser checks and build, obtain a fresh independent verdict on the exact repaired candidate, and submit it to TORI-006 Review for Radzi's walkthrough.
+
 ## V1c Memory Foundation
 
 The [local Studio preview](http://127.0.0.1:48830/) runs product `2e95a06639244b78b7f00d190b85e303eb1b55df` on `codex/tori-v1c-memory-foundation`. Quellight r1 is ready for a hands-on check. In Sessions, ask it to remember the three-bullet preference, confirm the text, restart the same preview, and ask for an Orchid update in a new Session. See the [review walkthrough and restart command](docs/evidence/v1c-memory/README.md#review-preview).
