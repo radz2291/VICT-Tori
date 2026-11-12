@@ -63,7 +63,11 @@ export async function memoryProvider(url,init) {
     reply=admitted.length?(two?[lines[0],lines.slice(1).join(' ')]:lines).map(line=>'- '+line).join('\n'):lines.join(' ');
   }else if(prompt===contextPrompt)reply=contextReply;
   else if(prompt.includes('false confirmation'))reply="I've saved that preference permanently.\nMemory proposal: fabricated content.";
-  else if(prompt.includes('past-tense confirmation'))reply='I saved that preference permanently.';
+  else if(prompt.includes('past-tense confirmation')||prompt==='Please don’t remember that I prefer blue cards.')reply='I saved that preference permanently.';
+  else if(prompt.includes('passive storage claim'))reply='Your preference has been stored for future sessions.';
+  else if(prompt.includes('expanded preference claim'))reply='I saved your project update preference.';
+  else if(prompt.includes('stored location claim'))reply='Your preference is now in my long-term memory.';
+  else if(prompt.includes('revision claim'))reply='I have updated your saved preferences.';
   else {
     if(prompt.includes('slow review'))await delay(20000,undefined,{signal:init.signal});
     reply='Let’s keep the project update clear and easy to scan.';

@@ -170,6 +170,10 @@ test('real Studio turns pin policy, admit stored values and refuse scope, replay
       ['Remember that our marker is amber — do not save it.','negated-request'],
       ['Remember this for this chat: The temporary marker is amber.','temporary-request'],
       ['Remember that I prefer an amber marker just for the rest of this chat.','temporary-request'],
+      ['Remember that for the rest of this chat I want short notes.','temporary-request'],
+      ['Remember: for this conversation use short titles.','temporary-request'],
+      ['Remember that I prefer short notes — on second thought don’t save it.','negated-request'],
+      ['Remember that I prefer short notes. Actually, I don’t want you to save it.','negated-request'],
       ["Don't forget to send the update.",'memory-or-reminder'],
     ]){
       const run=await turn(saveSession,prompt);
@@ -178,9 +182,9 @@ test('real Studio turns pin policy, admit stored values and refuse scope, replay
       assert.equal(view.proposal,undefined);
 
       assert.equal(view.receipt,undefined);
+      assert.equal(view.draft,undefined);
       if(reason==='memory-or-reminder'){
         assert.equal((await memoryView(saveSession)).turns.find(turn=>turn.run===run.id).request.reason,reason);
-        assert.equal(view.draft,undefined);
       }
     }
     const noContext=await turn(await session(on.version),contextPrompt);
@@ -192,14 +196,25 @@ test('real Studio turns pin policy, admit stored values and refuse scope, replay
     assert.deepEqual((await memoryView(saveSession)).records,[]);
     await assert.rejects(req('/memory/confirm',{session:saveSession,run:ordinary.id,operation:randomUUID(),text:'not granted'}),/No confirmable/);
 
-    for(const phrase of ['false confirmation','past-tense confirmation']){
+    for(const input of [
+      'Remember the false confirmation preference.',
+      'Remember the past-tense confirmation preference.',
+      'Remember the passive storage claim preference.',
+      'Remember the expanded preference claim preference.',
+      'Remember the stored location claim preference.',
+      'Remember the revision claim preference.',
+      'Please don’t remember that I prefer blue cards.',
+    ]){
       const fakeSession=await session(on.version);
-      const falseClaim=await turn(fakeSession,'Remember the '+phrase+' preference.');
+      const falseClaim=await turn(fakeSession,input);
       assert.equal(falseClaim.status,'failed');
       assert.equal(falseClaim.errorCode,'TORI_MEMORY_REPLY_UNCONFIRMED');
       assert.equal((await runView(falseClaim.id)).draft,undefined);
       assert.equal((await runView(falseClaim.id)).receipt,undefined);
+      assert.equal((await runView(falseClaim.id)).proposal,undefined);
       assert.equal((await req('')).sessions.find(item=>item.id===fakeSession).messages.length,1);
+      assert.equal((await turn(fakeSession,'Continue with an ordinary project update.')).status,'completed');
+      assert.deepEqual((await wires()).at(-1).assistantHistory,[]);
     }
 
     const stoppedSession=await session(on.version);

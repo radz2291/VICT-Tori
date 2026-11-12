@@ -8,17 +8,27 @@ const verbs=String.raw`(?:always\s+remember|remember|rmb|memorize(?:\s+this\s+pr
 const saveVerb=String.raw`(?:${verbs}|remembering|save|store|retain|record|keep|persist)`;
 const hint=new RegExp(String.raw`\b(?:${verbs}|forget|remembering|save\s+(?:it|my\s+(?:memory|preference)))\b`,'iu');
 const command=new RegExp(String.raw`^(${verbs})\b([\s\S]*)$`,'iu');
-const negation=String.raw`(?:(?:do\s+not|don['’]t|never|must\s+not|should\s+not|not)\s+${saveVerb}\b|(?:do\s+not|don['’]t)\s+want\s+(?:you\s+)?to\s+${saveVerb}\b)`;
-const rescinded=new RegExp(String.raw`(?:^|[.:;,!?()\n\u2013\u2014]\s*|\b(?:but|and|actually|instead)[, ]+)(?:please\s+)?(?:${negation}|(?:never\s+mind|scratch\s+that)\b)`,'iu');
+const negation=String.raw`(?:
+  (?:do\s+not|don['’]t|never|must\s+not|should\s+not|not)\s+${saveVerb}\b
+  |(?:i\s+)?(?:do\s+not|don['’]t)\s+want\s+(?:(?:you\s+)?to\s+${saveVerb}|(?:this|that|it|my\s+preference)\s+(?:to\s+be\s+)?(?:saved|stored|remembered|recorded))\b
+  |i(?:['’]d|\s+would)\s+rather\s+(?:you\s+)?(?:didn['’]t|did\s+not|not)\s+${saveVerb}\b
+)`.replace(/\s*\n\s*/g,'');
+const clauseStart=String.raw`(?:^|[.:;,!?()\n\u2013\u2014]\s*|\s+-+\s+|\b(?:but|and|except)\s+)`;
+const reversal=String.raw`(?:(?:actually|instead|wait|on\s+second\s+thought|correction)\b(?:\s*[:,\u2013\u2014-]\s*|\s+))*`;
+const rescinded=new RegExp(String.raw`${clauseStart}${reversal}(?:please\s+)?(?:${negation}|(?:never\s+mind|scratch\s+that|forget\s+(?:that\s+)?i\s+asked|cancel\s+(?:this|that|the)\s+(?:save|memory\s+request))\b)`,'iu');
 const inverse=/^(?:don['’]t|do\s+not|never)\s+forget\b([\s\S]*)$/iu;
 const noPersistence=/\b(?:not\s+to\s+(?:save|store|retain|record|memorize|persist)|not\s+(?:as|in)\s+(?:a\s+)?(?:saved\s+)?memory|without\s+(?:saving|storing|retaining|memorizing|persisting))\b/iu;
-const currentScope=String.raw`(?:this|the\s+current)\s+(?:reply|response|answer|turn|message|session|conversation|chat)`;
+const currentScope=String.raw`(?:this|the\s+current)\s+(?:reply|response|answer|turn|message|session|conversation|chat|thread|exchange)`;
 const temporary=new RegExp([
-  String.raw`\b(?:just|only)\s+(?:for|in)\s+(?:the\s+rest\s+of\s+)?${currentScope}\b`,
-  String.raw`\bfor\s+(?:the\s+rest\s+of\s+)?${currentScope}(?:\s+only\b|\s*[:;,.!?\u2013\u2014]|\s*$)`,
+  String.raw`\b(?:just|only)\s+(?:for|in)\s+${currentScope}\b`,
+  String.raw`\bfor\s+the\s+(?:rest|duration)\s+of\s+${currentScope}\b`,
+  String.raw`\bfor\s+${currentScope}(?=\s*(?:[:;,.!?()\u2013\u2014]|$))`,
   String.raw`\b${currentScope}\s+only\b`,
-  String.raw`\b(?:just|only)\s+(?:for\s+)?(?:now|today)\b`,
+  String.raw`\b(?:(?:just|only)\s+(?:for\s+)?(?:now|today)|for\s+the\s+time\s+being)\b`,
 ].join('|'),'iu');
+// A bare scope at the start of the request's object limits the instruction.
+// Elsewhere it may describe the source, e.g. a plan made for this Session.
+const scopedTarget=new RegExp(String.raw`^(?:(?:that|this|it)\s+)?for\s+${currentScope}\b`,'iu');
 const metalinguistic=/^(?:is|was|means|refers to|stands for)\b|^(?:['"“‘\x60]).*\b(?:is|was|means)\s+(?:an? |the )?(?:quote|phrase|example|quotation)\b/iu;
 const courtesy=/^(?:(?:please|kindly|pls+|plz)\s+)+/iu;
 const wrapper=/^(?:(?:i\s+(?:want|need)\s+you\s+to|i['’]d\s+like\s+you\s+to|make\s+sure\s+you|be\s+sure\s+to)\s+)/iu;
@@ -56,8 +66,9 @@ export function memoryIntent(text,origin='operator') {
     return ineligible('mentioned-phrase');
   }
   const verb=match?.[1]??'forget';
-  const target=(inverted?.[1]??match[2]).trim().replace(/^[:,-]\s*/u,'');
+  const target=(inverted?.[1]??match[2]).replace(/^[\s:,\u2013\u2014-]+/u,'').trimEnd();
   if(rescinded.test(target))return ineligible('negated-request');
+  if(scopedTarget.test(target))return ineligible('temporary-request');
   if(!target||/^[.!?]+$/u.test(target)||vague.test(target))return {kind:'ambiguous',reason:'clarification-needed'};
   if(metalinguistic.test(target.replace(/^[*_]+/u,'')))return ineligible('mentioned-phrase');
   if(/^(?:always\s+)?(?:remember|rmb|forget)$/iu.test(verb)&&/^to\s+\S/iu.test(target))

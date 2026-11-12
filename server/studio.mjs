@@ -6,6 +6,7 @@ import { workspaceBinding, workspaceReadOnly, workspaceRefs } from '../packages/
 import { registeredTool, registeredTools } from '../src/registered-tools.mjs';
 import { authoringChatSessions, knownOperation, lastAuthoringTest, operationDigest, rememberOperation, runEvidence, workspaceCapabilities } from './workspace-actions.mjs';
 import { publicProviderStream } from './provider-stream.mjs';
+import { reportsMemoryEffect } from './memory-reply.mjs';
 import { withCompleteScopedThreadReads } from './mastra-session-store.mjs';
 import { createSavedMemoryHost, emptyAdmission, pinnedMemoryPolicy, pinAllowsSavedMemory } from './saved-memory.mjs';
 import { draftContext, draftInstructions, governedPolicy, memoryIntent, parseMemoryDraft, proposalLifetimeMs } from '../packages/memory/index.mjs';
@@ -181,7 +182,7 @@ function providerModel(key, route, evidence, settings) {
         evidence.modelSteps++;
         evidence.finishReason=reason==='tool_calls'?'tool_calls':'other';
       },settings.guardMemoryReply?text=>{
-        if(!memoryEffectClaims.some(claim=>claim.test(text)))return true;
+        if(!reportsMemoryEffect(text))return true;
         evidence.memoryReplyRejected=true;
         return false;
       }:undefined);
@@ -189,17 +190,6 @@ function providerModel(key, route, evidence, settings) {
   }).chatModel(model);
 }
 
-// Withhold clear mechanics and unreceipted claims rather than persisting them
-// as a character reply. This is an English status guard, not an intent source.
-const memoryEffectClaims=[
-  /\bmemory proposal\b|\breview the (?:text|proposal) in studio\b|\bnothing (?:was )?saved\b/iu,
-  /(?:^|\n)\s*(?:[#*_]+\s*)?(?:memory )?saved(?:[.!]?\s*(?:$|\n)|\s+(?:this|that|it|your (?:memory|preference))\b)/iu,
-  /\bi(?:['’]ve|\s+(?:have|just))\s+(?:(?:just|successfully|already)\s+)?(?:saved|stored|memorized|remembered|scheduled|forgotten)\b/iu,
-  /\bi\s+(?:saved|stored|memorized|scheduled|forgot)\s+(?:this|that|it|your (?:memory|preference|reminder)|the (?:memory|preference|reminder))\b/iu,
-  /\bi(?:['’]ll|\s+will)\s+(?:remember|save|store|schedule)\b/iu,
-  /\b(?:this|that|it|memory|preference)\s+(?:is|was|has been)\s+(?:now\s+)?saved\b/iu,
-  /\b(?:added|logged|recorded)\s+[^.?!\n]+\s+(?:to|in)\s+(?:my|saved|long[- ]term)\s+memory\b/iu,
-];
 const memoryReplyGuide='Reply naturally in character to the substance of the current message. Do not discuss a memory proposal, a save, a dismissal, or a reminder workflow. Never claim that this request saved, updated, forgot, or scheduled anything, or promise to remember it later. The Studio handles those actions separately.';
 // A one-attempt, tool-free drafting request. It never enters the Mastra
 // thread, sees saved memory, or receives the character's message history.
@@ -731,7 +721,7 @@ export function createStudio({getAssembly,dataDirectory,turnDeadlineMs=maxHostDe
         ...value,...execution,tool:!memoryOnly&&(value.tool||value.child||value.authoring),
         ...(memoryOnly?{maxToolCalls:0}:{}),context:context.content,authoringGuide,authoringHistory,
         inspectOnly:workspace&&!draftTurn.allowChanges,
-        savedMemoryContext,memoryReplyGuide:intent.kind!=='ordinary'?memoryReplyGuide:undefined,guardMemoryReply:memoryOnly,
+        savedMemoryContext,memoryReplyGuide:intent.kind!=='ordinary'?memoryReplyGuide:undefined,guardMemoryReply:intent.kind!=='ordinary',
       }),threadCoordinator:threads,tracing:{sampling:{type:'never'}}};
       const onEvent=event=>{
         if(!validateAgentStreamEvent(event).ok)return;
