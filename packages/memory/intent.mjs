@@ -6,24 +6,27 @@ export const proposalLifetimeMs=10*60*1000;
 
 const remember=/\b(?:remember|memorize|save\s+(?:(?:this|that|it)\b|(?:my|this) (?:memory|preference)))\b/iu;
 const explicit=/^(?:(?:please|kindly)\s+|(?:can|could|would|will)\s+you\s+(?:please\s+)?|(?:i\s+(?:want|need)\s+you\s+to|i['’]d\s+like\s+you\s+to)\s+)?(?:remember|memorize|save\s+(?:this|that)(?:\s+(?:as\s+a\s+memory|preference))?)\b\s*[:,-]?\s*([\s\S]*)$/iu;
-const rescinded=/(?:^|[.;!?\n]\s*|\b(?:but|and|actually|instead)[, ]+)(?:please\s+)?(?:(?:do\s+not|don['’]t|never|must\s+not)\s+(?:remember|save|memorize|store|retain|record|keep|persist)\b|(?:do\s+not|don['’]t)\s+want\s+(?:you\s+)?to\s+(?:remember|save|store|keep)\b)/iu;
-const temporary=/\b(?:(?:just|only)\s+(?:for|in)\s+|for\s+)(?:this|the current)\s+(?:reply|response|answer|turn|message|session|conversation)\s*(?:only\b|[.;!,]|$)/iu;
+const rescinded=/(?:^|[.:;,!?\n]\s*|\b(?:but|and|actually|instead)[, ]+)(?:please\s+)?(?:(?:do\s+not|don['’]t|never|must\s+not)\s+(?:remember|save|memorize|store|retain|record|keep|persist)\b|(?:do\s+not|don['’]t)\s+want\s+(?:you\s+)?to\s+(?:remember|save|store|keep)\b)/iu;
+const noPersistence=/\b(?:not\s+to\s+(?:save|store|retain|record|memorize|persist)|not\s+(?:as|in)\s+(?:a\s+)?(?:saved\s+)?memory|without\s+(?:saving|storing|retaining|memorizing|persisting))\b/iu;
+const temporary=/\b(?:(?:just|only)\s+(?:for|in)\s+|for\s+)(?:this|the current)\s+(?:reply|response|answer|turn|message|session|conversation|chat)\s*(?:only\b|[.;!,]|$)|\b(?:just|only)\s+(?:for\s+)?(?:now|today)\b/iu;
 const metalinguistic=/^(?:is|was|means|refers to|stands for)\b|^(?:['"“‘\x60]).*\b(?:is|was|means)\s+(?:an? |the )?(?:quote|phrase|example|quotation)\b/iu;
 export function memoryIntent(text) {
   const candidate=String(text).trim();
   if(!remember.test(candidate))return {kind:'ordinary'};
-  if(rescinded.test(candidate)||temporary.test(candidate))return {kind:'ineligible',reason:'negated-request'};
+  if(rescinded.test(candidate)||noPersistence.test(candidate)||temporary.test(candidate))return {kind:'ineligible',reason:'negated-request'};
   // Only an affirmative command in the actual current message can grant a save.
   // In particular, quotes, blockquotes, reported speech and tool output are never parsed as commands.
   const match=candidate.match(explicit);
   if(!match)return {kind:'ineligible',reason:'not-an-explicit-request'};
   const target=match[1].trim();
-  if(!target||/^(?:that|this|it|for (?:me|later))[.!?]*$/iu.test(target))
+  if(rescinded.test(target))return {kind:'ineligible',reason:'negated-request'};
+  if(!target||/^(?:(?:that|this|it)(?:\s+for (?:me|later|next time))?|for (?:me|later))[.!?]*$/iu.test(target))
     return {kind:'ambiguous',reason:'clarification-needed'};
   const question=candidate.endsWith('?');
   const polite=/^(?:can|could|would|will)\s+you\s+/iu.test(candidate);
+  const asksToSave=/\byou\s+please\b/iu.test(candidate)||/^(?:that|to)\b/iu.test(target)||/\bsave\s+(?:this|that)\b/iu.test(candidate);
   if(metalinguistic.test(target.replace(/^[*_]+/u,''))||/^when\b/iu.test(target)||
-      (question&&(!polite||/^(?:what|who|where|whether|if)\b/iu.test(target)||/\bif\s+(?:i|you|we|someone)\b/iu.test(target))))
+      (question&&(!polite||!asksToSave||/^(?:what|who|where|whether|if)\b/iu.test(target)||/\bif\s+(?:i|you|we|someone)\b/iu.test(target))))
     return {kind:'ineligible',reason:'not-an-explicit-request'};
   const contextual=/^(?:how|what|the way)\b|\b(?:this session|we (?:just|did|agreed|used)|what (?:we|you|i) (?:did|said)|above|earlier)\b/iu.test(target);
   return {kind:'explicit',contextual};

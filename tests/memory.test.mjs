@@ -29,9 +29,12 @@ test('explicit memory intent excludes negation, quotes, questions and insufficie
     '"Remember that the marker is quoted."','> Remember that this is a quote.','We say “remember that...” as an example.',
     'Remember “time is relative” is a quotation.', 'Remember when we changed it?', 'Remember this. Actually, do not save it.',
     'Remember means to recall.', 'Remember is a verb.', 'Remember that this is only for this reply.',
-    'Remember that synthetic preference only for this reply; do not store it.', 'Would you remember the marker if I asked you tomorrow?'])
+    'Remember that synthetic preference only for this reply; do not store it.', 'Would you remember the marker if I asked you tomorrow?',
+    "Remember: don't store this message.", 'Can you remember the date I told you yesterday?',
+    'Please remember that these are words to quote, not to store.'])
     assert.equal(memoryIntent(text).kind,'ineligible',text);
   assert.equal(memoryIntent('Remember this.').kind,'ambiguous');
+  assert.equal(memoryIntent('Remember this for me.').kind,'ambiguous');
   assert.equal(memoryIntent('A regular project update').kind,'ordinary');
   assert.equal(draftContext([], {id:source,role:'user',text:contextPrompt},true),undefined);
   assert.equal(draftContext([], {id:source,role:'user',text:'a'.repeat(draftContextBytes+1)},false),undefined);
@@ -155,6 +158,10 @@ test('real Studio turns pin policy, admit stored values and refuse scope, replay
       ['Remember is a verb.','not-an-explicit-request'],
       ['Remember that synthetic preference only for this reply; do not store it.','negated-request'],
       ['Would you remember the marker if I asked you tomorrow?','not-an-explicit-request'],
+      ["Remember: don't store this message.",'negated-request'],
+      ['Can you remember the date I told you yesterday?','not-an-explicit-request'],
+      ['Please remember that these are words to quote, not to store.','negated-request'],
+      ['Remember this for me.','clarification-needed'],
     ]){
       const run=await turn(saveSession,prompt);
       const view=await runView(run.id);

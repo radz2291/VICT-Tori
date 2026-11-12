@@ -128,6 +128,9 @@ try {
   const policy=field('settings-saved-memory');
   assert.equal(await policy.inputValue(),'off');
   await policy.selectOption('governed@1');
+  await policy.selectOption('');
+  assert.equal(await policy.inputValue(),'governed@1');
+  assert.equal(await policy.evaluate(node=>node===document.activeElement),true);
   await button('Canvas').click();
   await button('Actions for Quellight').click();
   await page.getByRole('menuitem',{name:'Show binding as a separate node: Memory Policy'}).click();
