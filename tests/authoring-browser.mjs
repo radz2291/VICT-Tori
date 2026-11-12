@@ -71,7 +71,13 @@ try {
     if (await toggle.getAttribute('aria-expanded') !== 'true') await toggle.click();
     const options = page.getByRole('button', { name: 'Authoring options', exact: true });
     await options.click();
-    const picker = page.getByLabel('Authoring activation', { exact: true });
+    const dialog = page.getByRole('dialog', { name: 'Choose authoring activation', exact: true });
+    const picker = dialog.getByLabel('Authoring activation', { exact: true });
+    const bounds = await dialog.boundingBox();
+    const viewport = page.viewportSize();
+    assert.ok(bounds && Math.abs(bounds.x + bounds.width / 2 - viewport.width / 2) < 3 &&
+      Math.abs(bounds.y + bounds.height / 2 - viewport.height / 2) < 3,
+    'The activation dialog should open in the center of the viewport');
     if (await picker.inputValue() !== version) await picker.selectOption(version);
     else await page.keyboard.press('Escape');
     await picker.waitFor({ state: 'hidden' });

@@ -5,7 +5,6 @@
   import { Button, ControlScope, Feedback, Select, StatusBadge } from '@victframework/ui-svelte';
   import { Button as ControlButton, Dialog, Menubar, Tooltip } from '@victframework/ui-svelte/primitives';
   import { DropdownMenu } from '@victframework/ui-svelte/catalog/dropdown-menu';
-  import { Popover } from '@victframework/ui-svelte/catalog/popover';
   import { Accordion } from '@victframework/ui-svelte/catalog/accordion';
   import { Tabs } from '@victframework/ui-svelte/catalog/tabs';
   import { Toggle } from '@victframework/ui-svelte/catalog/toggle';
@@ -2289,22 +2288,29 @@
 
 {#snippet authoringOptions()}
   {#if authoringChoices.length}
-    <Popover.Root bind:open={authoringOptionsOpen}>
-      <Popover.Trigger class="vict-btn vict-btn--quiet panel-shortcut history-options"
+    <Dialog.Root bind:open={authoringOptionsOpen}>
+      <Dialog.Trigger class="vict-btn vict-btn--quiet panel-shortcut history-options"
         aria-label="Authoring options" title="Authoring options" disabled={sending}>
         <span aria-hidden="true">⋮</span>
-      </Popover.Trigger>
-      <Popover.Portal>
-        <Popover.Content class="menu-content history-options-menu authoring-options-panel" align="end" sideOffset={4}
-          collisionPadding={10} aria-label="Authoring options">
-          <label for="authoring-activation">Authoring activation</label>
-          <Select id="authoring-activation" name="authoring-activation" options={authoringChoices}
-            value={authoringActivation} disabled={sending} onChange={value=>{
-              authoringActivation=value;authoringOptionsOpen=false;authoringResult=null;authoringError='';
-            }}/>
-        </Popover.Content>
-      </Popover.Portal>
-    </Popover.Root>
+      </Dialog.Trigger>
+      <Dialog.Portal>
+        <Dialog.Overlay class="sheet-shade studio-dialog-shade"/>
+        <Dialog.Content class="mobile-sheet studio-dialog authoring-options-dialog">
+          <Dialog.Title>Choose authoring activation</Dialog.Title>
+          <Dialog.Description class="visually-hidden">Choose which revision will respond in the Authoring Agent dock.</Dialog.Description>
+          <div class="authoring-activation-field">
+            <label for="authoring-activation">Authoring activation</label>
+            <Select id="authoring-activation" name="authoring-activation" options={authoringChoices}
+              value={authoringActivation} disabled={sending} onChange={value=>{
+                authoringActivation=value;authoringOptionsOpen=false;authoringResult=null;authoringError='';
+              }}/>
+          </div>
+          <div class="launch-actions">
+            <Dialog.Close class="vict-btn vict-btn--quiet">Cancel</Dialog.Close>
+          </div>
+        </Dialog.Content>
+      </Dialog.Portal>
+    </Dialog.Root>
   {/if}
 {/snippet}
 

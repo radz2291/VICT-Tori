@@ -338,9 +338,6 @@ dt{color:#a4adbb}dd{margin:0;overflow-wrap:anywhere}.hash{font:11px/1.5 ui-monos
   border-color:transparent;background-color:transparent;font-size:12px;text-overflow:ellipsis
 }
 .tori-scope .authoring-composer .vict-select:hover:not(:disabled){border-color:var(--vict-color-border)}
-.authoring-options-panel{display:grid;gap:var(--vict-space-1);width:min(230px,calc(100vw - 24px));padding:var(--vict-space-2)}
-.authoring-options-panel label{font-size:12px}
-.authoring-options-panel .vict-select{min-width:0;width:100%;margin:0}
 .authoring-dock-content > .vict-ai.vict-ai-conversation{
   flex:1 1 auto;height:auto;min-height:10rem
 }
@@ -649,6 +646,12 @@ dt{color:#a4adbb}dd{margin:0;overflow-wrap:anywhere}.hash{font:11px/1.5 ui-monos
   z-index:93;background:var(--studio-panel);border-color:var(--border);box-shadow:0 8px 24px #0005
 }
 .studio-dialog [data-dialog-title]{font-size:14px}
+.vict-controls .authoring-options-dialog[data-dialog-content]{
+  inset:50% auto auto 50%;transform:translate(-50%,-50%);width:min(352px,90vw);
+  padding:var(--vict-space-4);border-radius:var(--vict-radius-base)
+}
+.authoring-activation-field{display:grid;gap:var(--vict-space-1);margin-block-start:var(--vict-space-3)}
+.authoring-activation-field label{margin:0;font-size:12px}
 .delegation-details{margin-block-start:var(--vict-space-3)}
 .vict-controls .delegation-details .vict-status{
   display:inline-flex;align-items:center;gap:var(--vict-space-1);padding:0;
