@@ -216,7 +216,8 @@ try {
   assert.equal(await proposalText(card).textContent(),exact);
   await capture('memory-confirmation',card);
   await message(save.id+'-agent').getByRole('button',{name:'Copy message'}).click();
-  assert.equal(await page.evaluate(()=>navigator.clipboard.readText()),save.reply);
+  // Windows clipboard text uses CRLF; compare the message without platform newline conversion.
+  assert.equal((await page.evaluate(()=>navigator.clipboard.readText())).replaceAll('\r\n','\n'),save.reply.replaceAll('\r\n','\n'));
   const confirmed=await route('memory/confirm',()=>card.getByRole('button',{name:'Confirm and save'}).click());
   assert.equal(confirmed.memory.memory.content,exact);
   assert.equal(confirmed.receipt.revision,1);
