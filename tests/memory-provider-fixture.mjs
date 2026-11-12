@@ -21,12 +21,14 @@ export async function memoryProvider(url,init) {
   const prompt=body.messages[last].content;
   const toolNames=(body.tools??[]).map(tool=>tool.function.name);
   assert.ok(!toolNames.some(name=>/updateWorkingMemory|memory.save|memory_save/i.test(name)));
-  const draft=body.messages.find(item=>item.role==='system'&&item.content.startsWith(draftPrefix));
-  const recalled=body.messages.find(item=>item.role==='system'&&item.content.startsWith(savedPrefix));
+  const draft=body.messages.find(item=>typeof item.content==='string'&&item.content.startsWith(draftPrefix));
+  const recalled=body.messages.find(item=>typeof item.content==='string'&&item.content.startsWith(savedPrefix));
+  if(draft)assert.equal(draft.role,'user');
+  if(recalled)assert.equal(recalled.role,'user');
   const admitted=recalled?JSON.parse(recalled.content.slice(savedPrefix.length)):[];
   const transcript=draft?JSON.parse(draft.content.slice(draftPrefix.length)):[];
   if(process.env.TORI_MEMORY_CAPTURE)appendFileSync(process.env.TORI_MEMORY_CAPTURE,JSON.stringify({
-    prompt,admitted,transcript,tools:toolNames,history:body.messages.slice(0,last).filter(item=>item.role==='user').map(item=>item.content),
+    prompt,admitted,transcript,draftRole:draft?.role,recallRole:recalled?.role,tools:toolNames,history:body.messages.slice(0,last).filter(item=>item.role==='user').map(item=>item.content),
     toolMessages:body.messages.slice(last+1).filter(item=>item.role==='tool').map(item=>item.content),
   })+'\n');
   let reply,tool;

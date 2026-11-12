@@ -27,7 +27,9 @@ test('explicit memory intent excludes negation, quotes, questions and insufficie
   assert.deepEqual(memoryIntent(contextPrompt),{kind:'explicit',contextual:true});
   for(const text of ["Don't remember this.","Do not remember that preference.",'Never save this as a memory.',
     '"Remember that the marker is quoted."','> Remember that this is a quote.','We say “remember that...” as an example.',
-    'Remember “time is relative” is a quotation.', 'Remember when we changed it?', 'Remember this. Actually, do not save it.'])
+    'Remember “time is relative” is a quotation.', 'Remember when we changed it?', 'Remember this. Actually, do not save it.',
+    'Remember means to recall.', 'Remember is a verb.', 'Remember that this is only for this reply.',
+    'Remember that synthetic preference only for this reply; do not store it.', 'Would you remember the marker if I asked you tomorrow?'])
     assert.equal(memoryIntent(text).kind,'ineligible',text);
   assert.equal(memoryIntent('Remember this.').kind,'ambiguous');
   assert.equal(memoryIntent('A regular project update').kind,'ordinary');
@@ -150,6 +152,9 @@ test('real Studio turns pin policy, admit stored values and refuse scope, replay
       ["Don't remember that I prefer lists.",'negated-request'],
       ['"Remember that lists are better."','not-an-explicit-request'],
       ['Remember this.','clarification-needed'],
+      ['Remember is a verb.','not-an-explicit-request'],
+      ['Remember that synthetic preference only for this reply; do not store it.','negated-request'],
+      ['Would you remember the marker if I asked you tomorrow?','not-an-explicit-request'],
     ]){
       const run=await turn(saveSession,prompt);
       const view=await runView(run.id);
@@ -261,6 +266,10 @@ test('real Studio turns pin policy, admit stored values and refuse scope, replay
     const forgotten=await req('/memory/forget',{...correction,revision:2,operation:randomUUID()});
     assert.equal(forgotten.receipt.outcome,'forgotten');
     assert.equal((await runView(recall.id)).records[0].status,'forgotten');
+    const historicalSave=await runView(draftRun.id);
+    assert.equal(historicalSave.savedRecordStatus,'forgotten');
+    assert.deepEqual(historicalSave.receipt,save.receipt);
+    assert.equal(JSON.stringify(historicalSave).includes(savedText),false);
     assert.equal((await confirm(sid,pending)).memory.status,'forgotten');
     await restart();
     assert.equal((await runView((await turn(await session(on.version),recallPrompt)).id)).evidence.admitted.length,0);
@@ -281,6 +290,10 @@ test('real Studio turns pin policy, admit stored values and refuse scope, replay
     const observed=await wires();
     assert.ok(!observed.find(item=>item.prompt==='Ordinary history check.').history.includes(contextSource));
     assert.ok(observed.find(item=>item.prompt===contextPrompt&&item.transcript.length>10).transcript.some(item=>item.text===contextSource));
+    assert.ok(observed.filter(item=>item.admitted.length).every(item=>item.recallRole==='user'));
+    assert.ok(observed.filter(item=>item.transcript.length).every(item=>item.draftRole==='user'));
+    for(const refusal of observed.filter(item=>/verb\.|only for this reply|marker if/.test(item.prompt)))
+      assert.deepEqual(refusal.transcript,[]);
 
     // A fresh ledger header with its live revision missing must not silently disappear.
     await service.close();

@@ -48,6 +48,11 @@
     {#if view.receipt}
       <dl>
         <dt>Save outcome</dt><dd>Saved · {view.receipt.memoryId} · r{view.receipt.revision}</dd>
+        {#if view.savedRecordStatus==='forgotten'}
+          <dt>Current record</dt><dd>Forgotten · audit reference retained</dd>
+        {:else if view.savedRecordStatus!=='available'}
+          <dt>Current record</dt><dd>{memoryReasons['storage-unavailable']}</dd>
+        {/if}
         <dt>Source message</dt><dd class="hash">{view.receipt.source.message}<br/>Session {view.receipt.source.session}</dd>
         <dt>Context basis</dt><dd class="hash">{view.receipt.contextBasis.join(', ')}</dd>
         <dt>Operation</dt><dd class="hash">{view.receipt.operation}</dd>

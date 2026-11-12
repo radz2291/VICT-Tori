@@ -25,12 +25,10 @@ export function createSavedMemoryHost({path,actor,project,fixture,snapshot,defin
     if(!session||!pin)throw error(404,'This Session is not available for saved memory.');
     return {session,pin,scope:scopeFor(state,definitionOf(pin))};
   };
-  const resolveRun=(state,id)=>{
-    const run=state.runs.find(item=>item.id===id&&item.savedMemory);
-    if(!run||run.fixture!==fixture||!run.savedMemoryAgent)return undefined;
+  const runScope=(state,run)=>{
+    if(!run?.savedMemory||run.fixture!==fixture||!run.savedMemoryAgent)return undefined;
     const scope=scopeFor(state,run.savedMemoryAgent);
-    if(scope.key!==run.savedMemoryScope)return undefined;
-    return {run,scope};
+    return scope.key===run.savedMemoryScope?scope:undefined;
   };
   const asNotSaved=result=>{
     const responses={
@@ -63,19 +61,21 @@ export function createSavedMemoryHost({path,actor,project,fixture,snapshot,defin
     visibleRun(run,state){
       if(!run.savedMemory)return run;
       const {savedMemoryScope,savedMemoryAgent,savedMemory,savedMemoryRequest,...publicRun}=run;
-      return resolveRun(state,run.id)?{...publicRun,hasSavedMemoryEvidence:true}:publicRun;
+      return runScope(state,run)?{...publicRun,hasSavedMemoryEvidence:true}:publicRun;
     },
     close(){opened?.close();},
     async handle(path,body){
       if(path==='/memory/run'){
-        const target=resolveRun(snapshot(),body.run);
-        if(!target)throw error(404,'Saved-memory evidence was not found for this Run.');
-        const {run,scope}=target;
+        const state=snapshot();
+        const run=state.runs.find(item=>item.id===body.run);
+        const scope=runScope(state,run);
+        if(!scope)throw error(404,'Saved-memory evidence was not found for this Run.');
         const allowed=await access();
         if(!allowed)return {status:'denied'};
+        const receipt=store().receiptForRun(scope,run.id);
         return {status:'available',evidence:run.savedMemory,request:run.savedMemoryRequest,
-          proposal:store().proposal(scope,run.session,run.id)?.status,
-          receipt:store().receiptForRun(scope,run.id),
+          proposal:store().proposal(scope,run.session,run.id)?.status,receipt,
+          savedRecordStatus:receipt&&store().inspect(scope,receipt.memoryId).status,
           records:run.savedMemory.admitted.map(item=>({id:item.id,revision:item.revision,...store().inspect(scope,item.id,item.revision)}))};
       }
       const {session,pin,scope}=sessionFor(snapshot(),body.session);

@@ -108,7 +108,7 @@ async function runViaSession(){
 }
 async function newPage(){
   await page.goto(url,{timeout:120000});
-  await task('Agents').waitFor();
+  await task('Agents').waitFor({timeout:75000});
 }
 const bullets=text=>text.split('\n').filter(line=>/^\s*[-*•]\s+/.test(line)).length;
 try {
@@ -259,6 +259,16 @@ try {
     await runViaSession();
     await memoryRegion().getByText('Forgotten · audit reference retained',{exact:true}).waitFor();
     await capture('memory-run-forgotten',memoryRegion().getByText('Forgotten · audit reference retained',{exact:true}));
+    const savedRun=await post('memory/run',{run:save.id});
+    assert.equal(savedRun.savedRecordStatus,'forgotten');
+    assert.equal(savedRun.receipt.outcome,'saved');
+    assert.equal(JSON.stringify(savedRun).includes(exact),false);
+    await task('Sessions').click();
+    const originalRow=page.locator('[data-session-id="'+original+'"]');
+    if(!await originalRow.isVisible())await button('Quellight').click();
+    await originalRow.click();
+    await runViaSession();
+    await capture('memory-save-run-forgotten',memoryRegion().getByText('Forgotten · audit reference retained',{exact:true}));
     await stop();
     assert.equal(await start(),workspace);
     await newPage();
@@ -277,6 +287,7 @@ try {
     assert.equal(contextual.memory.memory.content,editedContext);
     assert.ok(contextual.receipt.contextBasis.some(ref=>ref.startsWith(prior.id)),JSON.stringify(contextual.receipt.contextBasis));
     observed.contextual=contextual.receipt;
+    await page.getByRole('region',{name:'Saved memory confirmation'}).getByText(editedContext,{exact:true}).waitFor();
     await capture('memory-context-corrected');
     if(!live){
       await page.setViewportSize(observed.narrow);
