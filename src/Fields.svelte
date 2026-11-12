@@ -3,7 +3,8 @@
   import { Button as ControlButton } from '@victframework/ui-svelte/primitives';
   import { DropdownMenu } from '@victframework/ui-svelte/catalog/dropdown-menu';
   import { Input, Textarea } from '@victframework/ui-ai-svelte';
-  import { binding, field, instructions, modelId, modelName, rootId, instructionId, modelNodeId, tokenSourceId, agentResources, resourceChoices as choices, inlineAgentSettings } from './assembly';
+  import { binding, field, instructions, modelId, modelName, rootId, instructionId, modelNodeId, tokenSourceId, agentResources, resourceChoices as choices, inlineAgentSettings, governedMemoryValue } from './assembly';
+  import SavedMemoryPolicy from './SavedMemoryPolicy.svelte';
   import ModelSampling from './ModelSampling.svelte';
   import ExecutionLimits from './ExecutionLimits.svelte';
   import { childRef, childName, delegateGrant, childTask, childResult, taskLengthLimit } from './delegation-fixture.mjs';
@@ -103,6 +104,9 @@
     <label for={prefix+'-reference'}>{id==='context'?'Source revision':capabilityLabel(resource)}</label>
     <Select id={prefix+'-reference'} name="reference" value={String(field(graph,id,'reference'))} options={id==='child'?childChoices:id==='tool'?toolChoices:choices[resource.id]} onChange={v=>edit(id,'reference',v)}/>
   </div>
+  {#if id==='memory'}
+    <SavedMemoryPolicy id={prefix+'-saved-memory'} value={String(field(graph,'memory','savedMemory')??'off')} set={v=>edit('memory','savedMemory',v)}/>
+  {/if}
   {#if id==='child'}{@render delegationDetails()}{/if}
   {#if binding(graph,id)}
     <div class="configure-remove">
@@ -159,9 +163,12 @@
       <label for={base+'-'+setting.id}>{setting.label}</label>
       <Select id={base+'-'+setting.id} name={setting.id}
         value={binding(graph,setting.id)?String(field(graph,setting.id,'reference')):'default'}
-        options={setting.options} onChange={value=>value&&value!=='default'?configure(setting.id,'reference',value):disconnect(setting.id)}/>
+        options={setting.options} onChange={value=>value&&value!=='default'?configure(setting.id,'reference',value):
+          setting.id==='memory'&&field(graph,'memory','savedMemory')===governedMemoryValue?configure('memory','reference','recent-100@1'):disconnect(setting.id)}/>
     </div>
   {/each}
+  <SavedMemoryPolicy id={base+'-saved-memory'} value={binding(graph,'memory')?String(field(graph,'memory','savedMemory')??'off'):'off'}
+    set={value=>configure('memory','savedMemory',value)}/>
 {/snippet}
 
 {#snippet outputLimit(nodeId:string)}

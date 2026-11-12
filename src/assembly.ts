@@ -10,6 +10,8 @@ export const instructionId = 'instructions';
 export const modelNodeId = 'model';
 
 export const tokenSourceId = 'output-limit';
+export const governedMemoryValue='governed@1';
+export const savedMemoryChoices=[{value:'off',label:'Off'},{value:governedMemoryValue,label:'Governed Memory'}];
 export const optionalBindings=[
   {id:modelNodeId,label:'Model Reference'},
   {id:instructionId,label:'System prompt'},
@@ -89,11 +91,13 @@ export const inlineAgentSettings=[
 ] as const;
 const a3Definitions=resourceCatalog(a3Resources);
 const authoringDefinitions=resourceCatalog(agentResources);
-const definitions=authoringDefinitions.map(node=>node.id===rootId?{...node,parameters:{...node.parameters,
+const authoringBudgets=authoringDefinitions.map(node=>node.id===rootId?{...node,parameters:{...node.parameters,
   maxToolCalls:{type:'number' as const,default:0}}}:node);
+const definitions=authoringBudgets.map(node=>node.id==='memory'?{...node,parameters:{...node.parameters,
+  savedMemory:{type:'string' as const,default:'off'}}}:node);
 
 function upgrade(graph:GraphDocumentV3):GraphDocumentV3 {
-  return [legacyDefinitions,a1Definitions,a2Definitions,a3Definitions,resourceCatalog(a4Resources),authoringDefinitions].some(catalog=>JSON.stringify(graph.nodeTypes)===JSON.stringify(catalog))
+  return [legacyDefinitions,a1Definitions,a2Definitions,a3Definitions,resourceCatalog(a4Resources),authoringDefinitions,authoringBudgets].some(catalog=>JSON.stringify(graph.nodeTypes)===JSON.stringify(catalog))
     ? {...graph,nodeTypes:structuredClone(definitions)} : graph;
 }
 
@@ -154,7 +158,7 @@ export function resolved(graph:GraphDocumentV3) {
   const topP=modelValues?.topP as number|undefined;
   const resource=(id:string)=>binding(graph,id)?field(graph,id,'reference'):undefined;
   const {maxSteps,maxRetries,maxToolCalls}=executionSettings(graph);
-  return {authoring:resource('authoring'),output:resource('output'),child:resource('child'),context:resource('context'),memory:resource('memory'),tool:resource('tool'),name:String(field(graph,rootId,'name')??''),instructions:instructions(graph),
+  return {authoring:resource('authoring'),output:resource('output'),child:resource('child'),context:resource('context'),memory:resource('memory'),savedMemory:binding(graph,'memory')?field(graph,'memory','savedMemory'):undefined,tool:resource('tool'),name:String(field(graph,rootId,'name')??''),instructions:instructions(graph),
     model:binding(graph,'model') ? String(field(graph,modelNodeId,'model')??'') : '',
     tokens:outputTokens(graph),temperature,topP,
     maxSteps,maxRetries,maxToolCalls};
@@ -177,6 +181,7 @@ export function readiness(graph:GraphDocumentV3,route?:string) {
     value.model!==modelId ? 'Select GLM-5.3 Flash and connect its Model Reference.' :
     value.context!==undefined && !resourceChoices.context.some(option=>option.value===value.context) ? 'Select a supported Context Source revision.' :
     value.memory!==undefined && !['recent-10@1','recent-100@1'].includes(String(value.memory)) ? 'Select a supported Memory Policy.' :
+    value.savedMemory!==undefined && value.savedMemory!=='off' && value.savedMemory!==governedMemoryValue ? 'Select a supported saved memory policy.' :
     value.output!==undefined && value.output!=='finding@1' ? 'Select the supported Output Contract.' :
     value.child!==undefined && value.child!=='reference-reviewer@1' && !/^saved:[0-9a-f-]{36}$/.test(String(value.child)) ? 'Select the allowlisted Child Agent.' :
     value.authoring!==undefined && value.authoring!=='instructions@1' && value.authoring!==workspaceBinding ? 'Select the supported Draft Authoring capability.' :
@@ -199,6 +204,7 @@ export const wire = (source:string,targetPort:string):GraphOperationV3 => ({type
 export function configureOperations(graph:GraphDocumentV3,id:string,key:string,value:string|number) {
   const operations:GraphOperationV3[]=[];
   if(!graph.nodes.some(node=>node.id===id))operations.push(add(id));
+  if(id==='memory'&&!binding(graph,id)&&key==='savedMemory')operations.push(change(id,'reference','recent-100@1'));
   if(key)operations.push(change(id,key,value));
   if(binding(graph,id)?.source!==id)operations.push(wire(id,id));
   return operations;

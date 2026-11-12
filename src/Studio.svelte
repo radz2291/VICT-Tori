@@ -16,6 +16,7 @@
   import FlowAccess from './FlowAccess.svelte';
   import Fields from './Fields.svelte';
   import RunDetails from './RunDetails.svelte';
+  import MemoryControls from './MemoryControls.svelte';
   import {add,binding,canWire,change,emptyAssembly,field,history,instructions,modelName,readiness,resolved,wire,outputTokens,tokenSourceId,agentResources,resourceChoices,optionalBindings,isOptionalBinding,nodeVisibilityLabel,assemblyPatchOperations,configureOperations} from './assembly';
 
   type DockPanel='Authoring Agent'|'Assembly / Selection'|'Inspector';
@@ -82,7 +83,10 @@
   };
   const editableOccurrence=()=>!graph.nodes.some(node=>node.id==='agent')?undefined:
     binding(graph,'instructions')?'instructions.text':'agent.instructions';
-  let sendActivity=$state<{session:string;phase:string}|null>(null);
+  let sendActivity=$state<{session:string;phase:string;turn?:string;canStop?:boolean}|null>(null);
+  let memoryView=$state.raw<any>();
+  let memoryRead=0;
+  let stoppingSession=$state(false);
   let error=$state(''), graphError=$state('');
   let activeSession=$state(''), activeRun=$state('');
   let sessionDrafts=$state<Record<string,string>>({});
@@ -330,6 +334,32 @@
     const result=await response.json();
     if(!response.ok) throw new Error(result.message||'Studio could not complete this action.');
     return result;
+  }
+  async function loadSessionMemory(id:string){
+    const read=++memoryRead;
+    try {
+      const value=await request('/memory/session',{session:id});
+      if(read===memoryRead&&id===activeSession)memoryView=value;
+    }catch{if(read===memoryRead&&id===activeSession)memoryView={status:'error'};}
+  }
+  $effect(()=>{
+    const selected=session;
+    state.runs.find(item=>item.session===selected?.id&&!item.parentRun);
+    if(page!=='Sessions'||!selected||selected.authoring||selected.archivedFixture){memoryRead++;memoryView=undefined;return;}
+    untrack(()=>void loadSessionMemory(selected.id));
+  });
+  async function changeMemory(path:string,payload:any){
+    const id=activeSession;
+    const result=await request('/memory/'+path,{...payload,session:id});
+    await loadSessionMemory(id);
+    return result;
+  }
+  async function stopSessionTurn(){
+    const activity=sendActivity;
+    if(!activity?.canStop||!activity.turn||stoppingSession)return;
+    stoppingSession=true;
+    try{await request('/stop-turn',{session:activity.session,run:activity.turn});}
+    catch(error){turnErrors[activity.session]=(error as Error).message;stoppingSession=false;}
   }
   function applyState(next:any){
     const workspaceChanged=next.workspace!==state.workspace;
@@ -947,8 +977,8 @@
       try {
         const response=await fetch('/api/studio/activity?session='+encodeURIComponent(id),{signal:activityAbort.signal});
         if(response.ok){
-          const {phase}=await response.json();
-          if(phase&&!activityAbort.signal.aborted)sendActivity={session:id,phase};
+          const {phase,turn,canStop}=await response.json();
+          if(phase&&!activityAbort.signal.aborted)sendActivity={session:id,phase,turn,canStop};
         }
       }catch{/* The turn request still owns success and failure. */}
       if(!activityAbort.signal.aborted)setTimeout(poll,350);
@@ -962,7 +992,7 @@
       const last=next.runs.find(item=>item.session===id&&!item.parentRun);
       if(last?.status!=='completed')turnErrors[id]=last?.message??'The response did not complete. See Runs.';
     }catch(e){turnErrors[id]=(e as Error).message;}
-    finally{activityAbort.abort();sendActivity=null;sending=false;}
+    finally{activityAbort.abort();sendActivity=null;sending=false;stoppingSession=false;}
   }
   function workingKey(workspace:string,definition:string){
     return recoveryPrefix(workspace)+definition;
@@ -1725,14 +1755,19 @@
       <dt>Execution</dt><dd>{recordMode(session)}</dd>
       <dt>Model route</dt><dd>{session.fixture?'Simulated ':''}Z.AI {session.route==='coding'?'Coding':'General'} · {modelName}</dd>
       {#if session.context}<dt>Pinned context</dt><dd>{session.context}</dd>{/if}
-      {#if session.memory}<dt>Memory</dt><dd>{session.memory==='recent-10@1'?'Last 10 messages':'Last 100 messages'} · this Session</dd>{/if}
+      {#if session.memory}<dt>Session history</dt><dd>{session.memory==='recent-10@1'?'Last 10 messages':'Last 100 messages'} · this Session</dd>{/if}
       <dt>Thinking</dt><dd>Thinking details are unavailable through this connection.</dd>
     </dl>
+    {#if !session.authoring&&!session.archivedFixture}
+      {#key session.id}
+        <MemoryControls view={memoryView} mode="list" sessionId={session.id} act={changeMemory} busyTurn={sending}/>
+      {/key}
+    {/if}
   </div>
 {/snippet}
 
 {#snippet runDetails()}
-  <RunDetails {run} inspectRun={async(id:string)=>{
+  <RunDetails {run} loadMemory={(id:string)=>request('/memory/run',{run:id})} inspectRun={async(id:string)=>{
     setRunScope('all');
     runReturnSession='';
     await openRun(id,true);
@@ -1845,8 +1880,11 @@
   {:else}
     <div class="session-composer">
       {#if turnErrors[session.id]}<Feedback kind="error" message={turnErrors[session.id]}/>{/if}
+      <MemoryControls view={memoryView} mode="confirmation" sessionId={session.id} currentRun={sessionRuns.find(item=>!item.parentRun)?.id}
+        act={changeMemory} busyTurn={sending}/>
       <Patterns.PromptInput bind:value={()=>sessionDrafts[session.id]??'',value=>sessionDrafts[session.id]=value} busy={sendActivity?.session===session.id}
-        onSend={!sending&&!pending?send:undefined}>
+        onSend={!sending&&!pending?send:undefined}
+        onStop={sendActivity?.session===session.id&&sendActivity?.canStop&&!stoppingSession?stopSessionTurn:undefined}>
         {#snippet footer()}
           {@const revision=session.number??session.revision}
           <Badge variant="secondary" class="session-agent-chip" title={revision==null?session.name:recordIdentity(session)}>
@@ -1861,7 +1899,7 @@
               title={'Include pinned context on next turn · '+session.context}>Include context</Toggle.Root>
           {/if}
           {#if sendActivity?.session===session.id}
-            <span class="session-turn-state"><StatusBadge value={sendActivity.phase==='answer'?'Writing answer':'Waiting for answer'}/></span>
+            <span class="session-turn-state"><StatusBadge value={stoppingSession?'Stopping…':sendActivity.phase==='answer'?'Writing answer':'Waiting for answer'}/></span>
           {/if}
         {/snippet}
       </Patterns.PromptInput>

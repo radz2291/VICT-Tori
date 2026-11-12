@@ -1,6 +1,7 @@
 <script lang="ts">
   import { Button } from '@victframework/ui-svelte';
-  let {run,inspectRun}=$props();
+  import RunMemoryEvidence from './RunMemoryEvidence.svelte';
+  let {run,inspectRun,loadMemory}=$props();
 </script>
 
 <div class="run-details">
@@ -27,7 +28,7 @@
     <h3>Evidence</h3>
     <dl>
       <dt>Context</dt><dd>{run.context?run.context.source+' · '+run.context.status+(run.context.reason?' · '+run.context.reason:run.context.reads?' · '+run.context.reads+' read':''):'No on-demand source admitted'}</dd>
-      {#if run.memory}<dt>Scoped memory</dt><dd>{run.memory==='recent-10@1'?'Last 10 messages':'Last 100 messages'} · this Session</dd>{/if}
+      {#if run.memory}<dt>Session history</dt><dd>{run.memory==='recent-10@1'?'Last 10 messages':'Last 100 messages'} · this Session</dd>{/if}
       {#if run.outputContract}<dt>Output validation</dt><dd>{run.outputContract.id} · r{run.outputContract.revision} · {run.outputValidation??'not validated'}</dd>{/if}
       {#if run.governance&&!run.scriptReceipts?.length}
         <dt>Governed tool</dt><dd>{run.governance.calls} MCP calls · {run.governance.disposition??'not called'}</dd>
@@ -36,6 +37,7 @@
       <dt>Thinking</dt><dd>{run.reasoningAt?'Earlier provider observation; not a public VICT reasoning event.':'No public reasoning events or summary are available for this run.'}</dd>
     </dl>
   </section>
+  {#if run.hasSavedMemoryEvidence}<RunMemoryEvidence {run} load={loadMemory}/>{/if}
   {#if run.draftTarget}
     <section aria-label="Draft authoring">
       <h3>Draft authoring</h3>

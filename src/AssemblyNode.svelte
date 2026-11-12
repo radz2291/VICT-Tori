@@ -10,7 +10,8 @@
   import { Button, Dialog } from '@victframework/ui-svelte/primitives';
   import { DropdownMenu } from '@victframework/ui-svelte/catalog/dropdown-menu';
   import { Input, Textarea } from '@victframework/ui-ai-svelte';
-  import { agentResources, binding, canWire, executionSettings, field, instructions, modelId, modelName, outputTokens, resourceChoices, tokenSourceId, optionalBindings, inlineAgentSettings, nodeVisibilityLabel } from './assembly';
+  import { agentResources, binding, canWire, executionSettings, field, instructions, modelId, modelName, outputTokens, resourceChoices, tokenSourceId, optionalBindings, inlineAgentSettings, nodeVisibilityLabel, governedMemoryValue } from './assembly';
+  import SavedMemoryPolicy from './SavedMemoryPolicy.svelte';
   import ModelSampling from './ModelSampling.svelte';
   import ExecutionLimits from './ExecutionLimits.svelte';
   import AssemblyGlyph from './AssemblyGlyph.svelte';
@@ -171,11 +172,19 @@
             <label class="visually-hidden" for={'canvas-agent-'+setting.id}>{setting.label}</label>
             <Select id={'canvas-agent-'+setting.id} name={setting.id} value={linked?String(field(data.graph,setting.id,'reference')??''):'default'}
               options={setting.options}
-              onChange={value=>value&&value!=='default'?data.fields.configure(setting.id,'reference',value):data.fields.disconnect(setting.id)}/>
+              onChange={value=>value&&value!=='default'?data.fields.configure(setting.id,'reference',value):
+                setting.id==='memory'&&field(data.graph,'memory','savedMemory')===governedMemoryValue
+                  ?data.fields.configure('memory','reference','recent-100@1'):data.fields.disconnect(setting.id)}/>
           </div>
         {/if}
       {/snippet}
       {@render inputPort(setting.id,setting.label,'Reference',settingField)}
+      {#if setting.id==='memory'&&(!linked||!data.canvasIds.has('memory'))}
+        <div class="node-inline-fields nodrag nopan">
+          <SavedMemoryPolicy id="canvas-agent-saved-memory" value={linked?String(field(data.graph,'memory','savedMemory')??'off'):'off'}
+            set={value=>data.fields.configure('memory','savedMemory',value)}/>
+        </div>
+      {/if}
     {/each}
     {#each resourcePorts as item (item.id)}
       {@render inputPort(item.id,item.label,item.label+' reference')}
@@ -233,6 +242,12 @@
       {/if}
       <Handle class={data.wireSource===id?'node-handle wire-start':'node-handle'} type="source" position={Position.Right} id="value" title={data.title+' output'}/>
     </div>
+    {#if id==='memory'}
+      <div class="node-inline-fields nodrag nopan">
+        <SavedMemoryPolicy id="canvas-memory-saved-memory" value={String(field(data.graph,'memory','savedMemory')??'off')}
+          set={value=>data.fields.edit('memory','savedMemory',value)}/>
+      </div>
+    {/if}
     {#if data.activePin}
       <div class="node-pin node-detail">Active pin · {data.activePin.name} · r{data.activePin.number}</div>
     {/if}
