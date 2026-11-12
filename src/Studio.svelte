@@ -359,7 +359,10 @@
     const activity=sendActivity;
     if(!activity?.canStop||!activity.turn||stoppingSession)return;
     stoppingSession=true;
-    try{await request('/stop-turn',{session:activity.session,run:activity.turn});}
+    try{
+      const result=await request('/stop-turn',{session:activity.session,run:activity.turn});
+      if(result.status!=='stopping')await loadSessionMemory(activity.session);
+    }
     catch(error){turnErrors[activity.session]=(error as Error).message;stoppingSession=false;}
   }
   function applyState(next:any){

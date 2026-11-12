@@ -17,8 +17,10 @@ const ok=(status,more)=>({status,...more});
 
 export function openMemoryStore(path,{clock=Date.now,ids=randomUUID,budget=memoryBudgetBytes}={}) {
   const db=new DatabaseSync(path);
+  // An authorized mutation must never wait behind another SQLite writer and then
+  // commit on an old authority check. Fail fast; a retry rechecks the operator.
   db.exec(
-    'PRAGMA busy_timeout=5000; PRAGMA foreign_keys=ON; PRAGMA secure_delete=ON;'+
+    'PRAGMA busy_timeout=0; PRAGMA foreign_keys=ON; PRAGMA secure_delete=ON;'+
     'CREATE TABLE IF NOT EXISTS settings (id INTEGER PRIMARY KEY CHECK(id=1), secret TEXT NOT NULL);'+
     'CREATE TABLE IF NOT EXISTS memories (id TEXT PRIMARY KEY, scope TEXT NOT NULL, revision INTEGER NOT NULL,'+
       ' status TEXT NOT NULL, created_at TEXT NOT NULL, updated_at TEXT NOT NULL, last_used_at TEXT);'+

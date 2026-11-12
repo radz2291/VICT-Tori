@@ -39,6 +39,7 @@ export async function memoryProvider(url,init) {
     if(prompt.includes('slow review')){
       await delay(20000,undefined,{signal:init.signal});
     }
+    if(prompt.includes('delayed acknowledgement'))await delay(1500,undefined,{signal:init.signal});
     if(prompt===contextPrompt){
       const prior=transcript.find(item=>item.text===contextSource);
       assert.ok(prior,'Drafting sees the authorized source outside the regular history window.');

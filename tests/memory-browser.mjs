@@ -298,6 +298,31 @@ try {
       await route('memory/dismiss',()=>button('Dismiss').click());
       await page.getByText('Nothing saved. This proposal was dismissed.',{exact:true}).first().waitFor();
       const waiting=page.getByRole('textbox',{name:'Message',exact:true});
+      const delayedUrl=url+'/api/studio/turn';
+      let release,responded;
+      const delayed=new Promise(resolve=>{release=resolve;});
+      const serverSettled=new Promise(resolve=>{responded=resolve;});
+      await page.route(delayedUrl,async route=>{
+        const response=await route.fetch();
+        responded();
+        await delayed;
+        await route.fulfill({response});
+      });
+      try{
+        await waiting.fill('Remember the delayed acknowledgement preference.');
+        const completed=await route('turn',async()=>{
+          await waiting.press('Enter');
+          await button('Stop').waitFor();
+          const readinessTimeout=AbortSignal.timeout(15000);
+          await Promise.race([serverSettled,new Promise((_,reject)=>readinessTimeout.addEventListener('abort',()=>reject(readinessTimeout.reason),{once:true}))]);
+          const stopResult=await route('stop-turn',()=>button('Stop').click());
+          assert.equal(stopResult.status,'cancelled');
+          release();
+        });
+        const completedRun=completed.runs.find(item=>item.session===narrowSession);
+        assert.equal((await post('memory/run',{run:completedRun.id})).proposal,'cancelled');
+        await page.getByText('Nothing saved. The turn was stopped before confirmation.',{exact:true}).waitFor();
+      }finally{release();await page.unroute(delayedUrl);}
       await waiting.fill('Remember the slow review preference.');
       const stopped=await route('turn',async()=>{
         await waiting.press('Enter');

@@ -122,8 +122,11 @@ export function createSavedMemoryHost({path,actor,project,fixture,snapshot,defin
       }
       if(path==='/memory/correct'||path==='/memory/forget'){
         if(!uuid(body.id))throw error(400,'Select a memory to change.');
-        return operationView(scope,store().change(scope,{action:path.slice('/memory/'.length),id:body.id,session:session.id,
-          expectedRevision:body.revision,operation:body.operation,text:body.text,stillAuthorized}));
+        let result;
+        try{result=store().change(scope,{action:path.slice('/memory/'.length),id:body.id,session:session.id,
+          expectedRevision:body.revision,operation:body.operation,text:body.text,stillAuthorized});}
+        catch{throw error(503,'Studio could not confirm this change. Retry to check for a committed receipt.');}
+        return operationView(scope,result);
       }
       throw error(404,'Unknown Studio memory operation.');
     },

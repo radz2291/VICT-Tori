@@ -190,6 +190,12 @@ test('real Studio turns pin policy, admit stored values and refuse scope, replay
     const withdrawn=await current(sid);
     assert.equal((await req('/memory/dismiss',{session:sid,run:withdrawn.run})).status,'dismissed');
     await assert.rejects(confirm(sid,withdrawn),/dismissed/);
+    const lateStopRun=await turn(sid,savePrompt);
+    const lateStopProposal=await current(sid);
+    assert.equal(lateStopProposal.run,lateStopRun.id);
+    assert.equal((await req('/stop-turn',{session:sid,run:lateStopRun.id})).status,'cancelled');
+    await assert.rejects(confirm(sid,lateStopProposal),/stopped before commit/);
+    assert.deepEqual((await memoryView(sid)).records,[]);
     const draftRun=await turn(sid,savePrompt);
     const pending=await current(sid);
     assert.equal(pending.status,'pending');
@@ -235,6 +241,21 @@ test('real Studio turns pin policy, admit stored values and refuse scope, replay
     assert.equal((await memoryView(fresh)).status,'denied');
     await actors.upsert(principal);
     assert.equal((await runView(suspended.id)).evidence.status,'access-denied');
+
+    const lockedSession=await session(on.version);
+    await turn(lockedSession,savePrompt);
+    const lockedProposal=await current(lockedSession);
+    const held=new DatabaseSync(file);
+    held.exec('BEGIN IMMEDIATE');
+    try {
+      await assert.rejects(confirm(lockedSession,lockedProposal),/could not confirm this save/);
+      await actors.upsert({...principal,status:'disabled'});
+    }finally{held.exec('ROLLBACK');held.close();}
+    await assert.rejects(confirm(lockedSession,lockedProposal),/access was denied/);
+    await actors.upsert(principal);
+    assert.equal((await memoryView(fresh)).records.length,1);
+    assert.equal((await current(lockedSession)).status,'pending');
+    await req('/memory/dismiss',{session:lockedSession,run:lockedProposal.run});
 
     const correction={session:fresh,id,revision:1,operation:randomUUID(),text:correctedText};
     for(const identity of [{actor:'tori-memory-second-actor'},{project:'tori-memory-second-project'}]){

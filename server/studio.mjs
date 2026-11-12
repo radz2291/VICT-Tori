@@ -471,10 +471,14 @@ export function createStudio({getAssembly,dataDirectory,turnDeadlineMs=maxHostDe
     }
     if(path.startsWith('/memory/'))return memories.handle(path,input);
     if(path==='/stop-turn'){
-      if(activeTurn?.session!==input.session||activeTurn?.run?.id!==input.run||!activeTurn.stop)
-        return {status:'not-running'};
-      activeTurn.stop.abort();
-      return {status:'stopping'};
+      if(activeTurn?.session===input.session&&activeTurn?.run?.id===input.run&&activeTurn.stop){
+        activeTurn.stop.abort();
+        return {status:'stopping'};
+      }
+      // The provider may finish while the browser still awaits the turn reply.
+      // Stop still revokes the exact pending proposal, never a different turn.
+      try{return await memories.handle('/memory/stop',input);}
+      catch(error){if(error.status===404)return {status:'not-running'};throw error;}
     }
     const assembly=await getAssembly();
     let state=snapshot();
