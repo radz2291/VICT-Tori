@@ -1,0 +1,241 @@
+{
+  "origin": "deterministic provider",
+  "desktop": {
+    "width": 1531,
+    "height": 850
+  },
+  "narrow": {
+    "width": 390,
+    "height": 844
+  },
+  "runs": {
+    "draft": {
+      "run": "94630886-67da-4106-906b-7d160020024a",
+      "session": "4845b577-361c-473e-afb6-d82d97d8df2f",
+      "reply": "Memory proposal: I prefer project updates in three short bullets.\n\nReview the text in Studio before saving it."
+    },
+    "freshRecall": {
+      "run": "ca986946-47dd-421d-b25b-6bfa90791f2e",
+      "session": "bdd3f930-7ec9-418e-8dfd-ec4a71665739",
+      "reply": "- Design is approved.\n- Implementation is in progress.\n- The demo is Friday."
+    },
+    "historyOnly": {
+      "run": "02790dee-62bc-4bb9-b90f-4275778314c1",
+      "session": "465f6c4c-d827-4009-8910-a014d657c526",
+      "reply": "Design is approved. Implementation is in progress. The demo is Friday."
+    },
+    "correctedRecall": {
+      "run": "7a24ea6e-3fad-4de8-819a-631a6e7c4512",
+      "session": "8c9197da-4c61-43f5-987c-28b69e9188d2",
+      "reply": "- Design is approved.\n- Implementation is in progress. The demo is Friday."
+    },
+    "afterForget": {
+      "run": "81676571-f709-4eab-835d-c892dafdac0b",
+      "session": "d7995aed-c4eb-45c3-97e5-ac30d6ad41dc",
+      "reply": "Design is approved. Implementation is in progress. The demo is Friday."
+    },
+    "afterForgetRestart": {
+      "run": "2027a354-4dca-4e5a-8abd-aefc03c82d2f",
+      "session": "40afc429-5115-418d-abf5-ee9398448153",
+      "reply": "Design is approved. Implementation is in progress. The demo is Friday."
+    },
+    "planningContext": {
+      "run": "62789a36-c8af-4ef6-99b7-7e9376d8b610",
+      "session": "e33e7753-3bf3-49fb-8cf5-fe747d2019bb",
+      "reply": "Synthetic reply. No saved-memory write occurred."
+    },
+    "contextDraft": {
+      "run": "827b4936-8701-41bf-b1b9-c68c5fc47557",
+      "session": "e33e7753-3bf3-49fb-8cf5-fe747d2019bb",
+      "reply": "Memory proposal: Use the input and decision sequence, without a deadline.\n\nReview the text in Studio before saving it."
+    },
+    "budget": {
+      "run": "6a94dc8b-1ac5-43fc-ae4b-0c378d8283aa",
+      "session": "b0d16cd4-d4c9-4edb-b972-2cc9c89cf6ce",
+      "reply": "- Design is approved.\n- Implementation is in progress.\n- The demo is Friday."
+    }
+  },
+  "chromium": "153.0.8010.12",
+  "activation": "v1_b43e5c2ac37e4446dd83a35e167ffdacf5e225c249cff8f345a964b8b7f9286b",
+  "confirmationContrast": 13.783925247951698,
+  "save": {
+    "schema": "tori.memory.receipt@1",
+    "capability": "tori.memory.save",
+    "capabilityRevision": "1",
+    "operation": "4cf52c45-3c79-4b4e-8641-fc66b4b4f9d4",
+    "action": "save",
+    "outcome": "saved",
+    "scope": {
+      "actor": "tori-local-owner",
+      "project": "b5727ec6-7357-431c-8f08-f256eecc89a5",
+      "agent": "tori-local-agent"
+    },
+    "memoryId": "f1129cf4-5338-437b-9013-b79bfc658290",
+    "revision": 1,
+    "source": {
+      "session": "4845b577-361c-473e-afb6-d82d97d8df2f",
+      "message": "94630886-67da-4106-906b-7d160020024a-user"
+    },
+    "savedByRun": "94630886-67da-4106-906b-7d160020024a",
+    "contextBasis": [
+      "94630886-67da-4106-906b-7d160020024a-user"
+    ],
+    "operatorSession": "4845b577-361c-473e-afb6-d82d97d8df2f",
+    "at": "2026-11-12T13:52:10.937Z"
+  },
+  "firstAdmission": {
+    "schema": "tori.memory.admission@1",
+    "budgetBytes": 2048,
+    "bytes": 203,
+    "admitted": [
+      {
+        "id": "f1129cf4-5338-437b-9013-b79bfc658290",
+        "revision": 1,
+        "source": {
+          "session": "4845b577-361c-473e-afb6-d82d97d8df2f",
+          "message": "94630886-67da-4106-906b-7d160020024a-user"
+        },
+        "savedByRun": "94630886-67da-4106-906b-7d160020024a",
+        "contextBasis": [
+          "94630886-67da-4106-906b-7d160020024a-user"
+        ],
+        "createdAt": "2026-11-12T13:52:10.937Z",
+        "updatedAt": "2026-11-12T13:52:10.937Z",
+        "ageMs": 20930,
+        "lastUsedAt": "2026-11-12T13:52:31.867Z"
+      }
+    ],
+    "omitted": [],
+    "status": "admitted"
+  },
+  "correction": {
+    "schema": "tori.memory.receipt@1",
+    "capability": "tori.memory.save",
+    "capabilityRevision": "1",
+    "operation": "797aeb4b-989c-4fa8-8fd6-3085ecbc4bb7",
+    "action": "correct",
+    "outcome": "corrected",
+    "scope": {
+      "actor": "tori-local-owner",
+      "project": "b5727ec6-7357-431c-8f08-f256eecc89a5",
+      "agent": "tori-local-agent"
+    },
+    "memoryId": "f1129cf4-5338-437b-9013-b79bfc658290",
+    "revision": 2,
+    "source": {
+      "session": "4845b577-361c-473e-afb6-d82d97d8df2f",
+      "message": "94630886-67da-4106-906b-7d160020024a-user"
+    },
+    "savedByRun": "94630886-67da-4106-906b-7d160020024a",
+    "contextBasis": [
+      "94630886-67da-4106-906b-7d160020024a-user"
+    ],
+    "operatorSession": "bdd3f930-7ec9-418e-8dfd-ec4a71665739",
+    "at": "2026-11-12T13:52:34.665Z"
+  },
+  "forget": {
+    "schema": "tori.memory.receipt@1",
+    "capability": "tori.memory.save",
+    "capabilityRevision": "1",
+    "operation": "19580fa4-3f53-4f89-bd81-7d6de65966b0",
+    "action": "forget",
+    "outcome": "forgotten",
+    "scope": {
+      "actor": "tori-local-owner",
+      "project": "b5727ec6-7357-431c-8f08-f256eecc89a5",
+      "agent": "tori-local-agent"
+    },
+    "memoryId": "f1129cf4-5338-437b-9013-b79bfc658290",
+    "revision": 2,
+    "source": {
+      "session": "4845b577-361c-473e-afb6-d82d97d8df2f",
+      "message": "94630886-67da-4106-906b-7d160020024a-user"
+    },
+    "savedByRun": "94630886-67da-4106-906b-7d160020024a",
+    "contextBasis": [
+      "94630886-67da-4106-906b-7d160020024a-user"
+    ],
+    "operatorSession": "8c9197da-4c61-43f5-987c-28b69e9188d2",
+    "at": "2026-11-12T13:53:00.339Z"
+  },
+  "suggestedContext": "Use the input and decision sequence, without a deadline.",
+  "contextual": {
+    "schema": "tori.memory.receipt@1",
+    "capability": "tori.memory.save",
+    "capabilityRevision": "1",
+    "operation": "b484fc20-d3d5-43da-8505-2b015045995a",
+    "action": "save",
+    "outcome": "saved",
+    "scope": {
+      "actor": "tori-local-owner",
+      "project": "b5727ec6-7357-431c-8f08-f256eecc89a5",
+      "agent": "tori-local-agent"
+    },
+    "memoryId": "66145873-0c6a-4a1d-8204-09be6eb5aaa1",
+    "revision": 1,
+    "source": {
+      "session": "e33e7753-3bf3-49fb-8cf5-fe747d2019bb",
+      "message": "827b4936-8701-41bf-b1b9-c68c5fc47557-user"
+    },
+    "savedByRun": "827b4936-8701-41bf-b1b9-c68c5fc47557",
+    "contextBasis": [
+      "62789a36-c8af-4ef6-99b7-7e9376d8b610-user",
+      "827b4936-8701-41bf-b1b9-c68c5fc47557-user"
+    ],
+    "operatorSession": "e33e7753-3bf3-49fb-8cf5-fe747d2019bb",
+    "at": "2026-11-12T13:53:30.460Z"
+  },
+  "budget": {
+    "schema": "tori.memory.admission@1",
+    "budgetBytes": 2048,
+    "bytes": 1230,
+    "admitted": [
+      {
+        "id": "df9b2662-393b-46df-9696-1a0990de1e70",
+        "revision": 1,
+        "source": {
+          "session": "df17234a-10c1-458e-ad85-d9772baca01f",
+          "message": "85a43684-5641-4af6-a0cd-e594e8096ddb-user"
+        },
+        "savedByRun": "85a43684-5641-4af6-a0cd-e594e8096ddb",
+        "contextBasis": [
+          "85a43684-5641-4af6-a0cd-e594e8096ddb-user"
+        ],
+        "createdAt": "2026-11-12T13:53:39.206Z",
+        "updatedAt": "2026-11-12T13:53:39.206Z",
+        "ageMs": 385,
+        "lastUsedAt": "2026-11-12T13:53:39.591Z"
+      },
+      {
+        "id": "66145873-0c6a-4a1d-8204-09be6eb5aaa1",
+        "revision": 1,
+        "source": {
+          "session": "e33e7753-3bf3-49fb-8cf5-fe747d2019bb",
+          "message": "827b4936-8701-41bf-b1b9-c68c5fc47557-user"
+        },
+        "savedByRun": "827b4936-8701-41bf-b1b9-c68c5fc47557",
+        "contextBasis": [
+          "62789a36-c8af-4ef6-99b7-7e9376d8b610-user",
+          "827b4936-8701-41bf-b1b9-c68c5fc47557-user"
+        ],
+        "createdAt": "2026-11-12T13:53:30.460Z",
+        "updatedAt": "2026-11-12T13:53:30.460Z",
+        "ageMs": 9131,
+        "lastUsedAt": "2026-11-12T13:53:39.591Z"
+      }
+    ],
+    "omitted": [
+      {
+        "id": "d423a0f8-b2b6-443b-b0a4-32a3c409dae1",
+        "revision": 1,
+        "reason": "budget"
+      },
+      {
+        "id": "4a0a68f9-1440-45d0-8481-c308e819a11b",
+        "revision": 1,
+        "reason": "budget"
+      }
+    ],
+    "status": "admitted"
+  }
+}

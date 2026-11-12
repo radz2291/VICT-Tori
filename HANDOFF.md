@@ -2,9 +2,9 @@
 
 ## V1c Memory Foundation
 
-Use `codex/tori-v1c-memory-foundation` and the Work ticket for **V1c — Memory Foundation**. The [accepted slice contract](docs/implementation/MEMORY-FOUNDATION.md) is pinned at `8854562dda920f583e6cc1d80de51f6add6d7ba9` and starts from the accepted TORI-005 baseline. Follow the [Work protocol](docs/governance/ROLLADICE-WORK.md) when claiming the local implementation.
+The [local Studio preview](http://127.0.0.1:48830/) runs product `2e95a06639244b78b7f00d190b85e303eb1b55df` on `codex/tori-v1c-memory-foundation`. Quellight r1 is ready for a hands-on check. In Sessions, ask it to remember the three-bullet preference, confirm the text, restart the same preview, and ask for an Orchid update in a new Session. See the [review walkthrough and restart command](docs/evidence/v1c-memory/README.md#review-preview).
 
-First run and record all three probes against the pinned VICT and Mastra versions, including saved-memory retention independence in the LibSQL-backed store. Select and record one backing implementation before making implementation commits. Use the documented SQLite fallback if any probe fails or is inconclusive. Deliver the live save, fresh-Session recall, correct and forget walkthrough, the deterministic isolation and governance checks, and the independent candidate verdict for Radzi's review.
+TORI-006 is the Work review ticket. The [accepted slice contract](docs/implementation/MEMORY-FOUNDATION.md) is pinned at `8854562dda920f583e6cc1d80de51f6add6d7ba9`. The [backing decision](docs/evidence/v1c-memory/PROBES.md), retained failures, and [independent candidate report](docs/evidence/v1c-memory/INDEPENDENT.md) are in the repository. Radzi owns acceptance; the Background Foundation remains a separate slice.
 
 ## TORI-005 Authoring continuity
 
