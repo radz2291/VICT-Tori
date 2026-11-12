@@ -113,8 +113,11 @@ export function createSavedMemoryHost({path,actor,project,fixture,snapshot,defin
           throw error(404,'No confirmable memory proposal was found for this turn.');
         const grant={confirmed:true,session:session.id,activation:session.activation,run:run.id,operation:body.operation};
         const capability=gatedMemorySave(store(),scope,grant,stillAuthorized);
-        const result=await capability({text:body.text},{victActorId:actor,victTurnId:run.id,victIdempotencyKey:body.operation,
-          signal:new AbortController().signal});
+        let result;
+        try {
+          result=await capability({text:body.text},{victActorId:actor,victTurnId:run.id,victIdempotencyKey:body.operation,
+            signal:new AbortController().signal});
+        }catch{throw error(503,'Studio could not confirm this save. Retry confirmation to check for a committed receipt.');}
         return operationView(scope,result);
       }
       if(path==='/memory/correct'||path==='/memory/forget'){

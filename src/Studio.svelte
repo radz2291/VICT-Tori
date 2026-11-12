@@ -84,7 +84,8 @@
   const editableOccurrence=()=>!graph.nodes.some(node=>node.id==='agent')?undefined:
     binding(graph,'instructions')?'instructions.text':'agent.instructions';
   let sendActivity=$state<{session:string;phase:string;turn?:string;canStop?:boolean}|null>(null);
-  let memoryView=$state.raw<any>();
+  let memoryResult=$state.raw<{session:string;view:any}>();
+  let memoryView=$derived(memoryResult?.session===session?.id?memoryResult?.view:undefined);
   let memoryRead=0;
   let stoppingSession=$state(false);
   let error=$state(''), graphError=$state('');
@@ -339,13 +340,13 @@
     const read=++memoryRead;
     try {
       const value=await request('/memory/session',{session:id});
-      if(read===memoryRead&&id===activeSession)memoryView=value;
-    }catch{if(read===memoryRead&&id===activeSession)memoryView={status:'error'};}
+      if(read===memoryRead&&id===activeSession)memoryResult={session:id,view:value};
+    }catch{if(read===memoryRead&&id===activeSession)memoryResult={session:id,view:{status:'error'}};}
   }
   $effect(()=>{
     const selected=session;
     state.runs.find(item=>item.session===selected?.id&&!item.parentRun);
-    if(page!=='Sessions'||!selected||selected.authoring||selected.archivedFixture){memoryRead++;memoryView=undefined;return;}
+    if(page!=='Sessions'||!selected||selected.authoring||selected.archivedFixture){memoryRead++;memoryResult=undefined;return;}
     untrack(()=>void loadSessionMemory(selected.id));
   });
   async function changeMemory(path:string,payload:any){

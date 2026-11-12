@@ -48,7 +48,7 @@
     {#if view.receipt}
       <dl>
         <dt>Save outcome</dt><dd>Saved · {view.receipt.memoryId} · r{view.receipt.revision}</dd>
-        <dt>Source message</dt><dd class="hash">{view.receipt.source.message}</dd>
+        <dt>Source message</dt><dd class="hash">{view.receipt.source.message}<br/>Session {view.receipt.source.session}</dd>
         <dt>Context basis</dt><dd class="hash">{view.receipt.contextBasis.join(', ')}</dd>
         <dt>Operation</dt><dd class="hash">{view.receipt.operation}</dd>
       </dl>

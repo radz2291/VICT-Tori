@@ -238,10 +238,11 @@ export function createStudio({getAssembly,dataDirectory,turnDeadlineMs=maxHostDe
       try {
         // The local Studio operator has a host-owned identity. Never recreate a suspended actor.
         controlStores??=createSqliteAgentControlStores({path:join(dir,'a3-control.sqlite')});
-        let record=await controlStores.actors.get(identity);
-        if(!record&&(identity===actor||identity===memoryFixture?.actor)){
-          await controlStores.actors.upsert({actorId:identity,status:'active',roles:['developer'],createdAt:Date.now()});
-          record=await controlStores.actors.get(identity);
+        const directory=memoryFixture?.directory??controlStores.actors;
+        let record=await directory.get(identity);
+        if(!record&&!memoryFixture?.directory&&(identity===actor||identity===memoryFixture?.actor)){
+          await directory.upsert({actorId:identity,status:'active',roles:['developer'],createdAt:Date.now()});
+          record=await directory.get(identity);
         }
         return authenticatedActorContext(record,identity).scopes.includes('agent.turn.start');
       }catch{return false;}

@@ -203,8 +203,10 @@ export const wire = (source:string,targetPort:string):GraphOperationV3 => ({type
 
 export function configureOperations(graph:GraphDocumentV3,id:string,key:string,value:string|number) {
   const operations:GraphOperationV3[]=[];
-  if(!graph.nodes.some(node=>node.id===id))operations.push(add(id));
-  if(id==='memory'&&!binding(graph,id)&&key==='savedMemory')operations.push(change(id,'reference','recent-100@1'));
+  if(!graph.nodes.some(node=>node.id===id)){
+    operations.push(add(id));
+    if(id==='memory'&&key==='savedMemory')operations.push(change(id,'reference','recent-100@1'));
+  }
   if(key)operations.push(change(id,key,value));
   if(binding(graph,id)?.source!==id)operations.push(wire(id,id));
   return operations;

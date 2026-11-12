@@ -163,7 +163,7 @@ export function openMemoryStore(path,{clock=Date.now,ids=randomUUID,budget=memor
         }
         const revision=header.revision+1;
         insertRevision(id,revision,text,row.session,row.source,row.saved_by_run,row.basis,at);
-        change('UPDATE memories SET revision=?,updated_at=? WHERE id=?',revision,at,id);
+        change('UPDATE memories SET revision=?,updated_at=?,last_used_at=NULL WHERE id=?',revision,at,id);
         return record(scope,operation,digest,receiptFor(scope,action,operation,{id,revision},revisionFor(id,revision),session,at));
       });
     },

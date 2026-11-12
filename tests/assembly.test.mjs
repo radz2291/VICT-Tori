@@ -71,6 +71,7 @@ test('a legacy workspace authoring graph keeps its budget and can activate with 
   ]).ok,true);
   const legacy=structuredClone(author.graph);
   delete legacy.nodeTypes.find(node=>node.id==='agent').parameters.maxToolCalls;
+  delete legacy.nodeTypes.find(node=>node.id==='memory').parameters.savedMemory;
   const upgraded=history(checkedAssembly(legacy));
   assert.equal(upgraded.graph.revision,legacy.revision);
   assert.deepEqual(structuredClone(upgraded.graph.nodes),legacy.nodes);
@@ -81,6 +82,7 @@ test('a legacy workspace authoring graph keeps its budget and can activate with 
   const saved=await service.dispatch('/save',{definition,graph:upgraded.graph});
   const active=await service.dispatch('/activate',{definition,revision:saved.revision});
   assert.deepEqual(active.activation.execution,{maxSteps:1,maxToolCalls:0,maxRetries:8});
+  assert.equal(active.activation.savedMemory,false);
 });
 
 test('save incomplete, reject stale writes, pin and restore activation after restart',async()=>{

@@ -45,6 +45,7 @@ async function withMcp(operation,signal,fixture) {
     env:fixture?{
       ...(process.env.TORI_MCP_SCHEMA_DRIFT==='1'?{TORI_MCP_SCHEMA_DRIFT:'1'}:{}),
       ...(process.env.TORI_MCP_CALL_CAPTURE?{TORI_MCP_CALL_CAPTURE:process.env.TORI_MCP_CALL_CAPTURE}:{}),
+      ...(process.env.TORI_MCP_MEMORY_PHRASE==='1'?{TORI_MCP_MEMORY_PHRASE:'1'}:{}),
     }:{},
   });
   const client=new Client({name:'tori-studio',version:'1'});

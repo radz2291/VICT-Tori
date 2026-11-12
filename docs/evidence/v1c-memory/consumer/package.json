@@ -1,0 +1,12 @@
+{
+  "name": "independent-tori-memory-consumer",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "@tori-studio/memory": "file:packs/tori-studio-memory-0.1.0.tgz",
+    "@victframework/contracts": "file:packs/victframework-contracts-0.4.0-rc.1.tgz",
+    "@victframework/kernel": "file:packs/victframework-kernel-0.4.0-rc.1.tgz",
+    "@victframework/runtime": "file:packs/victframework-runtime-0.4.0-rc.1.tgz",
+    "@victframework/sdk": "file:packs/victframework-sdk-0.4.0-rc.1.tgz"
+  }
+}

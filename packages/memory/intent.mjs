@@ -5,8 +5,8 @@ export const draftContextBytes=64*1024;
 export const proposalLifetimeMs=10*60*1000;
 
 const remember=/\b(?:remember|memorize|save\s+(?:(?:this|that|it)\b|(?:my|this) (?:memory|preference)))\b/iu;
-const explicit=/^(?:(?:please|kindly)\s+|(?:can|could|would|will)\s+you\s+(?:please\s+)?|(?:i\s+(?:want|need)\s+you\s+to|i['’]d\s+like\s+you\s+to)\s+)?(?:remember|memorize|save\s+(?:this|that)(?:\s+(?:as\s+a\s+memory|preference))?)\b\s*[:,-]?\s*(.*)$/iu;
-const rescinded=/(?:^|[.;!?\n]\s*|\b(?:but|and|actually)\s+)(?:please\s+)?(?:do\s+not|don['’]t|never)\s+(?:remember|save|memorize)\b/iu;
+const explicit=/^(?:(?:please|kindly)\s+|(?:can|could|would|will)\s+you\s+(?:please\s+)?|(?:i\s+(?:want|need)\s+you\s+to|i['’]d\s+like\s+you\s+to)\s+)?(?:remember|memorize|save\s+(?:this|that)(?:\s+(?:as\s+a\s+memory|preference))?)\b\s*[:,-]?\s*([\s\S]*)$/iu;
+const rescinded=/(?:^|[.;!?\n]\s*|\b(?:but|and|actually)[, ]+)(?:please\s+)?(?:do\s+not|don['’]t|never)\s+(?:remember|save|memorize)\b/iu;
 export function memoryIntent(text) {
   const candidate=String(text).trim();
   if(!remember.test(candidate))return {kind:'ordinary'};
@@ -27,7 +27,7 @@ export function memoryIntent(text) {
   return {kind:'explicit',contextual};
 }
 
-export const validMemoryText=value=>typeof value==='string'&&!!value.trim()&&
+export const validMemoryText=value=>typeof value==='string'&&!!value.trim()&&value.isWellFormed()&&
   !value.includes('\u0000')&&Buffer.byteLength(value,'utf8')<=maxMemoryBytes;
 
 // Only completed exchanges from this Session are eligible. Interrupted steps and tool

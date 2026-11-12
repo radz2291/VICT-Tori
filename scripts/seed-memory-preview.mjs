@@ -19,7 +19,7 @@ if(!present){
     const assembly=await fixtureHost.ssrLoadModule('/src/assembly.ts');
     const journal=assembly.history(assembly.emptyAssembly());
     const graph=journal.apply(assembly.assemblyPatchOperations(journal.graph,{
-      name:'Quellight',instructions:'You are Quellight, a concise project assistant. Use the synthetic Orchid project facts when asked for an update: design is approved, implementation is in progress, and the next milestone is a demo on Friday. Use any applicable saved preferences supplied by Studio for the answer format.',
+      name:'Quellight',instructions:'You are Quellight, a concise project assistant. Use the synthetic Orchid project facts when asked for an update: design is approved, implementation is in progress, and the next milestone is a demo on Friday. Use applicable saved preferences supplied by Studio for the answer format. If there is no saved format preference, answer in one short sentence. Use simple hyphen bullets when the user prefers bullets.',
       model:assembly.modelId,
     }),journal.graph.revision);
     assert.ok(graph.ok);

@@ -22,6 +22,7 @@
   $effect(()=>{
     content=proposal?.status==='pending'?proposal.text:'';
   });
+  $effect(()=>{currentRun;result='';problem='';});
   function edit(event:MouseEvent,item:any,next:'correct'|'forget'){
     invoker=event.currentTarget as HTMLElement;
     target=item;edited=item.content??'';action=next;operation=crypto.randomUUID();
@@ -40,7 +41,6 @@
         close();
         result=path==='correct'?'Memory corrected.':'Memory forgotten. Older Runs keep the receipt without the text.';
       }else if(response?.memory?.status==='forgotten')result='The original save was confirmed. The memory has since been forgotten.';
-      else if(path==='dismiss')result='Nothing saved. Proposal dismissed.';
     }catch(e){problem=(e as Error).message;}
     finally{busy=false;}
   }
@@ -52,6 +52,7 @@
       <h3 id={inputId+'-heading'} tabindex="-1">Confirm saved memory</h3>
       <label class="visually-hidden" for={inputId}>Memory to save</label>
       <Textarea id={inputId} class="tori-field" rows={2} bind:value={content} disabled={busy||busyTurn}/>
+      <p class="memory-meta">Based on {proposal.contextBasis.length} {proposal.contextBasis.length===1?'message':'messages'} in this Session.</p>
       <div class="memory-actions">
         <Button label="Confirm and save" disabled={busy||busyTurn||!content.trim()} onclick={()=>void submit('confirm',{run:proposal.run,operation:proposal.operation,text:content})}/>
         <Button label="Dismiss" variant="secondary" disabled={busy||busyTurn} onclick={()=>void submit('dismiss',{run:proposal.run})}/>
@@ -129,7 +130,7 @@
       {#if problem}<Feedback kind="error" message={problem}/>{/if}
       <div class="memory-actions">
         <Dialog.Close class="vict-btn vict-btn--quiet" type="button" disabled={busy}>Cancel</Dialog.Close>
-        <Button label={action==='correct'?'Save correction':'Forget'} disabled={busy||busyTurn||(action==='correct'&&!edited.trim())}
+        <Button label={action==='correct'?'Save correction':'Forget'} variant={action==='forget'?'danger':'primary'} disabled={busy||busyTurn||(action==='correct'&&!edited.trim())}
           onclick={()=>void submit(action,{id:target.id,revision:target.revision,operation,...(action==='correct'?{text:edited}:{})})}/>
       </div>
     </Dialog.Content>
