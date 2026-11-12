@@ -3,10 +3,11 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
-  "exports": "./index.mjs",
+  "exports": {".": "./index.mjs", "./policy": "./policy.mjs"},
   "files": [
     "index.mjs",
-    "intent.mjs"
+    "intent.mjs",
+    "policy.mjs"
   ],
   "dependencies": {
     "@victframework/runtime": "0.4.0-rc.1"

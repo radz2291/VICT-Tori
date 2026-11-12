@@ -17,6 +17,7 @@
   import Fields from './Fields.svelte';
   import RunDetails from './RunDetails.svelte';
   import MemoryControls from './MemoryControls.svelte';
+  import SessionConversation from './SessionConversation.svelte';
   import {add,binding,canWire,change,emptyAssembly,field,history,instructions,modelName,readiness,resolved,wire,outputTokens,tokenSourceId,agentResources,resourceChoices,optionalBindings,isOptionalBinding,nodeVisibilityLabel,assemblyPatchOperations,configureOperations} from './assembly';
 
   type DockPanel='Authoring Agent'|'Assembly / Selection'|'Inspector';
@@ -337,6 +338,7 @@
     return result;
   }
   async function loadSessionMemory(id:string){
+    if(id!==activeSession)return;
     const read=++memoryRead;
     try {
       const value=await request('/memory/session',{session:id});
@@ -349,8 +351,8 @@
     if(page!=='Sessions'||!selected||selected.authoring||selected.archivedFixture){memoryRead++;memoryResult=undefined;return;}
     untrack(()=>void loadSessionMemory(selected.id));
   });
-  async function changeMemory(path:string,payload:any){
-    const id=activeSession;
+  async function changeMemory(path:string,payload:any,id:string){
+    if(id!==activeSession)throw new Error('Reopen the source Session to change this memory.');
     const result=await request('/memory/'+path,{...payload,session:id});
     await loadSessionMemory(id);
     return result;
@@ -1884,8 +1886,6 @@
   {:else}
     <div class="session-composer">
       {#if turnErrors[session.id]}<Feedback kind="error" message={turnErrors[session.id]}/>{/if}
-      <MemoryControls view={memoryView} mode="confirmation" sessionId={session.id} currentRun={sessionRuns.find(item=>!item.parentRun)?.id}
-        act={changeMemory} busyTurn={sending}/>
       <Patterns.PromptInput bind:value={()=>sessionDrafts[session.id]??'',value=>sessionDrafts[session.id]=value} busy={sendActivity?.session===session.id}
         onSend={!sending&&!pending?send:undefined}
         onStop={sendActivity?.session===session.id&&sendActivity?.canStop&&!stoppingSession?stopSessionTurn:undefined}>
@@ -2082,8 +2082,17 @@
               {#if session}
                 {#key session.id}
                   <div class="conversation" bind:this={conversationPane} use:rememberReadingPosition={session.id}>
-                    <Conversation messages={session.messages} busy={sendActivity?.session===session.id}
-                      composer={sessionComposer} emptyMessage="Start a conversation."/>
+                    {#if session.authoring || session.archivedFixture}
+                      <Conversation messages={session.messages} busy={sendActivity?.session===session.id}
+                        composer={sessionComposer} emptyMessage="Start a conversation."/>
+                    {:else}
+                      <SessionConversation messages={session.messages} busy={sendActivity?.session===session.id}
+                        turns={memoryView?.turns??[]} composer={sessionComposer}>
+                        {#snippet attachment(turn)}
+                          <MemoryControls view={memoryView} mode="card" sessionId={session.id} {turn} act={changeMemory} busyTurn={sending}/>
+                        {/snippet}
+                      </SessionConversation>
+                    {/if}
                   </div>
                 {/key}
               {:else}

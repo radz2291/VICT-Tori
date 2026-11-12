@@ -579,6 +579,16 @@ dt{color:#a4adbb}dd{margin:0;overflow-wrap:anywhere}.hash{font:11px/1.5 ui-monos
 .session-view{display:flex;flex-direction:column}
 .session-view .conversation{min-height:0;flex:1;display:flex}
 .conversation>.vict-ai{width:100%;min-height:0}
+.session-transcript{display:flex;flex-direction:column;height:100%;min-width:0}
+.session-transcript .session-feed-root{flex:1;min-height:0}
+.session-transcript .session-feed{display:block;overflow:auto;height:100%;min-height:0;max-height:none;padding:0;outline-offset:-3px}
+.session-transcript .session-feed-messages{gap:var(--vict-space-4);padding-block:var(--vict-space-4)}
+.session-transcript .session-message{min-inline-size:0;overflow-wrap:anywhere}
+.session-transcript .session-message [data-slot="bubble-content"]{white-space:pre-wrap}
+.session-transcript .session-message pre{max-width:100%;overflow:auto}
+.session-transcript .vict-state[data-state="empty"]{text-align:center}
+.tori-scope .session-transcript .vict-ai-composer{border:1px solid var(--vict-color-border);border-radius:12px;background:var(--studio-field);color:var(--vict-color-text)}
+.session-transcript .vict-ai-composer .vict-conversation-textarea{width:100%;min-height:64px;max-height:160px;overflow:auto;padding:10px 12px;field-sizing:content;font:inherit}
 .session-view .vict-ai-messages,.session-composer,.session-readonly,.runs-content{width:min(100%,840px);margin-inline:auto}
 .session-view .vict-ai .vict-ai-messages{padding-inline:var(--vict-space-4)}
 .conversation [data-message-id][tabindex="-1"]{scroll-margin-block-start:var(--vict-space-2)}
@@ -709,12 +719,17 @@ dt{color:#a4adbb}dd{margin:0;overflow-wrap:anywhere}.hash{font:11px/1.5 ui-monos
 
 .saved-memory-setting{display:grid;gap:4px;min-width:0}
 .saved-memory-setting label{font-size:inherit}
-.memory-confirmation,.memory-panel,.run-memory-evidence{display:grid;gap:8px;min-width:0}
-.memory-confirmation{padding:10px 0 12px;margin:0 var(--vict-space-4) 6px;border-bottom:1px solid var(--vict-color-border)}
-.tori-scope .memory-confirmation textarea.tori-field,.tori-scope .memory-dialog textarea.tori-field{background:var(--studio-field);color:var(--vict-color-text);border:1px solid var(--vict-color-border);border-radius:var(--vict-radius-base)}
+.memory-confirmation,.memory-panel,.run-memory-evidence{display:grid;gap:var(--vict-space-2);min-width:0}
+.memory-confirmation{margin-block-start:var(--vict-space-2);padding:var(--vict-space-3);
+  max-inline-size:36rem;background:var(--studio-field);color:var(--vict-color-text);
+  border:1px solid var(--vict-color-border);border-radius:var(--vict-radius-base);overflow-wrap:anywhere}
+.memory-card-heading{display:flex;flex-wrap:wrap;align-items:center;gap:var(--vict-space-2)}
+.memory-confirmation :is(.vict-state,.vict-alert){margin:0}
+.memory-confirmation h3:focus{outline:1px solid var(--vict-color-focusRing);outline-offset:3px}
+.tori-scope .memory-confirmation textarea.tori-field,.tori-scope .memory-dialog textarea.tori-field{width:100%;background:var(--studio-field);color:var(--vict-color-text);border:1px solid var(--vict-color-border);border-radius:var(--vict-radius-base)}
 .tori-scope .memory-confirmation .memory-actions .vict-btn{min-height:32px}
 .tori-scope .memory-confirmation .memory-actions .vict-btn:not(.vict-btn--secondary):not(:disabled){background:var(--vict-color-accent);color:var(--vict-color-accentContrast)}
-@media(max-width:640px){.memory-confirmation{margin-inline:var(--vict-space-2)}.tori-scope .memory-confirmation .memory-actions .vict-btn{min-height:40px}}
+@media(max-width:640px){.tori-scope .memory-confirmation .memory-actions .vict-btn{min-height:44px}}
 .memory-panel{border-top:1px solid var(--vict-color-border);padding-top:10px}
 .memory-confirmation h3,.memory-panel h3,.run-memory-evidence h3{margin:0;font-size:inherit}
 .memory-value{white-space:pre-wrap;overflow-wrap:anywhere;margin:0}

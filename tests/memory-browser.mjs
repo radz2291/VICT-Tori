@@ -7,7 +7,7 @@ import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { setTimeout as delay } from 'node:timers/promises';
-import { contextPrompt, contextSource, correctedText, editedContext, recallPrompt, savePrompt, syntheticKey } from './memory-provider-fixture.mjs';
+import { contextPrompt, contextReply, contextSource, correctedText, editedContext, overInterpreted, recallPrompt, savePrompt, syntheticKey } from './memory-provider-fixture.mjs';
 
 const live=process.env.TORI_MEMORY_LIVE==='1';
 const early=process.env.TORI_MEMORY_EARLY==='1';
@@ -63,6 +63,40 @@ async function route(path,action){
 }
 const button=name=>page.getByRole('button',{name,exact:typeof name==='string'});
 const field=id=>page.locator('#'+id);
+const memoryCard=id=>page.locator('[data-memory-turn="'+id+'"]');
+const message=id=>page.locator('[data-message-id="'+id+'"]').getByTestId('conversation-message');
+const proposalText=card=>card.getByTestId('memory-proposal-text');
+const confirmedText=card=>card.getByTestId('memory-confirmed-text');
+async function attached(id){
+  const card=memoryCard(id);
+  await card.waitFor();
+  assert.equal(await card.getAttribute('data-source-message'),id+'-user');
+  assert.equal(await card.evaluate(node=>node.closest('[data-message-id]')?.getAttribute('data-message-id')),id+'-agent');
+  assert.equal(await card.evaluate(node=>!!node.closest('[data-testid="conversation-message"]')),false);
+  return card;
+}
+function inCharacter(reply){
+  assert.ok(reply.trim());
+  assert.doesNotMatch(reply,/(?:memory proposal|review the text in studio|nothing was saved|i(?:['’]ve| have| just) (?:saved|stored|memorized|remembered)|i(?:['’]ll| will) remember)/i);
+}
+const focused=control=>control.evaluate(node=>node===document.activeElement);
+const contrast=(control,background)=>control.evaluate((element,selector)=>{
+  const foreground=getComputedStyle(element).color;
+  const surface=getComputedStyle(selector?element.closest(selector):element).backgroundColor;
+  const luminance=color=>color.match(/[\d.]+/g).slice(0,3).map(Number).map(n=>n/255)
+    .map(n=>n<=.04045?n/12.92:((n+.055)/1.055)**2.4)
+    .reduce((sum,n,i)=>sum+n*[.2126,.7152,.0722][i],0);
+  const scores=[luminance(foreground),luminance(surface)].sort((a,b)=>b-a);
+  return (scores[0]+.05)/(scores[1]+.05);
+},background);
+async function openSession(id){
+  await task('Sessions').click();
+  if(!await button('New Session').isVisible())await button('Sessions sidebar').click();
+  const row=page.locator('[data-session-id="'+id+'"]');
+  if(!await row.isVisible())await button('Quellight').click();
+  await row.click();
+  await page.getByRole('textbox',{name:'Message',exact:true}).waitFor();
+}
 const task=name=>page.getByRole('navigation',{name:'Studio tasks'}).getByRole('button',{name,exact:true});
 const sessionDetails=()=>page.getByRole('region',{name:'Session details content'});
 const runDetails=()=>page.getByRole('region',{name:'Run details content'});
@@ -117,6 +151,7 @@ try {
   observed.chromium=browser.version();
   page=await browser.newPage({viewport:observed.desktop});
   page.setDefaultTimeout(25000);
+  await page.context().grantPermissions(['clipboard-read','clipboard-write']);
   await newPage();
   await button('Canvas').click();
   await button('Add Agent').click({timeout:65000});
@@ -152,32 +187,48 @@ try {
   await route('save',()=>button('Save').click());
   const active=await route('activate',()=>button(/^Activate r1$/).click());
   assert.equal(active.activation.savedMemory,true);
+  assert.equal(active.activation.memoryPolicy.organizer,'off');
+  assert.equal(await page.getByLabel(/organizer/i).count(),0);
   observed.activation=active.activation.version;
   const original=await chooseSession();
   const save=await send(original,savePrompt,'draft');
-  const draft=page.getByRole('textbox',{name:'Memory to save'});
+  inCharacter(save.reply);
+  const card=await attached(save.id);
+  await card.getByRole('heading',{name:'Memory proposal'}).waitFor();
+  assert.equal(await card.getByText(/Review the wording/).count(),1);
+  const exact=await proposalText(card).textContent();
+  assert.ok(exact);
+  assert.equal(await card.getByText('Saved',{exact:true}).count(),0);
+  const editorButton=card.getByRole('button',{name:'Correct',exact:true});
+  await editorButton.focus();
+  await editorButton.press('Enter');
+  const draft=card.getByRole('textbox',{name:'Memory to save'});
   await draft.waitFor();
-  const exact=await draft.inputValue();
-  observed.confirmationContrast=await draft.evaluate(element=>{
-    const style=getComputedStyle(element);
-    const luminance=color=>color.match(/[\d.]+/g).slice(0,3).map(Number).map(n=>n/255)
-      .map(n=>n<=.04045?n/12.92:((n+.055)/1.055)**2.4)
-      .reduce((sum,n,i)=>sum+n*[.2126,.7152,.0722][i],0);
-    const scores=[luminance(style.color),luminance(style.backgroundColor)].sort((a,b)=>b-a);
-    return (scores[0]+.05)/(scores[1]+.05);
-  });
+  assert.equal(await focused(draft),true);
+  assert.equal(await draft.inputValue(),exact);
+  observed.confirmationContrast=await contrast(draft);
   assert.ok(observed.confirmationContrast>=4.5,'Draft field contrast: '+observed.confirmationContrast);
   assert.match(exact,/(three|3).{0,35}bullet/i);
-  await capture('memory-confirmation');
-  const confirmed=await route('memory/confirm',()=>button('Confirm and save').click());
+  await draft.fill('A correction I will cancel.');
+  await card.getByRole('button',{name:'Cancel correction'}).press('Enter');
+  await proposalText(card).waitFor();
+  assert.equal(await focused(editorButton),true);
+  assert.equal(await proposalText(card).textContent(),exact);
+  await capture('memory-confirmation',card);
+  await message(save.id+'-agent').getByRole('button',{name:'Copy message'}).click();
+  assert.equal(await page.evaluate(()=>navigator.clipboard.readText()),save.reply);
+  const confirmed=await route('memory/confirm',()=>card.getByRole('button',{name:'Confirm and save'}).click());
   assert.equal(confirmed.memory.memory.content,exact);
   assert.equal(confirmed.receipt.revision,1);
   assert.equal(confirmed.receipt.source.message,save.id+'-user');
   assert.deepEqual(confirmed.receipt.contextBasis,[save.id+'-user']);
   assert.ok(!Object.hasOwn(confirmed.receipt,'content'));
   observed.save=confirmed.receipt;
-  await page.getByRole('region',{name:'Saved memory confirmation'}).getByText(exact,{exact:true}).waitFor();
-  await capture('memory-saved');
+  await confirmedText(card).waitFor();
+  assert.equal(await confirmedText(card).textContent(),exact);
+  assert.equal(await card.getByText('Saved',{exact:true}).count(),1);
+  assert.equal(await focused(card.getByRole('heading',{name:'Memory proposal'})),true);
+  await capture('memory-saved',card);
   await stop();
   assert.equal(await start(),workspace);
   await newPage();
@@ -281,25 +332,102 @@ try {
 
     const conversation=await chooseSession();
     const prior=await send(conversation,contextSource,'planningContext');
-    await send(conversation,contextPrompt,'contextDraft');
-    const editor=page.getByRole('textbox',{name:'Memory to save'});
+    const contextualRun=await send(conversation,contextPrompt,'contextDraft');
+    inCharacter(contextualRun.reply);
+    if(!live)assert.equal(contextualRun.reply,contextReply);
+    const contextCard=await attached(contextualRun.id);
+    observed.suggestedContext=await proposalText(contextCard).textContent();
+    if(!live)assert.equal(observed.suggestedContext,overInterpreted);
+    assert.equal(await message(contextualRun.id+'-agent').getByText(/calendar taking a day off|Memory proposal:/i).count(),0);
+    await capture('memory-context-over-interpreted',contextCard);
+    await contextCard.getByRole('button',{name:'Correct',exact:true}).press('Enter');
+    const editor=contextCard.getByRole('textbox',{name:'Memory to save'});
     await editor.waitFor();
-    observed.suggestedContext=await editor.inputValue();
+    assert.equal(await focused(editor),true);
     await editor.fill(editedContext);
-    const contextual=await route('memory/confirm',()=>button('Confirm and save').click());
+    await capture('memory-context-editor',contextCard);
+    const contextual=await route('memory/confirm',()=>contextCard.getByRole('button',{name:'Confirm and save'}).click());
     assert.equal(contextual.memory.memory.content,editedContext);
+    assert.equal(contextual.receipt.source.message,contextualRun.id+'-user');
     assert.ok(contextual.receipt.contextBasis.some(ref=>ref.startsWith(prior.id)),JSON.stringify(contextual.receipt.contextBasis));
     observed.contextual=contextual.receipt;
-    await page.getByRole('region',{name:'Saved memory confirmation'}).getByText(editedContext,{exact:true}).waitFor();
-    await capture('memory-context-corrected');
+    await confirmedText(contextCard).waitFor();
+    assert.equal(await confirmedText(contextCard).textContent(),editedContext);
+    await capture('memory-context-corrected',contextCard);
+    await send(conversation,'Continue after the planning brief.','afterContext');
+    const contextFresh=await chooseSession();
+    const contextRecall=await send(contextFresh,'How should we lay out the next planning brief?','contextRecall');
+    const recalledContext=await post('memory/run',{run:contextRecall.id});
+    assert.deepEqual(recalledContext.evidence.admitted.map(({id,revision})=>[id,revision]),[[contextual.receipt.memoryId,1]]);
+    assert.equal(recalledContext.records[0].memory.content,editedContext);
+    await openSession(conversation);
+    const reopened=await attached(contextualRun.id);
+    assert.equal(await confirmedText(reopened).textContent(),editedContext);
+    assert.equal(await page.getByTestId('conversation-message').getByText(/Memory proposal:|calendar taking a day off/i).count(),0);
+    await capture('memory-context-reopened',reopened);
     if(!live){
+      const vocabulary=await chooseSession();
+      for(const [index,prompt] of [
+        'Pls remember that project updates use short titles.',
+        'Don’t forget that project updates use short titles.',
+        'Never forget that project updates use short titles.',
+        'Do not forget that project updates use short titles.',
+      ].entries()){
+        const run=await send(vocabulary,prompt,'affirmative'+(index+1));
+        inCharacter(run.reply);
+        const pending=await attached(run.id);
+        assert.match(await proposalText(pending).textContent(),/short titles/);
+        if(index===0)await capture('memory-pls-remember',pending);
+        assert.equal((await post('memory/run',{run:run.id})).receipt,undefined);
+        await route('memory/dismiss',()=>pending.getByRole('button',{name:'Dismiss'}).press('Enter'));
+        await pending.getByText('Nothing saved. This proposal was dismissed.',{exact:true}).waitFor();
+        assert.equal(await focused(pending.getByRole('heading',{name:'Memory proposal'})),true);
+      }
+      for(const [index,prompt] of [
+        "Don't remember that project updates use short titles.",
+        'Don’t save this as a memory: project updates use short titles.',
+      ].entries()){
+        const run=await send(vocabulary,prompt,'negation'+(index+1));
+        const evidence=await post('memory/run',{run:run.id});
+        assert.equal(evidence.request.reason,'negated-request');
+        assert.equal(evidence.proposal,undefined);
+        assert.equal(evidence.receipt,undefined);
+        assert.equal(await memoryCard(run.id).count(),0);
+      }
+      for(const [index,prompt] of ['Remember to send the planning update.',"Don't forget to send the planning update."].entries()){
+        const run=await send(vocabulary,prompt,'clarification'+(index+1));
+        const feedback=await attached(run.id);
+        await feedback.getByText('Save as a memory, or set a reminder?',{exact:true}).waitFor();
+        assert.equal(await feedback.getByRole('button').count(),0);
+        const evidence=await post('memory/run',{run:run.id});
+        assert.equal(evidence.request.reason,'memory-or-reminder');
+        assert.equal(evidence.draft,undefined);
+        assert.equal(evidence.proposal,undefined);
+        assert.equal(evidence.receipt,undefined);
+        if(index===0)await capture('memory-reminder-clarification',feedback);
+      }
+      assert.equal((await post('memory/session',{session:vocabulary})).records.length,1);
       await page.setViewportSize(observed.narrow);
       const narrowSession=await chooseSession();
-      await send(narrowSession,'Remember that narrow notes use action verbs.');
-      await page.getByRole('textbox',{name:'Memory to save'}).waitFor();
-      await capture('memory-narrow-confirmation',page.getByRole('textbox',{name:'Memory to save'}));
-      await route('memory/dismiss',()=>button('Dismiss').click());
-      await page.getByText('Nothing saved. This proposal was dismissed.',{exact:true}).first().waitFor();
+      const narrowRun=await send(narrowSession,'Remember that narrow notes use action verbs.','narrowProposal');
+      const narrow=await attached(narrowRun.id);
+      const narrowCorrect=narrow.getByRole('button',{name:'Correct',exact:true});
+      observed.narrowComposerContrast=await contrast(page.getByRole('textbox',{name:'Message',exact:true}),'.vict-ai-composer');
+      assert.ok(observed.narrowComposerContrast>=4.5,'Narrow composer contrast: '+observed.narrowComposerContrast);
+      const bounds=await narrow.boundingBox();
+      assert.ok(bounds.width<=390 && bounds.x>=0 && bounds.x+bounds.width<=390,JSON.stringify(bounds));
+      const actionBounds=await narrowCorrect.boundingBox();
+      assert.ok(actionBounds.height>=44,JSON.stringify(actionBounds));
+      await capture('memory-narrow-confirmation',narrow);
+      await narrowCorrect.press('Enter');
+      const narrowEditor=narrow.getByRole('textbox',{name:'Memory to save'});
+      await narrowEditor.waitFor();
+      assert.equal(await focused(narrowEditor),true);
+      await capture('memory-narrow-editor',narrow);
+      await route('memory/dismiss',()=>narrow.getByRole('button',{name:'Dismiss'}).press('Enter'));
+      await narrow.getByText('Nothing saved. This proposal was dismissed.',{exact:true}).waitFor();
+      assert.equal(await focused(narrow.getByRole('heading',{name:'Memory proposal'})),true);
+      await capture('memory-narrow-dismissed',narrow);
       const waiting=page.getByRole('textbox',{name:'Message',exact:true});
       const delayedUrl=url+'/api/studio/turn';
       let release,responded;
@@ -336,9 +464,9 @@ try {
       await page.setViewportSize(observed.desktop);
       for(let i=0;i<3;i++){
         const storage=await chooseSession();
-        await send(storage,'Remember that synthetic budget item '+i+': '+String.fromCharCode(97+i).repeat(900));
-        await page.getByRole('textbox',{name:'Memory to save'}).waitFor();
-        await route('memory/confirm',()=>button('Confirm and save').click());
+        const run=await send(storage,'Remember that synthetic budget item '+i+': '+String.fromCharCode(97+i).repeat(900));
+        const pending=await attached(run.id);
+        await route('memory/confirm',()=>pending.getByRole('button',{name:'Confirm and save'}).click());
       }
       const budgetSession=await chooseSession();
       const budgetRun=await send(budgetSession,recallPrompt,'budget');

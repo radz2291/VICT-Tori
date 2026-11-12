@@ -10,7 +10,7 @@ import { createServer } from 'vite';
 import { InMemoryActorDirectory } from '@victframework/runtime';
 import { createStudio } from '../server/studio.mjs';
 import { gatedMemorySave, memoryIntent, memoryScope, openMemoryStore, draftContext, draftContextBytes } from '../packages/memory/index.mjs';
-import { correctedText, contextPrompt, contextSource, editedContext, installMemoryProvider, recallPrompt, savedText, savePrompt, syntheticKey } from './memory-provider-fixture.mjs';
+import { contextReply, correctedText, contextPrompt, contextSource, editedContext, installMemoryProvider, overInterpreted, recallPrompt, savedText, savePrompt, syntheticKey } from './memory-provider-fixture.mjs';
 
 const scope=memoryScope('fixture-actor','fixture-project','fixture-agent');
 const source='memory-source-user';
@@ -149,25 +149,36 @@ test('real Studio turns pin policy, admit stored values and refuse scope, replay
 
     const {activation:on,revision}=await activate(makeGraph('Quellight',true),undefined,old);
     assert.equal(on.savedMemory,true);
+    assert.deepEqual(on.memoryPolicy,{schema:'tori.memory-policy@1',artifact:{id:'tori-conversation-memory',revision:'recent-10@1+governed@1'},
+      savedMemory:'governed@1',organizer:'off'});
+    assert.deepEqual(off.memoryPolicy,{schema:'tori.memory-policy@1',artifact:{id:'tori-conversation-memory',revision:'recent-10@1'},
+      savedMemory:'off',organizer:'off'});
     assert.notEqual(on.version,off.version);
     const saveSession=await session(on.version);
     for(const [prompt,reason] of [
       ["Don't remember that I prefer lists.",'negated-request'],
-      ['"Remember that lists are better."','not-an-explicit-request'],
+      ['"Remember that lists are better."','quoted'],
       ['Remember this.','clarification-needed'],
-      ['Remember is a verb.','not-an-explicit-request'],
+      ['Remember is a verb.','mentioned-phrase'],
       ['Remember that synthetic preference only for this reply; do not store it.','negated-request'],
-      ['Would you remember the marker if I asked you tomorrow?','not-an-explicit-request'],
+      ['Would you remember the marker if I asked you tomorrow?','hypothetical'],
       ["Remember: don't store this message.",'negated-request'],
-      ['Can you remember the date I told you yesterday?','not-an-explicit-request'],
+      ['Can you remember the date I told you yesterday?','recall-question'],
       ['Please remember that these are words to quote, not to store.','negated-request'],
       ['Remember this for me.','clarification-needed'],
+      ['Remember to send the update.','memory-or-reminder'],
+      ["Don't forget to send the update.",'memory-or-reminder'],
     ]){
       const run=await turn(saveSession,prompt);
       const view=await runView(run.id);
       assert.equal(view.request.reason,reason);
       assert.equal(view.proposal,undefined);
+
       assert.equal(view.receipt,undefined);
+      if(reason==='memory-or-reminder'){
+        assert.equal((await memoryView(saveSession)).turns.find(turn=>turn.run===run.id).request.reason,reason);
+        assert.equal(view.draft,undefined);
+      }
     }
     const noContext=await turn(await session(on.version),contextPrompt);
     assert.equal((await runView(noContext.id)).request.reason,'context-unavailable');
@@ -177,6 +188,14 @@ test('real Studio turns pin policy, admit stored values and refuse scope, replay
     assert.equal((await runView(forged.id)).receipt,undefined);
     assert.deepEqual((await memoryView(saveSession)).records,[]);
     await assert.rejects(req('/memory/confirm',{session:saveSession,run:ordinary.id,operation:randomUUID(),text:'not granted'}),/No confirmable/);
+
+    const fakeSession=await session(on.version);
+    const falseClaim=await turn(fakeSession,'Remember the false confirmation preference.');
+    assert.equal(falseClaim.status,'failed');
+    assert.equal(falseClaim.errorCode,'TORI_MEMORY_REPLY_UNCONFIRMED');
+    assert.equal((await runView(falseClaim.id)).draft,undefined);
+    assert.equal((await runView(falseClaim.id)).receipt,undefined);
+    assert.equal((await req('')).sessions.find(item=>item.id===fakeSession).messages.length,1);
 
     const stoppedSession=await session(on.version);
     const stopping=turn(stoppedSession,'Remember the slow review preference.');
@@ -191,6 +210,25 @@ test('real Studio turns pin policy, admit stored values and refuse scope, replay
     assert.equal(stopped.status,'cancelled');
     assert.equal((await runView(stopped.id)).request.reason,'cancelled');
     assert.deepEqual((await memoryView(stoppedSession)).records,[]);
+
+    const draftStopSession=await session(on.version);
+    const draftStopping=turn(draftStopSession,'Remember the slow drafting preference.');
+    let draftDispatched=false;
+    for(let tries=0;tries<250&&!draftDispatched;tries++){
+      draftDispatched=(await wires()).some(item=>item.prompt==='Remember the slow drafting preference.'&&item.draftRole==='user');
+      if(!draftDispatched)await delay(20);
+    }
+    assert.equal(draftDispatched,true);
+    const drafting=await req('/activity',{session:draftStopSession});
+    assert.equal(drafting.phase,'answer');
+    assert.equal((await req('/stop-turn',{session:draftStopSession,run:drafting.turn})).status,'stopping');
+    const draftStopped=await draftStopping;
+    assert.equal(draftStopped.status,'completed');
+    const stoppedDraft=await runView(draftStopped.id);
+    assert.equal(stoppedDraft.request.reason,'cancelled');
+    assert.equal(stoppedDraft.proposal,undefined);
+    assert.equal(stoppedDraft.receipt,undefined);
+    assert.equal((await req('')).sessions.find(item=>item.id===draftStopSession).messages.length,2);
 
     const sid=await session(on.version);
     await turn(sid,savePrompt);
@@ -214,7 +252,18 @@ test('real Studio turns pin policy, admit stored values and refuse scope, replay
     assert.equal(save.receipt.source.message,draftRun.id+'-user');
     assert.equal(save.memory.memory.content,savedText);
     const id=save.receipt.memoryId;
-    await restart();
+    // Restore the pre-addendum graph catalog against the same immutable VICT
+    // activation record. The missing TORI field must resolve to organizer off.
+    await service.close();
+    sqlite(join(directory,'studio.sqlite'),db=>{
+      const state=JSON.parse(db.prepare('SELECT value FROM project WHERE id=1').get().value);
+      for(const draft of state.drafts)delete draft.graph.nodeTypes.find(node=>node.id==='memory').parameters.organizer;
+      db.prepare('UPDATE project SET value=? WHERE id=1').run(JSON.stringify(state));
+    });
+    service=open();
+    const restored=await req('');
+    assert.equal(restored.activation.version,on.version);
+    assert.deepEqual(restored.activation.memoryPolicy,on.memoryPolicy);
     assert.deepEqual((await confirm(sid,pending)).receipt,save.receipt);
     await assert.rejects(confirm(sid,pending,{text:'payload drift'}),/different result/);
 
@@ -312,10 +361,25 @@ test('real Studio turns pin policy, admit stored values and refuse scope, replay
     const contextDraft=await current(conversation);
     assert.ok(contextDraft.contextBasis.includes(prior.id+'-user'));
     assert.ok(contextDraft.contextBasis.includes(contextual.id+'-user'));
-    assert.match(contextDraft.text,/without a deadline/);
+    assert.equal(contextDraft.text,overInterpreted);
+    const contextualRun=await runView(contextual.id);
+    assert.deepEqual(contextualRun.draft,{providerAttempts:1,modelSteps:1,http:200,status:'proposed'});
+    assert.equal((await req('')).sessions.find(session=>session.id===conversation).messages.find(message=>message.id===contextual.id+'-agent').text,contextReply);
     const contextSave=await confirm(conversation,contextDraft,{text:editedContext});
     assert.equal(contextSave.memory.memory.content,editedContext);
+    const afterContext=await turn(conversation,'Continue after the planning brief.');
+    assert.equal(afterContext.status,'completed');
     const observed=await wires();
+    const contextualWires=observed.filter(item=>item.prompt===contextPrompt&&
+      (item.transcript.length||item.history.includes('Ordinary history check.')));
+    assert.equal(contextualWires.length,2);
+    assert.deepEqual(contextualWires[0].transcript,[]);
+    assert.deepEqual(contextualWires[1].assistantHistory,[]);
+    const nextWire=observed.find(item=>item.prompt==='Continue after the planning brief.');
+    assert.ok(nextWire.assistantHistory.includes(contextReply));
+    assert.ok(nextWire.assistantHistory.every(text=>!text.includes(overInterpreted)&&!text.includes('Memory proposal:')));
+    assert.deepEqual(nextWire.admitted.map(({id,revision,content})=>[id,revision,content]),[[contextSave.receipt.memoryId,1,editedContext]]);
+    assert.deepEqual((await memoryView(conversation)).turns.find(turn=>turn.run===contextual.id).saved.receipt,contextSave.receipt);
     assert.ok(!observed.find(item=>item.prompt==='Ordinary history check.').history.includes(contextSource));
     assert.ok(observed.find(item=>item.prompt===contextPrompt&&item.transcript.length>10).transcript.some(item=>item.text===contextSource));
     assert.ok(observed.filter(item=>item.admitted.length).every(item=>item.recallRole==='user'));
@@ -335,6 +399,10 @@ test('real Studio turns pin policy, admit stored values and refuse scope, replay
 
     const {activation:reader}=await activate(makeGraph('Tool reader',true,true),undefined,changed.revision);
     const toolSession=await session(reader.version);
+    const clarifyTool=await turn(toolSession,'Remember to send the planning update.');
+    assert.equal((await runView(clarifyTool.id)).request.reason,'memory-or-reminder');
+    assert.equal((await runView(clarifyTool.id)).draft,undefined);
+    assert.deepEqual((await wires()).find(item=>item.prompt==='Remember to send the planning update.').tools,[]);
     const read=await turn(toolSession,'Read the observatory note.');
     assert.equal(read.status,'completed');
     assert.equal((await runView(read.id)).request,undefined);

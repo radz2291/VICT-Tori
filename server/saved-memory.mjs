@@ -1,14 +1,9 @@
 import {
-  gatedMemorySave, governedPolicy, memoryBudgetBytes, memoryScope, openMemoryStore,
+  effectiveMemoryPolicy, gatedMemorySave, governedPolicy, memoryBudgetBytes, memoryScope, openMemoryStore,
 } from '../packages/memory/index.mjs';
 
-const memoryId='tori-conversation-memory';
-const governedRevisions=['recent-10@1','recent-100@1'].map(value=>value+'+'+governedPolicy);
-export const memoryArtifact=(history,governed)=>({
-  id:memoryId,revision:governed===governedPolicy?(history??'recent-100@1')+'+'+governedPolicy:(history??'1'),
-});
-export const pinAllowsSavedMemory=pin=>!!pin?.record?.artifacts?.some(item=>
-  item.kind==='memory-policy'&&item.id===memoryId&&governedRevisions.includes(item.revision));
+export const pinnedMemoryPolicy=pin=>effectiveMemoryPolicy(pin?.record?.artifacts?.find(item=>item.kind==='memory-policy'));
+export const pinAllowsSavedMemory=pin=>pinnedMemoryPolicy(pin)?.savedMemory===governedPolicy;
 export const emptyAdmission=status=>({schema:'tori.memory.admission@1',status,budgetBytes:memoryBudgetBytes,bytes:0,admitted:[],omitted:[]});
 const uuid=value=>typeof value==='string'&&/^[a-f0-9]{8}-(?:[a-f0-9]{4}-){3}[a-f0-9]{12}$/i.test(value);
 const error=(status,message)=>Object.assign(new Error(message),{status});
@@ -60,7 +55,7 @@ export function createSavedMemoryHost({path,actor,project,fixture,snapshot,defin
     },
     visibleRun(run,state){
       if(!run.savedMemory)return run;
-      const {savedMemoryScope,savedMemoryAgent,savedMemory,savedMemoryRequest,...publicRun}=run;
+      const {savedMemoryScope,savedMemoryAgent,savedMemory,savedMemoryRequest,savedMemoryDraft,...publicRun}=run;
       return runScope(state,run)?{...publicRun,hasSavedMemoryEvidence:true}:publicRun;
     },
     close(){opened?.close();},
@@ -73,7 +68,7 @@ export function createSavedMemoryHost({path,actor,project,fixture,snapshot,defin
         const allowed=await access();
         if(!allowed)return {status:'denied'};
         const receipt=store().receiptForRun(scope,run.id);
-        return {status:'available',evidence:run.savedMemory,request:run.savedMemoryRequest,
+        return {status:'available',evidence:run.savedMemory,request:run.savedMemoryRequest,draft:run.savedMemoryDraft,
           proposal:store().proposal(scope,run.session,run.id)?.status,receipt,
           savedRecordStatus:receipt&&store().inspect(scope,receipt.memoryId).status,
           records:run.savedMemory.admitted.map(item=>({id:item.id,revision:item.revision,...store().inspect(scope,item.id,item.revision)}))};
@@ -81,14 +76,32 @@ export function createSavedMemoryHost({path,actor,project,fixture,snapshot,defin
       const {session,pin,scope}=sessionFor(snapshot(),body.session);
       if(path==='/memory/session'){
         const enabled=pinAllowsSavedMemory(pin);
-        const recent=snapshot().runs.find(item=>item.session===session.id&&item.savedMemoryScope===scope.key);
-        if(!enabled)return {status:'off',policy:false,records:[],request:recent?.savedMemoryRequest};
+        // Match the current actor/project/agent and this Session; never project
+        // a pending store row without a corresponding, completed source turn.
+        const snapshotForScope=snapshot();
+        const runs=snapshotForScope.runs.filter(item=>item.session===session.id&&runScope(snapshotForScope,item)?.key===scope.key);
+        const recent=runs[0];
+        const feedback=run=>run.status!=='running'&&run.savedMemoryRequest?.feedback?
+          [{run:run.id,source:run.id+'-user',request:run.savedMemoryRequest}]:[];
+        if(!enabled)return {status:'off',policy:false,records:[],turns:runs.flatMap(feedback),request:recent?.savedMemoryRequest};
         if(!await access())return {status:'denied',policy:true,records:[],request:recent?.savedMemoryRequest};
-        const proposal=store().latestProposal(scope,session.id);
-        const receipt=proposal&&store().receiptForRun(scope,proposal.run);
-        return {status:'available',policy:enabled,records:store().list(scope),proposal,
-          saved:receipt&&{receipt,memory:store().inspect(scope,receipt.memoryId,receipt.revision)},
-          request:recent?.savedMemoryRequest,evidence:recent?.savedMemory};
+        const memory=store(),proposals=new Map(memory.sessionProposals(scope,session.id).map(item=>[item.run,item]));
+        const turns=runs.flatMap(run=>{
+          if(run.status==='running')return [];
+          const source=run.id+'-user';
+          const proposal=proposals.get(run.id);
+          if(proposal?.source.message===source){
+            const visible=proposal.status==='pending'&&run.status!=='completed'?
+              {...proposal,status:'cancelled',text:undefined,operation:undefined}:proposal;
+            const receipt=proposal.status==='saved'&&memory.receiptForRun(scope,run.id);
+            return [{run:run.id,source,proposal:visible,
+              ...(receipt?{saved:{receipt,memory:memory.inspect(scope,receipt.memoryId,receipt.revision)}}:{})}];
+          }
+          return feedback(run);
+        });
+        const latest=turns.find(turn=>turn.proposal);
+        return {status:'available',policy:enabled,records:memory.list(scope),turns,proposal:latest?.proposal,
+          saved:latest?.saved,request:recent?.savedMemoryRequest,evidence:recent?.savedMemory};
       }
       if(!await access())throw error(403,'Saved memory access was denied. Nothing was changed.');
       const stillAuthorized=()=>{
