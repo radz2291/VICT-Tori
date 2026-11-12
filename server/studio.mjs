@@ -6,6 +6,7 @@ import { workspaceBinding, workspaceReadOnly, workspaceRefs } from '../packages/
 import { registeredTool, registeredTools } from '../src/registered-tools.mjs';
 import { authoringChatSessions, knownOperation, lastAuthoringTest, operationDigest, rememberOperation, runEvidence, workspaceCapabilities } from './workspace-actions.mjs';
 import { publicProviderStream } from './provider-stream.mjs';
+import { withCompleteScopedThreadReads } from './mastra-session-store.mjs';
 import { createSavedMemoryHost, emptyAdmission, memoryArtifact, pinAllowsSavedMemory } from './saved-memory.mjs';
 import { draftContext, draftInstructions, governedPolicy, memoryIntent, parseMemoryDraft, proposalLifetimeMs } from '../packages/memory/index.mjs';
 import { validateAgentStreamEvent } from '@victframework/contracts';
@@ -212,16 +213,17 @@ export function createStudio({getAssembly,dataDirectory,turnDeadlineMs=maxHostDe
   }
   store(old);
   let activeTurn;
-  let storage;
+  let storage,sessionStore;
   const threads=new MastraThreadCoordinator();
   let controlStores, governanceStore, lifecycle, recovered;
   const openMemory=async()=>{
     storage??=await createDedicatedMastraStore({dataDir:dir,retention:{messagesMaxAgeMs:2592000000,threadsMaxAgeMs:2592000000,spansMaxAgeMs:86400000}});
+    sessionStore??=withCompleteScopedThreadReads(storage.store);
     controlStores??=createSqliteAgentControlStores({path:join(dir,'a3-control.sqlite')});
     governanceStore??=createSqliteAgentGovernanceStore({path:join(dir,'a3-memory-governance.sqlite')});
     lifecycle??=new ConversationDeletionCoordinator({
       governance:governanceStore,
-      memory:createGovernedMemoryDeletionPort({store:storage.store,actorId:actor,threadCoordinator:threads}).deletionPort,
+      memory:createGovernedMemoryDeletionPort({store:sessionStore,actorId:actor,threadCoordinator:threads}).deletionPort,
       domain:{async deleteConversation(conversationId){
         const current=snapshot();
         const session=current.sessions.find(item=>item.id===conversationId);
@@ -690,7 +692,7 @@ export function createStudio({getAssembly,dataDirectory,turnDeadlineMs=maxHostDe
         'Studio binds edits to the current open draft. Omit draftId and expectedRevision for an ordinary edit. Never copy draft IDs or graph revisions from earlier turns. Discover current resources and use their exact references.',
         'Ask if the target is ambiguous. Report actual tool outcomes and remaining work. Keep the answer concise.',
       ].join(' ')):undefined;
-      const agentConfig={store:storage.store,modelFactory:()=>providerModel(key,run.route,evidence,{
+      const agentConfig={store:sessionStore,modelFactory:()=>providerModel(key,run.route,evidence,{
         ...value,...execution,tool:value.tool||value.child||value.authoring,context:context.content,authoringGuide,authoringHistory,
         inspectOnly:workspace&&!draftTurn.allowChanges,
         savedMemoryContext,memoryDraft:canDraft?{...memoryDraft,input:text}:undefined,

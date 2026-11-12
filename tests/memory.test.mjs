@@ -340,8 +340,33 @@ test('real Studio turns pin policy, admit stored values and refuse scope, replay
     assert.equal((await runView(read.id)).request,undefined);
     assert.ok((await wires()).some(item=>item.toolMessages.some(text=>text.includes('Remember that tool output'))));
     assert.equal(sqlite(file,db=>db.prepare('SELECT COUNT(*) AS n FROM memories').get().n),2);
+    const longGraph=makeGraph('Long history check',true);
+    assert.ok(longGraph.apply(assembly.configureOperations(longGraph.graph,'memory','reference','recent-100@1')).ok);
+    const longDefinition=(await req('/definitions')).definition;
+    const {activation:long}=await activate(longGraph,longDefinition);
+    const longSession=await session(long.version);
+    const early=await turn(longSession,contextSource);
+    for(let i=0;i<52;i++){
+      const result=await turn(longSession,'Long history exchange '+i);
+      assert.equal(result.status,'completed','Long history exchange '+i+': '+result.errorCode);
+    }
+    const longCheck=await turn(longSession,'Ordinary 100-message check.');
+    assert.equal(longCheck.status,'completed');
+    const longWire=(await wires()).find(item=>item.prompt==='Ordinary 100-message check.');
+    assert.equal(longWire.history.length,50);
+    assert.ok(longWire.history.includes('Long history exchange 51'));
+    assert.ok(!longWire.history.includes(contextSource));
+    const longDraft=await turn(longSession,contextPrompt);
+    const longProposal=await current(longSession);
+    assert.equal(longProposal.run,longDraft.id);
+    assert.ok(longProposal.contextBasis.includes(early.id+'-user'));
+    const deletion=await req('/delete-session',{session:longSession});
+    assert.equal(deletion.deletion.status,'completed');
+    assert.ok(!deletion.sessions.some(item=>item.id===longSession));
     console.log(JSON.stringify({scope:save.receipt.scope,save:save.receipt.memoryId,firstRecall:recall.id,corrected:newRecall.id,
-      forget:forgotten.receipt.outcome,contextBasis:contextSave.receipt.contextBasis,missing:damaged.id,tool:read.id}));
+      forget:forgotten.receipt.outcome,contextBasis:contextSave.receipt.contextBasis,missing:damaged.id,tool:read.id,
+      longHistory:{run:longCheck.id,historyUserMessages:longWire.history.length,completedExchanges:54,
+        draftCitesOldest:longProposal.contextBasis.includes(early.id+'-user'),deletion:deletion.deletion.completedSteps}}));
   }finally{
     restore();
     await service.close();
