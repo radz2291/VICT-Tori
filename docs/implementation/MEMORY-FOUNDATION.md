@@ -1,6 +1,6 @@
 # V1c memory foundation
 
-**Status** Proposed slice contract for owner review. Repository destination is `docs/implementation/MEMORY-FOUNDATION.md`.
+**Status** Accepted for implementation on 12 November 2026. Radzi accepted `0900305` with the retention and reconciliation clarifications below.
 
 **Baseline** Accepted TORI-005 branch commit `4c035cd75f63c68bd002dee5683ca3fa02e778cf`. The tested product is `b349e547f4e144db47d63f89e0ef3c7c49db8c75`. Use the installed public package versions pinned by that checkout. [TORI-005 continuity and verification](https://github.com/radz2291/VICT-Tori/blob/4c035cd75f63c68bd002dee5683ca3fa02e778cf/docs/evidence/authoring-foundation/CHAT-CONTINUITY.md)
 
@@ -18,12 +18,12 @@ Expose Governed Memory through the existing optional **Memory Policy** binding a
    { memories: [{ id, revision, content, sourceMessageRef, savedByRun, contextBasis, updatedAt }] }
    ```
 
-   TORI keeps a dedicated SQLite ledger for operations, receipts, revision history and tombstones. Array replacement is acceptable with serialized writes per resource and current-revision checks. Keep receipts and audit history in the ledger. Prove that a write and its receipt commit together or reconcile through a durable operation record with the same observable outcome. Pending operations stay out of recall until reconciled. Both backends must satisfy the same cancellation, replay and deletion checks.
+   TORI keeps a dedicated SQLite ledger for operations, receipts, revision history and tombstones. Array replacement is acceptable with serialized writes per resource and current-revision checks. Keep receipts and audit history in the ledger. Prove that a write and its receipt commit together or reconcile through a durable operation record with the same observable outcome. Pending operations stay out of recall until reconciled. Reconciliation also covers a live ledger record with missing Mastra-side memory. Record **storage unavailable / memory missing** in Run evidence and exclude the record from admission. Both backends must satisfy the same cancellation, replay and deletion checks.
 
    Record all three conformance results at the exact installed VICT and Mastra versions before selecting the primary implementation.
 
    1. Resource-scoped, schema-based working memory exists and provides the required isolation and schema behavior at the pinned `@victframework/mastra` and Mastra versions.
-   2. The dedicated store from `createDedicatedMastraStore` supports the `mastra_resources` table.
+   2. The dedicated store from `createDedicatedMastraStore` supports the `mastra_resources` table. Record in the probe evidence that the store is LibSQL-backed (`mastra/mastra-store.db`), and verify that retention pruning at the pinned versions leaves saved memories in `mastra_resources` intact. Pruning or inconclusive evidence selects the fallback.
    3. The host can write programmatically, withhold the model's write tool, and observe and control what reaches the model through a trace or pre-dispatch read. Demonstrate the required write/receipt reconciliation at that boundary.
 
    **Fallback if any probe fails.** Store saved memories and their revisions in dedicated local SQLite tables. Commit the record and operation receipt in one transaction. Apply the same admission, authorization, evidence and acceptance requirements.
@@ -67,6 +67,6 @@ This covers part of CAP-16 and X09, the applicable X04 scope checks, and a bound
 
 **Stop conditions.** If the installed VICT boundary cannot support the required grant, cancellation or receipt, identify the exact missing interface and affected test. A scope leak or an unverified deletion blocks acceptance. Missing live provider access holds the live proof while deterministic and Studio work can proceed. A failed Mastra conformance probe selects the documented fallback using the pinned dependencies. Keep both paths behind the same governed contract and public controls. Choose one backing implementation for this slice based on the probe results. Show users the Memory Policy controls and admission evidence through Studio.
 
-## Proposed decision register entry
+## Recorded V1c staging decision
 
 V1c is a multi-slice stage. Begin with explicit saved memory using governed Mastra working memory when all three pinned-version probes pass, with dedicated SQLite memory tables as the documented fallback. Both paths use the same governance, Run evidence and acceptance criteria. Then advance background execution and recovery, followed by specialist Run visibility and controls. Give opt-in observational memory its own proof with source evidence from multiple ordinary conversations. Semantic retrieval requires the planned exact-version Mastra conformance probe. The broader memory acceptance includes retention and export coverage. Existing real-world acceptance scenarios remain cumulative. [V1c roadmap](https://github.com/radz2291/VICT-Tori/blob/4c035cd75f63c68bd002dee5683ca3fa02e778cf/docs/implementation/ROADMAP.md) · [Memory contracts](https://github.com/radz2291/VICT-Tori/blob/4c035cd75f63c68bd002dee5683ca3fa02e778cf/docs/specs/CONTRACTS.md#8-skills-context-memory-and-authorization)
