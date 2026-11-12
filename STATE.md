@@ -1,5 +1,7 @@
 # TORI current state
 
+**12 November 2026 — TORI-005 Authoring continuity.** Product `b349e547f4e144db47d63f89e0ef3c7c49db8c75` on `codex/tori-authoring-foundation` restores the Authoring chat on refresh, continues the same Session after Stop or deadline and keeps the last completed test available. [Preview and verification](docs/evidence/authoring-foundation/CHAT-CONTINUITY.md). Radzi owns the Review decision.
+
 **12 November 2026 — TORI-005 Authoring chat space.** Product `25980a86a200269cb8e725705a0c22b673439469` on `codex/tori-authoring-foundation` moves the revision and draft information into the activation dialog, removes budget counts from chat and themes public Select options across Studio. [Preview and verification](docs/evidence/authoring-foundation/CHAT-CHROME.md). Radzi owns the Review decision.
 
 **12 November 2026 — TORI-005 Authoring chat layout.** Product `557288a90e74ea07de8e001f8545ca8bd00d6480` on `codex/tori-authoring-foundation` uses the Sessions chat composer in the Authoring dock and opens activation selection in a centered dialog from header options. [Desktop and narrow verification](docs/evidence/authoring-foundation/QUIET-AUTHORING.md). Radzi owns the Review decision.

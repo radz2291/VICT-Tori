@@ -1,5 +1,9 @@
 # TORI handoff
 
+## TORI-005 Authoring continuity
+
+In the [Studio preview](http://127.0.0.1:48797/) on product `b349e547f4e144db47d63f89e0ef3c7c49db8c75`, reopen the Authoring Agent dock to see the remembered revision and its saved messages. After Stop or a deadline, send the next message in the same chat. **Inspect last test Run** opens the previous completed test. [Continuity verification](docs/evidence/authoring-foundation/CHAT-CONTINUITY.md)
+
 ## TORI-005 Authoring chat space
 
 In the [Studio preview](http://127.0.0.1:48797/) on product `25980a86a200269cb8e725705a0c22b673439469`, open **⋯** in the Authoring Agent dock to see the current draft and choose the revision. The chat shows the transcript and composer, with Run inspection after a turn. Configure budgets in the Agent's **Execution** settings. [Shared Select styling and verification](docs/evidence/authoring-foundation/CHAT-CHROME.md)

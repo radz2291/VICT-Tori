@@ -1,0 +1,20 @@
+# TORI-005 Authoring conversation continuity
+
+Radzi requested a continuing Authoring chat after Stop, timeout and refresh, including access to the previous test Run. Product `b349e547f4e144db47d63f89e0ef3c7c49db8c75` on `codex/tori-authoring-foundation` starts from `0b148e187c122762639486b6c0fd331e675ed762`.
+
+The dock remembers the selected activation and whether it was open. Stop and host deadlines keep the transcript, the failed or cancelled Run, and the last completed test. The dock explains that a new message can continue the chat. Refresh during an active turn restores the accepted message and follows the original Run to its result. **Inspect last test Run** opens the actual linked Run in Runs.
+
+Previous versions could create a new dock Session after an interruption. For the same pinned activation and execution environment, the dock now presents those saved messages together in order and continues the latest Session. The original Sessions and Run identities remain available for inspection. Choosing a different revision opens that revision's chat. An unavailable remembered revision prompts the operator to choose an available activation.
+
+The Authoring model receives the pinned 10- or 100-message window of completed exchanges plus the current request and its live tool results. Interrupted turns remain visible in the transcript and Runs. Their unfinished model and tool messages stay out of future model context. Prior test lookup uses the latest completed test by default and accepts an exact Run ID for an earlier or failed attempt. VICT owns the current turn, grants, receipts and activation throughout.
+
+## Verification
+
+- `npm test` passed 14/14. The new continuity test recreates an old split, records an actual host deadline, restarts the isolated Studio, and uses the original completed test in the next turn. The fixture asserts the provider receives the previous completed exchange and no historical tool frames or cancelled request. A six-turn probe verified the configured 10-message window. The V1b instruction-authoring browser walkthrough and documentation check passed. `npm run build` passed with the existing bundle-size warning.
+- Independent verifier `/root/quiet_authoring_verifier` passed the focused continuity test and full `node tests/authoring-browser.mjs` at detached `b349e547f4e144db47d63f89e0ef3c7c49db8c75` on port 48815. Desktop Stop Run `404f4d45-e84f-4f54-9362-d785725994e6` and follow-up `1b57fa4a-cd12-4128-a50c-57eff12fe051` shared Session `1fee43f9-d6ad-4baa-87ed-f0e1b9308711` and retained the real fixture test Run `7017e1ab-bab8-4c54-9eda-8035880469c0`. At 390 × 844, active Run `f4d0e290-f7a9-4ee4-8bc3-90d60bb7c5f4` appeared once after refresh. The verifier also checked activation and fixture isolation. Early cold-load or reload attempts timed out before the app rendered. The full independent rerun passed.
+- The read-only [Studio preview](http://127.0.0.1:48797/) check reopened an existing conversation across its older split Sessions at 1106 × 668, kept the dock open on refresh, and opened the saved completed test through the new button. The Session and Run identities matched before and after the check.
+- A separate live GLM-5.3 Flash check on the approved Coding route recalled the first synthetic message after restarting the isolated host. Both Runs, `67267905-173b-4495-9b22-98a2ceb4771d` and `2ddabd2d-62ae-42c1-bf12-f98b79ffb56c`, completed in Session `38e028fa-2383-4f50-a7ca-23c2f1219107` with no authoring mutations. The timeout, Stop and mid-turn refresh probes used deterministic fixtures.
+
+Public VICT `0.4.0-rc.1` Conversation and PromptInput render the transcript and composer. Public Dialog and Select select the activation, Feedback announces interruption or pending status, and public Button opens the authoring or test Run. [Control inventory](UI-AUDIT.md)
+
+Node 22.13.1, npm 11.19.1, Chromium 153.0.8010.12. Lockfile blob `746b69fbefb4a9123029f54ab4ca47a00aaa5310`, browser fixture `a856950940dcd45441e47257d9dc67835efdca47`, provider fixture `43cf439daf6e97e08b8e210180986506f9e6f692`, continuity test `edaaa4612ec74d6f8e146553fbfa32264e3392b7`.
