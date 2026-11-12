@@ -53,12 +53,12 @@ async function stop(){
   server.kill();
   await closed;
 }
-async function route(path,action){
+async function route(path,action,expected=200){
   const pending=page.waitForResponse(response=>response.url()===url+'/api/studio/'+path&&response.request().method()==='POST',
     {timeout:110000});
   await action();
   const reply=await pending;
-  assert.equal(reply.status(),200,await reply.text());
+  assert.equal(reply.status(),expected,await reply.text());
   return reply.json();
 }
 const button=name=>page.getByRole('button',{name,exact:typeof name==='string'});
@@ -425,6 +425,24 @@ try {
       await narrowEditor.waitFor();
       assert.equal(await focused(narrowEditor),true);
       await capture('memory-narrow-editor',narrow);
+      await narrowEditor.fill('é'.repeat(513));
+      const narrowConfirm=narrow.getByRole('button',{name:'Confirm and save'});
+      await narrowConfirm.focus();
+      await route('memory/confirm',()=>narrowConfirm.press('Enter'),400);
+      await narrow.getByText(/1,024 UTF-8 bytes/).waitFor();
+      await page.waitForFunction(id=>{
+        const card=document.querySelector('[data-memory-turn="'+id+'"]');
+        const alert=card?.querySelector('[role="alert"]')?.getBoundingClientRect();
+        const feed=card?.closest('[data-testid="conversation-feed"]')?.getBoundingClientRect();
+        return card?.querySelector('textarea')===document.activeElement&&alert&&feed&&
+          alert.top>=feed.top-1&&alert.bottom<=feed.bottom+1;
+      },narrowRun.id);
+      const rejectedMemory=await post('memory/run',{run:narrowRun.id});
+      assert.equal(rejectedMemory.proposal,'pending');
+      assert.equal(rejectedMemory.receipt,undefined);
+      observed.narrowRejectedEdit={utf8Bytes:1026,focus:'editor',alertVisible:true,receipt:false};
+      await capture('memory-narrow-invalid-edit');
+      await narrowEditor.fill('narrow notes use action verbs.');
       await route('memory/dismiss',()=>narrow.getByRole('button',{name:'Dismiss'}).press('Enter'));
       await narrow.getByText('Nothing saved. This proposal was dismissed.',{exact:true}).waitFor();
       assert.equal(await focused(narrow.getByRole('heading',{name:'Memory proposal'})),true);

@@ -26,17 +26,17 @@
   let savedRecord=$derived(view?.records?.find((item:any)=>item.id===saved?.receipt.memoryId&&item.status==='available'));
   let valueToSave=$derived(correcting?content:proposal?.text??'');
   function focusHeading(){
-    return tick().then(()=>card?.querySelector<HTMLElement>('h3')?.focus({preventScroll:true}));
+    return tick().then(()=>card?.querySelector<HTMLElement>('h3')?.focus());
   }
   async function correctProposal(){
     content=proposal?.text??'';correcting=true;problem='';
     await tick();
-    card?.querySelector('textarea')?.focus({preventScroll:true});
+    card?.querySelector('textarea')?.focus();
   }
   async function cancelCorrection(){
     correcting=false;problem='';
     await tick();
-    card?.querySelector<HTMLElement>('[data-action-id="correct-proposal"]')?.focus({preventScroll:true});
+    card?.querySelector<HTMLElement>('[data-action-id="correct-proposal"]')?.focus();
   }
   function edit(event:MouseEvent,item:any,next:'correct'|'forget'){
     invoker=event.currentTarget as HTMLElement;
@@ -60,7 +60,18 @@
         await focusHeading();
       }
     }catch(e){problem=(e as Error).message;}
-    finally{busy=false;}
+    finally{
+      busy=false;
+      if(problem&&card&&!actionOpen){
+        await tick();
+        const focused=document.activeElement;
+        if(card?.isConnected&&(card.contains(focused)||focused===document.body)){
+          // Return to the edit and bring its adjacent error into the feed.
+          if(correcting)card.querySelector('textarea')?.focus();
+          card.querySelector('[role="alert"]')?.scrollIntoView({block:'nearest'});
+        }
+      }
+    }
   }
 </script>
 
@@ -74,20 +85,24 @@
       <p class="memory-meta">Review the wording. Confirm to save it for future Sessions, or correct or dismiss it here.</p>
       {#if correcting}
         <label for={inputId}>Memory to save</label>
-        <Textarea id={inputId} class="tori-field" rows={3} bind:value={content} disabled={busy||busyTurn}/>
+        <Textarea id={inputId} class="tori-field" rows={3} bind:value={content} disabled={busy||busyTurn}
+          aria-describedby={problem?inputId+'-problem':undefined}/>
       {:else}
         <p class="memory-value" data-testid="memory-proposal-text">{proposal.text}</p>
       {/if}
+      {#if !actionOpen&&problem}
+        <div id={inputId+'-problem'}><Feedback kind="error" message={problem}/></div>
+      {/if}
       <p class="memory-meta">Based on {proposal.contextBasis.length} {proposal.contextBasis.length===1?'message':'messages'} in this Session.</p>
       <div class="memory-actions">
-        <Button label="Confirm and save" disabled={busy||busyTurn||!valueToSave.trim()}
+        <Button label="Confirm and save" {busy} disabled={busyTurn||!valueToSave.trim()}
           onclick={()=>void submit('confirm',{run:proposal.run,operation:proposal.operation,text:valueToSave})}/>
         {#if correcting}
-          <Button label="Cancel correction" variant="secondary" disabled={busy||busyTurn} onclick={()=>void cancelCorrection()}/>
+          <Button label="Cancel correction" variant="secondary" {busy} disabled={busyTurn} onclick={()=>void cancelCorrection()}/>
         {:else}
-          <Button label="Correct" actionId="correct-proposal" variant="secondary" disabled={busy||busyTurn} onclick={()=>void correctProposal()}/>
+          <Button label="Correct" actionId="correct-proposal" variant="secondary" {busy} disabled={busyTurn} onclick={()=>void correctProposal()}/>
         {/if}
-        <Button label="Dismiss" variant="secondary" disabled={busy||busyTurn} onclick={()=>void submit('dismiss',{run:proposal.run})}/>
+        <Button label="Dismiss" variant="secondary" {busy} disabled={busyTurn} onclick={()=>void submit('dismiss',{run:proposal.run})}/>
       </div>
     {:else if saved?.memory.memory}
       <p class="memory-value" data-testid="memory-confirmed-text">{saved.memory.memory.content}</p>
@@ -108,7 +123,9 @@
       <Feedback message={turn.request.reason==='memory-or-reminder'?memoryReasons['memory-or-reminder']:
         'Nothing saved. '+(memoryReasons[turn.request.reason]??'No memory was confirmed.')}/>
     {/if}
-    {#if !actionOpen&&problem}<Feedback kind="error" message={problem}/>{/if}
+    {#if !actionOpen&&problem&&proposal?.status!=='pending'}
+      <Feedback kind="error" message={problem}/>
+    {/if}
   </section>
 {:else if mode==='list'}
   <section class="memory-panel" aria-labelledby={inputId+'-heading'}>
@@ -166,7 +183,7 @@
       {#if problem}<Feedback kind="error" message={problem}/>{/if}
       <div class="memory-actions">
         <Dialog.Close class="vict-btn vict-btn--quiet" type="button" disabled={busy}>Cancel</Dialog.Close>
-        <Button label={action==='correct'?'Save correction':'Forget'} variant={action==='forget'?'danger':'primary'} disabled={busy||busyTurn||(action==='correct'&&!edited.trim())}
+        <Button label={action==='correct'?'Save correction':'Forget'} variant={action==='forget'?'danger':'primary'} {busy} disabled={busyTurn||(action==='correct'&&!edited.trim())}
           onclick={()=>void submit(action,{id:target.id,revision:target.revision,operation,...(action==='correct'?{text:edited}:{})})}/>
       </div>
     </Dialog.Content>
