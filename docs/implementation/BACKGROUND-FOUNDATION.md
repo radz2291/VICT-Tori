@@ -36,7 +36,7 @@ The matrix classifies work that was in progress when the fault occurred. A recor
 
 In the local single-process host, background means an accepted Run can continue with that process alive while its browser subscriber disconnects. Reuse the existing governed host execution path and installed Mastra mechanisms. Host or machine restart persistence is conditional on the probe for that fault. Keep existing interruption behavior wherever continuation is unproven. Use the same scope and pinned activation for cancellation and status access after reconnect. A new connection joins an existing Run. Resolve a lost start acknowledgement through its original identity without dispatching another Run.
 
-Reconnect from the last acknowledged cursor with the installed VICT stream/replay boundary. Check authorization and Run/stream correlation, deduplicate by stream identity and sequence, and reconcile against the authoritative Run snapshot if a gap cannot be replayed. Show the gap and the known result. Do not synthesize missing text or milestones. A late or duplicate event cannot regress a settled terminal state. Uncertain can change only on a recorded reconciliation of the original operation. [Stream contracts §7](../specs/CONTRACTS.md#7-streaming-and-run-evidence) · [Pinned VICT replay implementation](https://github.com/radz2291/vict-02/blob/6b420a3e9eada6f694cc2550debda7753316b5b3/packages/runtime/src/stream-hub.ts)
+Reconnect from the last acknowledged cursor with the installed VICT stream/replay boundary. Check authorization and Run/stream correlation, deduplicate by stream identity and sequence, and reconcile against the authoritative Run snapshot if a gap cannot be replayed. Show the gap and the known result. Do not synthesize missing text or milestones. A late or duplicate event cannot regress a settled terminal state. Uncertain can change only on a recorded reconciliation of the original operation. [Stream contracts §7](../specs/CONTRACTS.md#7-safe-event-and-trace-projection) · [Pinned VICT replay implementation](https://github.com/radz2291/vict-02/blob/6b420a3e9eada6f694cc2550debda7753316b5b3/packages/runtime/src/stream-hub.ts)
 
 ### Effect fencing
 
@@ -44,7 +44,7 @@ Current companion lookup/script operations are read-only. This slice fences the 
 
 ### Pinned Mastra conformance
 
-Before implementation commits that rely on durability, record exact installed versions, setup, fault injection, observed Run/operation IDs and separate results for:
+Before product implementation commits, record exact installed versions, setup, fault injection, observed Run/operation IDs and separate results for:
 
 1. Long-running agent execution surviving a lost subscriber while the host stays alive, then across a process restart with the same Run identity and verified ownership. Record machine restart separately if supported.
 2. Supported suspend/resume semantics and cancellation at the pinned boundary, including what is persisted and whether resumption repeats a step or an effect.
