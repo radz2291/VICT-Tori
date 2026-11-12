@@ -7,6 +7,8 @@
     "@victframework/contracts": "file:packs/victframework-contracts-0.4.0-rc.1.tgz",
     "@victframework/kernel": "file:packs/victframework-kernel-0.4.0-rc.1.tgz",
     "@victframework/runtime": "file:packs/victframework-runtime-0.4.0-rc.1.tgz",
-    "@victframework/sdk": "file:packs/victframework-sdk-0.4.0-rc.1.tgz"
+    "@victframework/sdk": "file:packs/victframework-sdk-0.4.0-rc.1.tgz",
+    "@victframework/ui": "file:packs/victframework-ui-0.4.0-rc.1.tgz",
+    "zod": "3.25.76"
   }
 }

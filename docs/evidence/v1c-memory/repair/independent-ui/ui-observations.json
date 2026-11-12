@@ -1,0 +1,149 @@
+{
+  "shell": [
+    {
+      "name": "Agents",
+      "tag": "BUTTON",
+      "cls": "vict-btn vict-btn--secondary current-task",
+      "role": null,
+      "disabled": false,
+      "dataSlot": null,
+      "width": 65.578125,
+      "height": 34
+    },
+    {
+      "name": "Workflows",
+      "tag": "BUTTON",
+      "cls": "vict-btn vict-btn--secondary ",
+      "role": null,
+      "disabled": true,
+      "dataSlot": null,
+      "width": 81.375,
+      "height": 34
+    },
+    {
+      "name": "Creative",
+      "tag": "BUTTON",
+      "cls": "vict-btn vict-btn--secondary ",
+      "role": null,
+      "disabled": true,
+      "dataSlot": null,
+      "width": 68.984375,
+      "height": 34
+    },
+    {
+      "name": "Sessions",
+      "tag": "BUTTON",
+      "cls": "vict-btn vict-btn--secondary ",
+      "role": null,
+      "disabled": false,
+      "dataSlot": null,
+      "width": 70.65625,
+      "height": 34
+    },
+    {
+      "name": "Runs",
+      "tag": "BUTTON",
+      "cls": "vict-btn vict-btn--secondary ",
+      "role": null,
+      "disabled": false,
+      "dataSlot": null,
+      "width": 51.859375,
+      "height": 34
+    }
+  ],
+  "configureSelect": {
+    "name": "Choose an optionOffGoverned Memory",
+    "tag": "SELECT",
+    "cls": "vict-input vict-select",
+    "role": null,
+    "disabled": false,
+    "dataSlot": null,
+    "width": 602,
+    "height": 32
+  },
+  "nodeSelect": {
+    "name": "Choose an optionOffGoverned Memory",
+    "tag": "SELECT",
+    "cls": "vict-input vict-select",
+    "role": null,
+    "disabled": false,
+    "dataSlot": null,
+    "width": 145.75,
+    "height": 18.3956298828125
+  },
+  "narrowCorrect": {
+    "name": "Correct",
+    "tag": "BUTTON",
+    "cls": "vict-btn  vict-btn--secondary",
+    "role": null,
+    "disabled": false,
+    "dataSlot": null,
+    "width": 65.140625,
+    "height": 44
+  },
+  "narrowEditor": {
+    "name": "",
+    "tag": "TEXTAREA",
+    "cls": "bg-input/50 border-transparent focus-visible:border-ring focus-visible:ring-ring/30 aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive dark:aria-invalid:border-destructive/50 resize-none rounded-2xl border px-2.5 py-2 text-base transition-[color,box-shadow] duration-200 focus-visible:ring-3 aria-invalid:ring-3 md:text-sm flex field-sizing-content min-h-16 w-full outline-none placeholder:text-muted-foreground disabled:cursor-not-allowed disabled:opacity-50 tori-field",
+    "role": null,
+    "disabled": false,
+    "dataSlot": "textarea",
+    "width": 340,
+    "height": 52
+  },
+  "error": {
+    "name": "Enter a nonblank memory of up to 1,024 UTF-8 bytes. Nothing was saved.",
+    "tag": "P",
+    "cls": "vict-alert",
+    "role": "alert",
+    "disabled": false,
+    "dataSlot": null,
+    "width": 340,
+    "height": 70,
+    "active": {
+      "tag": "TEXTAREA",
+      "text": "",
+      "id": "saved-memory-card-7263d6a0-3a83-4b75-afd5-dd53321aae95"
+    },
+    "viewport": {
+      "top": 557.703125,
+      "bottom": 627.703125,
+      "feedTop": 126,
+      "feedBottom": 655.625
+    }
+  },
+  "savedStatus": {
+    "name": "Saved",
+    "tag": "SPAN",
+    "cls": "vict-status vict-status--neutral",
+    "role": "status",
+    "disabled": false,
+    "dataSlot": null,
+    "width": 60.703125,
+    "height": 24.5
+  },
+  "memory": "ff115cdb-423a-4ba5-8630-ead5a3c0e6ee",
+  "run": "7263d6a0-3a83-4b75-afd5-dd53321aae95",
+  "dialog": {
+    "name": "Forget saved memory Remove this memory and all saved revisions from future Runs. Existing Session messages stay in the conversation. Studio review outcome in three lines.\nÉlan keeps details clear.  Cancel Forget",
+    "tag": "DIV",
+    "cls": "mobile-sheet studio-dialog memory-dialog",
+    "role": "dialog",
+    "disabled": false,
+    "dataSlot": null,
+    "width": 390,
+    "height": 213.578125
+  },
+  "dialogFocusRestored": true,
+  "runsDetails": {
+    "name": "Details",
+    "tag": "BUTTON",
+    "cls": null,
+    "role": null,
+    "disabled": false,
+    "dataSlot": null,
+    "width": 352,
+    "height": 47
+  },
+  "chromium": "153.0.8010.12"
+}

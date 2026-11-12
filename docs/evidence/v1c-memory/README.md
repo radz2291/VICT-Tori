@@ -2,6 +2,8 @@
 
 [Accepted Memory Foundation contract](../../implementation/MEMORY-FOUNDATION.md) at 8854562dda920f583e6cc1d80de51f6add6d7ba9. Work owns TORI-006; Radzi owns the review decision. The clean prepared baseline was 9e642977593b616422471d8260b8e8c585c6c844 on codex/tori-v1c-memory-foundation. The original Studio and earlier review worktrees were not edited.
 
+The [owner repair review and runnable preview](REPAIR-REVIEW.md) supersede this initial checkpoint for TORI-006. This page retains the earlier evidence.
+
 ## Review preview
 
 [Open Studio](http://127.0.0.1:48830/) on product **2e95a06639244b78b7f00d190b85e303eb1b55df**. Quellight r1 is ready in a clean, dedicated preview workspace. The build uses the existing approved local Coding connection.
@@ -75,6 +77,6 @@ node tests/memory-browser.mjs
 
 The live command uses the existing approved local Coding connection with GLM-5.3 Flash and synthetic inputs. It launches its own loopback host and disposable store. With TORI_MEMORY_LIVE unset, the same browser exercises the installed app with a deterministic provider. Neither command overwrites an operator preview.
 
-For the installed package consumer, copy the [consumer files](consumer/) to a new directory with a packs/ folder. Copy the matching contracts, kernel, runtime and sdk VICT archives into it. Pack the memory package with **npm pack ./packages/memory --pack-destination &lt;consumer-packs&gt;**. In the independent consumer directory run **npm install --no-audit --no-fund** and **node consumer.mjs**. No package is published.
+For the installed package consumer, copy the [consumer files](consumer/) to a new directory with a packs/ folder. Copy the matching contracts, kernel, runtime, sdk and ui VICT archives into it. Pack the memory package with **npm pack ./packages/memory --pack-destination &lt;consumer-packs&gt;**. In the independent consumer directory run **npm install --no-audit --no-fund** and **node consumer.mjs**. No package is published.
 
 [Early owner walkthrough](OWNER-PREVIEW.md) · [Installed UI control audit](UI-AUDIT.md) · [Retained findings and repairs](FINDINGS.md)

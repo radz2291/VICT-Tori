@@ -1,0 +1,194 @@
+{
+  "origin": "live Coding",
+  "desktop": {
+    "width": 1531,
+    "height": 850
+  },
+  "narrow": {
+    "width": 390,
+    "height": 844
+  },
+  "runs": {
+    "draft": {
+      "run": "44a17490-54e1-403e-9ecc-6b4e8e978960",
+      "session": "6643cfd1-654a-4a77-9504-cc7c8be9e41a",
+      "reply": "Got it — three short bullets. Here's the Orchid update in that format:\n\n- Design approved\n- Implementation in progress\n- Demo is Friday"
+    },
+    "freshRecall": {
+      "run": "2fea9a79-0ded-4720-a3b3-03c9ad5fdb54",
+      "session": "3a6a97fd-56bf-4695-a376-622fbcf711c5",
+      "reply": "- Design approved.\n- Implementation in progress.\n- Demo on Friday."
+    },
+    "historyOnly": {
+      "run": "d7deab49-1025-4236-8ec0-50b3adce4d36",
+      "session": "17b9cee3-8bb8-4715-a51a-b052e60d751e",
+      "reply": "Orchid is on track: design is approved, implementation is underway, and the demo is set for Friday."
+    },
+    "correctedRecall": {
+      "run": "e139c1c7-d40f-4d6c-b450-d668a43455f6",
+      "session": "8beef042-db34-4935-88da-f28ba1ae2718",
+      "reply": "- Design approved; implementation in progress.\n- Demo is Friday."
+    },
+    "afterForget": {
+      "run": "d479e93b-2345-4054-a543-e764189f5e23",
+      "session": "51f2a871-3eed-4607-bf0a-4ea324075333",
+      "reply": "Orchid's design is approved, implementation is underway, and the demo is Friday."
+    },
+    "afterForgetRestart": {
+      "run": "a385b610-6307-421e-adf2-50cb18748e47",
+      "session": "52a7f5ff-8903-4e15-ba58-27bcce6bbea5",
+      "reply": "Orchid status: design approved, implementation underway, demo this Friday."
+    },
+    "planningContext": {
+      "run": "c2d68f8f-0556-4620-b12c-7624c3d5ca9c",
+      "session": "1849754e-5277-429f-8540-9c49cda2e10f",
+      "reply": "- Input: Design approved for Orchid.\n- Decision: Implementation proceeding as approved.\n- Next step: Demo — due Friday."
+    },
+    "contextDraft": {
+      "run": "209f17a3-250f-474a-bb06-04d09a5fc7c1",
+      "session": "1849754e-5277-429f-8540-9c49cda2e10f",
+      "reply": "The planning brief used the input → decision → next step sequence, with Friday's demo as the due date."
+    },
+    "afterContext": {
+      "run": "75fd61aa-9fd4-4dc1-bd69-646578556251",
+      "session": "1849754e-5277-429f-8540-9c49cda2e10f",
+      "reply": "- Input: Planning brief is complete; implementation is underway.\n- Decision: Proceed with the demo build for Orchid.\n- Next step: Finalize the demo — due Friday."
+    },
+    "contextRecall": {
+      "run": "4cc6cb91-1158-4011-bfa8-3e94c5e4e67e",
+      "session": "ab928900-5716-4844-9ae2-5e74e9cf7e11",
+      "reply": "Per your saved format, lay it out as:\n\n- **Input:** Design approved; implementation in progress.\n- **Decision:** Confirm demo scope and sign-off owner.\n- **Next step:** Complete demo preparation — due Friday."
+    }
+  },
+  "chromium": "153.0.8010.12",
+  "activation": "v1_01079e30cb1680907dba7089892dcb2606740b7fd5f1c7368c39d53685e39a88",
+  "confirmationContrast": 13.783925247951698,
+  "save": {
+    "schema": "tori.memory.receipt@1",
+    "capability": "tori.memory.save",
+    "capabilityRevision": "1",
+    "operation": "a6d902c7-9714-49c4-b1e0-417650bd478e",
+    "action": "save",
+    "outcome": "saved",
+    "scope": {
+      "actor": "tori-local-owner",
+      "project": "70d69ec7-6bf9-4fb8-87df-a96472422b80",
+      "agent": "tori-local-agent"
+    },
+    "memoryId": "c3c9d472-6ff8-4442-875d-1ffb428fb80e",
+    "revision": 1,
+    "source": {
+      "session": "6643cfd1-654a-4a77-9504-cc7c8be9e41a",
+      "message": "44a17490-54e1-403e-9ecc-6b4e8e978960-user"
+    },
+    "savedByRun": "44a17490-54e1-403e-9ecc-6b4e8e978960",
+    "contextBasis": [
+      "44a17490-54e1-403e-9ecc-6b4e8e978960-user"
+    ],
+    "operatorSession": "6643cfd1-654a-4a77-9504-cc7c8be9e41a",
+    "at": "2026-11-12T16:21:07.191Z"
+  },
+  "firstAdmission": {
+    "schema": "tori.memory.admission@1",
+    "budgetBytes": 2048,
+    "bytes": 221,
+    "admitted": [
+      {
+        "id": "c3c9d472-6ff8-4442-875d-1ffb428fb80e",
+        "revision": 1,
+        "source": {
+          "session": "6643cfd1-654a-4a77-9504-cc7c8be9e41a",
+          "message": "44a17490-54e1-403e-9ecc-6b4e8e978960-user"
+        },
+        "savedByRun": "44a17490-54e1-403e-9ecc-6b4e8e978960",
+        "contextBasis": [
+          "44a17490-54e1-403e-9ecc-6b4e8e978960-user"
+        ],
+        "createdAt": "2026-11-12T16:21:07.191Z",
+        "updatedAt": "2026-11-12T16:21:07.191Z",
+        "ageMs": 29601,
+        "lastUsedAt": "2026-11-12T16:21:36.792Z"
+      }
+    ],
+    "omitted": [],
+    "status": "admitted"
+  },
+  "correction": {
+    "schema": "tori.memory.receipt@1",
+    "capability": "tori.memory.save",
+    "capabilityRevision": "1",
+    "operation": "28c38094-987b-4334-a0a2-fc097ef70eff",
+    "action": "correct",
+    "outcome": "corrected",
+    "scope": {
+      "actor": "tori-local-owner",
+      "project": "70d69ec7-6bf9-4fb8-87df-a96472422b80",
+      "agent": "tori-local-agent"
+    },
+    "memoryId": "c3c9d472-6ff8-4442-875d-1ffb428fb80e",
+    "revision": 2,
+    "source": {
+      "session": "6643cfd1-654a-4a77-9504-cc7c8be9e41a",
+      "message": "44a17490-54e1-403e-9ecc-6b4e8e978960-user"
+    },
+    "savedByRun": "44a17490-54e1-403e-9ecc-6b4e8e978960",
+    "contextBasis": [
+      "44a17490-54e1-403e-9ecc-6b4e8e978960-user"
+    ],
+    "operatorSession": "3a6a97fd-56bf-4695-a376-622fbcf711c5",
+    "at": "2026-11-12T16:21:45.128Z"
+  },
+  "forget": {
+    "schema": "tori.memory.receipt@1",
+    "capability": "tori.memory.save",
+    "capabilityRevision": "1",
+    "operation": "4bdd089a-02f1-473e-b8fe-299ffefc7689",
+    "action": "forget",
+    "outcome": "forgotten",
+    "scope": {
+      "actor": "tori-local-owner",
+      "project": "70d69ec7-6bf9-4fb8-87df-a96472422b80",
+      "agent": "tori-local-agent"
+    },
+    "memoryId": "c3c9d472-6ff8-4442-875d-1ffb428fb80e",
+    "revision": 2,
+    "source": {
+      "session": "6643cfd1-654a-4a77-9504-cc7c8be9e41a",
+      "message": "44a17490-54e1-403e-9ecc-6b4e8e978960-user"
+    },
+    "savedByRun": "44a17490-54e1-403e-9ecc-6b4e8e978960",
+    "contextBasis": [
+      "44a17490-54e1-403e-9ecc-6b4e8e978960-user"
+    ],
+    "operatorSession": "8beef042-db34-4935-88da-f28ba1ae2718",
+    "at": "2026-11-12T16:23:10.501Z"
+  },
+  "suggestedContext": "Planning briefs in this Session are prepared using an input → decision → next step sequence, with the due date included (e.g., Input: Orchid design approved; Decision: implementation proceeding as approved; Next step: demo due Friday).",
+  "contextual": {
+    "schema": "tori.memory.receipt@1",
+    "capability": "tori.memory.save",
+    "capabilityRevision": "1",
+    "operation": "c7dcaac5-7619-4505-8631-b8c3d82698a1",
+    "action": "save",
+    "outcome": "saved",
+    "scope": {
+      "actor": "tori-local-owner",
+      "project": "70d69ec7-6bf9-4fb8-87df-a96472422b80",
+      "agent": "tori-local-agent"
+    },
+    "memoryId": "e9162825-bd0b-428d-9b35-5410d55ed39f",
+    "revision": 1,
+    "source": {
+      "session": "1849754e-5277-429f-8540-9c49cda2e10f",
+      "message": "209f17a3-250f-474a-bb06-04d09a5fc7c1-user"
+    },
+    "savedByRun": "209f17a3-250f-474a-bb06-04d09a5fc7c1",
+    "contextBasis": [
+      "c2d68f8f-0556-4620-b12c-7624c3d5ca9c-user",
+      "c2d68f8f-0556-4620-b12c-7624c3d5ca9c-agent",
+      "209f17a3-250f-474a-bb06-04d09a5fc7c1-user"
+    ],
+    "operatorSession": "1849754e-5277-429f-8540-9c49cda2e10f",
+    "at": "2026-11-12T16:24:58.379Z"
+  }
+}
