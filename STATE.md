@@ -1,5 +1,7 @@
 # TORI current state
 
+**12 November 2026 — TORI-005 Authoring chat layout.** Product `858b0ba09172a889db8a69d81d7f4a8766074f8b` on `codex/tori-authoring-foundation` uses the Sessions chat composer in the Authoring dock and moves activation selection into header options. [Desktop and narrow verification](docs/evidence/authoring-foundation/QUIET-AUTHORING.md). Radzi owns the Review decision.
+
 **12 November 2026 — TORI-005 authoring permission.** Product `950d20a133bec3dc44577027bd3a1387a4306791` on `codex/tori-authoring-foundation` preserves the selected Turn permission between messages, activation changes and reloads. [Verification](docs/evidence/authoring-foundation/TURN-PERMISSION.md). Radzi owns the Review decision.
 
 **12 November 2026 — TORI-005 Agent execution budgets.** Product `6910888f529d95a426c50a9196cb53381d1e605e` on `codex/tori-authoring-foundation` gives the Agent node and Configure shared model step, tool call and retry budgets within the installed VICT contract. The dock displays the selected activation's limits and Runs show observed usage. The existing r1 is preserved. [Verification and fixed value audit](docs/evidence/authoring-foundation/EXECUTION-BUDGETS.md). Radzi owns the Review decision.

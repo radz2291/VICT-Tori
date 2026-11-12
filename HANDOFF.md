@@ -1,5 +1,9 @@
 # TORI handoff
 
+## TORI-005 Authoring chat layout
+
+In the [Studio preview](http://127.0.0.1:48797/) on product `858b0ba09172a889db8a69d81d7f4a8766074f8b`, open the Authoring Agent dock and use **⋯ → Authoring activation** to select or switch the agent revision. Turn permission sits beside Send, and the budgets and Run link sit below the composer. [Desktop and narrow verification](docs/evidence/authoring-foundation/QUIET-AUTHORING.md)
+
 ## TORI-005 turn permission
 
 The [Studio preview](http://127.0.0.1:48797/) on product `950d20a133bec3dc44577027bd3a1387a4306791` remembers the operator's **Turn permission** in the Authoring Agent dock for this workspace and browser. Select **Allow edits and tests** to continue an edit across messages. Select **Review only** to return to inspection. [Verification](docs/evidence/authoring-foundation/TURN-PERMISSION.md)
