@@ -309,6 +309,7 @@ test('pinned Studio Directive settles independently with exact review, recovery 
     const receipt=(await dispatch('/memory/confirm',confirm)).receipt;
     assert.equal(receipt.directive.proposalRevision,2);
     assert.deepEqual((await dispatch('/memory/confirm',confirm)).receipt,receipt);
+    await assert.rejects(dispatch('/memory/revise',{...confirm,text:draft}),error=>error.status===409);
     assert.deepEqual((await dispatch('/memory/check',exact)).receipt,receipt);
     assert.equal((await runView(originating.id)).provenance.messages[0].status,'available');
     assert.deepEqual(counts(),{memories:1,revisions:1,operations:1,save_attempts:1});

@@ -194,6 +194,7 @@ export function openMemoryStore(path,{clock=Date.now,ids=randomUUID,budget=memor
         expire();
         const proposal=proposalFor(scope,session,run);
         if(!proposal?.policy_revision||proposal.activation!==activation||proposal.operation!==operation)return ok('not-found');
+        if(proposal.status==='saved')return ok('operation-conflict');
         if(proposal.status!=='pending')return ok(proposal.status);
         if(proposal.review_revision!==revision)return ok('stale-revision');
         if(attemptFor(operation))return ok('operation-conflict');
