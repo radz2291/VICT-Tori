@@ -221,10 +221,13 @@ try {
   const caption=await typography(reviewGuidance);
   assert.equal(caption.fontFamily,studioFont);
   assert.ok(parseFloat(caption.fontSize)<parseFloat(readingText.fontSize));
-  for(const control of [card.getByRole('heading'),card.getByRole('button',{name:'Confirm and save'})]){
+  const proposalHeading=card.getByRole('heading');
+  for(const control of [proposalHeading,card.getByRole('button',{name:'Confirm and save'})]){
     assert.equal((await typography(control)).fontFamily,studioFont);
   }
-  observed.typography={readingText,caption};
+  const headingWeight=await proposalHeading.evaluate(node=>Number(getComputedStyle(node).fontWeight));
+  assert.ok(headingWeight>Number(await proposalText(card).evaluate(node=>getComputedStyle(node).fontWeight)));
+  observed.typography={readingText,caption,headingWeight};
   assert.equal(await reviewGuidance.count(),1);
   assert.ok((await proposalText(card).boundingBox()).y<(await reviewGuidance.boundingBox()).y);
   observed.cardGuidanceContrast=await contrast(reviewGuidance,'.memory-confirmation');
