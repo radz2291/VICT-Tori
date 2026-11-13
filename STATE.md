@@ -1,5 +1,7 @@
 # TORI current state
 
+**13 November 2026 — TORI-006 Authoring compatibility.** Product `d49bedf362d3521bcbf714bc6be7a04b34289bb7` restores live workspace inspection on the Memory Foundation branch. The [Authoring regression report](docs/evidence/v1c-memory/AUTHORING-DISCOVERY.md) records the runtime cause, old and repaired live behavior, and verification. Radzi owns acceptance in Work.
+
 **13 November 2026 — TORI-006 typography review.** Product `15806e7d7377283650715067163ecb75dce3a4ef` aligns Studio’s conversational text, memory cards and editors to the same font and reading scale. The [typography evidence](docs/evidence/v1c-memory/TYPOGRAPHY.md) records the browser checks and preview. Radzi owns acceptance in Work.
 
 **13 November 2026 — TORI-006 card polish for owner Review.** Candidate `3851a1e8ea04c5ed2ddde0bb40585c27f5829854` makes the pending proposal easier to scan and gives the saved record a compact header and clear actions. The [card polish review](docs/evidence/v1c-memory/CARD-POLISH.md) records the browser checks and current preview. Radzi owns acceptance in Work.

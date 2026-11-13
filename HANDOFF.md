@@ -1,5 +1,9 @@
 # TORI handoff
 
+## TORI-006 Authoring compatibility
+
+The [Studio preview](http://127.0.0.1:48836/) now runs product `d49bedf362d3521bcbf714bc6be7a04b34289bb7` on the same workspace. In an existing Authoring activation, choose **Review only** and ask for the open draft and available tools. The [Authoring regression report](docs/evidence/v1c-memory/AUTHORING-DISCOVERY.md) records the independent checks and the live comparison. The [memory walkthrough](docs/evidence/v1c-memory/REPAIR-REVIEW.md#walkthrough) uses the same preview.
+
 ## TORI-006 typography
 
 The [Studio preview](http://127.0.0.1:48836/) runs product `15806e7d7377283650715067163ecb75dce3a4ef`. Reopen the existing Quellight Session to compare the memory card, messages, and composer. The [typography check](docs/evidence/v1c-memory/TYPOGRAPHY.md) records the exact candidate and review evidence.
