@@ -983,7 +983,8 @@ export function createStudio({getAssembly,dataDirectory,turnDeadlineMs=maxHostDe
         ...value,...execution,tool:!memoryOnly&&(value.tool||value.child||value.authoring),
         ...(memoryOnly?{maxToolCalls:0}:{}),context:context.content,authoringGuide,authoringHistory,
         inspectOnly:workspace&&!draftTurn.allowChanges,
-        savedMemoryContext,memoryReplyGuide:intent.kind!=='ordinary'?memoryReplyGuide:undefined,guardMemoryReply:intent.kind!=='ordinary',
+        savedMemoryContext,memoryReplyGuide:intent.kind!=='ordinary'?memoryReplyGuide:undefined,
+        guardMemoryReply:directive.status==='bound'||intent.kind!=='ordinary',
       }),threadCoordinator:threads,tracing:{sampling:{type:'never'}}};
       const onEvent=event=>{
         if(!validateAgentStreamEvent(event).ok)return;

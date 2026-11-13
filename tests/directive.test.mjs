@@ -214,6 +214,7 @@ test('pinned Studio Directive settles independently with exact review, recovery 
       return completion(body.model, JSON.stringify(response));
     }
     if(text==='Hold the Orchid procedure for a failed turn.')return new Response('{}',{status:500});
+    if(text==='Keep the Orchid review format for future meetings.')return completion(body.model,"I've saved your preference.");
     assert.ok(!body.messages.some(item => item.content.includes('Authorized recognition focus:')));
     return completion(body.model,'The Orchid project is on track.');
   };
@@ -328,6 +329,16 @@ test('pinned Studio Directive settles independently with exact review, recovery 
     assert.equal((await failedTurn).status,'failed');
     assert.equal((await waitRun(heldRun.id,'cancelled')).proposal,undefined);
     assert.equal(accepted.signal.aborted,true);
+    assert.deepEqual(counts(),{memories:1,revisions:1,operations:1,save_attempts:1});
+
+    const premature='Keep the Orchid review format for future meetings.';
+    replies.set(premature,{kind:'proposal',draft,basis:['current']});
+    const prematureSession=await sessionOn(active);
+    const guarded=await turn(prematureSession,premature);
+    assert.equal(guarded.errorCode,'TORI_MEMORY_REPLY_UNCONFIRMED');
+    assert.equal((await waitRun(guarded.id,'cancelled')).proposal,undefined);
+    assert.ok(!(await dispatch('')).sessions.find(item=>item.id===prematureSession).messages
+      .some(item=>item.role==='assistant'&&item.text.includes("I've saved")));
     assert.deepEqual(counts(),{memories:1,revisions:1,operations:1,save_attempts:1});
 
     const failure='Synthetic failed interpretation.';
