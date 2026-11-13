@@ -1962,7 +1962,9 @@
                             {:else}
                               <time class="definition-name" datetime={runActivity(item)}>{runHistoryTime(item)}</time>
                             {/if}
-                            {#if !item.awaitingObservation}<span>{runStatus(item.status)}</span>{/if}
+                            {#if !item.awaitingObservation}
+                              <StatusBadge value={runStatus(item.status)} tone={item.state==='Uncertain'?'danger':'neutral'}/>
+                            {/if}
                           </span>
                           {#if showRunDescriptions}
                             <span class="definition-note">
