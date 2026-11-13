@@ -1,0 +1,14 @@
+{
+  "origin": "fixture",
+  "browser": "153.0.8010.12",
+  "memory": {
+    "run": "7522c044-4c5b-4a6f-98cf-fbd7a9ad4397",
+    "operation": "c84b9cd5-5f69-4c61-9b23-ca940b0dbc9f",
+    "memoryId": "b1eb23ac-1a17-492c-9383-cc3aaa286f77",
+    "revision": 1,
+    "originalReceiptReplayed": true,
+    "acknowledgementDropped": true,
+    "fixtureUncertainRefused": true
+  },
+  "abandonedSessionCleared": true
+}

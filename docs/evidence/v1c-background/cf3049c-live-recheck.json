@@ -1,0 +1,35 @@
+{
+  "candidate": "cf3049c13192ded5b3ddf283389288a1fbe761e0",
+  "origin": "live",
+  "detach": {
+    "run": "b33c4eef-783a-403b-8f67-bf01ed195811",
+    "session": "4d81310b-c605-40e6-bf90-8749ee214a35",
+    "activation": "v1_e6054fef570b51be1d756187e1e0d15f7fb7b6ceea3990cbe922c7246f1ad166",
+    "stream": "c78b7d92-5988-4cb9-8e2d-b867d5d88bb0",
+    "state": "Finished",
+    "child": "9e14103a-76a6-4ac3-872b-e85c36352715",
+    "invocation": "9db8955d-a5ae-4320-b479-5dfd2ee2be3d",
+    "scriptReceipt": "56e211b0-e9db-4c39-a132-4d5e362a0c27"
+  },
+  "stop": {
+    "run": "cb383a32-2121-4d1f-ba71-c52f5170ad61",
+    "state": "Interrupted",
+    "reason": "TORI_SESSION_STOP"
+  },
+  "restart": {
+    "run": "50385c39-b0ec-41f7-a471-d22da8db59dd",
+    "session": "0d1db7a9-2b98-42a2-97d4-7704eb4cb78d",
+    "state": "Interrupted",
+    "replay": "none",
+    "priorOwner": "4822735c-13c8-491d-9fb1-80479f7a625c"
+  },
+  "memory": {
+    "run": "3c8b1dad-e797-46e5-88a5-dad33f84eda7",
+    "operation": "fdc4a8d3-288c-4139-bd24-ef9146d7524d",
+    "receipt": "2f2e60ba-4e7a-4d7d-bb35-a5d416ac40a5",
+    "revision": 1,
+    "replayedAfterRestart": true,
+    "effects": 1
+  },
+  "retainedHarnessFailure": "First post-restart replay through the original Node client got ECONNRESET; a fresh client obtained the original receipt and exact persisted counts."
+}

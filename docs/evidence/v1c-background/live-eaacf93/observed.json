@@ -1,0 +1,56 @@
+{
+  "origin": "live",
+  "browser": "153.0.8010.12",
+  "firstObservationRecovered": true,
+  "lostStartAndLookupRecovered": true,
+  "transportDrop": {
+    "run": "af1b0324-1af0-4382-8e2c-ae8571ea62b5",
+    "session": "ca3c9946-a31d-4338-86f2-3ff56dfeda5a",
+    "activation": "v1_e6054fef570b51be1d756187e1e0d15f7fb7b6ceea3990cbe922c7246f1ad166",
+    "streamId": "00bcd21e-3abb-4659-b624-b3492001a74e",
+    "rejoined": true
+  },
+  "detach": {
+    "run": "af1b0324-1af0-4382-8e2c-ae8571ea62b5",
+    "session": "ca3c9946-a31d-4338-86f2-3ff56dfeda5a",
+    "activation": "v1_e6054fef570b51be1d756187e1e0d15f7fb7b6ceea3990cbe922c7246f1ad166",
+    "streamId": "00bcd21e-3abb-4659-b624-b3492001a74e",
+    "stream": "00bcd21e-3abb-4659-b624-b3492001a74e",
+    "rejoinedState": "Running",
+    "status": "Finished",
+    "modelSteps": 2,
+    "child": "af02d415-27b7-4ef2-b18e-40c0f1735dd9",
+    "invocation": "dbf353e6-f98f-432f-9efa-23dc20ad66af",
+    "scriptReceipt": "6e4de2ff-a6b9-40ca-8156-42b8a587d18b",
+    "executionCount": 1,
+    "resultLength": 4465
+  },
+  "stop": {
+    "run": "cf49c660-b4f7-4cf5-b6cd-5d505ff9bf2e",
+    "session": "b26da507-4cc9-461a-87cb-b390f1746383",
+    "activation": "v1_e6054fef570b51be1d756187e1e0d15f7fb7b6ceea3990cbe922c7246f1ad166",
+    "streamId": "f629ece6-b426-4842-af6f-b2b1c49e5b8f",
+    "status": "Interrupted",
+    "code": "TORI_SESSION_STOP",
+    "executionCount": 1
+  },
+  "memory": {
+    "run": "393179dc-156b-49e4-8758-64f8689c0d91",
+    "operation": "47bf7820-1134-4c0f-a654-471aa802e24d",
+    "memoryId": "7ac80808-bd66-493c-9957-452684477149",
+    "revision": 1,
+    "originalReceiptReplayed": true,
+    "acknowledgementDropped": true
+  },
+  "restart": {
+    "run": "3506c075-32f4-4b3b-b681-037fd19f6c8e",
+    "session": "7edc84e5-4e77-4dda-9838-efe00e7a5f90",
+    "activation": "v1_e6054fef570b51be1d756187e1e0d15f7fb7b6ceea3990cbe922c7246f1ad166",
+    "streamId": "8e58b775-93b2-4801-93d7-c6312d9ab735",
+    "state": "Interrupted",
+    "replay": "none",
+    "streamGap": false,
+    "priorOwner": "4a943e21-399c-48ac-bb1b-e547f817f50d",
+    "previousSaveReceiptRetained": true
+  }
+}

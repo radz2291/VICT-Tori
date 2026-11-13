@@ -1,0 +1,12 @@
+{
+  "origin": "live",
+  "browser": "153.0.8010.12",
+  "stop": {
+    "run": "584d7e8e-2155-44e4-b8b1-777ad8001faf",
+    "session": "bea67c9b-a4aa-42b0-9efa-707ac5fa1fc6",
+    "activation": "v1_a0709007734afba24c642bd3abee6d72dc3cd358357f44f005d3aa3419f8b54e",
+    "status": "Interrupted",
+    "code": "TORI_SESSION_STOP",
+    "executionCount": 1
+  }
+}

@@ -1,0 +1,40 @@
+{
+  "candidate": "cf3049c13192ded5b3ddf283389288a1fbe761e0",
+  "cases": [
+    {
+      "mode": "crash-in-transaction",
+      "run": "0fd91d5e-c49c-487d-824d-9ca90cae5056",
+      "operation": "75b1b963-f355-483b-a75e-746d0f16d65d",
+      "ambiguous": "Uncertain",
+      "retry": "refused",
+      "reconciliation": "saved",
+      "receipt": "d408ac4a-e241-47ae-ab5a-a73ef7fa16d6",
+      "effects": 1
+    },
+    {
+      "mode": "hold-ack",
+      "run": "7028ce0a-39b7-44b8-9e45-41b51250a023",
+      "operation": "9c29c20a-d153-48d1-bd6c-a03d8f9eaa34",
+      "ambiguous": "Uncertain",
+      "retry": "refused",
+      "reconciliation": "saved",
+      "receipt": "1aa0cb3d-8386-4700-88a9-1d64f7e18dae",
+      "effects": 1
+    },
+    {
+      "mode": "hold-save",
+      "run": "a8e6c926-2003-4634-aeec-9ae559c3364e",
+      "operation": "fb6002be-8829-4c27-9f6f-156d15a0372c",
+      "disposition": "interrupted",
+      "effects": 0
+    }
+  ],
+  "checks": [
+    "missing receipt",
+    "missing proposal",
+    "persisted Uncertain fence",
+    "wrong payload refused",
+    "read-only exact receipt replay during another Run",
+    "cancel before commit"
+  ]
+}
