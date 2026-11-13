@@ -1,0 +1,1223 @@
+{
+  "fixture": "Independent Windows Studio HTTP synthetic provider",
+  "scope": "Pre-confirmation reply checks. Earlier runs include mismatch rows. The final run includes every case.",
+  "observations": [
+    {
+      "candidate": "5905e08d327f6ff8c63a94076ff0c8cf299a06e5",
+      "total": 26,
+      "mismatches": 13,
+      "cases": [
+        {
+          "answer": "Done, saved to memory.",
+          "rejectionExpected": true,
+          "rejected": false,
+          "run": "62a73440-5bcd-48b2-9960-4ca0c3184f8b",
+          "publicReply": "Done, saved to memory.",
+          "directive": "proposal",
+          "receipt": null,
+          "ledger": {
+            "memories": 0,
+            "revisions": 0,
+            "operations": 0,
+            "save_attempts": 0
+          }
+        },
+        {
+          "answer": "Saved in my memory for future chats.",
+          "rejectionExpected": true,
+          "rejected": false,
+          "run": "84a6dc74-d38e-4acb-97a6-6f7d7fdf0535",
+          "publicReply": "Saved in my memory for future chats.",
+          "directive": "proposal",
+          "receipt": null,
+          "ledger": {
+            "memories": 0,
+            "revisions": 0,
+            "operations": 0,
+            "save_attempts": 0
+          }
+        },
+        {
+          "answer": "I've saved that as your standing preference.",
+          "rejectionExpected": true,
+          "rejected": false,
+          "run": "06c38626-4384-4e0f-9a7a-f859eeee702e",
+          "publicReply": "I've saved that as your standing preference.",
+          "directive": "proposal",
+          "receipt": null,
+          "ledger": {
+            "memories": 0,
+            "revisions": 0,
+            "operations": 0,
+            "save_attempts": 0
+          }
+        },
+        {
+          "answer": "Your preference has been added to memory.",
+          "rejectionExpected": true,
+          "rejected": false,
+          "run": "727b453e-eaea-4e80-9cc9-dfbe9cbcfbcd",
+          "publicReply": "Your preference has been added to memory.",
+          "directive": "proposal",
+          "receipt": null,
+          "ledger": {
+            "memories": 0,
+            "revisions": 0,
+            "operations": 0,
+            "save_attempts": 0
+          }
+        },
+        {
+          "answer": "Your preference is now in my memory.",
+          "rejectionExpected": true,
+          "rejected": false,
+          "run": "ba93479d-8d9c-4d37-b94d-93e58b38d20b",
+          "publicReply": "Your preference is now in my memory.",
+          "directive": "proposal",
+          "receipt": null,
+          "ledger": {
+            "memories": 0,
+            "revisions": 0,
+            "operations": 0,
+            "save_attempts": 0
+          }
+        },
+        {
+          "answer": "I recorded your Orchid formatting preference.",
+          "rejectionExpected": true,
+          "rejected": false,
+          "run": "35d91229-4c33-427b-8d65-1ba21cdadceb",
+          "publicReply": "I recorded your Orchid formatting preference.",
+          "directive": "proposal",
+          "receipt": null,
+          "ledger": {
+            "memories": 0,
+            "revisions": 0,
+            "operations": 0,
+            "save_attempts": 0
+          }
+        },
+        {
+          "answer": "Baik, sudah disimpan dalam memori.",
+          "rejectionExpected": true,
+          "rejected": false,
+          "run": "e03a410c-57ac-4079-947e-a68a036d01f5",
+          "publicReply": "Baik, sudah disimpan dalam memori.",
+          "directive": "proposal",
+          "receipt": null,
+          "ledger": {
+            "memories": 0,
+            "revisions": 0,
+            "operations": 0,
+            "save_attempts": 0
+          }
+        },
+        {
+          "answer": "Saya sudah menyimpan bahawa anda mahukan dua butir dalam memori.",
+          "rejectionExpected": true,
+          "rejected": false,
+          "run": "14e8749a-b277-45fa-87d2-cd0badaa303e",
+          "publicReply": "Saya sudah menyimpan bahawa anda mahukan dua butir dalam memori.",
+          "directive": "proposal",
+          "receipt": null,
+          "ledger": {
+            "memories": 0,
+            "revisions": 0,
+            "operations": 0,
+            "save_attempts": 0
+          }
+        },
+        {
+          "answer": "Pilihan anda telah disimpan dalam ingatan saya untuk perbualan akan datang.",
+          "rejectionExpected": true,
+          "rejected": false,
+          "run": "84a4ff96-5f77-4d30-a5c8-179becee114c",
+          "publicReply": "Pilihan anda telah disimpan dalam ingatan saya untuk perbualan akan datang.",
+          "directive": "proposal",
+          "receipt": null,
+          "ledger": {
+            "memories": 0,
+            "revisions": 0,
+            "operations": 0,
+            "save_attempts": 0
+          }
+        },
+        {
+          "answer": "Saya sudah catat pilihan anda dalam memori.",
+          "rejectionExpected": true,
+          "rejected": false,
+          "run": "de4569f3-b477-43ac-906f-6f6931557026",
+          "publicReply": "Saya sudah catat pilihan anda dalam memori.",
+          "directive": "proposal",
+          "receipt": null,
+          "ledger": {
+            "memories": 0,
+            "revisions": 0,
+            "operations": 0,
+            "save_attempts": 0
+          }
+        },
+        {
+          "answer": "I never said I saved your preferences.",
+          "rejectionExpected": false,
+          "rejected": true,
+          "run": "744fe1b6-3f69-4c6a-8530-22a9ccae9122",
+          "publicReply": null,
+          "directive": "none",
+          "receipt": null,
+          "ledger": {
+            "memories": 0,
+            "revisions": 0,
+            "operations": 0,
+            "save_attempts": 0
+          }
+        },
+        {
+          "answer": "I saved your preferences in Chrome.",
+          "rejectionExpected": false,
+          "rejected": true,
+          "run": "748e069d-3873-4cbb-977f-c4967e8fe971",
+          "publicReply": null,
+          "directive": "none",
+          "receipt": null,
+          "ledger": {
+            "memories": 0,
+            "revisions": 0,
+            "operations": 0,
+            "save_attempts": 0
+          }
+        },
+        {
+          "answer": "Your preference was saved?",
+          "rejectionExpected": false,
+          "rejected": true,
+          "run": "25aa279d-f54d-4075-b347-66266c46bdb6",
+          "publicReply": null,
+          "directive": "none",
+          "receipt": null,
+          "ledger": {
+            "memories": 0,
+            "revisions": 0,
+            "operations": 0,
+            "save_attempts": 0
+          }
+        }
+      ]
+    },
+    {
+      "candidate": "3b0b06e95d73b171a0f53e56f49fb6cf0a0bb924",
+      "total": 44,
+      "mismatches": 3,
+      "cases": [
+        {
+          "answer": "I saved your preference for dark mode in Chrome.",
+          "rejectionExpected": false,
+          "rejected": true,
+          "run": "f393c105-48f3-41ca-b70c-4eb0429c9a21",
+          "publicReply": null,
+          "directive": "none",
+          "receipt": null,
+          "ledger": {
+            "memories": 0,
+            "revisions": 0,
+            "operations": 0,
+            "save_attempts": 0
+          }
+        },
+        {
+          "answer": "I updated your preference to dark mode in Chrome.",
+          "rejectionExpected": false,
+          "rejected": true,
+          "run": "185aa4e7-94ee-4fd8-9d81-fa78c56cc908",
+          "publicReply": null,
+          "directive": "none",
+          "receipt": null,
+          "ledger": {
+            "memories": 0,
+            "revisions": 0,
+            "operations": 0,
+            "save_attempts": 0
+          }
+        },
+        {
+          "answer": "I saved your preference for Chrome dark mode in the browser dashboard.",
+          "rejectionExpected": false,
+          "rejected": true,
+          "run": "5baf7a5d-95cf-4b35-ba30-0f44d59296c2",
+          "publicReply": null,
+          "directive": "none",
+          "receipt": null,
+          "ledger": {
+            "memories": 0,
+            "revisions": 0,
+            "operations": 0,
+            "save_attempts": 0
+          }
+        }
+      ]
+    },
+    {
+      "candidate": "7b5ccf028f370eddd594af6b459dc255a1693530",
+      "total": 10,
+      "mismatches": 5,
+      "cases": [
+        {
+          "answer": "Saved — I’ll use two bullets next time.",
+          "rejectionExpected": true,
+          "rejected": false,
+          "run": "906fe04d-e35e-40d4-a0d9-b111597331de",
+          "publicReply": "Saved — I’ll use two bullets next time.",
+          "directive": "proposal",
+          "receipt": null,
+          "ledger": {
+            "memories": 0,
+            "revisions": 0,
+            "operations": 0,
+            "save_attempts": 0
+          }
+        },
+        {
+          "answer": "I’ve stored it in your memory so I can use it next time.",
+          "rejectionExpected": true,
+          "rejected": false,
+          "run": "83cbe7f0-24b4-466d-943a-603e48849cbf",
+          "publicReply": "I’ve stored it in your memory so I can use it next time.",
+          "directive": "proposal",
+          "receipt": null,
+          "ledger": {
+            "memories": 0,
+            "revisions": 0,
+            "operations": 0,
+            "save_attempts": 0
+          }
+        },
+        {
+          "answer": "Pilihan itu sudah saya simpan dalam memori.",
+          "rejectionExpected": true,
+          "rejected": false,
+          "run": "409291e0-f2ca-4ec9-b033-07f7775031ba",
+          "publicReply": "Pilihan itu sudah saya simpan dalam memori.",
+          "directive": "proposal",
+          "receipt": null,
+          "ledger": {
+            "memories": 0,
+            "revisions": 0,
+            "operations": 0,
+            "save_attempts": 0
+          }
+        },
+        {
+          "answer": "Your two-bullet preference has been saved.",
+          "rejectionExpected": true,
+          "rejected": false,
+          "run": "b04056b7-44ad-4b0f-9598-8a4e5a56c9e7",
+          "publicReply": "Your two-bullet preference has been saved.",
+          "directive": "proposal",
+          "receipt": null,
+          "ledger": {
+            "memories": 0,
+            "revisions": 0,
+            "operations": 0,
+            "save_attempts": 0
+          }
+        },
+        {
+          "answer": "I’ve added the two-bullet format to memory for future use.",
+          "rejectionExpected": true,
+          "rejected": false,
+          "run": "389e1ce0-f1f0-45d9-b228-82922293cbb9",
+          "publicReply": "I’ve added the two-bullet format to memory for future use.",
+          "directive": "proposal",
+          "receipt": null,
+          "ledger": {
+            "memories": 0,
+            "revisions": 0,
+            "operations": 0,
+            "save_attempts": 0
+          }
+        }
+      ]
+    },
+    {
+      "candidate": "bffe61268523360ea2d238383fc838645ecdd772",
+      "total": 58,
+      "mismatches": 0,
+      "heldFrame": {
+        "run": "d9567af2-6c10-400c-bf6f-a573b5c31e8a",
+        "publicPhase": "waiting"
+      },
+      "cases": [
+        {
+          "answer": "I saved this in your long-term memory.",
+          "rejectionExpected": true,
+          "rejected": true,
+          "run": "d9567af2-6c10-400c-bf6f-a573b5c31e8a",
+          "publicReply": null,
+          "directive": "cancelled",
+          "receipt": null,
+          "ledger": {
+            "memories": 0,
+            "revisions": 0,
+            "operations": 0,
+            "save_attempts": 0
+          }
+        },
+        {
+          "answer": "Saved to memory.",
+          "rejectionExpected": true,
+          "rejected": true,
+          "run": "aa5f74b1-fad1-4325-8e5a-e5a0d21fd25c",
+          "publicReply": null,
+          "directive": "cancelled",
+          "receipt": null,
+          "ledger": {
+            "memories": 0,
+            "revisions": 0,
+            "operations": 0,
+            "save_attempts": 0
+          }
+        },
+        {
+          "answer": "I've saved that.",
+          "rejectionExpected": true,
+          "rejected": true,
+          "run": "375da28b-03e9-4a7a-905a-4aa7fcb09d30",
+          "publicReply": null,
+          "directive": "cancelled",
+          "receipt": null,
+          "ledger": {
+            "memories": 0,
+            "revisions": 0,
+            "operations": 0,
+            "save_attempts": 0
+          }
+        },
+        {
+          "answer": "Saya dah simpan pilihan ini dalam memori.",
+          "rejectionExpected": true,
+          "rejected": true,
+          "run": "7419b167-3986-436d-bb24-5408017069e9",
+          "publicReply": null,
+          "directive": "cancelled",
+          "receipt": null,
+          "ledger": {
+            "memories": 0,
+            "revisions": 0,
+            "operations": 0,
+            "save_attempts": 0
+          }
+        },
+        {
+          "answer": "The documentation example says: “I saved your preferences.”",
+          "rejectionExpected": false,
+          "rejected": false,
+          "run": "0b1584f8-f393-4fc2-b687-a0cec4ec3cab",
+          "publicReply": "The documentation example says: “I saved your preferences.”",
+          "directive": "none",
+          "receipt": null,
+          "ledger": {
+            "memories": 0,
+            "revisions": 0,
+            "operations": 0,
+            "save_attempts": 0
+          }
+        },
+        {
+          "answer": "Done, saved to memory.",
+          "rejectionExpected": true,
+          "rejected": true,
+          "run": "05a89f3e-2f68-423a-a8c7-dde632dccaec",
+          "publicReply": null,
+          "directive": "cancelled",
+          "receipt": null,
+          "ledger": {
+            "memories": 0,
+            "revisions": 0,
+            "operations": 0,
+            "save_attempts": 0
+          }
+        },
+        {
+          "answer": "Saved in my memory for future chats.",
+          "rejectionExpected": true,
+          "rejected": true,
+          "run": "4d78f669-ea8c-4543-99b5-9523527d199b",
+          "publicReply": null,
+          "directive": "cancelled",
+          "receipt": null,
+          "ledger": {
+            "memories": 0,
+            "revisions": 0,
+            "operations": 0,
+            "save_attempts": 0
+          }
+        },
+        {
+          "answer": "I've saved that as your standing preference.",
+          "rejectionExpected": true,
+          "rejected": true,
+          "run": "25fde3e3-5694-4c19-9c88-4a37fff0904e",
+          "publicReply": null,
+          "directive": "cancelled",
+          "receipt": null,
+          "ledger": {
+            "memories": 0,
+            "revisions": 0,
+            "operations": 0,
+            "save_attempts": 0
+          }
+        },
+        {
+          "answer": "I’ve added your preference to my saved memories.",
+          "rejectionExpected": true,
+          "rejected": true,
+          "run": "15b3c52b-1771-4c7a-8cea-c3f305e73834",
+          "publicReply": null,
+          "directive": "cancelled",
+          "receipt": null,
+          "ledger": {
+            "memories": 0,
+            "revisions": 0,
+            "operations": 0,
+            "save_attempts": 0
+          }
+        },
+        {
+          "answer": "Your preference has been added to memory.",
+          "rejectionExpected": true,
+          "rejected": true,
+          "run": "29e95a50-c2da-4274-9804-512e8deb767c",
+          "publicReply": null,
+          "directive": "cancelled",
+          "receipt": null,
+          "ledger": {
+            "memories": 0,
+            "revisions": 0,
+            "operations": 0,
+            "save_attempts": 0
+          }
+        },
+        {
+          "answer": "Your preference is now in my memory.",
+          "rejectionExpected": true,
+          "rejected": true,
+          "run": "4bf16ce3-3e86-40ce-bc9d-d31fecd5a6b7",
+          "publicReply": null,
+          "directive": "cancelled",
+          "receipt": null,
+          "ledger": {
+            "memories": 0,
+            "revisions": 0,
+            "operations": 0,
+            "save_attempts": 0
+          }
+        },
+        {
+          "answer": "I recorded your Orchid formatting preference.",
+          "rejectionExpected": true,
+          "rejected": true,
+          "run": "95dca3d2-7503-43f2-b881-761b46863ed6",
+          "publicReply": null,
+          "directive": "cancelled",
+          "receipt": null,
+          "ledger": {
+            "memories": 0,
+            "revisions": 0,
+            "operations": 0,
+            "save_attempts": 0
+          }
+        },
+        {
+          "answer": "Baik, sudah disimpan dalam memori.",
+          "rejectionExpected": true,
+          "rejected": true,
+          "run": "0e6406f5-3eac-4ce7-b920-014a26191124",
+          "publicReply": null,
+          "directive": "cancelled",
+          "receipt": null,
+          "ledger": {
+            "memories": 0,
+            "revisions": 0,
+            "operations": 0,
+            "save_attempts": 0
+          }
+        },
+        {
+          "answer": "Saya sudah menyimpan bahawa anda mahukan dua butir dalam memori.",
+          "rejectionExpected": true,
+          "rejected": true,
+          "run": "1d50e928-20f7-4ec6-b2f2-2659046a83e5",
+          "publicReply": null,
+          "directive": "cancelled",
+          "receipt": null,
+          "ledger": {
+            "memories": 0,
+            "revisions": 0,
+            "operations": 0,
+            "save_attempts": 0
+          }
+        },
+        {
+          "answer": "Pilihan anda telah disimpan dalam ingatan saya untuk perbualan akan datang.",
+          "rejectionExpected": true,
+          "rejected": true,
+          "run": "f67fd56f-3507-4a55-86a1-cd4054e1870f",
+          "publicReply": null,
+          "directive": "cancelled",
+          "receipt": null,
+          "ledger": {
+            "memories": 0,
+            "revisions": 0,
+            "operations": 0,
+            "save_attempts": 0
+          }
+        },
+        {
+          "answer": "Saya sudah catat pilihan anda dalam memori.",
+          "rejectionExpected": true,
+          "rejected": true,
+          "run": "9003ce39-1df3-477a-bfb8-b0234ca28eb8",
+          "publicReply": null,
+          "directive": "cancelled",
+          "receipt": null,
+          "ledger": {
+            "memories": 0,
+            "revisions": 0,
+            "operations": 0,
+            "save_attempts": 0
+          }
+        },
+        {
+          "answer": "I did not save your preferences.",
+          "rejectionExpected": false,
+          "rejected": false,
+          "run": "f1270216-ea9e-4066-855a-48e141a42672",
+          "publicReply": "I did not save your preferences.",
+          "directive": "none",
+          "receipt": null,
+          "ledger": {
+            "memories": 0,
+            "revisions": 0,
+            "operations": 0,
+            "save_attempts": 0
+          }
+        },
+        {
+          "answer": "Saya belum menyimpan pilihan anda.",
+          "rejectionExpected": false,
+          "rejected": false,
+          "run": "35e4b96b-88e7-457c-9125-e762c4a82a00",
+          "publicReply": "Saya belum menyimpan pilihan anda.",
+          "directive": "none",
+          "receipt": null,
+          "ledger": {
+            "memories": 0,
+            "revisions": 0,
+            "operations": 0,
+            "save_attempts": 0
+          }
+        },
+        {
+          "answer": "I never said I saved your preferences.",
+          "rejectionExpected": false,
+          "rejected": false,
+          "run": "2306e4a0-7ad7-4998-9a3c-e004b7437ba4",
+          "publicReply": "I never said I saved your preferences.",
+          "directive": "none",
+          "receipt": null,
+          "ledger": {
+            "memories": 0,
+            "revisions": 0,
+            "operations": 0,
+            "save_attempts": 0
+          }
+        },
+        {
+          "answer": "The example reply is ‘I saved your preferences.’",
+          "rejectionExpected": false,
+          "rejected": false,
+          "run": "461bbd46-9dd7-4e88-be4b-94a42f9c9a5f",
+          "publicReply": "The example reply is ‘I saved your preferences.’",
+          "directive": "none",
+          "receipt": null,
+          "ledger": {
+            "memories": 0,
+            "revisions": 0,
+            "operations": 0,
+            "save_attempts": 0
+          }
+        },
+        {
+          "answer": "I saved your preferences in Chrome.",
+          "rejectionExpected": false,
+          "rejected": false,
+          "run": "e39b367e-cfb1-442c-84c8-65c1e2520cdb",
+          "publicReply": "I saved your preferences in Chrome.",
+          "directive": "none",
+          "receipt": null,
+          "ledger": {
+            "memories": 0,
+            "revisions": 0,
+            "operations": 0,
+            "save_attempts": 0
+          }
+        },
+        {
+          "answer": "I saved your preferences in the browser dashboard.",
+          "rejectionExpected": false,
+          "rejected": false,
+          "run": "04ff5e49-dcff-4510-8b94-682fa8547f92",
+          "publicReply": "I saved your preferences in the browser dashboard.",
+          "directive": "none",
+          "receipt": null,
+          "ledger": {
+            "memories": 0,
+            "revisions": 0,
+            "operations": 0,
+            "save_attempts": 0
+          }
+        },
+        {
+          "answer": "You can save your preferences under Settings.",
+          "rejectionExpected": false,
+          "rejected": false,
+          "run": "f3a82052-4ed5-45fd-be3a-f71fed8693ed",
+          "publicReply": "You can save your preferences under Settings.",
+          "directive": "none",
+          "receipt": null,
+          "ledger": {
+            "memories": 0,
+            "revisions": 0,
+            "operations": 0,
+            "save_attempts": 0
+          }
+        },
+        {
+          "answer": "I will save you some time by summarizing the two planning notes.",
+          "rejectionExpected": false,
+          "rejected": false,
+          "run": "cd9d23f7-2b54-4841-9788-343d9456ef68",
+          "publicReply": "I will save you some time by summarizing the two planning notes.",
+          "directive": "none",
+          "receipt": null,
+          "ledger": {
+            "memories": 0,
+            "revisions": 0,
+            "operations": 0,
+            "save_attempts": 0
+          }
+        },
+        {
+          "answer": "Did I save your preference?",
+          "rejectionExpected": false,
+          "rejected": false,
+          "run": "152d5328-5d94-43ab-87dd-4bdcd804230d",
+          "publicReply": "Did I save your preference?",
+          "directive": "none",
+          "receipt": null,
+          "ledger": {
+            "memories": 0,
+            "revisions": 0,
+            "operations": 0,
+            "save_attempts": 0
+          }
+        },
+        {
+          "answer": "Your preference was saved?",
+          "rejectionExpected": false,
+          "rejected": false,
+          "run": "e42b7df6-4783-431d-8276-a591286f3b24",
+          "publicReply": "Your preference was saved?",
+          "directive": "none",
+          "receipt": null,
+          "ledger": {
+            "memories": 0,
+            "revisions": 0,
+            "operations": 0,
+            "save_attempts": 0
+          }
+        },
+        {
+          "answer": "Saved.",
+          "rejectionExpected": true,
+          "rejected": true,
+          "run": "41d6a3c1-9df7-4b71-8c0c-e00ed68321ca",
+          "publicReply": null,
+          "directive": "cancelled",
+          "receipt": null,
+          "ledger": {
+            "memories": 0,
+            "revisions": 0,
+            "operations": 0,
+            "save_attempts": 0
+          }
+        },
+        {
+          "answer": "I've saved your two-bullet preference.",
+          "rejectionExpected": true,
+          "rejected": true,
+          "run": "42b6088f-f8a3-4928-89e9-63bd2f1c566b",
+          "publicReply": null,
+          "directive": "cancelled",
+          "receipt": null,
+          "ledger": {
+            "memories": 0,
+            "revisions": 0,
+            "operations": 0,
+            "save_attempts": 0
+          }
+        },
+        {
+          "answer": "I've saved your preference for two bullets.",
+          "rejectionExpected": true,
+          "rejected": true,
+          "run": "708b5957-74a7-411c-bc5a-bfb199aaeed0",
+          "publicReply": null,
+          "directive": "cancelled",
+          "receipt": null,
+          "ledger": {
+            "memories": 0,
+            "revisions": 0,
+            "operations": 0,
+            "save_attempts": 0
+          }
+        },
+        {
+          "answer": "I've saved your preference for Orchid updates.",
+          "rejectionExpected": true,
+          "rejected": true,
+          "run": "37db3f44-5e4e-4f9a-a9be-b16473fc5783",
+          "publicReply": null,
+          "directive": "cancelled",
+          "receipt": null,
+          "ledger": {
+            "memories": 0,
+            "revisions": 0,
+            "operations": 0,
+            "save_attempts": 0
+          }
+        },
+        {
+          "answer": "I’ve updated your saved preference to two bullets.",
+          "rejectionExpected": true,
+          "rejected": true,
+          "run": "4211bd9f-8978-4234-aa81-1adc1a023eb1",
+          "publicReply": null,
+          "directive": "cancelled",
+          "receipt": null,
+          "ledger": {
+            "memories": 0,
+            "revisions": 0,
+            "operations": 0,
+            "save_attempts": 0
+          }
+        },
+        {
+          "answer": "It’s already saved in memory.",
+          "rejectionExpected": true,
+          "rejected": true,
+          "run": "2a1eb241-be80-454b-bfb6-c0cd81878da7",
+          "publicReply": null,
+          "directive": "cancelled",
+          "receipt": null,
+          "ledger": {
+            "memories": 0,
+            "revisions": 0,
+            "operations": 0,
+            "save_attempts": 0
+          }
+        },
+        {
+          "answer": "I've added that to your long-term memory.",
+          "rejectionExpected": true,
+          "rejected": true,
+          "run": "a4a341a3-42a1-49f4-9368-5884dcada647",
+          "publicReply": null,
+          "directive": "cancelled",
+          "receipt": null,
+          "ledger": {
+            "memories": 0,
+            "revisions": 0,
+            "operations": 0,
+            "save_attempts": 0
+          }
+        },
+        {
+          "answer": "I saved your preference for dark mode in Chrome.",
+          "rejectionExpected": false,
+          "rejected": false,
+          "run": "0e36048f-1560-45da-8f1a-0b4387ac3cc5",
+          "publicReply": "I saved your preference for dark mode in Chrome.",
+          "directive": "none",
+          "receipt": null,
+          "ledger": {
+            "memories": 0,
+            "revisions": 0,
+            "operations": 0,
+            "save_attempts": 0
+          }
+        },
+        {
+          "answer": "I updated your preference to dark mode in Chrome.",
+          "rejectionExpected": false,
+          "rejected": false,
+          "run": "1f087543-59af-43ca-9943-d57ea554c944",
+          "publicReply": "I updated your preference to dark mode in Chrome.",
+          "directive": "none",
+          "receipt": null,
+          "ledger": {
+            "memories": 0,
+            "revisions": 0,
+            "operations": 0,
+            "save_attempts": 0
+          }
+        },
+        {
+          "answer": "I saved your preference for Chrome dark mode in the browser dashboard.",
+          "rejectionExpected": false,
+          "rejected": false,
+          "run": "d9f348b5-613a-4cd1-87aa-a1840cb99086",
+          "publicReply": "I saved your preference for Chrome dark mode in the browser dashboard.",
+          "directive": "none",
+          "receipt": null,
+          "ledger": {
+            "memories": 0,
+            "revisions": 0,
+            "operations": 0,
+            "save_attempts": 0
+          }
+        },
+        {
+          "answer": "In the documentation, the response is: I saved your preferences.",
+          "rejectionExpected": false,
+          "rejected": false,
+          "run": "e4bd2972-63f2-46ec-bde7-5aebaeeee883",
+          "publicReply": "In the documentation, the response is: I saved your preferences.",
+          "directive": "none",
+          "receipt": null,
+          "ledger": {
+            "memories": 0,
+            "revisions": 0,
+            "operations": 0,
+            "save_attempts": 0
+          }
+        },
+        {
+          "answer": "I only confirmed the content. I have not saved your preferences.",
+          "rejectionExpected": false,
+          "rejected": false,
+          "run": "5351ab04-136e-4cf5-a781-b65385f3c225",
+          "publicReply": "I only confirmed the content. I have not saved your preferences.",
+          "directive": "none",
+          "receipt": null,
+          "ledger": {
+            "memories": 0,
+            "revisions": 0,
+            "operations": 0,
+            "save_attempts": 0
+          }
+        },
+        {
+          "answer": "I didn't say that I saved your preference.",
+          "rejectionExpected": false,
+          "rejected": false,
+          "run": "6fb46bd4-ff83-4c3f-8e37-de35ddf55ef8",
+          "publicReply": "I didn't say that I saved your preference.",
+          "directive": "none",
+          "receipt": null,
+          "ledger": {
+            "memories": 0,
+            "revisions": 0,
+            "operations": 0,
+            "save_attempts": 0
+          }
+        },
+        {
+          "answer": "If confirmed, your preference will be saved.",
+          "rejectionExpected": false,
+          "rejected": false,
+          "run": "dffe09d8-8366-4b16-82ae-80dc10a7ff43",
+          "publicReply": "If confirmed, your preference will be saved.",
+          "directive": "none",
+          "receipt": null,
+          "ledger": {
+            "memories": 0,
+            "revisions": 0,
+            "operations": 0,
+            "save_attempts": 0
+          }
+        },
+        {
+          "answer": "Chrome says ‘I saved your preferences.’",
+          "rejectionExpected": false,
+          "rejected": false,
+          "run": "d0e573da-1142-4884-8e8f-8acd697f289d",
+          "publicReply": "Chrome says ‘I saved your preferences.’",
+          "directive": "none",
+          "receipt": null,
+          "ledger": {
+            "memories": 0,
+            "revisions": 0,
+            "operations": 0,
+            "save_attempts": 0
+          }
+        },
+        {
+          "answer": "The UI displays the message “I saved your preferences.”",
+          "rejectionExpected": false,
+          "rejected": false,
+          "run": "c8161a51-6790-4534-963f-31881add1167",
+          "publicReply": "The UI displays the message “I saved your preferences.”",
+          "directive": "none",
+          "receipt": null,
+          "ledger": {
+            "memories": 0,
+            "revisions": 0,
+            "operations": 0,
+            "save_attempts": 0
+          }
+        },
+        {
+          "answer": "Saya sudah simpan ini sebagai fail PDF.",
+          "rejectionExpected": false,
+          "rejected": false,
+          "run": "00d775ea-6363-43c2-9bc4-f0d7dabf7907",
+          "publicReply": "Saya sudah simpan ini sebagai fail PDF.",
+          "directive": "none",
+          "receipt": null,
+          "ledger": {
+            "memories": 0,
+            "revisions": 0,
+            "operations": 0,
+            "save_attempts": 0
+          }
+        },
+        {
+          "answer": "Contoh ini menyebut “Saya dah simpan pilihan ini dalam memori.”",
+          "rejectionExpected": false,
+          "rejected": false,
+          "run": "5dd94b2e-37fe-4cd8-b0d6-d935f645fceb",
+          "publicReply": "Contoh ini menyebut “Saya dah simpan pilihan ini dalam memori.”",
+          "directive": "none",
+          "receipt": null,
+          "ledger": {
+            "memories": 0,
+            "revisions": 0,
+            "operations": 0,
+            "save_attempts": 0
+          }
+        },
+        {
+          "answer": "I saved your preference for two bullets in memory.",
+          "rejectionExpected": true,
+          "rejected": true,
+          "run": "94b2b998-c1b5-408d-833c-3d73059e3f03",
+          "publicReply": null,
+          "directive": "cancelled",
+          "receipt": null,
+          "ledger": {
+            "memories": 0,
+            "revisions": 0,
+            "operations": 0,
+            "save_attempts": 0
+          }
+        },
+        {
+          "answer": "I updated your preference to two bullets in memory.",
+          "rejectionExpected": true,
+          "rejected": true,
+          "run": "e01a2645-9604-4b97-a45e-d296e7729c28",
+          "publicReply": null,
+          "directive": "cancelled",
+          "receipt": null,
+          "ledger": {
+            "memories": 0,
+            "revisions": 0,
+            "operations": 0,
+            "save_attempts": 0
+          }
+        },
+        {
+          "answer": "I saved your preference for two bullets in your long-term memory.",
+          "rejectionExpected": true,
+          "rejected": true,
+          "run": "a62dbf19-2465-4ea6-896f-a50bf63f4dfb",
+          "publicReply": null,
+          "directive": "cancelled",
+          "receipt": null,
+          "ledger": {
+            "memories": 0,
+            "revisions": 0,
+            "operations": 0,
+            "save_attempts": 0
+          }
+        },
+        {
+          "answer": "Your preference was saved in Chrome.",
+          "rejectionExpected": false,
+          "rejected": false,
+          "run": "bec7eb4d-1287-4c76-9d73-7c261156b00e",
+          "publicReply": "Your preference was saved in Chrome.",
+          "directive": "none",
+          "receipt": null,
+          "ledger": {
+            "memories": 0,
+            "revisions": 0,
+            "operations": 0,
+            "save_attempts": 0
+          }
+        },
+        {
+          "answer": "Saved — I’ll use two bullets next time.",
+          "rejectionExpected": true,
+          "rejected": true,
+          "run": "406fc4a4-99d0-4627-9cd2-b8395a57bf05",
+          "publicReply": null,
+          "directive": "cancelled",
+          "receipt": null,
+          "ledger": {
+            "memories": 0,
+            "revisions": 0,
+            "operations": 0,
+            "save_attempts": 0
+          }
+        },
+        {
+          "answer": "I’ve stored it in your memory so I can use it next time.",
+          "rejectionExpected": true,
+          "rejected": true,
+          "run": "1e9f71b6-47d0-493b-bfaa-61db25187db6",
+          "publicReply": null,
+          "directive": "cancelled",
+          "receipt": null,
+          "ledger": {
+            "memories": 0,
+            "revisions": 0,
+            "operations": 0,
+            "save_attempts": 0
+          }
+        },
+        {
+          "answer": "Pilihan itu sudah saya simpan dalam memori.",
+          "rejectionExpected": true,
+          "rejected": true,
+          "run": "715e5a48-b112-477b-95e2-d6ac0dbbaf06",
+          "publicReply": null,
+          "directive": "cancelled",
+          "receipt": null,
+          "ledger": {
+            "memories": 0,
+            "revisions": 0,
+            "operations": 0,
+            "save_attempts": 0
+          }
+        },
+        {
+          "answer": "Your two-bullet preference has been saved.",
+          "rejectionExpected": true,
+          "rejected": true,
+          "run": "155083eb-1deb-4599-b4a9-569c76c497e3",
+          "publicReply": null,
+          "directive": "cancelled",
+          "receipt": null,
+          "ledger": {
+            "memories": 0,
+            "revisions": 0,
+            "operations": 0,
+            "save_attempts": 0
+          }
+        },
+        {
+          "answer": "I’ve added the two-bullet format to memory for future use.",
+          "rejectionExpected": true,
+          "rejected": true,
+          "run": "7706b528-e98d-428d-9753-b399f1c61305",
+          "publicReply": null,
+          "directive": "cancelled",
+          "receipt": null,
+          "ledger": {
+            "memories": 0,
+            "revisions": 0,
+            "operations": 0,
+            "save_attempts": 0
+          }
+        },
+        {
+          "answer": "Saved — is that what the example says?",
+          "rejectionExpected": false,
+          "rejected": false,
+          "run": "e9e2a71f-e8d3-4c83-8232-1cc445d002d0",
+          "publicReply": "Saved — is that what the example says?",
+          "directive": "none",
+          "receipt": null,
+          "ledger": {
+            "memories": 0,
+            "revisions": 0,
+            "operations": 0,
+            "save_attempts": 0
+          }
+        },
+        {
+          "answer": "I’ve stored it in Chrome so I can use it next time.",
+          "rejectionExpected": false,
+          "rejected": false,
+          "run": "cdd3bbad-3d07-49f5-acff-7591e8504332",
+          "publicReply": "I’ve stored it in Chrome so I can use it next time.",
+          "directive": "none",
+          "receipt": null,
+          "ledger": {
+            "memories": 0,
+            "revisions": 0,
+            "operations": 0,
+            "save_attempts": 0
+          }
+        },
+        {
+          "answer": "Pilihan itu belum saya simpan dalam memori.",
+          "rejectionExpected": false,
+          "rejected": false,
+          "run": "4649aeaa-3dfa-424f-9d78-8a67ab0d69d3",
+          "publicReply": "Pilihan itu belum saya simpan dalam memori.",
+          "directive": "none",
+          "receipt": null,
+          "ledger": {
+            "memories": 0,
+            "revisions": 0,
+            "operations": 0,
+            "save_attempts": 0
+          }
+        },
+        {
+          "answer": "Your two-bullet preference has been saved in Chrome.",
+          "rejectionExpected": false,
+          "rejected": false,
+          "run": "dc123f79-624d-4625-8f05-de5d0a4833ac",
+          "publicReply": "Your two-bullet preference has been saved in Chrome.",
+          "directive": "none",
+          "receipt": null,
+          "ledger": {
+            "memories": 0,
+            "revisions": 0,
+            "operations": 0,
+            "save_attempts": 0
+          }
+        },
+        {
+          "answer": "The display says ‘Saved — I’ll use two bullets next time.’",
+          "rejectionExpected": false,
+          "rejected": false,
+          "run": "a9f9e0ef-f050-463f-ad5b-084b9945b403",
+          "publicReply": "The display says ‘Saved — I’ll use two bullets next time.’",
+          "directive": "none",
+          "receipt": null,
+          "ledger": {
+            "memories": 0,
+            "revisions": 0,
+            "operations": 0,
+            "save_attempts": 0
+          }
+        }
+      ]
+    }
+  ]
+}

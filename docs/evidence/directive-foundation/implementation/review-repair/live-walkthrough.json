@@ -1,0 +1,646 @@
+{
+  "fixture": false,
+  "initial": {
+    "activation": "v1_574f0fe8f884031f0d0397e1c1f555312ed081bed88c364f14d0e06a9e0d7b53",
+    "policy": "705b63a94e4747253b71e17e3426787678988c5848c7e9e32b7db5035abd558a",
+    "session": "8b72a498-0fa8-49b0-9db9-90e319b83b0f",
+    "firstRevision": 1,
+    "directiveRevision": 2,
+    "fixture": false
+  },
+  "first": {
+    "id": "8a236d73-44e6-4a96-b094-245813baa236",
+    "initial": "pending",
+    "elapsedMs": 4669,
+    "started": "2026-11-13T17:12:31.559Z",
+    "reply": "Got it — future Orchid updates will come as three short bullets.",
+    "directive": {
+      "status": "proposal",
+      "acceptedAt": 1794589951559,
+      "binding": "directive",
+      "contextTruncated": false,
+      "historyUsedBytes": 2,
+      "policyRevision": "705b63a94e4747253b71e17e3426787678988c5848c7e9e32b7db5035abd558a",
+      "historyBytes": 8192,
+      "deadlineMs": 22000,
+      "outputTokens": 1536,
+      "model": "glm-5.3-flash",
+      "route": "coding",
+      "finish": "stop",
+      "usage": {
+        "input": 933,
+        "output": 27,
+        "reasoning": 3
+      },
+      "sourceCount": 1,
+      "dispatchedAt": 1794589951683,
+      "completedAt": 1794589956213,
+      "firstPublicTextAt": 1794589953658,
+      "providerAttempts": 1,
+      "http": 200,
+      "observedModel": "glm-5.3-flash",
+      "sentOutputTokens": 1536,
+      "reasoningEffort": "low"
+    },
+    "proposal": "Give Orchid updates in three short bullets going forward."
+  },
+  "follow": {
+    "id": "0a6a3864-bd68-4553-ba67-57765e150135",
+    "initial": "none",
+    "elapsedMs": 10672,
+    "started": "2026-11-13T17:12:36.225Z",
+    "reply": "- You asked for Orchid updates as three short bullets going forward.\n- That format preference applies to all future Orchid updates.\n- No other planning decisions were made in this conversation."
+  },
+  "confirmed": "For future Orchid updates, use two short bullets.",
+  "receipt": {
+    "schema": "tori.memory.receipt@1",
+    "capability": "tori.memory.save",
+    "capabilityRevision": "1",
+    "operation": "bfd591fd-d9e4-4f10-baad-b9a977ac631a",
+    "action": "save",
+    "outcome": "saved",
+    "scope": {
+      "actor": "tori-local-owner",
+      "project": "92d34ed4-3cc5-45f3-a5ab-ed1d19d0b2f4",
+      "agent": "tori-local-agent"
+    },
+    "memoryId": "a4910d7d-5910-4fc9-8521-9f90f47a6e44",
+    "revision": 1,
+    "source": {
+      "session": "8b72a498-0fa8-49b0-9db9-90e319b83b0f",
+      "message": "8a236d73-44e6-4a96-b094-245813baa236-user"
+    },
+    "savedByRun": "8a236d73-44e6-4a96-b094-245813baa236",
+    "contextBasis": [
+      "8a236d73-44e6-4a96-b094-245813baa236-user"
+    ],
+    "operatorSession": "8b72a498-0fa8-49b0-9db9-90e319b83b0f",
+    "at": "2026-11-13T17:12:46.948Z",
+    "directive": {
+      "policyRevision": "705b63a94e4747253b71e17e3426787678988c5848c7e9e32b7db5035abd558a",
+      "proposalRevision": 2
+    }
+  },
+  "sameSession": {
+    "session": "8b72a498-0fa8-49b0-9db9-90e319b83b0f",
+    "sessionCreated": "2026-11-13T17:12:31.273Z",
+    "cases": [
+      {
+        "id": "261b8cc6-f31c-4a99-b6af-ee49891c6bfe",
+        "initial": "pending",
+        "elapsedMs": 4445,
+        "started": "2026-11-13T17:12:46.981Z",
+        "reply": "Orchid updates should be given in two short bullets.",
+        "input": "Which standing preference applies to Orchid updates?",
+        "directive": {
+          "status": "none",
+          "acceptedAt": 1794589966981,
+          "binding": "directive",
+          "contextTruncated": false,
+          "historyUsedBytes": 723,
+          "policyRevision": "705b63a94e4747253b71e17e3426787678988c5848c7e9e32b7db5035abd558a",
+          "historyBytes": 8192,
+          "deadlineMs": 22000,
+          "outputTokens": 1536,
+          "model": "glm-5.3-flash",
+          "route": "coding",
+          "finish": "stop",
+          "usage": {
+            "input": 1147,
+            "output": 7,
+            "reasoning": 0
+          },
+          "dispatchedAt": 1794589966990,
+          "completedAt": 1794589971678,
+          "firstPublicTextAt": 1794589971497,
+          "providerAttempts": 1,
+          "http": 200,
+          "observedModel": "glm-5.3-flash",
+          "sentOutputTokens": 1536,
+          "reasoningEffort": "low"
+        },
+        "admitted": [
+          {
+            "id": "a4910d7d-5910-4fc9-8521-9f90f47a6e44",
+            "revision": 1,
+            "source": {
+              "session": "8b72a498-0fa8-49b0-9db9-90e319b83b0f",
+              "message": "8a236d73-44e6-4a96-b094-245813baa236-user"
+            },
+            "savedByRun": "8a236d73-44e6-4a96-b094-245813baa236",
+            "contextBasis": [
+              "8a236d73-44e6-4a96-b094-245813baa236-user"
+            ],
+            "createdAt": "2026-11-13T17:12:46.948Z",
+            "updatedAt": "2026-11-13T17:12:46.948Z",
+            "ageMs": 79,
+            "lastUsedAt": "2026-11-13T17:12:47.027Z"
+          }
+        ],
+        "proposal": null,
+        "request": null
+      },
+      {
+        "id": "cc6668c9-acf4-4ba0-8d6c-d3da905353ed",
+        "initial": "none",
+        "elapsedMs": 4553,
+        "started": "2026-11-13T17:12:51.830Z",
+        "reply": "- Orchid's design is approved and implementation is underway.\n- The demo is scheduled for Friday.",
+        "input": "Give me an Orchid project update.",
+        "directive": {
+          "status": "none",
+          "acceptedAt": 1794589971830,
+          "binding": "directive",
+          "contextTruncated": false,
+          "historyUsedBytes": 987,
+          "policyRevision": "705b63a94e4747253b71e17e3426787678988c5848c7e9e32b7db5035abd558a",
+          "historyBytes": 8192,
+          "deadlineMs": 22000,
+          "outputTokens": 1536,
+          "model": "glm-5.3-flash",
+          "route": "coding",
+          "finish": "stop",
+          "usage": {
+            "input": 1239,
+            "output": 7,
+            "reasoning": 0
+          },
+          "dispatchedAt": 1794589971839,
+          "completedAt": 1794589972948,
+          "firstPublicTextAt": 1794589972889,
+          "providerAttempts": 1,
+          "http": 200,
+          "observedModel": "glm-5.3-flash",
+          "sentOutputTokens": 1536,
+          "reasoningEffort": "low"
+        },
+        "admitted": [
+          {
+            "id": "a4910d7d-5910-4fc9-8521-9f90f47a6e44",
+            "revision": 1,
+            "source": {
+              "session": "8b72a498-0fa8-49b0-9db9-90e319b83b0f",
+              "message": "8a236d73-44e6-4a96-b094-245813baa236-user"
+            },
+            "savedByRun": "8a236d73-44e6-4a96-b094-245813baa236",
+            "contextBasis": [
+              "8a236d73-44e6-4a96-b094-245813baa236-user"
+            ],
+            "createdAt": "2026-11-13T17:12:46.948Z",
+            "updatedAt": "2026-11-13T17:12:46.948Z",
+            "ageMs": 4920,
+            "lastUsedAt": "2026-11-13T17:12:51.868Z"
+          }
+        ],
+        "proposal": null,
+        "request": null
+      },
+      {
+        "id": "8556b088-6946-45bc-a85f-3ab0879d4cc5",
+        "initial": "none",
+        "elapsedMs": 5350,
+        "started": "2026-11-13T17:12:56.391Z",
+        "reply": "I don't have any record of last week's conversations — my context here is limited to this current session, so I can't confirm what was discussed before it began.",
+        "input": "Do you remember what we talked about last week?",
+        "directive": {
+          "status": "none",
+          "acceptedAt": 1794589976391,
+          "binding": "directive",
+          "contextTruncated": false,
+          "historyUsedBytes": 1278,
+          "policyRevision": "705b63a94e4747253b71e17e3426787678988c5848c7e9e32b7db5035abd558a",
+          "historyBytes": 8192,
+          "deadlineMs": 22000,
+          "outputTokens": 1536,
+          "model": "glm-5.3-flash",
+          "route": "coding",
+          "finish": "stop",
+          "usage": {
+            "input": 1344,
+            "output": 13,
+            "reasoning": 6
+          },
+          "dispatchedAt": 1794589976399,
+          "completedAt": 1794589977749,
+          "firstPublicTextAt": 1794589977681,
+          "providerAttempts": 1,
+          "http": 200,
+          "observedModel": "glm-5.3-flash",
+          "sentOutputTokens": 1536,
+          "reasoningEffort": "low"
+        },
+        "admitted": [
+          {
+            "id": "a4910d7d-5910-4fc9-8521-9f90f47a6e44",
+            "revision": 1,
+            "source": {
+              "session": "8b72a498-0fa8-49b0-9db9-90e319b83b0f",
+              "message": "8a236d73-44e6-4a96-b094-245813baa236-user"
+            },
+            "savedByRun": "8a236d73-44e6-4a96-b094-245813baa236",
+            "contextBasis": [
+              "8a236d73-44e6-4a96-b094-245813baa236-user"
+            ],
+            "createdAt": "2026-11-13T17:12:46.948Z",
+            "updatedAt": "2026-11-13T17:12:46.948Z",
+            "ageMs": 9484,
+            "lastUsedAt": "2026-11-13T17:12:56.432Z"
+          }
+        ],
+        "proposal": null,
+        "request": null
+      },
+      {
+        "id": "d971ec17-e139-4a00-8b5d-0fee366cb3d5",
+        "initial": "none",
+        "elapsedMs": 7647,
+        "started": "2026-11-13T17:13:01.747Z",
+        "reply": "No — I don't have any record of last week's conversations. The only stored item I have is a standing preference for two-bullet Orchid updates, and that entry doesn't document any past discussion or when it originated.",
+        "input": "Do you remember what we discussed last week?",
+        "directive": {
+          "status": "none",
+          "acceptedAt": 1794589981747,
+          "binding": "directive",
+          "contextTruncated": false,
+          "historyUsedBytes": 1648,
+          "policyRevision": "705b63a94e4747253b71e17e3426787678988c5848c7e9e32b7db5035abd558a",
+          "historyBytes": 8192,
+          "deadlineMs": 22000,
+          "outputTokens": 1536,
+          "model": "glm-5.3-flash",
+          "route": "coding",
+          "finish": "stop",
+          "usage": {
+            "input": 1461,
+            "output": 13,
+            "reasoning": 6
+          },
+          "dispatchedAt": 1794589981754,
+          "completedAt": 1794589982978,
+          "firstPublicTextAt": 1794589982919,
+          "providerAttempts": 1,
+          "http": 200,
+          "observedModel": "glm-5.3-flash",
+          "sentOutputTokens": 1536,
+          "reasoningEffort": "low"
+        },
+        "admitted": [
+          {
+            "id": "a4910d7d-5910-4fc9-8521-9f90f47a6e44",
+            "revision": 1,
+            "source": {
+              "session": "8b72a498-0fa8-49b0-9db9-90e319b83b0f",
+              "message": "8a236d73-44e6-4a96-b094-245813baa236-user"
+            },
+            "savedByRun": "8a236d73-44e6-4a96-b094-245813baa236",
+            "contextBasis": [
+              "8a236d73-44e6-4a96-b094-245813baa236-user"
+            ],
+            "createdAt": "2026-11-13T17:12:46.948Z",
+            "updatedAt": "2026-11-13T17:12:46.948Z",
+            "ageMs": 14828,
+            "lastUsedAt": "2026-11-13T17:13:01.776Z"
+          }
+        ],
+        "proposal": null,
+        "request": null
+      },
+      {
+        "id": "f25b1a37-c629-4c6c-b327-8404ee7dbf6c",
+        "initial": "none",
+        "elapsedMs": 7116,
+        "started": "2026-11-13T17:13:09.403Z",
+        "reply": "Tidak — saya tidak mempunyai sebarang rekod perbincangan minggu lepas. Satu-satunya maklumat tersimpan ialah preferensi tetap untuk kemas kini Orchid dalam dua poin ringkas, dan entri itu tidak mendokumentasikan sebarang perbincangan lampau mahupun bilakah ia berlaku.",
+        "input": "Ingat lagi apa kita bincang minggu lepas?",
+        "directive": {
+          "status": "none",
+          "acceptedAt": 1794589989403,
+          "binding": "directive",
+          "contextTruncated": false,
+          "historyUsedBytes": 2071,
+          "policyRevision": "705b63a94e4747253b71e17e3426787678988c5848c7e9e32b7db5035abd558a",
+          "historyBytes": 8192,
+          "deadlineMs": 22000,
+          "outputTokens": 1536,
+          "model": "glm-5.3-flash",
+          "route": "coding",
+          "finish": "stop",
+          "usage": {
+            "input": 1592,
+            "output": 7,
+            "reasoning": 0
+          },
+          "dispatchedAt": 1794589989418,
+          "completedAt": 1794589990814,
+          "firstPublicTextAt": 1794589990726,
+          "providerAttempts": 1,
+          "http": 200,
+          "observedModel": "glm-5.3-flash",
+          "sentOutputTokens": 1536,
+          "reasoningEffort": "low"
+        },
+        "admitted": [
+          {
+            "id": "a4910d7d-5910-4fc9-8521-9f90f47a6e44",
+            "revision": 1,
+            "source": {
+              "session": "8b72a498-0fa8-49b0-9db9-90e319b83b0f",
+              "message": "8a236d73-44e6-4a96-b094-245813baa236-user"
+            },
+            "savedByRun": "8a236d73-44e6-4a96-b094-245813baa236",
+            "contextBasis": [
+              "8a236d73-44e6-4a96-b094-245813baa236-user"
+            ],
+            "createdAt": "2026-11-13T17:12:46.948Z",
+            "updatedAt": "2026-11-13T17:12:46.948Z",
+            "ageMs": 22505,
+            "lastUsedAt": "2026-11-13T17:13:09.453Z"
+          }
+        ],
+        "proposal": null,
+        "request": null
+      }
+    ]
+  },
+  "afterRestart": {
+    "session": "bf5c0e5b-430b-4643-a375-7d4f9e75ef73",
+    "sessionCreated": "2026-11-13T17:13:32.414Z",
+    "cases": [
+      {
+        "id": "b788b7e1-8350-4681-aa51-cf6637a053a5",
+        "initial": "none",
+        "elapsedMs": 3875,
+        "started": "2026-11-13T17:13:32.457Z",
+        "reply": "Orchid updates should be given in two short bullets.",
+        "input": "Which standing preference applies to Orchid updates?",
+        "directive": {
+          "status": "none",
+          "acceptedAt": 1794590012457,
+          "binding": "directive",
+          "contextTruncated": false,
+          "historyUsedBytes": 2,
+          "policyRevision": "705b63a94e4747253b71e17e3426787678988c5848c7e9e32b7db5035abd558a",
+          "historyBytes": 8192,
+          "deadlineMs": 22000,
+          "outputTokens": 1536,
+          "model": "glm-5.3-flash",
+          "route": "coding",
+          "finish": "stop",
+          "usage": {
+            "input": 923,
+            "output": 7,
+            "reasoning": 0
+          },
+          "dispatchedAt": 1794590012503,
+          "completedAt": 1794590014003,
+          "firstPublicTextAt": 1794590013954,
+          "providerAttempts": 1,
+          "http": 200,
+          "observedModel": "glm-5.3-flash",
+          "sentOutputTokens": 1536,
+          "reasoningEffort": "low"
+        },
+        "admitted": [
+          {
+            "id": "a4910d7d-5910-4fc9-8521-9f90f47a6e44",
+            "revision": 1,
+            "source": {
+              "session": "8b72a498-0fa8-49b0-9db9-90e319b83b0f",
+              "message": "8a236d73-44e6-4a96-b094-245813baa236-user"
+            },
+            "savedByRun": "8a236d73-44e6-4a96-b094-245813baa236",
+            "contextBasis": [
+              "8a236d73-44e6-4a96-b094-245813baa236-user"
+            ],
+            "createdAt": "2026-11-13T17:12:46.948Z",
+            "updatedAt": "2026-11-13T17:12:46.948Z",
+            "ageMs": 46130,
+            "lastUsedAt": "2026-11-13T17:13:33.078Z"
+          }
+        ],
+        "proposal": null,
+        "request": null
+      },
+      {
+        "id": "941dd068-dc5c-4ced-a340-f13baa30898f",
+        "initial": "none",
+        "elapsedMs": 2868,
+        "started": "2026-11-13T17:13:36.328Z",
+        "reply": "- Orchid's design is approved and implementation is underway.\n- The demo is scheduled for Friday.",
+        "input": "Give me an Orchid project update.",
+        "directive": {
+          "status": "none",
+          "acceptedAt": 1794590016328,
+          "binding": "directive",
+          "contextTruncated": false,
+          "historyUsedBytes": 265,
+          "policyRevision": "705b63a94e4747253b71e17e3426787678988c5848c7e9e32b7db5035abd558a",
+          "historyBytes": 8192,
+          "deadlineMs": 22000,
+          "outputTokens": 1536,
+          "model": "glm-5.3-flash",
+          "route": "coding",
+          "finish": "stop",
+          "usage": {
+            "input": 1021,
+            "output": 7,
+            "reasoning": 0
+          },
+          "dispatchedAt": 1794590016338,
+          "completedAt": 1794590017540,
+          "firstPublicTextAt": 1794590017454,
+          "providerAttempts": 1,
+          "http": 200,
+          "observedModel": "glm-5.3-flash",
+          "sentOutputTokens": 1536,
+          "reasoningEffort": "low"
+        },
+        "admitted": [
+          {
+            "id": "a4910d7d-5910-4fc9-8521-9f90f47a6e44",
+            "revision": 1,
+            "source": {
+              "session": "8b72a498-0fa8-49b0-9db9-90e319b83b0f",
+              "message": "8a236d73-44e6-4a96-b094-245813baa236-user"
+            },
+            "savedByRun": "8a236d73-44e6-4a96-b094-245813baa236",
+            "contextBasis": [
+              "8a236d73-44e6-4a96-b094-245813baa236-user"
+            ],
+            "createdAt": "2026-11-13T17:12:46.948Z",
+            "updatedAt": "2026-11-13T17:12:46.948Z",
+            "ageMs": 49428,
+            "lastUsedAt": "2026-11-13T17:13:36.376Z"
+          }
+        ],
+        "proposal": null,
+        "request": null
+      },
+      {
+        "id": "93f20dd5-c9e8-481d-9b29-4a1246f3df11",
+        "initial": "none",
+        "elapsedMs": 4501,
+        "started": "2026-11-13T17:13:39.203Z",
+        "reply": "I don't have a record of any conversations from last week—my memory of this session only covers today. I can note the standing preference about Orchid updates, but I can't tell you what we discussed previously.",
+        "input": "Do you remember what we talked about last week?",
+        "directive": {
+          "status": "none",
+          "acceptedAt": 1794590019203,
+          "binding": "directive",
+          "contextTruncated": false,
+          "historyUsedBytes": 556,
+          "policyRevision": "705b63a94e4747253b71e17e3426787678988c5848c7e9e32b7db5035abd558a",
+          "historyBytes": 8192,
+          "deadlineMs": 22000,
+          "outputTokens": 1536,
+          "model": "glm-5.3-flash",
+          "route": "coding",
+          "finish": "stop",
+          "usage": {
+            "input": 1116,
+            "output": 13,
+            "reasoning": 6
+          },
+          "dispatchedAt": 1794590019211,
+          "completedAt": 1794590020405,
+          "firstPublicTextAt": 1794590020345,
+          "providerAttempts": 1,
+          "http": 200,
+          "observedModel": "glm-5.3-flash",
+          "sentOutputTokens": 1536,
+          "reasoningEffort": "low"
+        },
+        "admitted": [
+          {
+            "id": "a4910d7d-5910-4fc9-8521-9f90f47a6e44",
+            "revision": 1,
+            "source": {
+              "session": "8b72a498-0fa8-49b0-9db9-90e319b83b0f",
+              "message": "8a236d73-44e6-4a96-b094-245813baa236-user"
+            },
+            "savedByRun": "8a236d73-44e6-4a96-b094-245813baa236",
+            "contextBasis": [
+              "8a236d73-44e6-4a96-b094-245813baa236-user"
+            ],
+            "createdAt": "2026-11-13T17:12:46.948Z",
+            "updatedAt": "2026-11-13T17:12:46.948Z",
+            "ageMs": 52292,
+            "lastUsedAt": "2026-11-13T17:13:39.240Z"
+          }
+        ],
+        "proposal": null,
+        "request": null
+      },
+      {
+        "id": "9f4a7d68-1ee7-44b2-b160-8d26a1d211b3",
+        "initial": "none",
+        "elapsedMs": 5573,
+        "started": "2026-11-13T17:13:43.715Z",
+        "reply": "I don't have any record from last week. The only saved memory is dated today (November 13) and just notes a formatting preference for Orchid updates—it doesn't tell me what we discussed or when.",
+        "input": "Do you remember what we discussed last week?",
+        "directive": {
+          "status": "none",
+          "acceptedAt": 1794590023715,
+          "binding": "directive",
+          "contextTruncated": false,
+          "historyUsedBytes": 975,
+          "policyRevision": "705b63a94e4747253b71e17e3426787678988c5848c7e9e32b7db5035abd558a",
+          "historyBytes": 8192,
+          "deadlineMs": 22000,
+          "outputTokens": 1536,
+          "model": "glm-5.3-flash",
+          "route": "coding",
+          "finish": "stop",
+          "usage": {
+            "input": 1243,
+            "output": 13,
+            "reasoning": 6
+          },
+          "dispatchedAt": 1794590023724,
+          "completedAt": 1794590024920,
+          "firstPublicTextAt": 1794590024862,
+          "providerAttempts": 1,
+          "http": 200,
+          "observedModel": "glm-5.3-flash",
+          "sentOutputTokens": 1536,
+          "reasoningEffort": "low"
+        },
+        "admitted": [
+          {
+            "id": "a4910d7d-5910-4fc9-8521-9f90f47a6e44",
+            "revision": 1,
+            "source": {
+              "session": "8b72a498-0fa8-49b0-9db9-90e319b83b0f",
+              "message": "8a236d73-44e6-4a96-b094-245813baa236-user"
+            },
+            "savedByRun": "8a236d73-44e6-4a96-b094-245813baa236",
+            "contextBasis": [
+              "8a236d73-44e6-4a96-b094-245813baa236-user"
+            ],
+            "createdAt": "2026-11-13T17:12:46.948Z",
+            "updatedAt": "2026-11-13T17:12:46.948Z",
+            "ageMs": 56806,
+            "lastUsedAt": "2026-11-13T17:13:43.754Z"
+          }
+        ],
+        "proposal": null,
+        "request": null
+      },
+      {
+        "id": "6291eafa-4e70-4163-8bdb-70a25a50a5b5",
+        "initial": "none",
+        "elapsedMs": 5802,
+        "started": "2026-11-13T17:13:49.294Z",
+        "reply": "Saya tidak mempunyai sebarang rekod perbualan daripada minggu lepas. Satu-satunya memori tersimpan bertarikh hari ini (13 November) dan hanya menyimpan peraturan format untuk kemas kini Orchid—ia tidak menunjukkan apa yang kita bincang atau bila.",
+        "input": "Ingat lagi apa kita bincang minggu lepas?",
+        "directive": {
+          "status": "none",
+          "acceptedAt": 1794590029294,
+          "binding": "directive",
+          "contextTruncated": false,
+          "historyUsedBytes": 1375,
+          "policyRevision": "705b63a94e4747253b71e17e3426787678988c5848c7e9e32b7db5035abd558a",
+          "historyBytes": 8192,
+          "deadlineMs": 22000,
+          "outputTokens": 1536,
+          "model": "glm-5.3-flash",
+          "route": "coding",
+          "finish": "stop",
+          "usage": {
+            "input": 1375,
+            "output": 7,
+            "reasoning": 0
+          },
+          "dispatchedAt": 1794590029304,
+          "completedAt": 1794590030909,
+          "firstPublicTextAt": 1794590030743,
+          "providerAttempts": 1,
+          "http": 200,
+          "observedModel": "glm-5.3-flash",
+          "sentOutputTokens": 1536,
+          "reasoningEffort": "low"
+        },
+        "admitted": [
+          {
+            "id": "a4910d7d-5910-4fc9-8521-9f90f47a6e44",
+            "revision": 1,
+            "source": {
+              "session": "8b72a498-0fa8-49b0-9db9-90e319b83b0f",
+              "message": "8a236d73-44e6-4a96-b094-245813baa236-user"
+            },
+            "savedByRun": "8a236d73-44e6-4a96-b094-245813baa236",
+            "contextBasis": [
+              "8a236d73-44e6-4a96-b094-245813baa236-user"
+            ],
+            "createdAt": "2026-11-13T17:12:46.948Z",
+            "updatedAt": "2026-11-13T17:12:46.948Z",
+            "ageMs": 62390,
+            "lastUsedAt": "2026-11-13T17:13:49.338Z"
+          }
+        ],
+        "proposal": null,
+        "request": null
+      }
+    ]
+  }
+}

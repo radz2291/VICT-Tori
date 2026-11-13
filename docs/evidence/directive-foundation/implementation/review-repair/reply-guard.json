@@ -1,0 +1,779 @@
+{
+  "candidate": "bffe61268523360ea2d238383fc838645ecdd772",
+  "expectation": "rejected marks a reply we expect the Studio host to withhold",
+  "withheld": 30,
+  "displayed": 18,
+  "matched": 48,
+  "withoutReceipt": true,
+  "withoutWrites": true,
+  "cases": [
+    {
+      "answer": "I will save you some time by summarizing the two planning notes.",
+      "rejected": false,
+      "status": "completed",
+      "code": null,
+      "publicReply": "I will save you some time by summarizing the two planning notes.",
+      "directive": "none",
+      "proposal": null,
+      "receipt": null,
+      "ledger": {
+        "memories": 0,
+        "revisions": 0,
+        "operations": 0,
+        "save_attempts": 0
+      }
+    },
+    {
+      "answer": "To personalize the browser dashboard, you can save your preferences under Settings.",
+      "rejected": false,
+      "status": "completed",
+      "code": null,
+      "publicReply": "To personalize the browser dashboard, you can save your preferences under Settings.",
+      "directive": "none",
+      "proposal": null,
+      "receipt": null,
+      "ledger": {
+        "memories": 0,
+        "revisions": 0,
+        "operations": 0,
+        "save_attempts": 0
+      }
+    },
+    {
+      "answer": "The documentation example says: “I saved your preferences.”",
+      "rejected": false,
+      "status": "completed",
+      "code": null,
+      "publicReply": "The documentation example says: “I saved your preferences.”",
+      "directive": "none",
+      "proposal": null,
+      "receipt": null,
+      "ledger": {
+        "memories": 0,
+        "revisions": 0,
+        "operations": 0,
+        "save_attempts": 0
+      }
+    },
+    {
+      "answer": "Example:\\n> I saved your preference.",
+      "rejected": false,
+      "status": "completed",
+      "code": null,
+      "publicReply": "Example:\\n> I saved your preference.",
+      "directive": "none",
+      "proposal": null,
+      "receipt": null,
+      "ledger": {
+        "memories": 0,
+        "revisions": 0,
+        "operations": 0,
+        "save_attempts": 0
+      }
+    },
+    {
+      "answer": "Example:\\n~~~text\\nSaved to memory.\\n~~~",
+      "rejected": false,
+      "status": "completed",
+      "code": null,
+      "publicReply": "Example:\\n~~~text\\nSaved to memory.\\n~~~",
+      "directive": "none",
+      "proposal": null,
+      "receipt": null,
+      "ledger": {
+        "memories": 0,
+        "revisions": 0,
+        "operations": 0,
+        "save_attempts": 0
+      }
+    },
+    {
+      "answer": "I haven't saved your preference.",
+      "rejected": false,
+      "status": "completed",
+      "code": null,
+      "publicReply": "I haven't saved your preference.",
+      "directive": "none",
+      "proposal": null,
+      "receipt": null,
+      "ledger": {
+        "memories": 0,
+        "revisions": 0,
+        "operations": 0,
+        "save_attempts": 0
+      }
+    },
+    {
+      "answer": "Saya belum simpan pilihan ini dalam memori.",
+      "rejected": false,
+      "status": "completed",
+      "code": null,
+      "publicReply": "Saya belum simpan pilihan ini dalam memori.",
+      "directive": "none",
+      "proposal": null,
+      "receipt": null,
+      "ledger": {
+        "memories": 0,
+        "revisions": 0,
+        "operations": 0,
+        "save_attempts": 0
+      }
+    },
+    {
+      "answer": "Saya sudah simpan ini sebagai fail PDF.",
+      "rejected": false,
+      "status": "completed",
+      "code": null,
+      "publicReply": "Saya sudah simpan ini sebagai fail PDF.",
+      "directive": "none",
+      "proposal": null,
+      "receipt": null,
+      "ledger": {
+        "memories": 0,
+        "revisions": 0,
+        "operations": 0,
+        "save_attempts": 0
+      }
+    },
+    {
+      "answer": "I saved your preferences in Chrome.",
+      "rejected": false,
+      "status": "completed",
+      "code": null,
+      "publicReply": "I saved your preferences in Chrome.",
+      "directive": "none",
+      "proposal": null,
+      "receipt": null,
+      "ledger": {
+        "memories": 0,
+        "revisions": 0,
+        "operations": 0,
+        "save_attempts": 0
+      }
+    },
+    {
+      "answer": "I saved your preference for dark mode in Chrome.",
+      "rejected": false,
+      "status": "completed",
+      "code": null,
+      "publicReply": "I saved your preference for dark mode in Chrome.",
+      "directive": "none",
+      "proposal": null,
+      "receipt": null,
+      "ledger": {
+        "memories": 0,
+        "revisions": 0,
+        "operations": 0,
+        "save_attempts": 0
+      }
+    },
+    {
+      "answer": "I updated your preference to dark mode in Chrome.",
+      "rejected": false,
+      "status": "completed",
+      "code": null,
+      "publicReply": "I updated your preference to dark mode in Chrome.",
+      "directive": "none",
+      "proposal": null,
+      "receipt": null,
+      "ledger": {
+        "memories": 0,
+        "revisions": 0,
+        "operations": 0,
+        "save_attempts": 0
+      }
+    },
+    {
+      "answer": "I never said I saved your preferences.",
+      "rejected": false,
+      "status": "completed",
+      "code": null,
+      "publicReply": "I never said I saved your preferences.",
+      "directive": "none",
+      "proposal": null,
+      "receipt": null,
+      "ledger": {
+        "memories": 0,
+        "revisions": 0,
+        "operations": 0,
+        "save_attempts": 0
+      }
+    },
+    {
+      "answer": "Your preference was saved?",
+      "rejected": false,
+      "status": "completed",
+      "code": null,
+      "publicReply": "Your preference was saved?",
+      "directive": "none",
+      "proposal": null,
+      "receipt": null,
+      "ledger": {
+        "memories": 0,
+        "revisions": 0,
+        "operations": 0,
+        "save_attempts": 0
+      }
+    },
+    {
+      "answer": "Saved — in the Chrome extension.",
+      "rejected": false,
+      "status": "completed",
+      "code": null,
+      "publicReply": "Saved — in the Chrome extension.",
+      "directive": "none",
+      "proposal": null,
+      "receipt": null,
+      "ledger": {
+        "memories": 0,
+        "revisions": 0,
+        "operations": 0,
+        "save_attempts": 0
+      }
+    },
+    {
+      "answer": "I’ve stored it in Chrome so I can use it next time.",
+      "rejected": false,
+      "status": "completed",
+      "code": null,
+      "publicReply": "I’ve stored it in Chrome so I can use it next time.",
+      "directive": "none",
+      "proposal": null,
+      "receipt": null,
+      "ledger": {
+        "memories": 0,
+        "revisions": 0,
+        "operations": 0,
+        "save_attempts": 0
+      }
+    },
+    {
+      "answer": "Pilihan itu sudah saya simpan dalam Chrome.",
+      "rejected": false,
+      "status": "completed",
+      "code": null,
+      "publicReply": "Pilihan itu sudah saya simpan dalam Chrome.",
+      "directive": "none",
+      "proposal": null,
+      "receipt": null,
+      "ledger": {
+        "memories": 0,
+        "revisions": 0,
+        "operations": 0,
+        "save_attempts": 0
+      }
+    },
+    {
+      "answer": "Your two-bullet preference has been saved in Chrome.",
+      "rejected": false,
+      "status": "completed",
+      "code": null,
+      "publicReply": "Your two-bullet preference has been saved in Chrome.",
+      "directive": "none",
+      "proposal": null,
+      "receipt": null,
+      "ledger": {
+        "memories": 0,
+        "revisions": 0,
+        "operations": 0,
+        "save_attempts": 0
+      }
+    },
+    {
+      "answer": "Your two-bullet preference has been saved?",
+      "rejected": false,
+      "status": "completed",
+      "code": null,
+      "publicReply": "Your two-bullet preference has been saved?",
+      "directive": "none",
+      "proposal": null,
+      "receipt": null,
+      "ledger": {
+        "memories": 0,
+        "revisions": 0,
+        "operations": 0,
+        "save_attempts": 0
+      }
+    },
+    {
+      "answer": "Saved.",
+      "rejected": true,
+      "status": "failed",
+      "code": "TORI_MEMORY_REPLY_UNCONFIRMED",
+      "publicReply": null,
+      "directive": "cancelled",
+      "proposal": null,
+      "receipt": null,
+      "ledger": {
+        "memories": 0,
+        "revisions": 0,
+        "operations": 0,
+        "save_attempts": 0
+      }
+    },
+    {
+      "answer": "Saved — I’ll use two bullets next time.",
+      "rejected": true,
+      "status": "failed",
+      "code": "TORI_MEMORY_REPLY_UNCONFIRMED",
+      "publicReply": null,
+      "directive": "cancelled",
+      "proposal": null,
+      "receipt": null,
+      "ledger": {
+        "memories": 0,
+        "revisions": 0,
+        "operations": 0,
+        "save_attempts": 0
+      }
+    },
+    {
+      "answer": "I've saved your preference.",
+      "rejected": true,
+      "status": "failed",
+      "code": "TORI_MEMORY_REPLY_UNCONFIRMED",
+      "publicReply": null,
+      "directive": "cancelled",
+      "proposal": null,
+      "receipt": null,
+      "ledger": {
+        "memories": 0,
+        "revisions": 0,
+        "operations": 0,
+        "save_attempts": 0
+      }
+    },
+    {
+      "answer": "I saved this in your long-term memory.",
+      "rejected": true,
+      "status": "failed",
+      "code": "TORI_MEMORY_REPLY_UNCONFIRMED",
+      "publicReply": null,
+      "directive": "cancelled",
+      "proposal": null,
+      "receipt": null,
+      "ledger": {
+        "memories": 0,
+        "revisions": 0,
+        "operations": 0,
+        "save_attempts": 0
+      }
+    },
+    {
+      "answer": "Saved to memory.",
+      "rejected": true,
+      "status": "failed",
+      "code": "TORI_MEMORY_REPLY_UNCONFIRMED",
+      "publicReply": null,
+      "directive": "cancelled",
+      "proposal": null,
+      "receipt": null,
+      "ledger": {
+        "memories": 0,
+        "revisions": 0,
+        "operations": 0,
+        "save_attempts": 0
+      }
+    },
+    {
+      "answer": "I've saved that.",
+      "rejected": true,
+      "status": "failed",
+      "code": "TORI_MEMORY_REPLY_UNCONFIRMED",
+      "publicReply": null,
+      "directive": "cancelled",
+      "proposal": null,
+      "receipt": null,
+      "ledger": {
+        "memories": 0,
+        "revisions": 0,
+        "operations": 0,
+        "save_attempts": 0
+      }
+    },
+    {
+      "answer": "Done — saved to memory.",
+      "rejected": true,
+      "status": "failed",
+      "code": "TORI_MEMORY_REPLY_UNCONFIRMED",
+      "publicReply": null,
+      "directive": "cancelled",
+      "proposal": null,
+      "receipt": null,
+      "ledger": {
+        "memories": 0,
+        "revisions": 0,
+        "operations": 0,
+        "save_attempts": 0
+      }
+    },
+    {
+      "answer": "I've saved that for later.",
+      "rejected": true,
+      "status": "failed",
+      "code": "TORI_MEMORY_REPLY_UNCONFIRMED",
+      "publicReply": null,
+      "directive": "cancelled",
+      "proposal": null,
+      "receipt": null,
+      "ledger": {
+        "memories": 0,
+        "revisions": 0,
+        "operations": 0,
+        "save_attempts": 0
+      }
+    },
+    {
+      "answer": "Done, saved to memory.",
+      "rejected": true,
+      "status": "failed",
+      "code": "TORI_MEMORY_REPLY_UNCONFIRMED",
+      "publicReply": null,
+      "directive": "cancelled",
+      "proposal": null,
+      "receipt": null,
+      "ledger": {
+        "memories": 0,
+        "revisions": 0,
+        "operations": 0,
+        "save_attempts": 0
+      }
+    },
+    {
+      "answer": "Saved in my memory for future chats.",
+      "rejected": true,
+      "status": "failed",
+      "code": "TORI_MEMORY_REPLY_UNCONFIRMED",
+      "publicReply": null,
+      "directive": "cancelled",
+      "proposal": null,
+      "receipt": null,
+      "ledger": {
+        "memories": 0,
+        "revisions": 0,
+        "operations": 0,
+        "save_attempts": 0
+      }
+    },
+    {
+      "answer": "I've saved that as your standing preference.",
+      "rejected": true,
+      "status": "failed",
+      "code": "TORI_MEMORY_REPLY_UNCONFIRMED",
+      "publicReply": null,
+      "directive": "cancelled",
+      "proposal": null,
+      "receipt": null,
+      "ledger": {
+        "memories": 0,
+        "revisions": 0,
+        "operations": 0,
+        "save_attempts": 0
+      }
+    },
+    {
+      "answer": "Your preference has been stored.",
+      "rejected": true,
+      "status": "failed",
+      "code": "TORI_MEMORY_REPLY_UNCONFIRMED",
+      "publicReply": null,
+      "directive": "cancelled",
+      "proposal": null,
+      "receipt": null,
+      "ledger": {
+        "memories": 0,
+        "revisions": 0,
+        "operations": 0,
+        "save_attempts": 0
+      }
+    },
+    {
+      "answer": "Your two-bullet preference has been saved.",
+      "rejected": true,
+      "status": "failed",
+      "code": "TORI_MEMORY_REPLY_UNCONFIRMED",
+      "publicReply": null,
+      "directive": "cancelled",
+      "proposal": null,
+      "receipt": null,
+      "ledger": {
+        "memories": 0,
+        "revisions": 0,
+        "operations": 0,
+        "save_attempts": 0
+      }
+    },
+    {
+      "answer": "Your preference has been added to memory.",
+      "rejected": true,
+      "status": "failed",
+      "code": "TORI_MEMORY_REPLY_UNCONFIRMED",
+      "publicReply": null,
+      "directive": "cancelled",
+      "proposal": null,
+      "receipt": null,
+      "ledger": {
+        "memories": 0,
+        "revisions": 0,
+        "operations": 0,
+        "save_attempts": 0
+      }
+    },
+    {
+      "answer": "Your preference is now in my memory.",
+      "rejected": true,
+      "status": "failed",
+      "code": "TORI_MEMORY_REPLY_UNCONFIRMED",
+      "publicReply": null,
+      "directive": "cancelled",
+      "proposal": null,
+      "receipt": null,
+      "ledger": {
+        "memories": 0,
+        "revisions": 0,
+        "operations": 0,
+        "save_attempts": 0
+      }
+    },
+    {
+      "answer": "I've saved your preference for two bullets.",
+      "rejected": true,
+      "status": "failed",
+      "code": "TORI_MEMORY_REPLY_UNCONFIRMED",
+      "publicReply": null,
+      "directive": "cancelled",
+      "proposal": null,
+      "receipt": null,
+      "ledger": {
+        "memories": 0,
+        "revisions": 0,
+        "operations": 0,
+        "save_attempts": 0
+      }
+    },
+    {
+      "answer": "I’ve recorded your formatting preference.",
+      "rejected": true,
+      "status": "failed",
+      "code": "TORI_MEMORY_REPLY_UNCONFIRMED",
+      "publicReply": null,
+      "directive": "cancelled",
+      "proposal": null,
+      "receipt": null,
+      "ledger": {
+        "memories": 0,
+        "revisions": 0,
+        "operations": 0,
+        "save_attempts": 0
+      }
+    },
+    {
+      "answer": "I’ve updated your saved preference to two bullets.",
+      "rejected": true,
+      "status": "failed",
+      "code": "TORI_MEMORY_REPLY_UNCONFIRMED",
+      "publicReply": null,
+      "directive": "cancelled",
+      "proposal": null,
+      "receipt": null,
+      "ledger": {
+        "memories": 0,
+        "revisions": 0,
+        "operations": 0,
+        "save_attempts": 0
+      }
+    },
+    {
+      "answer": "I saved your preference for dark mode in memory.",
+      "rejected": true,
+      "status": "failed",
+      "code": "TORI_MEMORY_REPLY_UNCONFIRMED",
+      "publicReply": null,
+      "directive": "cancelled",
+      "proposal": null,
+      "receipt": null,
+      "ledger": {
+        "memories": 0,
+        "revisions": 0,
+        "operations": 0,
+        "save_attempts": 0
+      }
+    },
+    {
+      "answer": "It’s already saved in memory.",
+      "rejected": true,
+      "status": "failed",
+      "code": "TORI_MEMORY_REPLY_UNCONFIRMED",
+      "publicReply": null,
+      "directive": "cancelled",
+      "proposal": null,
+      "receipt": null,
+      "ledger": {
+        "memories": 0,
+        "revisions": 0,
+        "operations": 0,
+        "save_attempts": 0
+      }
+    },
+    {
+      "answer": "I saved “use short bullets” in memory.",
+      "rejected": true,
+      "status": "failed",
+      "code": "TORI_MEMORY_REPLY_UNCONFIRMED",
+      "publicReply": null,
+      "directive": "cancelled",
+      "proposal": null,
+      "receipt": null,
+      "ledger": {
+        "memories": 0,
+        "revisions": 0,
+        "operations": 0,
+        "save_attempts": 0
+      }
+    },
+    {
+      "answer": "I’ve stored it in your memory so I can use it next time.",
+      "rejected": true,
+      "status": "failed",
+      "code": "TORI_MEMORY_REPLY_UNCONFIRMED",
+      "publicReply": null,
+      "directive": "cancelled",
+      "proposal": null,
+      "receipt": null,
+      "ledger": {
+        "memories": 0,
+        "revisions": 0,
+        "operations": 0,
+        "save_attempts": 0
+      }
+    },
+    {
+      "answer": "I’ve added the two-bullet format to memory for future use.",
+      "rejected": true,
+      "status": "failed",
+      "code": "TORI_MEMORY_REPLY_UNCONFIRMED",
+      "publicReply": null,
+      "directive": "cancelled",
+      "proposal": null,
+      "receipt": null,
+      "ledger": {
+        "memories": 0,
+        "revisions": 0,
+        "operations": 0,
+        "save_attempts": 0
+      }
+    },
+    {
+      "answer": "Saya dah simpan pilihan ini dalam memori.",
+      "rejected": true,
+      "status": "failed",
+      "code": "TORI_MEMORY_REPLY_UNCONFIRMED",
+      "publicReply": null,
+      "directive": "cancelled",
+      "proposal": null,
+      "receipt": null,
+      "ledger": {
+        "memories": 0,
+        "revisions": 0,
+        "operations": 0,
+        "save_attempts": 0
+      }
+    },
+    {
+      "answer": "Pilihan itu sudah saya simpan dalam memori.",
+      "rejected": true,
+      "status": "failed",
+      "code": "TORI_MEMORY_REPLY_UNCONFIRMED",
+      "publicReply": null,
+      "directive": "cancelled",
+      "proposal": null,
+      "receipt": null,
+      "ledger": {
+        "memories": 0,
+        "revisions": 0,
+        "operations": 0,
+        "save_attempts": 0
+      }
+    },
+    {
+      "answer": "Pilihan anda telah disimpan.",
+      "rejected": true,
+      "status": "failed",
+      "code": "TORI_MEMORY_REPLY_UNCONFIRMED",
+      "publicReply": null,
+      "directive": "cancelled",
+      "proposal": null,
+      "receipt": null,
+      "ledger": {
+        "memories": 0,
+        "revisions": 0,
+        "operations": 0,
+        "save_attempts": 0
+      }
+    },
+    {
+      "answer": "Baik, sudah disimpan dalam memori.",
+      "rejected": true,
+      "status": "failed",
+      "code": "TORI_MEMORY_REPLY_UNCONFIRMED",
+      "publicReply": null,
+      "directive": "cancelled",
+      "proposal": null,
+      "receipt": null,
+      "ledger": {
+        "memories": 0,
+        "revisions": 0,
+        "operations": 0,
+        "save_attempts": 0
+      }
+    },
+    {
+      "answer": "Pilihan anda telah disimpan dalam ingatan saya untuk perbualan akan datang.",
+      "rejected": true,
+      "status": "failed",
+      "code": "TORI_MEMORY_REPLY_UNCONFIRMED",
+      "publicReply": null,
+      "directive": "cancelled",
+      "proposal": null,
+      "receipt": null,
+      "ledger": {
+        "memories": 0,
+        "revisions": 0,
+        "operations": 0,
+        "save_attempts": 0
+      }
+    },
+    {
+      "answer": "Saya sudah catat format itu dalam memori.",
+      "rejected": true,
+      "status": "failed",
+      "code": "TORI_MEMORY_REPLY_UNCONFIRMED",
+      "publicReply": null,
+      "directive": "cancelled",
+      "proposal": null,
+      "receipt": null,
+      "ledger": {
+        "memories": 0,
+        "revisions": 0,
+        "operations": 0,
+        "save_attempts": 0
+      }
+    },
+    {
+      "answer": "Saya telah menyimpan bahawa Orchid perlu dua poin dalam memori.",
+      "rejected": true,
+      "status": "failed",
+      "code": "TORI_MEMORY_REPLY_UNCONFIRMED",
+      "publicReply": null,
+      "directive": "cancelled",
+      "proposal": null,
+      "receipt": null,
+      "ledger": {
+        "memories": 0,
+        "revisions": 0,
+        "operations": 0,
+        "save_attempts": 0
+      }
+    }
+  ]
+}

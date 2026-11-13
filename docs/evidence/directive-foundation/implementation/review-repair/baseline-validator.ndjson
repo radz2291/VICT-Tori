@@ -1,0 +1,7 @@
+{"id":"explicit-memory","text":"I saved this in your long-term memory.","expected":true,"rejected":true}
+{"id":"elliptical","text":"Saved to memory.","expected":true,"rejected":false}
+{"id":"bare-ack","text":"I've saved that.","expected":true,"rejected":false}
+{"id":"malay","text":"Saya dah simpan pilihan ini dalam memori.","expected":true,"rejected":false}
+{"id":"attributed","text":"The documentation example says: “I saved your preferences.”","expected":false,"rejected":true}
+{"id":"negated","text":"I haven't saved your preference.","expected":false,"rejected":false}
+{"id":"external-advice","text":"To personalize the browser dashboard, you can save your preferences under Settings.","expected":false,"rejected":false}

@@ -1,0 +1,219 @@
+{
+  "candidate": "76022e09b58c22ae618f0361225ec058ab3b813b",
+  "expectation": "rejected marks a reply we expect the Studio host to withhold",
+  "withheld": 5,
+  "displayed": 8,
+  "matched": 7,
+  "withoutReceipt": true,
+  "withoutWrites": true,
+  "cases": [
+    {
+      "answer": "I will save you some time by summarizing the two planning notes.",
+      "rejected": false,
+      "status": "completed",
+      "code": null,
+      "publicReply": "I will save you some time by summarizing the two planning notes.",
+      "directive": "none",
+      "proposal": null,
+      "receipt": null,
+      "ledger": {
+        "memories": 0,
+        "revisions": 0,
+        "operations": 0,
+        "save_attempts": 0
+      }
+    },
+    {
+      "answer": "To personalize the browser dashboard, you can save your preferences under Settings.",
+      "rejected": false,
+      "status": "completed",
+      "code": null,
+      "publicReply": "To personalize the browser dashboard, you can save your preferences under Settings.",
+      "directive": "none",
+      "proposal": null,
+      "receipt": null,
+      "ledger": {
+        "memories": 0,
+        "revisions": 0,
+        "operations": 0,
+        "save_attempts": 0
+      }
+    },
+    {
+      "answer": "The documentation example says: “I saved your preferences.”",
+      "rejected": false,
+      "status": "failed",
+      "code": "TORI_MEMORY_REPLY_UNCONFIRMED",
+      "publicReply": null,
+      "directive": "none",
+      "proposal": null,
+      "receipt": null,
+      "ledger": {
+        "memories": 0,
+        "revisions": 0,
+        "operations": 0,
+        "save_attempts": 0
+      }
+    },
+    {
+      "answer": "Example:\\n> I saved your preference.",
+      "rejected": false,
+      "status": "failed",
+      "code": "TORI_MEMORY_REPLY_UNCONFIRMED",
+      "publicReply": null,
+      "directive": "none",
+      "proposal": null,
+      "receipt": null,
+      "ledger": {
+        "memories": 0,
+        "revisions": 0,
+        "operations": 0,
+        "save_attempts": 0
+      }
+    },
+    {
+      "answer": "I haven't saved your preference.",
+      "rejected": false,
+      "status": "completed",
+      "code": null,
+      "publicReply": "I haven't saved your preference.",
+      "directive": "none",
+      "proposal": null,
+      "receipt": null,
+      "ledger": {
+        "memories": 0,
+        "revisions": 0,
+        "operations": 0,
+        "save_attempts": 0
+      }
+    },
+    {
+      "answer": "Saya belum simpan pilihan ini dalam memori.",
+      "rejected": false,
+      "status": "completed",
+      "code": null,
+      "publicReply": "Saya belum simpan pilihan ini dalam memori.",
+      "directive": "none",
+      "proposal": null,
+      "receipt": null,
+      "ledger": {
+        "memories": 0,
+        "revisions": 0,
+        "operations": 0,
+        "save_attempts": 0
+      }
+    },
+    {
+      "answer": "I've saved your preference.",
+      "rejected": true,
+      "status": "failed",
+      "code": "TORI_MEMORY_REPLY_UNCONFIRMED",
+      "publicReply": null,
+      "directive": "cancelled",
+      "proposal": null,
+      "receipt": null,
+      "ledger": {
+        "memories": 0,
+        "revisions": 0,
+        "operations": 0,
+        "save_attempts": 0
+      }
+    },
+    {
+      "answer": "I saved this in your long-term memory.",
+      "rejected": true,
+      "status": "failed",
+      "code": "TORI_MEMORY_REPLY_UNCONFIRMED",
+      "publicReply": null,
+      "directive": "cancelled",
+      "proposal": null,
+      "receipt": null,
+      "ledger": {
+        "memories": 0,
+        "revisions": 0,
+        "operations": 0,
+        "save_attempts": 0
+      }
+    },
+    {
+      "answer": "Saved to memory.",
+      "rejected": true,
+      "status": "completed",
+      "code": null,
+      "publicReply": "Saved to memory.",
+      "directive": "proposal",
+      "proposal": "pending",
+      "receipt": null,
+      "ledger": {
+        "memories": 0,
+        "revisions": 0,
+        "operations": 0,
+        "save_attempts": 0
+      }
+    },
+    {
+      "answer": "I've saved that.",
+      "rejected": true,
+      "status": "completed",
+      "code": null,
+      "publicReply": "I've saved that.",
+      "directive": "proposal",
+      "proposal": "pending",
+      "receipt": null,
+      "ledger": {
+        "memories": 0,
+        "revisions": 0,
+        "operations": 0,
+        "save_attempts": 0
+      }
+    },
+    {
+      "answer": "Your preference has been stored.",
+      "rejected": true,
+      "status": "failed",
+      "code": "TORI_MEMORY_REPLY_UNCONFIRMED",
+      "publicReply": null,
+      "directive": "cancelled",
+      "proposal": null,
+      "receipt": null,
+      "ledger": {
+        "memories": 0,
+        "revisions": 0,
+        "operations": 0,
+        "save_attempts": 0
+      }
+    },
+    {
+      "answer": "Saya dah simpan pilihan ini dalam memori.",
+      "rejected": true,
+      "status": "completed",
+      "code": null,
+      "publicReply": "Saya dah simpan pilihan ini dalam memori.",
+      "directive": "proposal",
+      "proposal": "pending",
+      "receipt": null,
+      "ledger": {
+        "memories": 0,
+        "revisions": 0,
+        "operations": 0,
+        "save_attempts": 0
+      }
+    },
+    {
+      "answer": "Pilihan anda telah disimpan.",
+      "rejected": true,
+      "status": "completed",
+      "code": null,
+      "publicReply": "Pilihan anda telah disimpan.",
+      "directive": "proposal",
+      "proposal": "pending",
+      "receipt": null,
+      "ledger": {
+        "memories": 0,
+        "revisions": 0,
+        "operations": 0,
+        "save_attempts": 0
+      }
+    }
+  ]
+}

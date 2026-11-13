@@ -1,5 +1,7 @@
 # TORI-009 Directive Foundation
 
+The [14 November review repair](review-repair/REPORT.md) records the new candidate, same-Session and restart results, and the expanded reply-guard checks. This report records the earlier implementation qualification.
+
 Product `76022e09b58c22ae618f0361225ec058ab3b813b` on `codex/tori-directive-foundation`, from accepted contract `69d0485ca78345fcca01dac8f991b3020f4b065a`. The lock blob is `746b69fbefb4a9123029f54ab4ca47a00aaa5310`. The isolated owner preview uses synthetic Quellight r2 and live Z.AI Coding. [Walkthrough](WALKTHROUGH.md) · [Constants and public UI controls](CLASSIFICATION.md) · [Independent verdict](INDEPENDENT.md)
 
 Fresh verifier `/root/tori009_recheck` issued a scoped PASS on that exact product in evidence commit `ebe27a604686a3b6ad59e4a044f228474f7d3abc`. The report's acceptance scope is Directive Foundation. Radzi owns the Studio walkthrough and acceptance.
