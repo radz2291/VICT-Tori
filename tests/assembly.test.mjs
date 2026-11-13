@@ -70,6 +70,9 @@ test('a legacy workspace authoring graph keeps its budget and can activate with 
     wire('authoring','authoring'),change('agent','maxSteps',4),
   ]).ok,true);
   const legacy=structuredClone(author.graph);
+  legacy.nodeTypes=legacy.nodeTypes.filter(node=>node.id!=='directive');
+  const legacyAgent=legacy.nodeTypes.find(node=>node.id==='agent');
+  legacyAgent.ports=legacyAgent.ports.filter(port=>port.id!=='directive');
   delete legacy.nodeTypes.find(node=>node.id==='agent').parameters.maxToolCalls;
   delete legacy.nodeTypes.find(node=>node.id==='memory').parameters.savedMemory;
   delete legacy.nodeTypes.find(node=>node.id==='memory').parameters.organizer;

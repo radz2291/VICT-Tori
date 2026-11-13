@@ -1,4 +1,4 @@
-type Proposal={run:string;status:string;source:{session:string;message:string};contextBasis:string[];text?:string;operation?:string};
+type Proposal={run:string;status:string;source:{session:string;message:string};contextBasis:string[];text?:string;operation?:string;directive?:{revision:number}};
 export type MemoryTurn={
   run:string;source:string;proposal?:Proposal;request?:{reason:string};
   operation?:{operation?:string;status:string;reason?:string;checkedAt?:string};

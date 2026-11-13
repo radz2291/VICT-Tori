@@ -332,6 +332,7 @@
   const defaultNodeTitle=(id:string)=>id==='agent'?'Agent Definition':id==='model'?'Model Reference':
     id===tokenSourceId?'Output limit Integer':id==='tool'&&(!state.fixture||(field(graph,'tool','reference')??'local-reference@1')!=='local-reference@1')?'Read-only Tool':agentResources.find(item=>item.id===id)?.label??'System prompt';
   function customNodeTitle(id:string){
+    if(id==='directive')return String(field(graph,id,'name')??'').trim()||undefined;
     const node=graph.nodes.find(item=>item.id===id);
     const original=graph.nodeTypes.find(type=>type.id===node?.type)?.label;
     return node?.label!==original?node?.label:undefined;
@@ -370,7 +371,7 @@
     if(page!=='Sessions'||!selected||selected.authoring||selected.archivedFixture){memoryRead++;memoryResult=undefined;return;}
     untrack(()=>void loadSessionMemory(selected.id));
   });
-  const pendingMemorySave=$derived(memoryView?.turns?.some((turn:any)=>turn.operation?.status==='running'));
+  const pendingMemorySave=$derived(memoryView?.interpreting?.length||memoryView?.turns?.some((turn:any)=>turn.operation?.status==='running'));
   $effect(()=>{
     const id=activeSession;
     if(page!=='Sessions'||!id||!pendingMemorySave)return;
@@ -629,7 +630,7 @@
     nodes=canvasNodes.map(n=>{
       const resource=agentResources.find(item=>item.id===n.id);
       const reference=resource?field(g,n.id,'reference'):undefined;
-      const preview=n.id==='child'?childTitle(reference):
+      const preview=n.id==='directive'?String(field(g,n.id,'recognition')??''):n.id==='child'?childTitle(reference):
         resource?resourceChoices[resource.id].find(option=>option.value===reference)?.label??reference:undefined;
       return {id:n.id,type:'assembly',position:n.position,selected:selected===n.id,deletable:false,
         ...(n.id==='instructions'?promptSize:{}),
@@ -671,7 +672,7 @@
     const node=graph.nodes.find(item=>item.id===id);
     if(!node)return false;
     const name=label.trim();
-    if(id==='agent')return field(graph,id,'name')===name||commit([change(id,'name',name)]);
+    if(id==='agent'||id==='directive')return field(graph,id,'name')===name||commit([change(id,'name',name)]);
     const original=graph.nodeTypes.find(type=>type.id===node.type)?.label;
     if(!original)return false;
     const nextLabel=name||original;
@@ -681,8 +682,8 @@
     const child=state.childRevisions?.find(item=>'saved:'+item.id===reference);
     return (child?child.name+' \u00b7 r'+child.number:undefined)??(reference==='reference-reviewer@1'?'Reference reviewer':'Saved revision unavailable');
   }
-  function configure(id:string,key:string,value:string|number){
-    const operations=configureOperations(graph,id,key,value);
+  function configure(id:string,key:string,value:string|number,connectBinding=true){
+    const operations=configureOperations(graph,id,key,value,connectBinding);
     return operations.length===0||commit(operations);
   }
   function travel(direction:'undo'|'redo'){
@@ -1671,7 +1672,7 @@
       {id:'agent',label:'Agent Definition',fn:()=>insertComponent('agent'),disabled:!canInsert||!!graph.nodes.length},
       {id:'child',label:'Child Agent',fn:()=>insertComponent('child'),disabled:!canInsert||!graph.nodes.length||graph.nodes.some(n=>n.id==='child')},
     ]},
-    {label:'Resources',items:agentResources.filter(item=>['context','tool','authoring'].includes(item.id)).map(item=>({
+    {label:'Resources',items:agentResources.filter(item=>['context','tool','authoring','directive'].includes(item.id)).map(item=>({
       id:item.id,label:defaultNodeTitle(item.id),fn:()=>insertComponent(item.id),disabled:!canInsert||!graph.nodes.length||graph.nodes.some(n=>n.id===item.id),
     }))},
     {label:'Optional nodes',items:optionalBindings.map(item=>({
@@ -1789,7 +1790,7 @@
 {#snippet agentFields(id:string,section:'configure'|'delegation'='configure',location='')}
   <Fields {graph} {location} childRevisions={state.childRevisions} pinnedChild={state.activation?.childRevision} route={state.route} {id} {section} {edit} {disconnect}
     reveal={focusCanvasNode} openDefinition={async id=>{mobileOpen=false;await openDefinition(id);}} canOpenDefinition={!dirty&&!pending&&!sending}
-    fixture={state.fixture} {configure} hostDeadlineMs={state.hostDeadlineMs}/>
+    fixture={state.fixture} {configure} hostDeadlineMs={state.hostDeadlineMs} pinnedDirective={state.activation?.directive}/>
 {/snippet}
 
 {#snippet dockToggle(panel:DockPanel,disabled=false)}
@@ -2023,11 +2024,16 @@
       <dt>Model route</dt><dd>{session.fixture?'Simulated ':''}Z.AI {session.route==='coding'?'Coding':'General'} · {modelName}</dd>
       {#if session.context}<dt>Pinned context</dt><dd>{session.context}</dd>{/if}
       {#if session.memory}<dt>Session history</dt><dd>{session.memory==='recent-10@1'?'Last 10 messages':'Last 100 messages'} · this Session</dd>{/if}
+      {#if session.directive?.status==='bound'}
+        <dt>Directive</dt><dd>{session.directive.policy.name} · {session.directive.policy.historyBytes.toLocaleString()} bytes · {session.directive.policy.deadlineMs/1000} s</dd>
+      {:else if session.directive?.status==='off' || session.directive?.status==='unavailable'}
+        <dt>Directive</dt><dd>{session.directive.status==='off'?'Unconnected in this activation':'Pinned policy unavailable'}</dd>
+      {/if}
       <dt>Thinking</dt><dd>Thinking details are unavailable through this connection.</dd>
     </dl>
     {#if !session.authoring&&!session.archivedFixture}
       {#key session.id}
-        <MemoryControls view={memoryView} mode="list" sessionId={session.id} act={changeMemory} busyTurn={sending}/>
+        <MemoryControls view={memoryView} mode="list" sessionId={session.id} messages={session.messages} act={changeMemory} busyTurn={sending}/>
       {/key}
     {/if}
   </div>

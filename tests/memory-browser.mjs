@@ -32,7 +32,7 @@ async function start(){
     ...(live?[]:['--import',pathToFileURL(resolve('./tests/memory-provider-fixture.mjs')).href]),
     './node_modules/vite/bin/vite.js','--host','127.0.0.1','--port',port,'--strictPort',
   ],{cwd,windowsHide:true,env:{...process.env,TORI_DATA_DIR:directory,TORI_ZAI_ROUTE:'coding',
-    ...(live?{TORI_ENABLE_PI_ZAI:'1',TORI_EXECUTION_FIXTURE:''}:{TORI_ZAI_API_KEY:syntheticKey,TORI_MEMORY_FIXTURE_PRELOAD:'1',
+    ...(live?{TORI_ENABLE_PI_ZAI:'1',TORI_EXECUTION_FIXTURE:''}:{TORI_ZAI_API_KEY:syntheticKey,TORI_MEMORY_FIXTURE_PRELOAD:'1',TORI_TEST_HISTORICAL_ACTIVATION:'1',
       TORI_MEMORY_CAPTURE:join(directory,'wire.jsonl')})}});
   for(const stream of [server.stdout,server.stderr])stream.on('data',bytes=>{log=(log+String(bytes)).slice(-12000);});
   for(let i=0;i<250;i++){

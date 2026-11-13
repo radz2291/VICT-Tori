@@ -112,7 +112,7 @@ test('real Studio turns pin policy, admit stored values and refuse scope, replay
   const restore=installMemoryProvider();
   const vite=await createServer({server:{middlewareMode:true,watch:null,ws:false}});
   const assembly=await vite.ssrLoadModule('/src/assembly.ts');
-  const open=memoryFixture=>createStudio({getAssembly:()=>assembly,dataDirectory:directory,memoryFixture});
+  const open=memoryFixture=>createStudio({getAssembly:()=>assembly,dataDirectory:directory,memoryFixture,directiveFixture:{historicalActivation:true}});
   let service=open();
   const restart=async identity=>{await service.close();service=open(identity);};
   const req=(path,body={})=>service.dispatch(path,body);

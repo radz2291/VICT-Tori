@@ -229,6 +229,8 @@
           <Textarea id="canvas-system-prompt" class="tori-field" rows={2} value={String(field(data.graph,id,'text')??'')}
             oninput={event=>data.fields.edit(id,'text',event.currentTarget.value)}/>
         </div>
+      {:else if id==='directive'}
+        <span class="node-preview" title={data.preview}>{data.preview}</span>
       {:else if choices.length>1}
         <div class="node-port-control nodrag nopan">
           <label class="visually-hidden" for={'canvas-'+id+'-reference'}>{data.title} revision</label>
@@ -242,7 +244,9 @@
       {/if}
       <Handle class={data.wireSource===id?'node-handle wire-start':'node-handle'} type="source" position={Position.Right} id="value" title={data.title+' output'}/>
     </div>
-    {#if id==='memory'}
+    {#if id==='directive'}
+      <div class="node-detail">{binding(data.graph,'directive')?'Connected':'Unconnected'}</div>
+    {:else if id==='memory'}
       <div class="node-inline-fields nodrag nopan">
         <SavedMemoryPolicy id="canvas-memory-saved-memory" value={String(field(data.graph,'memory','savedMemory')??'off')}
           set={value=>data.fields.edit('memory','savedMemory',value)}/>

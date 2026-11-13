@@ -3,6 +3,8 @@ import { GraphSessionV3, validateGraphV3, type GraphDocumentV3, type GraphOperat
 import { executionBounds, workspaceBinding } from '../packages/authoring/index.mjs';
 import { registeredTool, registeredTools } from './registered-tools.mjs';
 import { organizerOff } from '../packages/memory/policy.mjs';
+import { proposalLifetimeMs } from '../packages/memory/intent.mjs';
+import { directiveDefaults, directiveFields, directiveId, directiveLabel } from '../packages/directive/policy.mjs';
 
 export const modelId = 'glm-5.3-flash';
 export const modelName = 'GLM-5.3 Flash';
@@ -74,10 +76,14 @@ const a4Resources=[...a3Resources,
   {id:'output',label:'Output Contract',type:'output-reference',defaultValue:'finding@1'},
   {id:'child',label:'Child Agent',type:'agent-reference',defaultValue:'reference-reviewer@1'},
 ] as const;
-export const agentResources=[...a4Resources,
+const historicResources=[...a4Resources,
   {id:'authoring',label:'Draft Authoring',type:'authoring-reference',defaultValue:'instructions@1'},
 ] as const;
+export const agentResources=[...historicResources,
+  {id:directiveId,label:directiveLabel,type:'directive-policy-reference',defaultValue:''},
+] as const;
 export const resourceChoices={
+  directive:[],
   authoring:[{value:'instructions@1',label:'Edit draft instructions · r1'},{value:workspaceBinding,label:'Workspace authoring · r1'}],
   context:[{value:'studio-research@1',label:'Studio Research Knowledge · r1'},{value:'project-knowledge@1',label:'Project Knowledge r1'},{value:'reference@1',label:'Observatory reference · r1'},{value:'reference@2',label:'Observatory reference · r2'}],
   memory:[{value:'recent-10@1',label:'Last 10 messages'},{value:'recent-100@1',label:'Last 100 messages'}],
@@ -91,16 +97,22 @@ export const inlineAgentSettings=[
   {id:'output',label:'Output format',options:[{value:'default',label:'Text (default)'},...resourceChoices.output]},
 ] as const;
 const a3Definitions=resourceCatalog(a3Resources);
-const authoringDefinitions=resourceCatalog(agentResources);
+const authoringDefinitions=resourceCatalog(historicResources);
 const authoringBudgets=authoringDefinitions.map(node=>node.id===rootId?{...node,parameters:{...node.parameters,
   maxToolCalls:{type:'number' as const,default:0}}}:node);
 const memoryDefinitions=authoringBudgets.map(node=>node.id==='memory'?{...node,parameters:{...node.parameters,
   savedMemory:{type:'string' as const,default:'off'}}}:node);
-const definitions=memoryDefinitions.map(node=>node.id==='memory'?{...node,parameters:{...node.parameters,
+const historicDefinitions=memoryDefinitions.map(node=>node.id==='memory'?{...node,parameters:{...node.parameters,
   organizer:{type:'string' as const,default:organizerOff}}}:node);
+const directivePort={id:directiveId,label:directiveLabel,type:'directive-policy-reference',direction:'input' as const,maxConnections:1};
+const definitions:GraphDocumentV3['nodeTypes']=historicDefinitions.map(node=>node.id===rootId
+  ? {...node,ports:[...node.ports,directivePort]} : node);
+definitions.push({id:directiveId,label:directiveLabel,ports:[{id:'value',label:directiveLabel,type:directivePort.type,direction:'output'}],
+  parameters:Object.fromEntries(Object.entries(directiveDefaults).map(([key,value])=>
+    [key,{type:typeof value==='number'?'number':'string',default:value}]))});
 
 function upgrade(graph:GraphDocumentV3):GraphDocumentV3 {
-  return [legacyDefinitions,a1Definitions,a2Definitions,a3Definitions,resourceCatalog(a4Resources),authoringDefinitions,authoringBudgets,memoryDefinitions].some(catalog=>JSON.stringify(graph.nodeTypes)===JSON.stringify(catalog))
+  return [legacyDefinitions,a1Definitions,a2Definitions,a3Definitions,resourceCatalog(a4Resources),authoringDefinitions,authoringBudgets,memoryDefinitions,historicDefinitions].some(catalog=>JSON.stringify(graph.nodeTypes)===JSON.stringify(catalog))
     ? {...graph,nodeTypes:structuredClone(definitions)} : graph;
 }
 
@@ -142,6 +154,10 @@ export const instructions = (graph:GraphDocumentV3) => String(binding(graph,'ins
 export const outputTokens = (graph:GraphDocumentV3) =>
   Number(field(graph,binding(graph,'tokens')?tokenSourceId:modelNodeId,'tokens')??4096);
 
+export const directiveValues = (graph:GraphDocumentV3) => Object.fromEntries(
+  Object.keys(directiveDefaults).map(key=>[key,field(graph,directiveId,key)]));
+export const directiveIssues = (graph:GraphDocumentV3) => directiveFields(directiveValues(graph),proposalLifetimeMs);
+
 export function executionSettings(graph:GraphDocumentV3) {
   const authoring=binding(graph,'authoring')&&field(graph,'authoring','reference');
   // Preserve the budget of already saved definitions that predate this field.
@@ -161,7 +177,8 @@ export function resolved(graph:GraphDocumentV3) {
   const topP=modelValues?.topP as number|undefined;
   const resource=(id:string)=>binding(graph,id)?field(graph,id,'reference'):undefined;
   const {maxSteps,maxRetries,maxToolCalls}=executionSettings(graph);
-  return {organizer:(binding(graph,'memory')?field(graph,'memory','organizer'):undefined)??organizerOff,
+  return {directive:binding(graph,directiveId)?directiveValues(graph):null,
+    organizer:(binding(graph,'memory')?field(graph,'memory','organizer'):undefined)??organizerOff,
     authoring:resource('authoring'),output:resource('output'),child:resource('child'),context:resource('context'),memory:resource('memory'),savedMemory:binding(graph,'memory')?field(graph,'memory','savedMemory'):undefined,tool:resource('tool'),name:String(field(graph,rootId,'name')??''),instructions:instructions(graph),
     model:binding(graph,'model') ? String(field(graph,modelNodeId,'model')??'') : '',
     tokens:outputTokens(graph),temperature,topP,
@@ -179,6 +196,7 @@ function executionIssue(value:ReturnType<typeof resolved>) {
 }
 export function readiness(graph:GraphDocumentV3,route?:string) {
   const value=resolved(graph);
+  const directiveIssue=value.directive?Object.values(directiveFields(value.directive,proposalLifetimeMs))[0]:undefined;
   return !graph.nodes.some(n=>n.id===rootId) ? 'Add an Agent Definition.' :
     !value.name.trim() ? 'Enter an agent name.' :
     !value.instructions.trim() ? 'Write system instructions.' :
@@ -187,6 +205,9 @@ export function readiness(graph:GraphDocumentV3,route?:string) {
     value.memory!==undefined && !['recent-10@1','recent-100@1'].includes(String(value.memory)) ? 'Select a supported Memory Policy.' :
     value.savedMemory!==undefined && value.savedMemory!=='off' && value.savedMemory!==governedMemoryValue ? 'Select a supported saved memory policy.' :
     value.organizer!==organizerOff ? 'This Memory Policy requires organizer off.' :
+    value.directive&&route!==undefined&&route!=='coding' ? 'Select the Coding connection for this Directive.' :
+    value.directive&&value.authoring ? 'Connect the Directive to a conversational Agent.' :
+    directiveIssue ? String(directiveIssue) :
     value.output!==undefined && value.output!=='finding@1' ? 'Select the supported Output Contract.' :
     value.child!==undefined && value.child!=='reference-reviewer@1' && !/^saved:[0-9a-f-]{36}$/.test(String(value.child)) ? 'Select the allowlisted Child Agent.' :
     value.authoring!==undefined && value.authoring!=='instructions@1' && value.authoring!==workspaceBinding ? 'Select the supported Draft Authoring capability.' :
@@ -206,14 +227,14 @@ export const wire = (source:string,targetPort:string):GraphOperationV3 => ({type
   id:source+'-to-'+targetPort,source,sourcePort:'value',target:targetPort==='tokens'?modelNodeId:rootId,targetPort,
 }});
 
-export function configureOperations(graph:GraphDocumentV3,id:string,key:string,value:string|number) {
+export function configureOperations(graph:GraphDocumentV3,id:string,key:string,value:string|number,connectBinding=true) {
   const operations:GraphOperationV3[]=[];
   if(!graph.nodes.some(node=>node.id===id)){
     operations.push(add(id));
     if(id==='memory'&&key==='savedMemory')operations.push(change(id,'reference','recent-100@1'));
   }
   if(key)operations.push(change(id,key,value));
-  if(binding(graph,id)?.source!==id)operations.push(wire(id,id));
+  if(connectBinding&&binding(graph,id)?.source!==id)operations.push(wire(id,id));
   return operations;
 }
 

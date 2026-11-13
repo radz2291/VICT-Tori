@@ -18,9 +18,14 @@
     const id=run.id, terminal=run.status;
     let current=true;
     view=undefined;
-    void load(id,terminal).then(value=>{if(current)view=value;},
-      ()=>{if(current)view={status:'error'};});
-    return ()=>{current=false;};
+    let timer:ReturnType<typeof setTimeout>;
+    const refresh=()=>void load(id,terminal).then(value=>{
+      if(!current)return;
+      view=value;
+      if(value.directive?.status==='pending')timer=setTimeout(refresh,750);
+    },()=>{if(current)view={status:'error'};});
+    refresh();
+    return ()=>{current=false;clearTimeout(timer);};
   });
 </script>
 
@@ -41,12 +46,27 @@
     {#if view.evidence.bytes||view.evidence.omitted.length}
       <p class="memory-meta">{view.evidence.bytes} / {view.evidence.budgetBytes} UTF-8 bytes</p>
     {/if}
+    {#if view.directive}
+      <dl>
+        <dt>Directive</dt><dd>{view.directive.status}{view.directive.reason?' · '+view.directive.reason:''}</dd>
+        <dt>Policy revision</dt><dd class="hash">{view.directive.policyRevision}</dd>
+        <dt>Interpretation limits</dt><dd>{view.directive.historyUsedBytes?.toLocaleString()??'—'} / {view.directive.historyBytes.toLocaleString()} bytes · {view.directive.deadlineMs/1000} s · {view.directive.outputTokens} tokens requested{view.directive.sentOutputTokens?' / '+view.directive.sentOutputTokens+' sent':''}</dd>
+        <dt>Interpreter finish</dt><dd>{view.directive.finish??'Not reported'}</dd>
+        {#if view.directive.reasoningEffort}
+          <dt>Interpreter reasoning effort</dt><dd>{view.directive.reasoningEffort}</dd>
+        {/if}
+        <dt>Interpreter usage</dt><dd>{view.directive.usage?`${view.directive.usage.input??'Unknown'} input / ${view.directive.usage.output??'unknown'} output / ${view.directive.usage.reasoning??'unknown'} reasoning`:'Not reported'}</dd>
+      </dl>
+    {/if}
     {#each view.evidence.admitted as item, i (item.id)}
       {@const resolved=view.records[i]}
       <dl>
         <dt>Memory</dt><dd class="hash">{item.id} · r{item.revision}</dd>
         <dt>Source message</dt><dd class="hash">{item.source.message}<br/>Session {item.source.session}</dd>
         <dt>Context basis</dt><dd class="hash">{item.contextBasis.join(', ')}</dd>
+        {#if resolved.provenance?.messages.some((source:any)=>source.status==='unavailable')}
+          <dt>Provenance</dt><dd>Source text unavailable</dd>
+        {/if}
         <dt>Age at admission</dt><dd>{memoryAge(item.ageMs)}</dd>
         <dt>Last used at this Run</dt><dd>{memoryDate(item.lastUsedAt)}</dd>
         <dt>Content</dt><dd class="memory-value">{resolved.status==='forgotten'?'Forgotten · audit reference retained':
@@ -76,6 +96,9 @@
         {/if}
         <dt>Source message</dt><dd class="hash">{view.receipt.source.message}<br/>Session {view.receipt.source.session}</dd>
         <dt>Context basis</dt><dd class="hash">{view.receipt.contextBasis.join(', ')}</dd>
+        {#if view.provenance?.messages.some((item:any)=>item.status==='unavailable')}
+          <dt>Provenance</dt><dd>Source text unavailable</dd>
+        {/if}
         <dt>Operation</dt><dd class="hash">{view.receipt.operation}</dd>
       </dl>
     {:else if view.operation?.status==='interrupted'&&view.operation.reason==='no-commit'}

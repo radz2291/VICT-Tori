@@ -52,7 +52,7 @@ globalThis.fetch=async(url,init)=>{
 };
 const vite=await createServer({server:{middlewareMode:true,watch:null,ws:false}});
 const assembly=await vite.ssrLoadModule('/src/assembly.ts');
-const studio=createStudio({dataDirectory,getAssembly:()=>assembly,backgroundFixture:{
+const studio=createStudio({dataDirectory,getAssembly:()=>assembly,directiveFixture:{historicalActivation:true},backgroundFixture:{
   async child(run,signal){
     const release=gate('child',signal);
     announce('child',{run:run.id,parent:run.parentRun,invocation:run.parentInvocation,operation:run.parentOperation,owner:run.ownerId});

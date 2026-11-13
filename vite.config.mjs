@@ -1,11 +1,13 @@
 import { defineConfig } from 'vite';
 import { svelte } from '@sveltejs/vite-plugin-svelte';
 import { resolve } from 'node:path';
+import { mastraRetention } from './server/retention.mjs';
 
 export default defineConfig({
   plugins:[svelte(),{
     name:'tori-local-studio',
     configureServer(server) {
+      const retention=mastraRetention();
       let service;
       const localHost='127.0.0.1:'+(server.config.server.port??48761);
       const origin='http://'+localHost;
@@ -31,6 +33,8 @@ export default defineConfig({
           service??=import('./server/studio.mjs').then(({createStudio})=>createStudio({
             getAssembly:()=>server.ssrLoadModule('/src/assembly.ts'),
             dataDirectory:process.env.TORI_DATA_DIR??resolve('.data'),
+            retention,
+            ...(process.env.TORI_TEST_HISTORICAL_ACTIVATION==='1'?{directiveFixture:{historicalActivation:true}}:{}),
           })).catch(error=>{service=undefined;throw error;});
           const app=await service;
           return send(200,await app.dispatch(path,body));

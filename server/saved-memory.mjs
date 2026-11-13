@@ -1,14 +1,15 @@
 import {
-  effectiveMemoryPolicy, gatedMemorySave, governedPolicy, memoryBudgetBytes, memoryScope, openMemoryStore,
+  effectiveMemoryPolicy, gatedMemorySave, governedPolicy, memoryBudgetBytes, memoryScope, openMemoryStore, proposalLifetimeMs,
 } from '../packages/memory/index.mjs';
+import { baseMemoryReference } from '../packages/directive/activation.mjs';
 
-export const pinnedMemoryPolicy=pin=>effectiveMemoryPolicy(pin?.record?.artifacts?.find(item=>item.kind==='memory-policy'));
+export const pinnedMemoryPolicy=pin=>effectiveMemoryPolicy(baseMemoryReference(pin?.record?.artifacts?.find(item=>item.kind==='memory-policy')));
 export const pinAllowsSavedMemory=pin=>pinnedMemoryPolicy(pin)?.savedMemory===governedPolicy;
 export const emptyAdmission=status=>({schema:'tori.memory.admission@1',status,budgetBytes:memoryBudgetBytes,bytes:0,admitted:[],omitted:[]});
 const uuid=value=>typeof value==='string'&&/^[a-f0-9]{8}-(?:[a-f0-9]{4}-){3}[a-f0-9]{12}$/i.test(value);
 const error=(status,message)=>Object.assign(new Error(message),{status});
 
-export function createSavedMemoryHost({path,actor,project,fixture,snapshot,definitionOf,actorAllowed,turnActive,fault}) {
+export function createSavedMemoryHost({path,actor,project,fixture,snapshot,storeState,definitionOf,actorAllowed,turnActive,fault,directiveOf,stopInterpretation,resolveProvenance}) {
   let opened;
   const saves=new Map();
   const runBusy=()=>turnActive()||saves.size>0;
@@ -27,6 +28,7 @@ export function createSavedMemoryHost({path,actor,project,fixture,snapshot,defin
     const scope=scopeFor(state,run.savedMemoryAgent);
     return scope.key===run.savedMemoryScope?scope:undefined;
   };
+  const proposalEnabled=pin=>directiveOf(pin).status==='bound';
   const asNotSaved=result=>{
     const responses={
       'invalid-text':[400,'Enter a nonblank memory of up to 1,024 UTF-8 bytes. Nothing was saved.'],
@@ -63,13 +65,17 @@ export function createSavedMemoryHost({path,actor,project,fixture,snapshot,defin
     saving:()=>saves.size>0,
     admit(scope){return store().admit(scope);},
     propose(scope,proposal){return store().propose(scope,proposal);},
+    abandonDirective(state,run){
+      const scope=runScope(state,run);
+      if(scope)store().withdraw(scope,run.session,run.id,'cancelled');
+    },
     cancelSession(state,id){
       try{const {scope,session}=sessionFor(state,id);store().withdrawSession(scope,session.id);}catch(e){if(e.status!==404)throw e;}
     },
     visibleRun(run,state){
       if(!run.savedMemory)return run;
-      const {savedMemoryScope,savedMemoryAgent,savedMemory,savedMemoryRequest,savedMemoryDraft,...publicRun}=run;
-      return runScope(state,run)?{...publicRun,hasSavedMemoryEvidence:true}:publicRun;
+      const {savedMemoryScope,savedMemoryAgent,savedMemory,savedMemoryRequest,savedMemoryDraft,directive,...publicRun}=run;
+      return runScope(state,run)?{...publicRun,directive,hasSavedMemoryEvidence:true}:publicRun;
     },
     close(){opened?.close();},
     async handle(path,body){
@@ -83,14 +89,22 @@ export function createSavedMemoryHost({path,actor,project,fixture,snapshot,defin
         const operation=run.savedMemoryRequest?.status==='proposed'?
           saveEvidence(scope,{session:run.session,activation:run.activation,run:run.id}):undefined;
         const receipt=operation?.receipt;
+        const memory=store();
+        const savedRecordStatus=receipt&&memory.inspect(scope,receipt.memoryId).status;
         return {status:'available',evidence:run.savedMemory,request:run.savedMemoryRequest,draft:run.savedMemoryDraft,
-          proposal:store().proposal(scope,run.session,run.id)?.status,receipt,operation,
-          savedRecordStatus:receipt&&store().inspect(scope,receipt.memoryId).status,
-          records:run.savedMemory.admitted.map(item=>({id:item.id,revision:item.revision,...store().inspect(scope,item.id,item.revision)}))};
+          directive:run.directive,provenance:receipt&&savedRecordStatus!=='forgotten'?resolveProvenance(state,receipt):undefined,
+          proposal:memory.proposal(scope,run.session,run.id)?.status,receipt,operation,savedRecordStatus,
+          records:run.savedMemory.admitted.map(item=>{
+            const record=memory.inspect(scope,item.id,item.revision);
+            return {id:item.id,revision:item.revision,...record,
+              provenance:record.status==='available'?resolveProvenance(state,{...record.memory,scope}):undefined};
+          })};
       }
       const {session,pin,scope}=sessionFor(snapshot(),body.session);
       if(path==='/memory/session'){
-        const enabled=pinAllowsSavedMemory(pin);
+        const binding=directiveOf(pin);
+        const canPropose=binding.status==='bound';
+        const enabled=pinAllowsSavedMemory(pin)||canPropose;
         // Match the current actor/project/agent and this Session; never project
         // a pending store row without a corresponding, completed source turn.
         const snapshotForScope=snapshot();
@@ -107,7 +121,7 @@ export function createSavedMemoryHost({path,actor,project,fixture,snapshot,defin
           const proposal=proposals.get(run.id);
           const operation=run.savedMemoryRequest?.status==='proposed'?
             saveEvidence(scope,{session:session.id,activation:session.activation,run:run.id}):undefined;
-          if(proposal?.source.message===source){
+          if(proposal?.source.message===source&&(!proposal.directive||run.savedMemoryRequest?.status==='proposed')){
             const visible=proposal.status==='pending'&&run.status!=='completed'?
               {...proposal,status:'cancelled',text:undefined,operation:undefined}:proposal;
             const receipt=operation?.receipt;
@@ -118,19 +132,25 @@ export function createSavedMemoryHost({path,actor,project,fixture,snapshot,defin
           return feedback(run);
         });
         const latest=turns.find(turn=>turn.proposal);
-        return {status:'available',policy:enabled,records:memory.list(scope),turns,proposal:latest?.proposal,
+        const eligible=canPropose?runs.filter(run=>run.status==='completed'&&run.directive?.policyRevision===binding.revision):[];
+        const interpreting=eligible.filter(run=>run.directive.status==='pending').map(run=>run.id);
+        const manualRuns=eligible.filter(run=>run.directive.status!=='pending'&&!proposals.has(run.id)&&
+          Date.parse(run.started)+proposalLifetimeMs>Date.now()).map(run=>run.id);
+        return {status:'available',policy:enabled,canPropose,legacy:binding.status==='legacy',manualRuns,interpreting,records:memory.list(scope),turns,proposal:latest?.proposal,
           saved:latest?.saved,request:recent?.savedMemoryRequest,evidence:recent?.savedMemory};
       }
       if(!await access())throw error(403,'Saved memory access was denied. Nothing was changed.');
-      const stillAuthorized=()=>{
+      const stillAuthorized=(directiveRevision,recall=true)=>{
         if(!notRevoked()||turnActive())return false;
         try {
           const current=sessionFor(snapshot(),session.id);
-          return current.scope.key===scope.key&&current.session.activation===session.activation&&pinAllowsSavedMemory(current.pin);
+          return current.scope.key===scope.key&&current.session.activation===session.activation&&
+            (directiveRevision?directiveOf(current.pin).revision===directiveRevision:!recall||pinAllowsSavedMemory(current.pin));
         }catch{return false;}
       };
       if(path==='/memory/dismiss'||path==='/memory/stop'){
         if(!uuid(body.run))throw error(400,'Select a saved-memory proposal.');
+        if(path==='/memory/stop'&&stopInterpretation(session.id,body.run))return {status:'stopping'};
         const owned=saves.get(body.run);
         if(owned?.session===session.id&&owned.scope===scope.key){
           if(path==='/memory/dismiss')throw error(409,'Wait for the save result or stop the original save.');
@@ -145,7 +165,25 @@ export function createSavedMemoryHost({path,actor,project,fixture,snapshot,defin
         if(result.status==='not-found')asNotSaved(result);
         return result;
       }
-      if(!pinAllowsSavedMemory(pin))throw error(403,'Saved memory is off for this activation.');
+      if(!pinAllowsSavedMemory(pin)&&!proposalEnabled(pin))throw error(403,'Saved memory is off for this activation.');
+      if(path==='/memory/manual'){
+        const binding=directiveOf(pin);
+        if(binding.status!=='bound')throw error(403,'This activation has no available Directive.');
+        const state=snapshot(), current=sessionFor(state,session.id);
+        if(current.scope.key!==scope.key||directiveOf(current.pin).revision!==binding.revision||!notRevoked())
+          throw error(403,'The original Directive policy is unavailable.');
+        const run=state.runs.find(item=>item.id===body.run&&item.session===session.id&&item.savedMemoryScope===scope.key);
+        if(!run||run.status!=='completed'||run.activation!==session.activation||run.directive?.policyRevision!==binding.revision||
+          run.directive.status==='pending'||!current.session.messages.some(item=>item.id===run.id+'-user'))
+          throw error(409,'Choose a completed operator turn with an available Directive.');
+        const id=run.id+'-user';
+        const proposal=store().propose(scope,{session:session.id,activation:session.activation,run:run.id,source:id,
+          contextBasis:[id],text:body.text,expires:Date.parse(run.started)+proposalLifetimeMs,directiveRevision:binding.revision});
+        if(proposal?.status!=='pending')throw error(409,'Enter a nonblank memory for an eligible turn. The proposal may have expired.');
+        run.savedMemoryRequest={status:'proposed'};
+        storeState(state);
+        return {status:'proposed',proposal};
+      }
       if(!uuid(body.operation))throw error(400,'Invalid memory operation.');
       if(path==='/memory/check'){
         const run=snapshot().runs.find(item=>item.id===body.run&&item.session===session.id&&item.savedMemoryScope===scope.key);
@@ -154,11 +192,21 @@ export function createSavedMemoryHost({path,actor,project,fixture,snapshot,defin
         if(status.status==='not-found')asNotSaved(status);
         return status;
       }
-      if(path==='/memory/confirm'){
+      if(path==='/memory/revise'||path==='/memory/confirm'){
         const run=snapshot().runs.find(item=>item.id===body.run&&item.session===session.id&&item.savedMemoryScope===scope.key);
         if(!run||run.status!=='completed'||run.savedMemoryRequest?.status!=='proposed')
           throw error(404,'No confirmable memory proposal was found for this turn.');
-        const grant={confirmed:true,session:session.id,activation:session.activation,run:run.id,operation:body.operation};
+        const directiveRevision=run.directive?store().directiveReview(scope,session.id,run.id)?.policyRevision:undefined;
+        if(run.directive&&(!directiveRevision||run.directive.policyRevision!==directiveRevision||directiveOf(pin).revision!==directiveRevision))
+          throw error(403,'The original Directive policy is unavailable.');
+        const authorized=()=>stillAuthorized(directiveRevision);
+        const grant={confirmed:true,session:session.id,activation:session.activation,run:run.id,operation:body.operation,
+          ...(directiveRevision?{revision:body.revision}:{})};
+        if(path==='/memory/revise'){
+          if(!directiveRevision)throw error(404,'This proposal does not have a Directive review revision.');
+          if(!authorized())throw error(409,'Wait for the current turn or reopen the available proposal.');
+          return asNotSaved(store().reviseProposal(scope,{...grant,text:body.text}));
+        }
         if(runBusy()){
           // A committed receipt can be read without acquiring a write slot.
           // Still require the original scope, operation and exact payload.
@@ -170,17 +218,18 @@ export function createSavedMemoryHost({path,actor,project,fixture,snapshot,defin
         let owner, result;
         try{
           const memory=store();
-          result=memory.reserveSave(scope,{...grant,text:body.text,stillAuthorized});
+          result=memory.reserveSave(scope,{...grant,text:body.text,stillAuthorized:authorized});
           if(result.status==='reserved'){
             owner={operation:grant.operation,session:session.id,scope:scope.key,stop};
             saves.set(run.id,owner);
             // Only isolated deterministic hosts can pause or fault here.
             await fault?.('reserved',grant,stop.signal);
-            const capability=gatedMemorySave(memory,scope,{...grant,beforeCommit:fault?()=>fault('before-commit',grant,stop.signal):undefined},stillAuthorized);
+            if(!await access())throw error(403,'Saved memory access was denied. Nothing was changed.');
+            const capability=gatedMemorySave(memory,scope,{...grant,beforeCommit:fault?()=>fault('before-commit',grant,stop.signal):undefined},authorized);
             result=await capability({text:body.text},{victActorId:actor,victTurnId:run.id,victIdempotencyKey:body.operation,signal:stop.signal});
             if(result.status==='saved')await fault?.('committed',grant,stop.signal);
           }
-        }catch{
+        }catch(cause){
           if(owner){
             saves.delete(run.id);
             const observed=saveEvidence(scope,grant,true);
@@ -188,6 +237,7 @@ export function createSavedMemoryHost({path,actor,project,fixture,snapshot,defin
             if(observed.status==='uncertain')asNotSaved(observed);
             if(stop.signal.aborted)asNotSaved(store().withdraw(scope,session.id,run.id,'cancelled'));
           }
+          if(cause.status===403)throw cause;
           throw error(503,'Studio could not confirm this save. Check the original operation before confirming again.');
         }finally{if(saves.get(run.id)===owner)saves.delete(run.id);}
         return operationView(scope,result);
@@ -197,7 +247,7 @@ export function createSavedMemoryHost({path,actor,project,fixture,snapshot,defin
         if(!uuid(body.id))throw error(400,'Select a memory to change.');
         let result;
         try{result=store().change(scope,{action:path.slice('/memory/'.length),id:body.id,session:session.id,
-          expectedRevision:body.revision,operation:body.operation,text:body.text,stillAuthorized});}
+          expectedRevision:body.revision,operation:body.operation,text:body.text,stillAuthorized:()=>stillAuthorized(undefined,false)});}
         catch{throw error(503,'Studio could not confirm this change. Retry to check for a committed receipt.');}
         return operationView(scope,result);
       }

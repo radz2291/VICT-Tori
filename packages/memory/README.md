@@ -6,4 +6,6 @@ SQLite `user_version = 1` adds record-header fields `derivedFrom: string[]` and 
 
 Future compaction requires a governed, receipted and reversible host operation: its result records the source record IDs in `derivedFrom`, and each source links to the result through `compactedInto`. This contract reserves representation only.
 
+SQLite schema 2 preserves the save reservation and reconciliation ledger. Schema 3 adds `directive_reviews` for the exact Directive policy and proposal review revisions. Legacy proposals keep their original fingerprints and receipts. For Directive proposals, revision and text must match at reservation and commit. The existing transaction commits the reusable revision, receipt and settled operation together. Proposal and receipt APIs retain source references while the underlying transcript follows its own lifecycle.
+
 The canonical Memory Policy resolves `organizer: off`. The public package policy export resolves `tori.memory-policy@1` from the installed VICT memory policy artifact reference in an activation. Legacy history-only and governed references retain their identity and their prior saved-memory posture; both resolve organizer off. This field is not a VICT memory config key, is not exposed as a control and adds no organizer execution.

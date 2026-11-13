@@ -7,9 +7,10 @@
   import SavedMemoryPolicy from './SavedMemoryPolicy.svelte';
   import ModelSampling from './ModelSampling.svelte';
   import ExecutionLimits from './ExecutionLimits.svelte';
+  import DirectiveFields from './DirectiveFields.svelte';
   import { childRef, childName, delegateGrant, childTask, childResult, taskLengthLimit } from './delegation-fixture.mjs';
   let {graph,route,id,location='',childRevisions=[],pinnedChild,edit,disconnect,reveal,
-    openDefinition,canOpenDefinition,fixture,configure,section,hostDeadlineMs}=$props();
+    openDefinition,canOpenDefinition,fixture,configure,section,hostDeadlineMs,pinnedDirective}=$props();
   let base=$derived(location?location+'-settings':'settings');
   let prefix=$derived(base+'-'+id);
   let name=$derived(String(field(graph,rootId,'name')??''));
@@ -22,7 +23,8 @@
   const capabilityLabel=(capability:{id:string;label:string})=>capability.id==='tool'&&(!fixture||(field(graph,'tool','reference')??'local-reference@1')!=='local-reference@1')?'Read-only Tool':capability.label;
   let childChoices=$derived([...(fixture||field(graph,'child','reference')==='reference-reviewer@1'?choices.child:[]),...childRevisions.map(item=>({value:'saved:'+item.id,label:item.name+' · r'+item.number}))]);
   let modelWire=$derived(binding(graph,'model'));
-  let existingCapabilities=$derived(agentResources.filter(item=>['context','tool','child','authoring'].includes(item.id)&&binding(graph,item.id)));
+  let existingCapabilities=$derived(agentResources.filter(item=>['context','tool','child','authoring','directive'].includes(item.id)&&
+    (binding(graph,item.id)||(item.id==='directive'&&graph.nodes.some(node=>node.id===item.id)))));
   let availableCapabilities=$derived(agentResources
     .filter(item=>['context','tool','child','authoring'].includes(item.id)&&!existingCapabilities.includes(item)&&(item.id!=='child'||fixture||childRevisions.length>0))
     .map(item=>({value:item.id,label:capabilityLabel(item)})));
@@ -80,6 +82,10 @@
       {/if}
     </div>
   </section>
+  {#if !graph.nodes.some(node=>node.id==='directive')}
+    <div class="configure-remove"><Button label="Add Directive" variant="secondary"
+      onclick={()=>{if(configure('directive','','',false))void reveal('directive');}}/></div>
+  {/if}
   <section aria-label="Advanced settings">
     <h2 class="configure-heading">Advanced</h2>
     <div class="configure-group configure-advanced-fields">
@@ -99,6 +105,8 @@
   <ModelSampling {graph} {route} {edit} {prefix}/>
 {:else if section==='configure' && id===tokenSourceId}
   {@render outputLimit(tokenSourceId)}
+{:else if section==='configure' && id==='directive'}
+  <DirectiveFields {graph} {prefix} {edit} {configure} {disconnect} active={pinnedDirective}/>
 {:else if section==='configure' && resource}
   <div class="configure-setting">
     <label for={prefix+'-reference'}>{id==='context'?'Source revision':capabilityLabel(resource)}</label>

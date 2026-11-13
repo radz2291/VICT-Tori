@@ -13,6 +13,10 @@ import { withCompleteScopedThreadReads } from './mastra-session-store.mjs';
 import { createSavedMemoryHost, emptyAdmission, pinnedMemoryPolicy, pinAllowsSavedMemory } from './saved-memory.mjs';
 import { draftContext, draftInstructions, governedPolicy, memoryIntent, parseMemoryDraft, proposalLifetimeMs } from '../packages/memory/index.mjs';
 import { effectiveMemoryPolicy, memoryArtifact, organizerOff } from '../packages/memory/policy.mjs';
+import { baseMemoryReference, directivePolicy, directiveReference, directiveRevision, resolveDirective, withDirectiveReference } from '../packages/directive/activation.mjs';
+import { directiveInput, directiveRules } from '../packages/directive/policy.mjs';
+import { interpretDirective, settleWithSignal } from './directive-interpreter.mjs';
+import { mastraRetention } from './retention.mjs';
 import { validateAgentStreamEvent } from '@victframework/contracts';
 import { randomUUID } from 'node:crypto';
 import { readFileSync, mkdirSync } from 'node:fs';
@@ -22,7 +26,7 @@ import { DatabaseSync } from 'node:sqlite';
 import { createOpenAICompatible } from '@ai-sdk/openai-compatible';
 import { APICallError } from '@ai-sdk/provider';
 import { AgentStreamHub, ConversationDeletionCoordinator, AgentProfileRegistry, authenticatedActorContext, pinAgentTurnRunner, validateAgentActivationRecord } from '@victframework/runtime';
-import { createGovernedMemoryDeletionPort, fenceCompletedDeletions, createDedicatedMastraStore, MastraProductAgent, MastraThreadCoordinator, mastraThreadIdForConversation, sanitizeCapabilityToolName, MASTRA_ADAPTER_COMPATIBILITY } from '@victframework/mastra';
+import { createGovernedMemoryDeletionPort, fenceCompletedDeletions, createDedicatedMastraStore, executeMemoryPrune, MastraProductAgent, MastraThreadCoordinator, mastraThreadIdForConversation, sanitizeCapabilityToolName, MASTRA_ADAPTER_COMPATIBILITY } from '@victframework/mastra';
 
 const provider='zai';
 const model='glm-5.3-flash';
@@ -62,9 +66,19 @@ const toolReference=binding=>binding==='local-reference@1'?toolRef:registeredToo
 const budget=({maxSteps,maxToolCalls,maxRetries})=>({maxSteps,maxToolCalls,maxRetries});
 const memoryWindow=memory=>memory==='recent-10@1'?10:100;
 const ref=({id,revision})=>({id,revision});
-function registerProfile(registry,artifacts,revision,value,route,subagent,delegate=delegationRef) {
+const memoryReferenceOf=pin=>pin?.record?.artifacts?.find(item=>item.kind==='memory-policy');
+const directiveOf=pin=>{
+  if(!validateAgentActivationRecord(pin?.record).ok)return {status:'unavailable'};
+  return resolveDirective(pin,memoryReferenceOf(pin),model,pin.route,proposalLifetimeMs);
+};
+const directiveSummary=pin=>{
+  const binding=directiveOf(pin);
+  return binding.status==='bound'?{status:binding.status,revision:binding.revision,policy:binding.policy}:{status:binding.status};
+};
+function registerProfile(registry,artifacts,revision,value,route,subagent,delegate=delegationRef,directivePin) {
   const instructionRef={id:'tori-instructions',revision:revision.id};
-  const memoryRef=memoryArtifact(value.memory,value.savedMemory);
+  const memoryBase=memoryArtifact(value.memory,value.savedMemory);
+  const memoryRef=directivePin===undefined?memoryBase:withDirectiveReference(memoryBase,directivePin);
   const required=[
     {kind:'instructions',...instructionRef,text:value.instructions},
     {kind:'memory-policy',...memoryRef,config:{lastMessages:memoryWindow(value.memory),workingMemory:{enabled:false},semanticRecall:false}},
@@ -91,13 +105,13 @@ function registerProfile(registry,artifacts,revision,value,route,subagent,delega
     adapter:MASTRA_ADAPTER_COMPATIBILITY});
   return memoryRef;
 }
-function activationFor(revision,value,route,record,delegated,savedDelegation) {
+function activationFor(revision,value,route,record,delegated,savedDelegation,directivePin,childDirectivePin) {
   if(value.organizer!==undefined&&value.organizer!==organizerOff)throw conflict('Unsupported memory organizer posture.');
   const registry=new AgentProfileRegistry({resolveCapabilityRevision:(id,rev)=>[toolRef,delegationRef,savedDelegationRef,...authoringRefs,...workspaceRefs,...registeredTools].some(ref=>id===ref.id&&rev===ref.revision)});
   const reference=delegated?profileRef(delegated.revision):value.child?childRef:undefined;
   const artifacts=new Set();
-  const memoryPolicy=registerProfile(registry,artifacts,revision,value,route,reference,savedDelegation?savedDelegationRef:delegationRef);
-  if(delegated)registerProfile(registry,artifacts,delegated.revision,delegated.value,route);
+  const memoryPolicy=registerProfile(registry,artifacts,revision,value,route,reference,savedDelegation?savedDelegationRef:delegationRef,directivePin);
+  if(delegated)registerProfile(registry,artifacts,delegated.revision,delegated.value,route,undefined,undefined,childDirectivePin);
   const child=delegated?registry.activateAgentProfile(reference):
     reference?registerChild(registry,{memoryPolicy},MASTRA_ADAPTER_COMPATIBILITY):undefined;
   if(!record)return {activation:registry.activateAgentProfile(profileRef(revision)),child};
@@ -165,6 +179,7 @@ function providerModel(key, route, evidence, settings) {
       evidence.code=undefined;
       evidence.sentTemperature=body.temperature;
       evidence.sentTopP=body.top_p;
+      if(body.reasoning_effort)evidence.sentReasoningEffort=body.reasoning_effort;
       let reply;
       try {
         reply=await fetch(url,{...init,body:JSON.stringify(body),headers,redirect:'error'});
@@ -192,6 +207,11 @@ function providerModel(key, route, evidence, settings) {
   }).chatModel(model);
 }
 
+export function directiveModel(key, policy, evidence) {
+  if(policy.model!==model||policy.route!=='coding')throw conflict('The pinned Directive model is unavailable.');
+  return providerModel(key,policy.route,evidence,{maxRetries:0,maxToolCalls:0});
+}
+
 const memoryReplyGuide='Reply naturally in character to the substance of the current message. Do not discuss a memory proposal, a save, a dismissal, or a reminder workflow. Never claim that this request saved, updated, forgot, or scheduled anything, or promise to remember it later. The Studio handles those actions separately.';
 // A one-attempt, tool-free drafting request. It never enters the Mastra
 // thread, sees saved memory, or receives the character's message history.
@@ -216,11 +236,12 @@ async function requestMemoryDraft(key,route,evidence,draft,input,signal) {
 }
 
 const maxHostDeadlineMs=90000;
-export function createStudio({getAssembly,dataDirectory,turnDeadlineMs=maxHostDeadlineMs,contextReader,memoryFixture,backgroundFixture}) {
+export function createStudio({getAssembly,dataDirectory,turnDeadlineMs=maxHostDeadlineMs,contextReader,memoryFixture,
+  backgroundFixture,directiveFixture,retention=mastraRetention()}) {
   if(!Number.isInteger(turnDeadlineMs)||turnDeadlineMs<1||turnDeadlineMs>maxHostDeadlineMs)throw new Error('Invalid Studio turn deadline.');
   const fixture=process.env.TORI_EXECUTION_FIXTURE==='a1-request-capture' &&
     process.env.TORI_ZAI_API_KEY==='synthetic-a1-fixture' ? 'a1-request-capture' : undefined;
-  if((memoryFixture||backgroundFixture)&&!fixture)throw new Error('Fault injection requires the deterministic fixture host.');
+  if((memoryFixture||backgroundFixture||directiveFixture)&&!fixture)throw new Error('Fault injection requires the deterministic fixture host.');
   const dir=resolve(dataDirectory);mkdirSync(dir,{recursive:true});
   // Keep a process-scoped SQLite lock for this store. A second host must not
   // mistake the first host's active Run for an orphan during startup.
@@ -245,14 +266,24 @@ export function createStudio({getAssembly,dataDirectory,turnDeadlineMs=maxHostDe
   }
   const hostOwner=randomUUID();
   let activeTurn, startup;
-  let storage,sessionStore;
+  const interpretations=new Map();
+  const directiveClock=directiveFixture?.clock??Date.now;
+  const directiveTimeout=directiveFixture?.timeout??(ms=>AbortSignal.timeout(ms));
+  let storage,sessionStore,openingStorage,pruned;
   const threads=new MastraThreadCoordinator();
   let controlStores, governanceStore, lifecycle, recovered;
   const controls=()=>controlStores??=createSqliteAgentControlStores({path:join(dir,'a3-control.sqlite')});
   const runHub=()=>new AgentStreamHub({ledger:controls().streamLedger});
   const recover=()=>startup??=(async()=>{
     const state=snapshot();
-    if(state.runs.some(run=>run.status==='running')&&await recoverRunRecords(state,controls(),authoringTransport))store(state);
+    let changed=false;
+    if(state.runs.some(run=>run.status==='running'))changed=await recoverRunRecords(state,controls(),authoringTransport);
+    for(const run of state.runs.filter(item=>item.directive?.status==='pending')){
+      run.directive={...run.directive,status:'interrupted',reason:'host-restarted',completedAt:directiveClock()};
+      memories.abandonDirective(state,run);
+      changed=true;
+    }
+    if(changed)store(state);
   })();
   async function localRunActor(scope) {
     const actors=controls().actors;
@@ -275,7 +306,13 @@ export function createStudio({getAssembly,dataDirectory,turnDeadlineMs=maxHostDe
       throw new StudioError(404,'This Run is not available in the selected Session and revision.');
   }
   const openMemory=async()=>{
-    storage??=await createDedicatedMastraStore({dataDir:dir,retention:{messagesMaxAgeMs:2592000000,threadsMaxAgeMs:2592000000,spansMaxAgeMs:86400000}});
+    openingStorage??=(async()=>{
+      const opened=await createDedicatedMastraStore({dataDir:dir,retention});
+      try{pruned=await executeMemoryPrune({store:opened.store,retention,now:directiveFixture?.pruneClock});}
+      catch(error){await opened.close();throw error;}
+      return opened;
+    })().catch(error=>{openingStorage=undefined;throw error;});
+    storage??=await openingStorage;
     sessionStore??=withCompleteScopedThreadReads(storage.store);
     controls();
     governanceStore??=createSqliteAgentGovernanceStore({path:join(dir,'a3-memory-governance.sqlite')});
@@ -299,6 +336,7 @@ export function createStudio({getAssembly,dataDirectory,turnDeadlineMs=maxHostDe
   };
   const memories=createSavedMemoryHost({path:join(dir,'saved-memory.sqlite'),actor:memoryFixture?.actor??actor,
     project:memoryFixture?.project,fixture,snapshot,definitionOf,turnActive:()=>!!activeTurn,fault:backgroundFixture?.memory,
+    directiveOf,stopInterpretation,storeState:store,resolveProvenance,
     async actorAllowed(identity){
       try {
         // The local Studio operator has a host-owned identity. Never recreate a suspended actor.
@@ -313,6 +351,17 @@ export function createStudio({getAssembly,dataDirectory,turnDeadlineMs=maxHostDe
       }catch{return false;}
     },
   });
+  function resolveProvenance(state,receipt) {
+    // Receipt IDs refer to Studio's application transcript, which the
+    // separate Mastra store's retention does not rewrite.
+    const session=state.sessions.find(item=>item.id===receipt.source.session&&item.fixture===fixture&&!item.authoring);
+    const pin=state.activations.find(item=>item.record.activationVersion===session?.activation);
+    const permitted=!!pin&&definitionOf(pin)===receipt.scope.agent;
+    const ids=[...new Set([receipt.source.message,...receipt.contextBasis])];
+    return {source:'studio-transcript',messages:ids.map(id=>({
+      id,status:permitted&&session.messages.some(message=>message.id===id)?'available':'unavailable',
+    }))};
+  }
   const projection=(state,definition,assembly)=>{
     const saved=newest(state.drafts,definition);const active=newest(state.activations,definition);
     const graphsByRevision=new Map(state.drafts.map(revision=>[revision.id,revision.graph]));
@@ -322,11 +371,11 @@ export function createStudio({getAssembly,dataDirectory,turnDeadlineMs=maxHostDe
       return {
         definition:definitionOf(entry),version:entry.record.activationVersion,revision:entry.revision,
         number:entry.number,name:entry.name,route:entry.route,authoring:!!entry.authoring,workspaceAuthoring:!!entry.workspaceAuthoring,childRevision:entry.childRevision,
-        savedMemory:pinAllowsSavedMemory(entry),memoryPolicy:pinnedMemoryPolicy(entry),
+        savedMemory:pinAllowsSavedMemory(entry),memoryPolicy:pinnedMemoryPolicy(entry),directive:directiveSummary(entry),
         ...(graph?{execution:budget(assembly.executionSettings(graph))}:{}),
       };
     };
-    const sessionDefinitions=new Map(state.activations.map(activation=>[activation.record.activationVersion,definitionOf(activation)]));
+    const sessionPins=new Map(state.activations.map(activation=>[activation.record.activationVersion,activation]));
     const definitions=[defaultDefinition,...(state.definitions??[])].map(id=>{
       const latest=newest(state.drafts,id);
       const draft=latest?.graph??state.workingAssemblies?.[id]?.graph;
@@ -359,7 +408,7 @@ export function createStudio({getAssembly,dataDirectory,turnDeadlineMs=maxHostDe
         ...(test?.status==='completed'?{testRun:test.id}:{}),
       });
     }
-    return {workspace:state.workspace,definition,definitions,activeAgents,authoringChats:[...authoringChats.values()],hostDeadlineMs:turnDeadlineMs,fixture:!!fixture,childRevisions:state.drafts.filter(d=>definitionOf(d)!==definition).map(d=>({
+    return {workspace:state.workspace,definition,definitions,activeAgents,authoringChats:[...authoringChats.values()],hostDeadlineMs:turnDeadlineMs,retention,retentionPrune:pruned,fixture:!!fixture,childRevisions:state.drafts.filter(d=>definitionOf(d)!==definition).map(d=>({
       id:d.id,definition:definitionOf(d),number:d.number,context:d.graph.nodes.find(node=>node.id==='context'&&d.graph.edges.some(edge=>edge.source===node.id))?.values.reference,
       tool:d.graph.edges.some(edge=>edge.targetPort==='tool'),name:d.graph.nodes.find(node=>node.id==='agent')?.values.name||'Untitled agent',
     })),workingAssembly:saved?undefined:state.workingAssemblies?.[definition],graph:saved?.graph??null,revision:saved&&{id:saved.id,number:saved.number},
@@ -369,7 +418,8 @@ export function createStudio({getAssembly,dataDirectory,turnDeadlineMs=maxHostDe
         const excerpt=firstMessage?.trim().replace(/\s+/gu,' ')??'';
         const characters=Array.from(excerpt);
         const title=s.title||(characters.length>80?characters.slice(0,79).join('')+'…':excerpt)||'New Session';
-        return {...s,title,lastActivityAt:activity.get(s.id)??s.created,definition:sessionDefinitions.get(s.activation),
+        const pin=sessionPins.get(s.activation);
+        return {...s,directive:directiveSummary(pin),title,lastActivityAt:activity.get(s.id)??s.created,definition:pin&&definitionOf(pin),
           connectionReady:s.fixture===fixture&&!!credential(s.route??'general'),archivedFixture:!!s.fixture&&s.fixture!==fixture};
       }),runs:state.runs.map(({authoringRequest,observation,startRequest,...run})=>{
       run.state=runState(run);
@@ -423,12 +473,18 @@ export function createStudio({getAssembly,dataDirectory,turnDeadlineMs=maxHostDe
   function activateDefinition(state,definition,route,{saved,value,delegated}) {
     const current=newest(state.activations,definition);
     if(current?.revision===saved.id&&current.route===route)return current;
-    const {activation,child}=activationFor(saved,value,route,undefined,delegated,!!delegated);
+    const historic=directiveFixture?.historicalActivation===true;
+    const directive=historic?undefined:directivePolicy(value.directive,model,route,proposalLifetimeMs);
+    const childEntry=delegated&&state.activations.find(item=>item.revision===delegated.revision.id&&item.route===route);
+    const childDirectivePin=!delegated||historic?undefined:childEntry?directiveReference(memoryReferenceOf(childEntry)):
+      directiveRevision(directivePolicy(delegated.value.directive,model,route,proposalLifetimeMs));
+    const {activation,child}=activationFor(saved,value,route,undefined,delegated,!!delegated,
+      historic?undefined:directiveRevision(directive),childDirectivePin);
     const record={recordSchema:'vict.agent-activation-record@1',activationVersion:activation.activationVersion,
       agentProfileVersion:activation.agentProfileVersion,agentId:definition,agentRevision:saved.id,
       canonicalManifest:activation.canonicalManifestJson,artifacts:activation.artifactList,createdAt:activation.createdAt};
     if(!validateAgentActivationRecord(record).ok)throw conflict('VICT rejected the activation record.');
-    const entry={record,route,definition,childRevision:delegated?.revision.id,savedDelegation:!!delegated,childContext:delegated?.contextPolicy??null,
+    const entry={record,route,definition,directive,childDirectivePin,childRevision:delegated?.revision.id,savedDelegation:!!delegated,childContext:delegated?.contextPolicy??null,
       context:value.context,contextPolicy:contextPolicy(value.context),memory:value.memory,authoring:!!value.authoring,
       workspaceAuthoring:workspaceAuthoring(value),tool:value.tool?toolReference(value.tool):undefined,child:child?.activationVersion,
       output:value.output?outputRef:undefined,revision:saved.id,number:saved.number,name:value.name};
@@ -453,6 +509,79 @@ export function createStudio({getAssembly,dataDirectory,turnDeadlineMs=maxHostDe
     const state=snapshot();
     putRun(state,run);
     store(state);
+  }
+  function stopInterpretation(session,run) {
+    const job=interpretations.get(run);
+    if(!job||job.session!==session)return false;
+    job.stop.abort();
+    return true;
+  }
+  function startInterpretation({run,scope,directive,key,input}) {
+    const {policy,revision}=directive;
+    const deadlineAt=run.directive.acceptedAt+policy.deadlineMs;
+    const remaining=deadlineAt-directiveClock();
+    const stop=new AbortController();
+    const expiry=directiveTimeout(Math.max(0,remaining));
+    const signal=AbortSignal.any([stop.signal,expiry]);
+    const job={session:run.session,stop};
+    const evidence={providerAttempts:0,modelSteps:0,finish:null,usage:null,observedModel:null};
+    const pinStillAvailable=state=>{
+      const session=state.sessions.find(item=>item.id===run.session&&item.activation===run.activation&&item.fixture===fixture);
+      const pin=state.activations.find(item=>item.record.activationVersion===session?.activation);
+      return !!pin&&definitionOf(pin)===scope.agent&&directiveOf(pin).revision===revision;
+    };
+    interpretations.set(run.id,job);
+    const timedOut=()=>remaining<=0||expiry.aborted||directiveClock()>=deadlineAt;
+    const cancelled=()=>stop.signal.aborted||interpretations.get(run.id)!==job;
+    const stoppedResult=()=>cancelled()?{kind:'cancelled',reason:'stopped'}:{kind:'timeout',reason:'deadline'};
+    job.done=(async()=>{
+      let result;
+      try{
+        if(signal.aborted||timedOut())result=stoppedResult();
+        else if(!pinStillAvailable(snapshot())||!await settleWithSignal(memories.access(),signal))result={kind:'denied',reason:'access-denied'};
+        else {
+          const client=directiveModel(key,policy,evidence);
+          result=await settleWithSignal(interpretDirective(client,policy,input,signal,evidence,directiveClock),signal);
+        }
+      }catch{
+        result=signal.aborted||timedOut()?stoppedResult():{kind:'unavailable',reason:'draft-failed'};
+      }
+      const allowed=result.kind==='proposal'&&await settleWithSignal(memories.access(),signal).catch(()=>false);
+      const state=snapshot();
+      const current=state.runs.find(item=>item.id===run.id&&item.directive?.status==='pending');
+      if(!current||!state.sessions.some(item=>item.id===run.session))return;
+      if(signal.aborted||timedOut()||cancelled())result=stoppedResult();
+      if(result.kind==='proposal'){
+        if(!allowed||!pinStillAvailable(state))result={kind:'denied',reason:'access-denied'};
+        else {
+          const source=run.id+'-user';
+          const basis=result.basis.map(id=>id===input.current.id?source:id);
+          const proposal=memories.propose(scope,{session:run.session,activation:run.activation,run:run.id,source,
+            contextBasis:basis,text:result.draft,expires:run.directive.acceptedAt+proposalLifetimeMs,directiveRevision:revision});
+          if(proposal?.status==='pending')current.savedMemoryRequest={status:'proposed'};
+          else result={kind:'unavailable',reason:'storage-unavailable'};
+        }
+      }
+      if(result.kind==='clarify')current.savedMemoryRequest={status:'not-saved',feedback:true,
+        reason:input.truncated?'context-unavailable':'clarification-needed'};
+      if(result.kind==='proposal')current.directive.sourceCount=result.basis.length;
+      current.directive={...current.directive,status:result.kind,reason:result.reason,
+        dispatchedAt:evidence.dispatchedAt,completedAt:directiveClock(),firstPublicTextAt:evidence.firstPublicTextAt,
+        providerAttempts:evidence.providerAttempts,http:evidence.http,observedModel:evidence.observedModel,
+        sentOutputTokens:evidence.sentMaxOutputTokens,reasoningEffort:evidence.sentReasoningEffort,finish:evidence.finish,usage:evidence.usage};
+      store(state);
+    })().catch(()=>{
+      const state=snapshot();
+      const current=state.runs.find(item=>item.id===run.id&&item.directive?.status==='pending');
+      if(current){
+        memories.abandonDirective(state,current);
+        current.directive={...current.directive,status:'unavailable',reason:'storage-unavailable',completedAt:directiveClock()};
+        store(state);
+      }
+    }).finally(()=>{if(interpretations.get(run.id)===job)interpretations.delete(run.id);});
+    // A durable pending marker is settled without replay on the next startup
+    // if storage failed while recording this result.
+    void job.done.catch(()=>{});
   }
   function scriptEvidence(run,receipt) {
     (run.scriptReceipts??=[]).push(receipt);
@@ -571,6 +700,7 @@ export function createStudio({getAssembly,dataDirectory,turnDeadlineMs=maxHostDe
         activeTurn.stop.abort();
         return {status:'stopping'};
       }
+      if(stopInterpretation(input.session,input.run))return {status:'stopping'};
       // The provider may finish while the browser still awaits the turn reply.
       // Stop still revokes the exact pending proposal, never a different turn.
       try{return await memories.handle('/memory/stop',input);}
@@ -636,6 +766,7 @@ export function createStudio({getAssembly,dataDirectory,turnDeadlineMs=maxHostDe
       const session=state.sessions.find(item=>item.id===input.session);
       activeTurn={session:session.id};
       try{
+        for(const job of interpretations.values())if(job.session===session.id)job.stop.abort();
         await openMemory();
         memories.cancelSession(snapshot(),session.id);
         const deletion=await lifecycle.deleteConversation({conversationId:session.id,actorId:actor});
@@ -688,7 +819,8 @@ export function createStudio({getAssembly,dataDirectory,turnDeadlineMs=maxHostDe
     const route=pin.route??'general';
     const delegated=resolveChild(state,assembly,value.child,pin.childContext??null,revision,route);
     if(delegated?.revision.id!==pin.childRevision)throw conflict('The pinned child revision could not be restored.');
-    const {activation,child}=activationFor(revision,value,route,pin.record,delegated,pin.savedDelegation);
+    const {activation,child}=activationFor(revision,value,route,pin.record,delegated,pin.savedDelegation,
+      directiveReference(memoryReferenceOf(pin)),pin.childDirectivePin);
     if(child?.activationVersion!==pin.child)throw conflict('The pinned child activation could not be restored.');
     const target=input.draftTarget;
     const workspace=workspaceAuthoring(value);
@@ -718,6 +850,7 @@ export function createStudio({getAssembly,dataDirectory,turnDeadlineMs=maxHostDe
     const {turnPolicy,generation}=activation.profile.profile;
     const execution={maxSteps:turnPolicy.maxSteps,maxRetries:generation.maxRetries,maxToolCalls:turnPolicy.maxToolCalls,deadlineMs:turnDeadlineMs,
       temperature:value.temperature,topP:value.topP};
+    const acceptedAt=directiveClock();
     const run={id:randomUUID(),session:session.id,activation:session.activation,revision:revision.id,number:revision.number,name:session.name,
       memory:pin.memory??'recent-100@1',
       provider,model,route:pin.route??'general',tokens:value.tokens,outputContract:pin.output,execution,ownerId:hostOwner,started:now(),status:'running',events:[],...(fixture?{fixture}:{})};
@@ -728,9 +861,15 @@ export function createStudio({getAssembly,dataDirectory,turnDeadlineMs=maxHostDe
     const authoringHistory=authoringDock?{input:text,messages:savedAuthoringHistory(state,session,memoryWindow(value.memory))}:undefined;
     const direct=!nested&&!value.authoring;
     const source={id:run.id+'-user',role:'user',text};
-    const memoryEnabled=direct&&pinAllowsSavedMemory(pin)&&effectiveMemoryPolicy(activation.memoryPolicy.artifact)?.savedMemory===governedPolicy;
+    const memoryEnabled=direct&&pinAllowsSavedMemory(pin)&&effectiveMemoryPolicy(baseMemoryReference(activation.memoryPolicy.artifact))?.savedMemory===governedPolicy;
     const scope=direct?memories.scopeFor(state,definitionOf(pin)):undefined;
-    const intent=direct?memoryIntent(text,'operator'):{kind:'ordinary'};
+    const directive=direct?directiveOf(pin):{status:'off'};
+    const intent=directive.status==='legacy'?memoryIntent(text,'operator'):{kind:'ordinary'};
+    const interpretation=directive.status==='bound'?directiveInput(session.messages,{id:'current',text},directive.policy.historyBytes):undefined;
+    if(interpretation)run.directive={status:'pending',acceptedAt,binding:directiveRules.binding,contextTruncated:interpretation.truncated,
+      historyUsedBytes:Buffer.byteLength(JSON.stringify(interpretation.history),'utf8'),
+      policyRevision:directive.revision,historyBytes:directive.policy.historyBytes,deadlineMs:directive.policy.deadlineMs,
+      outputTokens:directive.policy.outputTokens,model,route,finish:null,usage:null};
     const memoryOnly=intent.kind==='explicit'||intent.kind==='ambiguous';
     const memoryDraft=memoryEnabled&&intent.kind==='explicit'&&!pin.output
       ?draftContext(session.messages,source,intent.contextual):undefined;
@@ -993,6 +1132,7 @@ export function createStudio({getAssembly,dataDirectory,turnDeadlineMs=maxHostDe
       session.interrupted=true;
     }
     if(memoryDraft&&run.status!=='completed')run.savedMemoryRequest={status:'not-saved',feedback:true,reason:deadline.aborted?'cancelled':'draft-failed'};
+    if(interpretation&&run.status!=='completed')run.directive={...run.directive,status:'cancelled',reason:'originating-turn-unavailable',completedAt:directiveClock()};
     run.providerAttempts=evidence.providerAttempts;
     if(pin.tool||pin.child||draftTurn)run.modelSteps=evidence.modelSteps;
     run.sentTemperature=evidence.sentTemperature;
@@ -1010,10 +1150,14 @@ export function createStudio({getAssembly,dataDirectory,turnDeadlineMs=maxHostDe
       if(nested)nested.owner.testing=undefined;
       else activeTurn=undefined;
     }
+    if(interpretation&&run.status==='completed')startInterpretation({run,scope,directive,key,input:interpretation});
     return nested?{testRun:run.id}:projection(latest,definition,assembly);
   }
   return {dispatch,close:async()=>{
-    try{await storage?.close();controlStores?.close();governanceStore?.close();memories.close();db.close();}
+    const jobs=[...interpretations.values()];
+    for(const job of jobs)job.stop.abort();
+    await Promise.allSettled(jobs.map(job=>job.done));
+    try{await (storage??await openingStorage?.catch(()=>undefined))?.close();controlStores?.close();governanceStore?.close();memories.close();db.close();}
     finally{ownerLock.close();}
   }};
 }

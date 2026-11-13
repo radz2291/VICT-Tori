@@ -1,0 +1,11 @@
+{
+  "name": "@tori-studio/directive",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./policy.mjs",
+    "./activation": "./activation.mjs"
+  },
+  "files": ["policy.mjs", "activation.mjs"]
+}

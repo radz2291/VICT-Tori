@@ -1,12 +1,13 @@
 <script lang="ts">
   import { tick } from 'svelte';
-  import { Button, Feedback, StatusBadge } from '@victframework/ui-svelte';
+  import { Button, Feedback, Select, StatusBadge } from '@victframework/ui-svelte';
   import { Dialog, Label } from '@victframework/ui-svelte/primitives';
   import { Textarea } from '@victframework/ui-ai-svelte';
   import { memoryAge, memoryDate, memoryReasons, type MemoryTurn } from './memory-display';
-  let {view,mode,act,sessionId,turn,busyTurn}:{
+  let {view,mode,act,sessionId,turn,busyTurn,messages=[]}:{
     view:any; mode:'card'|'list'; sessionId:string; turn?:MemoryTurn; busyTurn:boolean;
     act:(path:string,body:any,sessionId:string)=>Promise<any>;
+    messages?:{id:string;text:string}[];
   }=$props();
   let busy=$state(false);
   let problem=$state('');
@@ -15,6 +16,12 @@
   let correcting=$state(false);
   let card=$state<HTMLElement>();
   let edited=$state('');
+  let manualRun=$state('');
+  let manualText=$state('');
+  let choices=$derived((view?.manualRuns??[]).flatMap((run:string)=>{
+    const source=messages.find(message=>message.id===run+'-user');
+    return source?[{value:run,label:Array.from(source.text).slice(0,100).join('')}]:[];
+  }));
   let actionOpen=$state(false);
   let action=$state<'correct'|'forget'>('correct');
   let target=$state<any>();
@@ -65,6 +72,8 @@
         close();
         if(path==='correct')result='Memory corrected.';
         else if(mode==='list')result='Memory forgotten. Older Runs keep the receipt without the text.';
+      }else if(path==='manual'){
+        manualRun='';manualText='';
       }else{
         correcting=false;
         await focusHeading();
@@ -82,6 +91,15 @@
         }
       }
     }
+  }
+  function confirmProposal(){
+    if(!proposal||proposal.status!=='pending')return;
+    if(correcting&&proposal.directive){
+      void submit('revise',{run:proposal.run,operation:proposal.operation,revision:proposal.directive.revision,text:content});
+      return;
+    }
+    void submit('confirm',{run:proposal.run,operation:proposal.operation,text:valueToSave,
+      ...(proposal.directive?{revision:proposal.directive.revision}:{})});
   }
 </script>
 
@@ -138,8 +156,8 @@
         {#if !correcting}<p class="memory-card-note">Review before saving for future Sessions.</p>{/if}
       </div>
       <div class="memory-actions memory-card-actions">
-        <Button label="Confirm and save" {busy} disabled={busyTurn||!valueToSave.trim()}
-          onclick={()=>void submit('confirm',{run:proposal.run,operation:proposal.operation,text:valueToSave})}/>
+        <Button label={correcting&&proposal.directive?'Review correction':'Confirm and save'} {busy} disabled={busyTurn||!valueToSave.trim()}
+          onclick={confirmProposal}/>
         {#if correcting}
           <Button label="Cancel correction" variant="secondary" {busy} disabled={busyTurn} onclick={()=>void cancelCorrection()}/>
         {:else}
@@ -187,6 +205,17 @@
     {:else if view.status==='error'}
       <Feedback kind="error" message="Saved memory could not be loaded. Reopen this Session to retry."/>
     {:else}
+      {#if view.interpreting?.length}
+        <ul class="memory-records" aria-label="Pending interpretations">
+          {#each view.interpreting as run (run)}
+            {@const source=messages.find(message=>message.id===run+'-user')}
+            <li>
+              <p class="memory-meta">{source?.text??'Session message'}</p>
+              <Button label="Stop interpretation" variant="secondary" {busy} onclick={()=>void submit('stop',{run})}/>
+            </li>
+          {/each}
+        </ul>
+      {/if}
       {#if view.evidence?.omitted.some((item:any)=>item.reason==='budget')}
         <Feedback message={view.evidence.omitted.filter((item:any)=>item.reason==='budget').length+' eligible memories omitted by the latest Run’s memory budget.'}/>
       {/if}
@@ -205,9 +234,24 @@
             </div>
           </li>
         {:else}
-          <li><Feedback kind="empty" message="No saved memories yet. Ask this agent to remember something."/></li>
+          <li><Feedback kind="empty" message={(view.canPropose||view.legacy)
+            ?'No saved memories yet. Ask this agent to remember something.':'No saved memories yet.'}/></li>
         {/each}
       </ul>
+      {#if choices.length}
+        <div class="memory-actions">
+          <Label.Root for={inputId+'-turn'}>Draft a memory from a turn</Label.Root>
+          <Select id={inputId+'-turn'} name="manual-memory-source" options={choices} value={manualRun}
+            onChange={value=>{manualRun=value;manualText='';}}/>
+          {#if manualRun}
+            <Label.Root for={inputId+'-manual'}>Memory to propose</Label.Root>
+            <Textarea id={inputId+'-manual'} class="tori-field" rows={3} bind:value={manualText}/>
+            <Button label="Draft memory" variant="secondary" {busy} disabled={!manualText.trim()||busyTurn}
+              onclick={()=>void submit('manual',{run:manualRun,text:manualText})}/>
+          {/if}
+        </div>
+      {/if}
+      {#if problem&&!actionOpen}<Feedback kind="error" message={problem}/>{/if}
     {/if}
   </section>
 {/if}
