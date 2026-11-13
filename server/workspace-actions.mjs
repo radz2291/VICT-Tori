@@ -20,6 +20,17 @@ function saveIdentity(operationId) {
 
 const present = value => Object.fromEntries(Object.entries(value).filter(([, item]) => item !== undefined));
 
+// Keep the workspace@1 discovery result independent of internal graph fields.
+function discoveryValues({
+  name, instructions, model, context, tool, memory, child, output, authoring,
+  tokens, temperature, topP, maxSteps, maxToolCalls, maxRetries,
+} = {}) {
+  return {
+    name, instructions, model, context, tool, memory, child, output, authoring,
+    tokens, temperature, topP, maxSteps, maxToolCalls, maxRetries,
+  };
+}
+
 export function authoringChatSessions(state, session) {
   const index = state.sessions.findIndex(item => item.id === session.id);
   if (index < 0 || !session.authoringDock) return [session];
@@ -116,9 +127,11 @@ export function workspaceCapabilities({
         tools: registeredTools,
         ...(open ? { openDraft: present({
           ...open, definitionId: definition, savedRevision: target.savedRevision ?? null,
-          ...target.values, readiness: target.readiness,
+          ...discoveryValues(target.values), readiness: target.readiness,
         }) } : {}),
-        ...(requested ? { definition: present({ id: definitionId, savedRevision: requested.id, ...assembly.resolved(requested.graph) }) } : {}),
+        ...(requested ? { definition: present({
+          id: definitionId, savedRevision: requested.id, ...discoveryValues(assembly.resolved(requested.graph)),
+        }) } : {}),
         ...(observed ? { run: observed } : {}),
       };
       note('inspect', context, { status: result.status, ...(observed ? { runId: observed.id } : {}),
