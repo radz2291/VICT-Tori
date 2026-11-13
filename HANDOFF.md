@@ -1,5 +1,11 @@
 # TORI handoff
 
+## V1c Background Foundation
+
+Start the separate **V1c — Background Foundation** ticket in Rolladice Work on `codex/tori-v1c-background-foundation`. Read the [accepted contract](docs/implementation/BACKGROUND-FOUNDATION.md) at `025be4d05455d6d9a3606f7202a73cc65a34dcf8` and the [Work protocol](docs/governance/ROLLADICE-WORK.md). The accepted TORI-006 product is `d49bedf362d3521bcbf714bc6be7a04b34289bb7`, with evidence at `9873f93db1ceea87dfbead6283afd88f5b1b71a3`.
+
+Begin with pinned conformance on an isolated Studio host, port and disposable store. Record supported behavior and exact gaps for detach, process restart, suspension, signals and replay. Revalidate any exploratory results at the accepted Memory Foundation pins. Then offer an early Studio walkthrough that closes the tab mid-Run, rejoins the same Run and shows its actual state. Prove the recovery matrix, cancellation and one-effect memory reconciliation, rerun affected regressions, and obtain a fresh independent verdict on the exact candidate. Submit the preview and evidence to Work Review for Radzi.
+
 ## TORI-006 Authoring compatibility
 
 The [Studio preview](http://127.0.0.1:48836/) now runs product `d49bedf362d3521bcbf714bc6be7a04b34289bb7` on the same workspace. In an existing Authoring activation, choose **Review only** and ask for the open draft and available tools. The [Authoring regression report](docs/evidence/v1c-memory/AUTHORING-DISCOVERY.md) records the independent checks and the live comparison. The [memory walkthrough](docs/evidence/v1c-memory/REPAIR-REVIEW.md#walkthrough) uses the same preview.
