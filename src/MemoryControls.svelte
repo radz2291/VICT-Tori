@@ -1,7 +1,7 @@
 <script lang="ts">
   import { tick } from 'svelte';
   import { Button, Feedback, StatusBadge } from '@victframework/ui-svelte';
-  import { Dialog } from '@victframework/ui-svelte/primitives';
+  import { Dialog, Label } from '@victframework/ui-svelte/primitives';
   import { Textarea } from '@victframework/ui-ai-svelte';
   import { memoryAge, memoryDate, memoryReasons, type MemoryTurn } from './memory-display';
   let {view,mode,act,sessionId,turn,busyTurn}:{
@@ -87,9 +87,13 @@
           <path d="M6 20V6a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v14l-6-4-6 4Z"/>
         </svg>
       </span>
-      <h3 id={inputId+'-heading'} tabindex="-1">{saved?'Memory':proposal?'Memory proposal':'Memory request'}</h3>
+      <h3 id={inputId+'-heading'} tabindex="-1" aria-describedby={saved?inputId+'-status':undefined}>
+        {saved?'Memory':proposal?'Memory proposal':'Memory request'}
+      </h3>
       {#if saved}
-        <StatusBadge value={forgotten?'Forgotten':'Saved'} tone={forgotten?'neutral':'success'}/>
+        <span class="memory-card-status" id={inputId+'-status'}>
+          <StatusBadge value={forgotten?'Forgotten':'Saved'} tone={forgotten?'neutral':'success'}/>
+        </span>
       {:else if proposal?.status==='pending'}
         <span class="memory-card-source">{proposal.contextBasis.length} source {proposal.contextBasis.length===1?'message':'messages'}</span>
       {/if}
@@ -97,7 +101,7 @@
     {#if proposal?.status==='pending'}
       <div class="memory-card-body">
         {#if correcting}
-          <label for={inputId}>Memory to save</label>
+          <Label.Root for={inputId}>Memory to save</Label.Root>
           <Textarea id={inputId} class="tori-field" rows={3} bind:value={content} disabled={busy||busyTurn}
             aria-describedby={problem?inputId+'-problem':undefined}/>
         {:else}
@@ -194,7 +198,7 @@
       <Dialog.Title>{action==='correct'?'Correct saved memory':'Forget saved memory'}</Dialog.Title>
       <Dialog.Description>{action==='correct'?'Save a new revision of this memory.':'Remove this memory and all saved revisions from future Runs. Existing Session messages stay in the conversation.'}</Dialog.Description>
       {#if action==='correct'}
-        <label for={inputId+'-edit'}>Corrected memory</label>
+        <Label.Root for={inputId+'-edit'}>Corrected memory</Label.Root>
         <Textarea id={inputId+'-edit'} class="tori-field" rows={4} bind:value={edited} disabled={busy}/>
       {:else if target?.content}
         <p class="memory-value">{target.content}</p>

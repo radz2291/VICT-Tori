@@ -735,7 +735,7 @@ dt{color:#a4adbb}dd{margin:0;overflow-wrap:anywhere}.hash{font:11px/1.5 ui-monos
 }
 .memory-confirmation[data-memory-state=pending] .memory-card-icon{background:var(--studio-selected);color:var(--vict-color-accent)}
 .memory-card-source,.memory-card-note{color:var(--vict-color-textMuted);font-size:.8125rem;line-height:1.4}
-.memory-card-source,.memory-card-heading .vict-status{margin-inline-start:auto}
+.memory-card-source,.memory-card-status{margin-inline-start:auto}
 .studio .memory-card-heading .vict-status{background:var(--vict-color-surface);color:var(--vict-color-textMuted)}
 .studio .memory-card-heading .vict-status--success{
   --memory-saved-color:color-mix(in srgb,var(--vict-color-success) 35%,var(--vict-color-text));

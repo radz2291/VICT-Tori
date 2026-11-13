@@ -247,7 +247,12 @@ try {
   observed.cardSavedContrast=await contrast(savedBadge);
   assert.ok(observed.cardSavedContrast>=4.5,'Saved badge contrast: '+observed.cardSavedContrast);
   assert.equal(await card.getByRole('heading',{name:'Memory proposal',exact:true}).count(),0);
-  assert.equal(await focused(card.getByRole('heading',{name:'Memory',exact:true})),true);
+  const savedHeading=card.getByRole('heading',{name:'Memory',exact:true});
+  assert.equal(await focused(savedHeading),true);
+  assert.equal(await savedHeading.evaluate(heading=>{
+    const status=document.getElementById(heading.getAttribute('aria-describedby'));
+    return status?.textContent.trim();
+  }),'Saved');
   await capture('memory-saved',card);
   await stop();
   assert.equal(await start(),workspace);
