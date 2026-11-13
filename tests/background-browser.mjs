@@ -17,7 +17,7 @@ const browser=await chromium.launch();
 const desktop=await browser.newContext({viewport:{width:1531,height:850}});
 const wait=async(fn,label,ms=20000)=>{
   const deadline=Date.now()+ms;
-  while(Date.now()<deadline){const result=await fn().catch(()=>null);if(result)return result;await delay(80);}
+  while(Date.now()<deadline){const result=await Promise.resolve().then(fn).catch(()=>null);if(result)return result;await delay(80);}
   throw Error('Timed out: '+label);
 };
 const api=async()=>fetch(url+'/api/studio').then(r=>r.json());
@@ -52,6 +52,28 @@ try {
     assert.equal(res.status(),200,result.message);
     return result;
   };
+  const startWithLostAcknowledgement=async(page,prompt)=>{
+    const text=await createSession(page);
+    const toggle=page.getByRole('button',{name:'Run in background',exact:true});
+    await toggle.focus();await toggle.press('Space');
+    let accepted, lookups=0;
+    const startRoute='**/api/studio/start-run', lookupRoute='**/api/studio/run-lookup';
+    await page.route(lookupRoute,route=>{lookups++;return route.abort('internetdisconnected');});
+    await page.route(startRoute,async route=>{
+      const response=await route.fetch();
+      accepted={status:response.status(),body:await response.json()};
+      await route.abort('internetdisconnected');
+    });
+    await text.fill(prompt);await text.press('Enter');
+    await wait(()=>accepted&&lookups>=1,'lost start and lookup acknowledgements');
+    assert.equal(accepted.status,200,accepted.body.message);
+    await page.getByText('Checking whether Studio accepted the Run…',{exact:true}).waitFor();
+    assert.equal(await toggle.isDisabled(),true);
+    await page.unroute(startRoute);
+    await page.unroute(lookupRoute);
+    await page.getByText('Checking whether Studio accepted the Run…',{exact:true}).waitFor({state:'hidden'});
+    return accepted.body;
+  };
   let page=await desktop.newPage();
   await page.goto(url,{waitUntil:'domcontentloaded',timeout:120000});
   await page.getByRole('navigation',{name:'Studio tasks'}).waitFor({timeout:90000});
@@ -60,11 +82,12 @@ try {
   const prompt='Delegate habits research to the saved Research specialist now. Then give me a long report: include the actual finding code and four detailed sections about assumptions, interpretation, tradeoffs and follow-up options. Clearly distinguish suggestions from facts.';
   const observationRoute='**/api/studio/run-observe';
   await page.route(observationRoute,route=>route.abort('internetdisconnected'));
-  const original=await start(page,prompt);
+  const original=await startWithLostAcknowledgement(page,prompt);
   await page.getByText('Connection lost. Checking the accepted Run.',{exact:true}).waitFor();
   await page.unroute(observationRoute);
   await page.getByText('You can close this tab while Studio stays open.',{exact:true}).waitFor();
   evidence.firstObservationRecovered=true;
+  evidence.lostStartAndLookupRecovered=true;
   await page.getByRole('button',{name:'Inspect Run',exact:true}).click();
   await visibleState(page,'Running');
   const link=page.url();

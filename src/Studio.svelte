@@ -97,6 +97,10 @@
   const cursorKey=(workspace:string,run:string)=>'tori-run-cursor:'+workspace+':'+run;
   const pendingRunKey=(workspace:string)=>'tori-pending-run:'+workspace;
   const resumeRunKey=(workspace:string)=>'tori-background-run:'+workspace;
+  type StartRequest={request:string;session:string;activation:string};
+  let pendingStart=$state.raw<StartRequest>();
+  let pendingInput:{request:string;text:string}|undefined;
+  let startNotFound=$state(false);
   let error=$state(''), graphError=$state('');
   let activeSession=$state(''), activeRun=$state('');
   let sessionDrafts=$state<Record<string,string>>({});
@@ -165,7 +169,9 @@
   const runOwner=$derived(run?.parentRun?state.runs.find(item=>item.id===run.parentRun):run);
   const watchedRun=$derived(page==='Runs'?runOwner:page==='Sessions'?currentSessionRun:undefined);
   const liveSessionRun=$derived(currentSessionRun?.state==='Running'?currentSessionRun:undefined);
-  const sessionBusy=$derived((!!session&&sendActivity?.session===session.id)||!!liveSessionRun||!!currentSessionRun?.awaitingObservation);
+  const awaitingStart=$derived(!!session&&pendingStart?.session===session.id&&!startNotFound);
+  const sessionBusy=$derived((!!session&&sendActivity?.session===session.id)||!!liveSessionRun||
+    !!currentSessionRun?.awaitingObservation||awaitingStart);
   const interruptedRun=$derived(session?.interrupted?sessionRuns.find(item=>!item.parentRun&&['failed','cancelled','interrupted','uncertain'].includes(item.status)):undefined);
   let runReturnTarget=$derived(state.sessions.find(item=>item.id===runReturnSession));
   let runSession=$derived(state.sessions.find(item=>item.id===run?.session));
@@ -586,7 +592,10 @@
         changePage('Runs');
         runActionError='This Run is not available in the current Studio.';
       }
-      void recoverStart(next.workspace);
+      try{
+        const saved=JSON.parse(localStorage.getItem(pendingRunKey(next.workspace))??'null');
+        if(saved&&[saved.request,saved.session,saved.activation].every(value=>typeof value==='string'))pendingStart=saved;
+      }catch{}
     }).catch(e=>error=e.message).finally(()=>loaded=true);
     const dayCheck=setInterval(()=>today=localCalendarDay(new Date()),60_000);
     return ()=>{
@@ -1112,11 +1121,20 @@
       deleteTarget=null;
     }catch(e){deleteError=(e as Error).message;}
   });
-  async function attachAccepted(accepted:any,workspace:string){
+  function clearPendingStart(workspace:string,identity:StartRequest){
+    if(pendingStart?.request===identity.request){pendingStart=undefined;startNotFound=false;}
+    if(pendingInput?.request===identity.request)pendingInput=undefined;
+    try{
+      const stored=JSON.parse(localStorage.getItem(pendingRunKey(workspace))??'null');
+      if(stored?.request===identity.request)localStorage.removeItem(pendingRunKey(workspace));
+    }catch{}
+  }
+  async function attachAccepted(accepted:any,workspace:string,identity:StartRequest){
     const {run,session:id,activation,streamId}=accepted;
+    if(typeof run!=='string'||typeof streamId!=='string'||id!==identity.session||activation!==identity.activation)
+      throw new Error('Studio returned a different Run request.');
     try{
       localStorage.setItem(resumeRunKey(workspace),run);
-      localStorage.removeItem(pendingRunKey(workspace));
     }catch{}
     if(!state.runs.some(item=>item.id===run)){
       // Acknowledgement proves identity. Until an observation arrives this
@@ -1129,24 +1147,45 @@
       state={...state,runs:[placeholder,...state.runs]};
       observation={run,gap:false,canStop:false,writing:false,disconnected:false};
     }
+    delete turnErrors[id];
+    if(pendingInput?.request===identity.request){
+      if(sessionDrafts[id]?.trim()===pendingInput.text)delete sessionDrafts[id];
+      sessionContext[id]=false;
+    }
+    clearPendingStart(workspace,identity);
   }
-  async function recoverStart(workspace:string){
-    let pendingRequest;
-    try{pendingRequest=JSON.parse(localStorage.getItem(pendingRunKey(workspace))??'null');}catch{}
-    if(!pendingRequest)return;
-    try{
-      const accepted=await request('/run-lookup',pendingRequest);
-      await attachAccepted(accepted,workspace);
-      if(page==='Agents')await openSession(accepted.session);
-    }catch{/* Keep the identity. The acknowledgement can still be in flight. */}
-  }
+  $effect(()=>{
+    const identity=pendingStart,workspace=workspaceId;
+    if(!identity||!workspace)return;
+    const abort=new AbortController();
+    let timer:ReturnType<typeof setTimeout>;
+    const check=async()=>{
+      try{
+        const accepted=await request('/run-lookup',identity,undefined,abort.signal);
+        if(abort.signal.aborted||pendingStart?.request!==identity.request)return;
+        await attachAccepted(accepted,workspace,identity);
+        if(page==='Agents'&&!dirty)await openSession(accepted.session);
+        return;
+      }catch(error){
+        if(abort.signal.aborted||pendingStart?.request!==identity.request)return;
+        // Absence now is not proof a delayed start won't arrive. An explicit
+        // resend uses the exact original identity, including after a reload.
+        if(!sending)startNotFound=(error as any).status===404;
+        if((error as any).status===403)return;
+      }
+      timer=setTimeout(check,750);
+    };
+    void check();
+    return ()=>{abort.abort();clearTimeout(timer);};
+  });
   async function sendBackground(input:string,id:string,activation:string,workspace:string){
-    let identity={request:crypto.randomUUID(),session:id,activation}, previous;
-    try{previous=JSON.parse(localStorage.getItem(pendingRunKey(workspace))??'null');}catch{}
+    let identity={request:crypto.randomUUID(),session:id,activation};
+    let previous=pendingStart;
+    if(!previous)try{previous=JSON.parse(localStorage.getItem(pendingRunKey(workspace))??'null');}catch{}
     if(previous){
       try{
         const accepted=await request('/run-lookup',previous);
-        await attachAccepted(accepted,workspace);
+        await attachAccepted(accepted,workspace,previous);
         await openSession(accepted.session);
         return;
       }catch(error){
@@ -1158,6 +1197,9 @@
       }
       identity=previous;
     }
+    startNotFound=false;
+    pendingStart=identity;
+    pendingInput={request:identity.request,text:input};
     try{localStorage.setItem(pendingRunKey(workspace),JSON.stringify(identity));}catch{}
     try{
       let accepted;
@@ -1167,22 +1209,23 @@
         catch{
           // A definite validation refusal on a new request can be replaced.
           // A lost reply must be joined or explicitly sent with the same ID.
-          if(!previous&&[400,403,404,409].includes((error as any).status)){
-            try{localStorage.removeItem(pendingRunKey(workspace));}catch{}
-          }
+          if(!previous&&[400,403,404,409].includes((error as any).status))clearPendingStart(workspace,identity);
           throw error;
         }
       }
       sessionContext[id]=false;
       if(sessionDrafts[id]?.trim()===input)delete sessionDrafts[id];
-      await attachAccepted(accepted,workspace);
-    }catch(error){turnErrors[id]=(error as Error).message;}
+      await attachAccepted(accepted,workspace,identity);
+    }catch(error){
+      if(pendingStart?.request===identity.request||!state.runs.some(item=>item.session===id&&item.background))
+        turnErrors[id]=(error as Error).message;
+    }
   }
   async function send(input:string){
     const id=activeSession;
-    if(sending||pending||liveSessionRun||!session?.connectionReady||session.interrupted)return;
+    if(sending||pending||sessionBusy||!session?.connectionReady||session.interrupted)return;
     sending=true;
-    if(backgroundChoice[id]&&!session.authoring){
+    if((backgroundChoice[id]||pendingStart?.session===id)&&!session.authoring){
       delete turnErrors[id];
       try{await sendBackground(input,id,session.activation,state.workspace);}
       finally{sending=false;}
@@ -2103,6 +2146,9 @@
       {#if currentSessionRun?.awaitingObservation}
         <Feedback message={observation?.disconnected?'Connection lost. Checking the accepted Run.':'Checking the accepted Run…'}/>
       {/if}
+      {#if pendingStart?.session===session.id}
+        <Feedback message={startNotFound?'No Run has been found yet. Sending again uses the same request.':'Checking whether Studio accepted the Run…'}/>
+      {/if}
       {#if liveSessionRun}
         <div class="run-links">
           <Button label="Inspect Run" variant="secondary" onclick={()=>inspectSessionRuns(liveSessionRun.id)}/>
@@ -2130,11 +2176,11 @@
               title={'Include pinned context on next turn · '+session.context}>Include context</Toggle.Root>
           {/if}
           {#if !session.authoring}
-            <Toggle.Root type="button" class="session-context-toggle" disabled={sessionBusy||sending}
+            <Toggle.Root type="button" class="session-context-toggle" disabled={sessionBusy||sending||pendingStart?.session===session.id}
               bind:pressed={()=>!!backgroundChoice[session.id],pressed=>backgroundChoice[session.id]=pressed}
               aria-label="Run in background">Run in background</Toggle.Root>
           {/if}
-          {#if sessionBusy&&!currentSessionRun?.awaitingObservation}
+          {#if sessionBusy&&!currentSessionRun?.awaitingObservation&&!awaitingStart}
             <span class="session-turn-state"><StatusBadge value="Running"/></span>
           {/if}
         {/snippet}
