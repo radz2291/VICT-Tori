@@ -25,6 +25,7 @@
   let saved=$derived(turn?.saved);
   let savedRecord=$derived(view?.records?.find((item:any)=>item.id===saved?.receipt.memoryId&&item.status==='available'));
   let valueToSave=$derived(correcting?content:proposal?.text??'');
+  let forgotten=$derived(saved?.memory.status==='forgotten');
   function focusHeading(){
     return tick().then(()=>card?.querySelector<HTMLElement>('h3')?.focus());
   }
@@ -54,7 +55,8 @@
       await act(path,body,sessionId);
       if(path==='correct'||path==='forget'){
         close();
-        result=path==='correct'?'Memory corrected.':'Memory forgotten. Older Runs keep the receipt without the text.';
+        if(path==='correct')result='Memory corrected.';
+        else if(mode==='list')result='Memory forgotten. Older Runs keep the receipt without the text.';
       }else{
         correcting=false;
         await focusHeading();
@@ -76,7 +78,6 @@
 </script>
 
 {#if mode==='card' && turn}
-  {@const forgotten=saved?.memory.status==='forgotten'}
   <section class="memory-confirmation" bind:this={card}
     data-memory-state={saved?(forgotten?'forgotten':'saved'):proposal?.status??'request'}
     data-memory-turn={turn.run} data-source-message={turn.source} aria-labelledby={inputId+'-heading'}>
@@ -143,6 +144,7 @@
     {#if !actionOpen&&problem&&proposal?.status!=='pending'}
       <Feedback kind="error" message={problem}/>
     {/if}
+    {#if result}<Feedback message={result}/>{/if}
   </section>
 {:else if mode==='list'}
   <section class="memory-panel" aria-labelledby={inputId+'-heading'}>
@@ -180,7 +182,7 @@
     {/if}
   </section>
 {/if}
-{#if result}<Feedback message={result}/>{/if}
+{#if mode==='list'&&result}<Feedback message={result}/>{/if}
 
 <Dialog.Root bind:open={actionOpen}>
   <Dialog.Portal>

@@ -387,10 +387,15 @@ try {
     await capture('memory-context-reopened',reopened);
     if(!live){
       await page.setViewportSize({width:835,height:667});
-      const comparison=await send(conversation,'Pls remember that planning briefs use clear section names.','polishedCardPair');
+      const compactSession=await chooseSession();
+      const earlier=await send(compactSession,'Remember that planning briefs start with a decision.');
+      const compactSaved=await attached(earlier.id);
+      await route('memory/confirm',()=>compactSaved.getByRole('button',{name:'Confirm and save'}).click());
+      await confirmedText(compactSaved).waitFor();
+      const comparison=await send(compactSession,'Pls remember that planning briefs use clear section names.','polishedCardPair');
       const comparisonCard=await attached(comparison.id);
       const proposalBounds=await comparisonCard.boundingBox();
-      const savedBounds=await reopened.boundingBox();
+      const savedBounds=await compactSaved.boundingBox();
       assert.ok(savedBounds.height<proposalBounds.height,'Saved cards should be more compact than pending proposals.');
       observed.cardComparison={width:835,height:667,savedHeight:savedBounds.height,pendingHeight:proposalBounds.height};
       await page.getByTestId('conversation-feed').evaluate((feed,id)=>{
@@ -453,7 +458,9 @@ try {
       await narrowForget.waitFor();
       const narrowForgot=await route('memory/forget',()=>narrowForget.getByRole('button',{name:'Forget',exact:true}).press('Enter'));
       assert.equal(narrowForgot.receipt.memoryId,narrowReceipt.receipt.memoryId);
-      await narrowSaved.getByRole('status').filter({hasText:'Forgotten'}).waitFor();
+      await narrowSaved.getByRole('status').filter({hasText:/^Forgotten$/}).waitFor();
+      await narrowSaved.getByText('This memory was forgotten. Its save receipt is still in Runs.',{exact:true}).waitFor();
+      assert.equal(await page.getByText(/memory forgotten|memory was forgotten/i).count(),1);
       await capture('memory-narrow-forgotten',narrowSaved);
       const narrowRun=await send(narrowSession,'Remember that narrow notes use action verbs.','narrowProposal');
       const narrow=await attached(narrowRun.id);

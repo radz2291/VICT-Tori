@@ -745,12 +745,12 @@ dt{color:#a4adbb}dd{margin:0;overflow-wrap:anywhere}.hash{font:11px/1.5 ui-monos
 .memory-card-body .memory-value{font-size:1rem;line-height:1.5}
 .memory-card-body label,.memory-card-note,.memory-confirmation :is(.vict-state,.vict-alert){margin:0}
 .tori-scope .memory-confirmation textarea.tori-field,.tori-scope .memory-dialog textarea.tori-field{width:100%;background:var(--studio-field);color:var(--vict-color-text);border:1px solid var(--vict-color-border);border-radius:var(--vict-radius-base)}
-.memory-card-actions{border-block-start:1px solid var(--line);padding-block-start:var(--vict-space-2)}
+.memory-card-actions{border-block-start:1px solid var(--vict-color-border);padding-block-start:var(--vict-space-2)}
 .tori-scope .memory-card-actions .vict-btn{min-height:32px;padding-inline:var(--vict-space-3);white-space:normal}
 .tori-scope .memory-card-actions .vict-btn:not(.vict-btn--secondary):not(:disabled){background:var(--vict-color-accent);color:var(--vict-color-accentContrast)}
-.tori-scope .memory-card-actions .vict-btn--secondary:not(.memory-card-quiet){background:var(--vict-color-surface);border-color:var(--vict-color-border)}
+.tori-scope .memory-card-actions .vict-btn--secondary:not(.memory-card-quiet){background:var(--vict-color-surface);border:1px solid var(--vict-color-border)}
 .tori-scope .memory-card-actions .vict-btn--secondary:not(.memory-card-quiet):hover:not([aria-disabled=true]){background:var(--studio-selected)}
-.tori-scope .memory-card-actions .memory-card-quiet{background:transparent;border-color:transparent;color:var(--vict-color-textMuted)}
+.tori-scope .memory-card-actions .memory-card-quiet{background:transparent;border:1px solid transparent;color:var(--vict-color-textMuted)}
 .tori-scope .memory-card-actions .memory-card-quiet:hover:not(:disabled){background:var(--vict-color-surface);color:var(--vict-color-text)}
 .tori-scope .memory-card-actions .memory-card-forget:hover:not(:disabled){color:var(--vict-color-danger)}
 .tori-scope .memory-card-actions .memory-card-dismiss{margin-inline-start:auto}
