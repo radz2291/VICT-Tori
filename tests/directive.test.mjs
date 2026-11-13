@@ -25,6 +25,9 @@ const ordinarySaveLanguage = new Map([
   ['Explain what is known about persistence.', "I haven't saved your preference."],
   ['Terangkan sama ada apa-apa sudah disimpan.', 'Saya belum simpan pilihan ini dalam memori.'],
   ['Di manakah salinan PDF itu?', 'Saya sudah simpan ini sebagai fail PDF.'],
+  ['Clarify the statement about the browser.', 'I saved your preferences in Chrome.'],
+  ['Explain the reported claim.', 'I never said I saved your preferences.'],
+  ['Show the support agent’s question.', 'Your preference was saved?'],
 ]);
 const unconfirmedClaims = [
   "I've saved your preference.",
@@ -33,9 +36,17 @@ const unconfirmedClaims = [
   "I've saved that.",
   'Done — saved to memory.',
   "I've saved that for later.",
+  'Done, saved to memory.',
+  'Saved in my memory for future chats.',
+  "I've saved that as your standing preference.",
   'Your preference has been stored.',
+  'Your preference has been added to memory.',
+  'Your preference is now in my memory.',
+  'I saved “use short bullets” in memory.',
   'Saya dah simpan pilihan ini dalam memori.',
   'Pilihan anda telah disimpan.',
+  'Baik, sudah disimpan dalam memori.',
+  'Pilihan anda telah disimpan dalam ingatan saya untuk perbualan akan datang.',
 ];
 const quiet = ['Do you remember what we talked about last week?', 'Do you remember what we discussed last week?',
   'Ingat lagi apa kita bincang minggu lepas?'];

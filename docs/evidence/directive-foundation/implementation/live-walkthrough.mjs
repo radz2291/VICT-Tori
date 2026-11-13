@@ -76,7 +76,7 @@ async function turn(session,input){
   assert.ok(!http.some(status=>[401,403,429].includes(status)),'Provider returned a stop status '+http.join(', '));
   assert.equal(run.status,'completed',JSON.stringify({status:run.status,http,code:run.errorCode}));
   return {id:run.id,initial:run.directive?.status,elapsedMs:Date.now()-start,
-    reply:state.sessions.find(item=>item.id===session).messages.find(item=>item.id===run.id+'-agent').text};
+    started:run.started,reply:state.sessions.find(item=>item.id===session).messages.find(item=>item.id===run.id+'-agent').text};
 }
 
 async function settled(run){
@@ -102,12 +102,13 @@ async function verifyRecall(session,receipt,sessionCreated){
 }
 
 function checkRecall(result,receipt){
-  for(const {reply,input,directive,admitted,proposal,request} of result.cases){
+  for(const {reply,input,started,directive,admitted,proposal,request} of result.cases){
     assert.equal(directive.status,'none',JSON.stringify({input,directive}));
     assert.equal(proposal,null);
     assert.equal(request,null);
     assert.deepEqual(admitted.map(({id,revision,updatedAt})=>({id,revision,updatedAt})),
       [{id:receipt.memoryId,revision:receipt.revision,updatedAt:receipt.at}]);
+    assert.ok(Date.parse(receipt.at)<=Date.parse(started),'A recalled revision must precede the answer turn.');
     if(input===preferenceQuestion){
       assert.match(reply,/\b(?:two|2)\s+(?:short\s+)?bullet/i,reply);
       assert.doesNotMatch(reply,/\b(?:three|3)\s+(?:short\s+)?bullet/i,reply);
@@ -116,8 +117,8 @@ function checkRecall(result,receipt){
     }else{
       const malay=input===recall.at(-1);
       assert.match(reply,malay?
-        /\b(?:tidak|tak|tiada|belum)\b.{0,70}\b(?:rekod|ingat|ingatan|perbualan|akses|maklumat)\b/isu:
-        /\b(?:no|don[’']t|do not|can[’']t|cannot|unable to)\b.{0,75}\b(?:record|history|recall|remember|conversation|access|information)\b/isu,reply);
+        /\b(?:tidak|tak|tiada|belum)\b.{0,70}\b(?:rekod|ingat|ingatan|perbualan|akses|maklumat|bukti)\b/isu:
+        /\b(?:no|don[’']t|do not|can[’']t|cannot|unable to)\b.{0,75}\b(?:record|history|recall|remember|conversation|access|information|evidence)\b/isu,reply);
       assert.doesNotMatch(reply,malay?
         /(?:catatan|pilihan|keutamaan|memori|poin|Orchid)[^.\n]{0,45}(?:dari|daripada|sejak) minggu lepas/iu:
         /(?:note|preference|memory|bullets?|Orchid)[^.\n]{0,45}(?:from|since|saved|recorded) last week/iu,reply);
@@ -151,6 +152,7 @@ try{
   assert.equal(record.memory.content,revised);
   assert.equal(receipt.directive.proposalRevision,2);
   Object.assign(observed,{confirmed:revised,receipt});
+  assert.ok(Date.parse(first.started)<=Date.parse(receipt.at),'The source turn must precede the receipt.');
   const current=(await request()).sessions.find(item=>item.id===session);
   assert.ok(current.messages.some(message=>message.id===receipt.source.message&&message.text===source));
   observed.sameSession=await verifyRecall(session,receipt,current.created);

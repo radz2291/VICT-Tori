@@ -7,22 +7,25 @@ const modifiers=String.raw`(?:(?:just|now|successfully|already|permanently)\s+)*
 const subject=String.raw`(?:this|that|it|preference|memory|reminder|request|note)`;
 const state=String.raw`(?:['’]s|\s+(?:is|was|has\s+been|had\s+been|got))\s+`;
 const memoryObject=String.raw`(?:(?:your|my|our|the|this|that|a|an)\s+)?(?:(?:saved|standing|persistent|permanent|long[- ]term)\s+)?(?:memor(?:y|ies)|preferences?)\b`;
-const speaker=String.raw`\b(?:i|we)(?:['’]ve|\s+have)?\s+${modifiers}`;
+const speaker=String.raw`(?:i|we)(?:['’]ve|\s+have)?\s+${modifiers}`;
 const effect=String.raw`(?:saved|stored|memorized|persisted|updated|forgotten|deleted)`;
-const sentenceEnd=String.raw`(?=\s*(?:[.!?;\n]|$))`;
+const sentenceEnd=String.raw`(?=\s*(?:[.!;]|$))`;
 const futureUse=String.raw`(?:\s+(?:permanently|for\s+(?:later|next\s+time|future\s+(?:reference|chats?|conversations?|sessions?))))?`;
+const memoryPlace=String.raw`(?:to|in|into)\s+${location}`;
+const malayPlace=String.raw`(?:ke|dalam)\s+(?:memori|ingatan)(?:\s+(?:saya|kami|aku|anda))?`;
+const malayFuture=String.raw`(?:\s+untuk\s+(?:rujukan|sesi|perbualan)\s+akan\s+datang)?`;
 const malayObject=String.raw`(?:ini|itu|pilihan(?:\s+(?:ini|itu|anda|awak|kamu))?|maklumat(?:\s+(?:ini|itu))?|(?:keutamaan|tetapan)\s+anda)`;
 const quotation=/(?<![\p{L}\p{N}])'[^'\n]*'(?![\p{L}\p{N}])|"(?:\\.|[^"\\])*"|“[^”]*”|‘[^’]*’|«[^»]*»|`[^`\n]*`/gu;
-const externalDestination=String.raw`\s+(?:in|under|to|on|as|di|dalam|ke)\s+(?:(?:the|a|an|your)\s+)?(?:external\s+(?:app|site|dashboard)|browser(?:\s+dashboard)?|settings|PDF|file|disk|drive|fail|pelayar|tetapan)\b`;
+const attributedQuotation=/(?:\b(?:example|documentation|sample|quotation|phrase|contoh|petikan)\b|\b(?:says?|reads?|wrote|said)\s*:?)\s*[^.!?\n]*$/iu;
 const explicitClaims=[
-  new RegExp(String.raw`^(?:(?:done|got it|okay|all set)\s*[:—–-]\s*)?(?:(?:memory|preference)\s+${effect}|(?:saved|stored|added)\s+(?:to|in|into)\s+${location})${sentenceEnd}`,'iu'),
-  new RegExp(String.raw`${speaker}(?:saved|stored|memorized|persisted)\s+(?:this|that|it)${futureUse}${sentenceEnd}`,'iu'),
-  new RegExp(String.raw`^(?:saved|stored)\s+${memoryObject}${futureUse}${sentenceEnd}`,'iu'),
-  new RegExp(String.raw`${speaker}(?:saved|stored|memorized|persisted|updated|forgot|deleted)\s+${memoryObject}(?!${externalDestination})`,'iu'),
-  new RegExp(String.raw`${speaker}(?:saved|stored|put|added|recorded|logged)\s+(?:[^.?!\n]+?\s+)?(?:to|in|into)\s+${location}`,'iu'),
-  new RegExp(String.raw`^\s*(?:your|the)\s+(?:memory|preferences?)${state}${modifiers}(?:${effect}|retained)${sentenceEnd}`,'iu'),
-  new RegExp(String.raw`\b(?:saya|kami|aku)\s+(?:dah|sudah|telah|baru\s+sahaja)\s+(?:menyimpan|simpan)\s+(?:${malayObject}|(?:ke|dalam)\s+(?:memori|ingatan))\b(?!${externalDestination})`,'iu'),
-  new RegExp(String.raw`^\s*(?:${malayObject}\s+)?(?:dah\s+|sudah\s+|telah\s+)?disimpan(?:\s+(?:ke|dalam)\s+(?:memori|ingatan))?${sentenceEnd}`,'iu'),
+  new RegExp(String.raw`^(?:memory|preferences?)\s+${effect}${futureUse}${sentenceEnd}`,'iu'),
+  new RegExp(String.raw`^(?:saved|stored|added)\s+${memoryPlace}${futureUse}${sentenceEnd}`,'iu'),
+  new RegExp(String.raw`^${speaker}(?:saved|stored|memorized|persisted)\s+(?:this|that|it)(?:\s+as\s+(?:a|your|the)\s+(?:saved|standing)\s+preference)?${futureUse}${sentenceEnd}`,'iu'),
+  new RegExp(String.raw`^(?:${speaker})?(?:saved|stored|memorized|persisted|updated|forgot|deleted)\s+${memoryObject}${futureUse}${sentenceEnd}`,'iu'),
+  new RegExp(String.raw`^${speaker}(?:saved|stored|put|added|recorded|logged)\s+(?:[^.?!\n]+?\s+)?${memoryPlace}${futureUse}${sentenceEnd}`,'iu'),
+  new RegExp(String.raw`^(?:your|the)\s+(?:memory|preferences?)${state}${modifiers}(?:${effect}|retained|added\s+${memoryPlace}|${memoryPlace})${futureUse}${sentenceEnd}`,'iu'),
+  new RegExp(String.raw`^(?:saya|kami|aku)\s+(?:dah|sudah|telah|baru\s+sahaja)\s+(?:menyimpan|simpan)\s+(?:${malayObject}(?:\s+${malayPlace})?|${malayPlace})${malayFuture}${sentenceEnd}`,'iu'),
+  new RegExp(String.raw`^(?:${malayObject}\s+)?(?:(?:dah|sudah|telah)\s+)?disimpan(?:\s+${malayPlace})?${malayFuture}${sentenceEnd}`,'iu'),
 ];
 const claimPatterns=[
   /\bmemory proposal\b|\breview the (?:text|proposal) in studio\b|\bnothing (?:was )?saved\b/iu,
@@ -42,15 +45,16 @@ const claimPatterns=[
 export function reportsMemoryEffect(text,explicitOnly=false){
   const spoken=text.normalize('NFKC').replace(/[\u200B-\u200D\uFEFF]/gu,'');
   if(!explicitOnly)return claimPatterns.some(pattern=>pattern.test(spoken.replace(/[*_`]+/gu,'')));
-  // Preserve directly asserted status when the entire answer is quoted.
-  // Mask inline examples, fenced code and Markdown block quotations.
+  // Preserve the predicate in a direct claim with a quoted object.
+  // Mask attributed examples, fenced code and Markdown block quotations.
   const publicText=spoken.replace(/^[ \t]*(`{3,}|~{3,})[^\n]*\n[\s\S]*?^[ \t]*\1[ \t]*$/gmu,'[quoted text]')
     .replace(/^[ \t]*>.*$/gmu,'[quoted text]')
-    .replace(quotation,(quote,offset,reply)=>reply.trim()===quote?quote.slice(1,-1):' [quoted text] ')
+    .replace(quotation,(quote,offset,reply)=>attributedQuotation.test(reply.slice(0,offset))?' [quoted text] ':quote.slice(1,-1))
     .replace(/[*_]/gu,'');
   return publicText.split(/(?<=[.!?;])\s+|\n/u).some(sentence=>{
-    const clause=sentence.replace(/^\s*(?:[-+#]+\s+)?/u,'');
-    if(/^(?:if|assuming|suppose|jika|kalau|sekiranya)\b/iu.test(clause))return false;
+    if(sentence.trimEnd().endsWith('?'))return false;
+    const clause=sentence.replace(/^\s*(?:(?:[-+#]+|\d+\.)\s+)?/u,'')
+      .replace(/^(?:done|got it|okay|all set|baik|selesai)\s*[:,—–-]\s*/iu,'');
     return explicitClaims.some(pattern=>pattern.test(clause));
   });
 }
