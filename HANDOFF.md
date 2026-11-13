@@ -2,7 +2,7 @@
 
 ## V1c Background Foundation
 
-**TORI-007 engineering handoff.** Review [Studio](http://127.0.0.1:48888/) at product `fe25266c098840d98cdfa70bd5e4dcbf8a8f7d1d`. The [walkthrough](docs/evidence/v1c-background/README.md) links the exact live Finished and Interrupted Runs, instructions for a fresh attempt, the 16 deterministic cells and the single-effect memory proof. The [verification report](docs/evidence/v1c-background/VERIFICATION.md) separates the pinned probes, builder tests, independent challenge and owner Review. The prior TORI-006 preview is separate. Radzi owns acceptance in Work; the next slice remains outside this handoff.
+**TORI-007 engineering handoff.** Review [Studio](http://127.0.0.1:48888/) at product `fe25266c098840d98cdfa70bd5e4dcbf8a8f7d1d`. The [walkthrough](docs/evidence/v1c-background/README.md) links the exact live Finished and Interrupted Runs, instructions for a fresh attempt, the 16 deterministic cells and the single-effect memory proof. The [verification report](docs/evidence/v1c-background/VERIFICATION.md) separates the pinned probes, builder tests, independent challenge and owner Review. The prior TORI-006 preview is separate. The [independent verifier](docs/evidence/v1c-background/INDEPENDENT.md) passed with one non-blocking finding at report commit d94811f14d2da000a839b880ab7c4f8c87794306. Radzi owns acceptance in Work; the next slice remains outside this handoff.
 
 ### Original implementation instruction
 
