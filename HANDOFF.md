@@ -2,6 +2,10 @@
 
 ## V1c Background Foundation
 
+**TORI-007 engineering handoff.** Review [Studio](http://127.0.0.1:48888/) at product `fe25266c098840d98cdfa70bd5e4dcbf8a8f7d1d`. The [walkthrough](docs/evidence/v1c-background/README.md) links the exact live Finished and Interrupted Runs, instructions for a fresh attempt, the 16 deterministic cells and the single-effect memory proof. The [verification report](docs/evidence/v1c-background/VERIFICATION.md) separates the pinned probes, builder tests, independent challenge and owner Review. The prior TORI-006 preview is separate. Radzi owns acceptance in Work; the next slice remains outside this handoff.
+
+### Original implementation instruction
+
 Start the separate **V1c — Background Foundation** ticket in Rolladice Work on `codex/tori-v1c-background-foundation`. Read the [accepted contract](docs/implementation/BACKGROUND-FOUNDATION.md) at `025be4d05455d6d9a3606f7202a73cc65a34dcf8` and the [Work protocol](docs/governance/ROLLADICE-WORK.md). The accepted TORI-006 product is `d49bedf362d3521bcbf714bc6be7a04b34289bb7`, with evidence at `9873f93db1ceea87dfbead6283afd88f5b1b71a3`.
 
 Begin with pinned conformance on an isolated Studio host, port and disposable store. Record supported behavior and exact gaps for detach, process restart, suspension, signals and replay. Revalidate any exploratory results at the accepted Memory Foundation pins. Then offer an early Studio walkthrough that closes the tab mid-Run, rejoins the same Run and shows its actual state. Prove the recovery matrix, cancellation and one-effect memory reconciliation, rerun affected regressions, and obtain a fresh independent verdict on the exact candidate. Submit the preview and evidence to Work Review for Radzi.

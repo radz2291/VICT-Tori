@@ -1,30 +1,30 @@
 {
-  "candidate": "cf3049c13192ded5b3ddf283389288a1fbe761e0",
+  "candidate": "fe25266c098840d98cdfa70bd5e4dcbf8a8f7d1d",
   "cases": [
     {
       "mode": "crash-in-transaction",
-      "run": "0fd91d5e-c49c-487d-824d-9ca90cae5056",
-      "operation": "75b1b963-f355-483b-a75e-746d0f16d65d",
+      "run": "eeaad144-7c6d-44ee-81f8-358fa3fed73d",
+      "operation": "ce86d0de-3675-48c2-b25f-f438bdb0c2e8",
       "ambiguous": "Uncertain",
       "retry": "refused",
       "reconciliation": "saved",
-      "receipt": "d408ac4a-e241-47ae-ab5a-a73ef7fa16d6",
+      "receipt": "9a79285a-4f23-4ee7-8ea9-b81f600e1446",
       "effects": 1
     },
     {
       "mode": "hold-ack",
-      "run": "7028ce0a-39b7-44b8-9e45-41b51250a023",
-      "operation": "9c29c20a-d153-48d1-bd6c-a03d8f9eaa34",
+      "run": "103eeaf3-e8b2-4820-8d1a-9885d4e0e108",
+      "operation": "f409bbd9-9e6e-430a-a052-a8d8b407a7b3",
       "ambiguous": "Uncertain",
       "retry": "refused",
       "reconciliation": "saved",
-      "receipt": "1aa0cb3d-8386-4700-88a9-1d64f7e18dae",
+      "receipt": "6c9aec5c-de77-4167-a9a3-fcc677981755",
       "effects": 1
     },
     {
       "mode": "hold-save",
-      "run": "a8e6c926-2003-4634-aeec-9ae559c3364e",
-      "operation": "fb6002be-8829-4c27-9f6f-156d15a0372c",
+      "run": "193948f8-8c39-4e42-940b-7521f9a32f61",
+      "operation": "dad5c11f-0fe9-4fbd-99b0-de6813f13e36",
       "disposition": "interrupted",
       "effects": 0
     }
