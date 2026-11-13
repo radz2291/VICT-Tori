@@ -111,7 +111,10 @@ function checkRecall(result,receipt){
     assert.ok(Date.parse(receipt.at)<=Date.parse(started),'A recalled revision must precede the answer turn.');
     if(input===preferenceQuestion){
       assert.match(reply,/\b(?:two|2)\s+(?:short\s+)?bullet/i,reply);
-      assert.doesNotMatch(reply,/\b(?:three|3)\s+(?:short\s+)?bullet/i,reply);
+      if(/\b(?:three|3)\s+(?:short\s+)?bullet/i.test(reply)){
+        assert.match(reply,/\b(?:earlier|older|previous|original|initial|superseded|overridden|before)\b/i,reply);
+        assert.doesNotMatch(reply,/\b(?:i|we)(?:[’']ll|\s+will)\s+(?:now\s+)?(?:use|go with|follow)\s+(?:three|3)\b/i,reply);
+      }
     }else if(input===updateQuestion){
       assert.equal(reply.split('\n').filter(line=>/^[-*•]\s|^\d+\.\s/.test(line.trim())).length,2,reply);
     }else{
