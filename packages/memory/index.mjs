@@ -374,7 +374,7 @@ export function openMemoryStore(path,{clock=Date.now,ids=randomUUID,budget=memor
           {id:header.id,revision:header.revision,status:'storage-unavailable',ageMs:age(time,header.updated_at),lastUsedAt:header.last_used_at};
       });
     },
-    admit(scope) {
+    admit(scope,{includeRevisionTime=false}={}) {
       return tx(()=>{
         const time=clock(),at=date(time);
         const admitted=[],omitted=[],values=[];
@@ -386,7 +386,7 @@ export function openMemoryStore(path,{clock=Date.now,ids=randomUUID,budget=memor
             omitted.push({...ref,reason:'storage-unavailable'});
             continue;
           }
-          const next={...ref,content:row.content};
+          const next={...ref,content:row.content,...(includeRevisionTime?{updatedAt:row.updated_at}:{})};
           const candidate=blockPrefix+JSON.stringify([...values,next]);
           const size=Buffer.byteLength(candidate,'utf8');
           if(size>budget){omitted.push({...ref,reason:'budget'});continue;}

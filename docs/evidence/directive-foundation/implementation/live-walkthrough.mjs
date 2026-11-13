@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { spawn } from 'node:child_process';
 import { once } from 'node:events';
-import { mkdtemp } from 'node:fs/promises';
+import { mkdtemp, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -23,6 +23,9 @@ const recall=[
   'Do you remember what we discussed last week?',
   'Ingat lagi apa kita bincang minggu lepas?',
 ];
+const preferenceQuestion='Which standing preference applies to Orchid updates?';
+const updateQuestion='Give me an Orchid project update.';
+const observed={fixture:false};
 
 async function request(path='',data) {
   const response=await fetch(url+'/api/studio'+path,data===undefined?{}:{
@@ -86,6 +89,42 @@ async function settled(run){
   throw Error('The Directive did not settle.');
 }
 
+async function verifyRecall(session,receipt,sessionCreated){
+  const cases=[];
+  const result={session,sessionCreated,cases};
+  for(const input of [preferenceQuestion,updateQuestion,...recall]){
+    const ordinary=await turn(session,input);
+    const view=await settled(ordinary.id);
+    cases.push({...ordinary,input,directive:view.directive,admitted:view.evidence.admitted,
+      proposal:view.proposal??null,request:view.request??null});
+  }
+  return result;
+}
+
+function checkRecall(result,receipt){
+  for(const {reply,input,directive,admitted,proposal,request} of result.cases){
+    assert.equal(directive.status,'none',JSON.stringify({input,directive}));
+    assert.equal(proposal,null);
+    assert.equal(request,null);
+    assert.deepEqual(admitted.map(({id,revision,updatedAt})=>({id,revision,updatedAt})),
+      [{id:receipt.memoryId,revision:receipt.revision,updatedAt:receipt.at}]);
+    if(input===preferenceQuestion){
+      assert.match(reply,/\b(?:two|2)\s+(?:short\s+)?bullet/i,reply);
+      assert.doesNotMatch(reply,/\b(?:three|3)\s+(?:short\s+)?bullet/i,reply);
+    }else if(input===updateQuestion){
+      assert.equal(reply.split('\n').filter(line=>/^[-*•]\s|^\d+\.\s/.test(line.trim())).length,2,reply);
+    }else{
+      const malay=input===recall.at(-1);
+      assert.match(reply,malay?
+        /\b(?:tidak|tak|tiada|belum)\b.{0,70}\b(?:rekod|ingat|ingatan|perbualan|akses|maklumat)\b/isu:
+        /\b(?:no|don[’']t|do not|can[’']t|cannot|unable to)\b.{0,75}\b(?:record|history|recall|remember|conversation|access|information)\b/isu,reply);
+      assert.doesNotMatch(reply,malay?
+        /(?:catatan|pilihan|keutamaan|memori|poin|Orchid)[^.\n]{0,45}(?:dari|daripada|sejak) minggu lepas/iu:
+        /(?:note|preference|memory|bullets?|Orchid)[^.\n]{0,45}(?:from|since|saved|recorded) last week/iu,reply);
+    }
+  }
+}
+
 try{
   await startHost();
   const initial=await seed();
@@ -94,9 +133,13 @@ try{
   const follow=await turn(session,'Summarize the planning choice for this conversation.');
   const firstView=await settled(first.id);
   await settled(follow.id);
+  observed.initial=initial;
+  observed.first={...first,directive:firstView.directive};
+  observed.follow=follow;
   assert.equal(firstView.directive.status,'proposal',JSON.stringify(firstView.directive));
   const memory=await request('/memory/session',{session});
   const proposal=memory.turns.find(item=>item.run===first.id)?.proposal;
+  observed.first.proposal=proposal?.text;
   assert.equal(memory.records.length,0);
   assert.match(proposal.text,/orchid/i);
   assert.match(proposal.text,/three|\b3\b/i);
@@ -107,25 +150,21 @@ try{
   const {receipt,memory:record}=await request('/memory/confirm',{...binding,revision:corrected.directive.revision,text:corrected.text});
   assert.equal(record.memory.content,revised);
   assert.equal(receipt.directive.proposalRevision,2);
-  const quiet=[];
-  for(const input of recall){
-    const ordinary=await turn(session,input);
-    const view=await settled(ordinary.id);
-    assert.equal(view.directive.status,'none',JSON.stringify(view.directive));
-    assert.equal(view.proposal,undefined);
-    assert.equal(view.request,undefined);
-    quiet.push({...ordinary,input,directive:view.directive});
-  }
+  Object.assign(observed,{confirmed:revised,receipt});
+  const current=(await request()).sessions.find(item=>item.id===session);
+  assert.ok(current.messages.some(message=>message.id===receipt.source.message&&message.text===source));
+  observed.sameSession=await verifyRecall(session,receipt,current.created);
+  checkRecall(observed.sameSession,receipt);
   await stopHost();
   await startHost();
   assert.deepEqual((await request('/memory/run',{run:first.id})).receipt,receipt);
-  const fresh=(await request('/sessions',{activation})).openedSession;
-  const remembered=await turn(fresh,'Give me an Orchid project update.');
-  const admission=await settled(remembered.id);
-  assert.deepEqual(admission.evidence.admitted.map(item=>[item.id,item.revision]),[[receipt.memoryId,receipt.revision]]);
-  assert.equal(remembered.reply.split('\n').filter(line=>/^[-*•]\s/.test(line.trim())).length,2,remembered.reply);
-  console.log(JSON.stringify({fixture:false,initial,first:{...first,proposal:proposal.text,directive:firstView.directive},
-    follow,confirmed:revised,receipt,quiet,restart:{fresh,remembered,admitted:admission.evidence.admitted}},null,2));
+  const opened=await request('/sessions',{activation});
+  const fresh=opened.sessions.find(item=>item.id===opened.openedSession);
+  observed.afterRestart=await verifyRecall(fresh.id,receipt,fresh.created);
+  checkRecall(observed.afterRestart,receipt);
 }finally{
   await stopHost();
+  const evidence=JSON.stringify(observed,null,2)+'\n';
+  if(process.env.TORI_DIRECTIVE_LIVE_EVIDENCE)await writeFile(process.env.TORI_DIRECTIVE_LIVE_EVIDENCE,evidence);
+  else console.log(evidence);
 }

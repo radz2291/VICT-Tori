@@ -496,5 +496,12 @@ test('admission uses newest changes first, a stable tie break and actual UTF-8 s
     assert.equal(store.inspect(scope,'same-b').memory.lastUsedAt,null);
     assert.equal(store.inspect(scope,'same-a').memory.lastUsedAt,new Date(time).toISOString());
     assert.equal(evidence.admitted[0].ageMs,20000);
+    const timed=store.admit(scope,{includeRevisionTime:true});
+    assert.deepEqual(timed.evidence.admitted.map(item=>item.id),['newer']);
+    assert.deepEqual(timed.evidence.omitted,[{id:'same-a',revision:1,reason:'budget'},{id:'same-b',revision:1,reason:'budget'}]);
+    assert.equal(Buffer.byteLength(timed.block,'utf8'),timed.evidence.bytes);
+    assert.ok(timed.evidence.bytes<=1180);
+    assert.match(timed.block,/"updatedAt":"1970-01-01T00:00:00\.001Z"/);
+    assert.doesNotMatch(block,/"updatedAt"/);
   }finally{store.close();}
 });

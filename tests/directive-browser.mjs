@@ -162,6 +162,19 @@ try{
   await page.screenshot({path:join(out,'directive-confirmed.png'),animations:'disabled'});
   record.receipt=memory.body.receipt;
   record.nextSendCompleted=next.id;
+  const sameSession=await send('Give me an Orchid project update.');
+  assert.equal(sameSession.status,'completed');
+  const sameMemory=await waitDirective(sameSession.id,'none');
+  assert.deepEqual(sameMemory.evidence.admitted.map(({id,revision,updatedAt})=>({id,revision,updatedAt})),[
+    {id:record.receipt.memoryId,revision:1,updatedAt:record.receipt.at},
+  ]);
+  const sameAnswer=(await api()).sessions.find(item=>item.id===session).messages
+    .find(item=>item.id===sameSession.id+'-agent').text;
+  assert.equal(sameAnswer.split('\n').filter(line=>line.startsWith('- ')).length,2);
+  await page.getByText(sameAnswer.split('\n')[0].slice(2),{exact:true}).waitFor();
+  assert.equal(await page.locator('[data-memory-turn="'+sameSession.id+'"]').count(),0);
+  record.sameSession={id:sameSession.id,answer:sameAnswer,admitted:sameMemory.evidence.admitted[0]};
+  await page.screenshot({path:join(out,'directive-same-session.png'),animations:'disabled'});
   const details=page.getByRole('region',{name:'Session details content'});
   await details.waitFor({state:'hidden'});
   const sidebar=button('Sessions sidebar');

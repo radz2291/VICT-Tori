@@ -52,8 +52,16 @@ try{
   assert.equal(confirmed.receipt.directive.proposalRevision,2);
   assert.deepEqual((await save({text},context)).receipt,confirmed.receipt);
   assert.equal(store.list(scope).length,1);
+  const plain=store.admit(scope);
+  const timed=store.admit(scope,{includeRevisionTime:true});
+  assert.ok(!plain.block.includes('updatedAt'));
+  assert.ok(timed.block.includes(JSON.stringify(confirmed.receipt.at)));
+  assert.equal(timed.evidence.admitted[0].updatedAt,confirmed.receipt.at);
+  assert.equal(timed.evidence.bytes,Buffer.byteLength(timed.block,'utf8'));
+  assert.ok(timed.evidence.bytes<=timed.evidence.budgetBytes);
   console.log(JSON.stringify({activation:record.activationVersion,binding:hash,historyBytes:options.historyBytes,
-    deadlineMs:options.deadlineMs,confirmedRevision:confirmed.receipt.directive.proposalRevision,once:true}));
+    deadlineMs:options.deadlineMs,confirmedRevision:confirmed.receipt.directive.proposalRevision,
+    confirmedAt:confirmed.receipt.at,plainBytes:plain.evidence.bytes,timedBytes:timed.evidence.bytes,once:true}));
 }finally{
   store.close();
 }
