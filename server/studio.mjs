@@ -7,6 +7,7 @@ import { registeredTool, registeredTools } from '../src/registered-tools.mjs';
 import { authoringChatSessions, knownOperation, lastAuthoringTest, operationDigest, rememberOperation, runEvidence, workspaceCapabilities } from './workspace-actions.mjs';
 import { publicProviderStream } from './provider-stream.mjs';
 import { isRunKey, matchesRunEvent, replayRun, runState } from './run-observation.mjs';
+import { recoverRunRecords } from './run-recovery.mjs';
 import { reportsMemoryEffect } from './memory-reply.mjs';
 import { withCompleteScopedThreadReads } from './mastra-session-store.mjs';
 import { createSavedMemoryHost, emptyAdmission, pinnedMemoryPolicy, pinAllowsSavedMemory } from './saved-memory.mjs';
@@ -215,38 +216,51 @@ async function requestMemoryDraft(key,route,evidence,draft,input,signal) {
 }
 
 const maxHostDeadlineMs=90000;
-export function createStudio({getAssembly,dataDirectory,turnDeadlineMs=maxHostDeadlineMs,contextReader,memoryFixture}) {
+export function createStudio({getAssembly,dataDirectory,turnDeadlineMs=maxHostDeadlineMs,contextReader,memoryFixture,backgroundFixture}) {
   if(!Number.isInteger(turnDeadlineMs)||turnDeadlineMs<1||turnDeadlineMs>maxHostDeadlineMs)throw new Error('Invalid Studio turn deadline.');
   const fixture=process.env.TORI_EXECUTION_FIXTURE==='a1-request-capture' &&
     process.env.TORI_ZAI_API_KEY==='synthetic-a1-fixture' ? 'a1-request-capture' : undefined;
-  if(memoryFixture&&!fixture)throw new Error('Saved-memory scope overrides require the deterministic fixture host.');
+  if((memoryFixture||backgroundFixture)&&!fixture)throw new Error('Fault injection requires the deterministic fixture host.');
   const dir=resolve(dataDirectory);mkdirSync(dir,{recursive:true});
-  const db=new DatabaseSync(join(dir,'studio.sqlite'));
-  db.exec("PRAGMA journal_mode=WAL; CREATE TABLE IF NOT EXISTS project (id INTEGER PRIMARY KEY, value TEXT NOT NULL)");
-  const read=db.prepare('SELECT value FROM project WHERE id=1');
-  const write=db.prepare('INSERT INTO project VALUES (1, ?) ON CONFLICT(id) DO UPDATE SET value=excluded.value');
-  const snapshot=()=>JSON.parse(read.get()?.value??'{"drafts":[],"activations":[],"sessions":[],"runs":[]}');
-  const store=(state)=>write.run(JSON.stringify(state));
-  const authoringTransport=createAuthoringTransport(db);
-  const old=snapshot();
-  if(!old.workspace){old.workspace=randomUUID();store(old);}
-  for(const run of old.runs.filter(r=>r.status==='running')){
-    run.status='interrupted';run.message='Studio restarted before the turn result was confirmed. It was not replayed.';
-    run.events.push({at:now(),label:'Interrupted · no replay'});
-    const session=old.sessions.find(s=>s.id===run.session);
-    if(session)session.interrupted=true;
+  // Keep a process-scoped SQLite lock for this store. A second host must not
+  // mistake the first host's active Run for an orphan during startup.
+  const ownerLock=new DatabaseSync(join(dir,'studio-owner.sqlite'));
+  try{ownerLock.exec('PRAGMA busy_timeout=0; BEGIN IMMEDIATE');}
+  catch{ownerLock.close();throw conflict('This Studio store already has a host. Reopen that Studio.');}
+  let db, snapshot, store, authoringTransport;
+  try{
+    db=new DatabaseSync(join(dir,'studio.sqlite'));
+    db.exec("PRAGMA journal_mode=WAL; CREATE TABLE IF NOT EXISTS project (id INTEGER PRIMARY KEY, value TEXT NOT NULL)");
+    const read=db.prepare('SELECT value FROM project WHERE id=1');
+    const write=db.prepare('INSERT INTO project VALUES (1, ?) ON CONFLICT(id) DO UPDATE SET value=excluded.value');
+    snapshot=()=>JSON.parse(read.get()?.value??'{"drafts":[],"activations":[],"sessions":[],"runs":[]}');
+    store=state=>write.run(JSON.stringify(state));
+    authoringTransport=createAuthoringTransport(db);
+    const old=snapshot();
+    if(!old.workspace){old.workspace=randomUUID();store(old);}
+  }catch(error){
+    db?.close();
+    ownerLock.close();
+    throw error;
   }
-  store(old);
-  let activeTurn;
+  const hostOwner=randomUUID();
+  let activeTurn, startup;
   let storage,sessionStore;
   const threads=new MastraThreadCoordinator();
-  let controlStores, observationHub, governanceStore, lifecycle, recovered;
+  let controlStores, governanceStore, lifecycle, recovered;
   const controls=()=>controlStores??=createSqliteAgentControlStores({path:join(dir,'a3-control.sqlite')});
-  const runHub=()=>observationHub??=new AgentStreamHub({ledger:controls().streamLedger});
+  const runHub=()=>new AgentStreamHub({ledger:controls().streamLedger});
+  const recover=()=>startup??=(async()=>{
+    const state=snapshot();
+    if(state.runs.some(run=>run.status==='running')&&await recoverRunRecords(state,controls(),authoringTransport))store(state);
+  })();
   async function localRunActor(scope) {
     const actors=controls().actors;
     let record=await actors.get(actor);
-    if(!record&&scope==='agent.turn.start'){
+    if(!record){
+      // The pinned VICT SQLite adapter uses an in-memory actor directory.
+      // Only this loopback host supplies the fixed local operator; no request
+      // can choose an actor, and a disabled record is never re-created.
       await actors.upsert({actorId:actor,status:'active',roles:['developer'],createdAt:Date.now()});
       record=await actors.get(actor);
     }
@@ -284,7 +298,7 @@ export function createStudio({getAssembly,dataDirectory,turnDeadlineMs=maxHostDe
     await recovered;
   };
   const memories=createSavedMemoryHost({path:join(dir,'saved-memory.sqlite'),actor:memoryFixture?.actor??actor,
-    project:memoryFixture?.project,fixture,snapshot,definitionOf,turnActive:()=>!!activeTurn,
+    project:memoryFixture?.project,fixture,snapshot,definitionOf,turnActive:()=>!!activeTurn,fault:backgroundFixture?.memory,
     async actorAllowed(identity){
       try {
         // The local Studio operator has a host-owned identity. Never recreate a suspended actor.
@@ -482,6 +496,7 @@ export function createStudio({getAssembly,dataDirectory,turnDeadlineMs=maxHostDe
     }
   }
   async function dispatch(path,input){
+    await recover();
     if(path==='/authoring-ack'){
       const assembly=input.graph?await getAssembly():undefined;
       const result=authoringTransport.acknowledge(input.channel,input.receipt,input.graph,(binding,graph)=>{
@@ -521,15 +536,22 @@ export function createStudio({getAssembly,dataDirectory,turnDeadlineMs=maxHostDe
         :current.runs.find(item=>item.id===input.run);
       runBinding(current,run,input);
       if(path==='/run-lookup')return {run:run.id,session:run.session,activation:run.activation};
-      const stream=await replayRun(runHub(),run,input.cursor);
+      const live=activeTurn?.run?.id===run.id?activeTurn:undefined;
+      // Only an active owner keeps VICT's transient buffer in memory. A
+      // settled Run is recoverable from its persisted response and ledger.
+      const stream=await replayRun(live?.hub??runHub(),run,input.cursor);
       const assembly=await getAssembly();
       // Replay can race completion; use the authoritative snapshot for state.
       const latest=snapshot();
       const selected=latest.runs.find(item=>item.id===run.id);
       runBinding(latest,selected,input);
       const view=projection(latest,defaultDefinition,assembly);
-      const owner=activeTurn?.run?.id===run.id?activeTurn:undefined;
-      return {run:view.runs.find(item=>item.id===run.id),
+      const owner=activeTurn?.run?.id===run.id&&run.ownerId===hostOwner?activeTurn:undefined;
+      const publicRun=view.runs.find(item=>item.id===run.id);
+      if(publicRun.state==='Running'&&!owner)throw new StudioError(503,'Studio could not verify the current Run owner.');
+      return {run:publicRun,
+        ownership:owner?{id:hostOwner,run:run.id,activation:run.activation}:undefined,
+        children:view.runs.filter(item=>item.parentRun===run.id),
         session:view.sessions.find(item=>item.id===run.session),stream,
         canStop:!!owner?.stop&&!owner.stop.signal.aborted,writing:!!owner?.publicTextStarted};
     }
@@ -610,9 +632,8 @@ export function createStudio({getAssembly,dataDirectory,turnDeadlineMs=maxHostDe
       }
       activateDefinition(state,definition,route,checked);
     } else if(path==='/delete-session'){
-      if(activeTurn)throw conflict('Wait for the current turn to finish.');
+      if(activeTurn||memories.saving())throw conflict('Wait for the current turn or memory save to finish.');
       const session=state.sessions.find(item=>item.id===input.session);
-      if(!session)throw new StudioError(404,'This Session was not found.');
       activeTurn={session:session.id};
       try{
         await openMemory();
@@ -684,7 +705,7 @@ export function createStudio({getAssembly,dataDirectory,turnDeadlineMs=maxHostDe
     }
     const authoringDock=workspace&&session.authoringDock===true;
     if(session.interrupted&&!authoringDock)throw conflict('This Session was interrupted. Open a new Session to avoid replaying an uncertain turn.');
-    if(activeTurn&&activeTurn!==nested?.owner)throw conflict('A turn is already running. Wait for it to finish.');
+    if(memories.saving()||(activeTurn&&activeTurn!==nested?.owner))throw conflict('A turn or memory save is already running. Wait for it to finish.');
     if(value.authoring){
       const currentRevision=saved?.id??null;
       if(!validAuthoringTarget(target,workspace)||(target.savedRevision??null)!==currentRevision||
@@ -698,7 +719,7 @@ export function createStudio({getAssembly,dataDirectory,turnDeadlineMs=maxHostDe
       temperature:value.temperature,topP:value.topP};
     const run={id:randomUUID(),session:session.id,activation:session.activation,revision:revision.id,number:revision.number,name:session.name,
       memory:pin.memory??'recent-100@1',
-      provider,model,route:pin.route??'general',tokens:value.tokens,outputContract:pin.output,execution,started:now(),status:'running',events:[],...(fixture?{fixture}:{})};
+      provider,model,route:pin.route??'general',tokens:value.tokens,outputContract:pin.output,execution,ownerId:hostOwner,started:now(),status:'running',events:[],...(fixture?{fixture}:{})};
     if(background)run.startRequest={id:background.id,fingerprint:background.fingerprint};
     if(!nested&&!value.authoring)run.observation={actor,workspace:state.workspace,stream:randomUUID(),
       profile:activation.agentProfileVersion,thread:mastraThreadIdForConversation(session.id)};
@@ -723,7 +744,8 @@ export function createStudio({getAssembly,dataDirectory,turnDeadlineMs=maxHostDe
     const deadlineAt=Date.now()+turnDeadlineMs;
     const draftTurn=value.authoring?authoringTransport.start(target,actor,run.id,deadlineAt,definition):undefined;
     const owner={session:session.id,publicTextStarted:false,draftTurn,definition,run,
-      ...(direct&&(memoryEnabled||background)?{stop:new AbortController()}:{}),
+      ...(run.observation?{hub:runHub()}:{}),
+      ...(direct?{stop:new AbortController()}:{}),
     };
     if(draftTurn&&(!workspace||target.hasDraft)){
       draftTurn.setInstructions(target.instructions);
@@ -810,7 +832,7 @@ export function createStudio({getAssembly,dataDirectory,turnDeadlineMs=maxHostDe
       };
       const threadId=mastraThreadIdForConversation(session.id);
       if(run.observation)await localRunActor('agent.turn.start');
-      const observation=run.observation?{hub:runHub(),streamId:run.observation.stream}:{};
+      const observation=run.observation?{hub:owner.hub,streamId:run.observation.stream}:{};
       let outcome;
       if(draftTurn){
         if(!await controlStores.actors.get(actor))await controlStores.actors.upsert({actorId:actor,status:'active',roles:['developer'],createdAt:Date.now()});
@@ -823,6 +845,7 @@ export function createStudio({getAssembly,dataDirectory,turnDeadlineMs=maxHostDe
         if(!await controlStores.actors.get(actor))await controlStores.actors.upsert({actorId:actor,status:'active',roles:['developer'],createdAt:Date.now()});
         const childCapability=child&&createChildCapability({activation,child,parentRun:run,agentConfig,delegated,
           capability:pin.savedDelegation?savedDelegationRef:delegationRef,
+          beforeChild:backgroundFixture?.child,
           runDelegated:async(childRun,task,includeContext,signal,childThread)=>{
             signal.throwIfAborted();
             const settings=delegated.value;
@@ -852,7 +875,7 @@ export function createStudio({getAssembly,dataDirectory,turnDeadlineMs=maxHostDe
           persistRun(childRun);
         }});
         outcome=await governedReadTurn({activation,stores:controlStores,agentConfig,actorId:actor,threadId,input:text,deadline,fixture,onEvent,childCapability,
-          runId:run.id,...observation,scriptBinding:value.tool,recordScript:receipt=>scriptEvidence(run,receipt)});
+          runId:run.id,...observation,userStop:owner.stop?.signal,scriptBinding:value.tool,recordScript:receipt=>scriptEvidence(run,receipt)});
         run.governance=outcome.governance;
       }else{
         const adapter=MastraProductAgent.create(activation,agentConfig);
@@ -978,13 +1001,18 @@ export function createStudio({getAssembly,dataDirectory,turnDeadlineMs=maxHostDe
     if(evidence.http)run.events.push({at:run.ended,label:(fixture?'Fixture HTTP ':'Z.AI HTTP ')+evidence.http+(evidence.code?' · '+evidence.code:'')});
     run.events.push({at:run.ended,label:'Turn '+run.status});
     run.events.sort((a,b)=>a.at.localeCompare(b.at));
-    if(nested)nested.owner.testing=undefined;
-    else activeTurn=undefined;
     const latest=snapshot();
     latest.runs=[run,...latest.runs.filter(r=>r.id!==run.id)];
     latest.sessions=latest.sessions.map(s=>s.id===session.id?session:s);
-    store(latest);
+    try{store(latest);}
+    finally{
+      if(nested)nested.owner.testing=undefined;
+      else activeTurn=undefined;
+    }
     return nested?{testRun:run.id}:projection(latest,definition,assembly);
   }
-  return {dispatch,close:async()=>{await storage?.close();controlStores?.close();governanceStore?.close();memories.close();db.close();}};
+  return {dispatch,close:async()=>{
+    try{await storage?.close();controlStores?.close();governanceStore?.close();memories.close();db.close();}
+    finally{ownerLock.close();}
+  }};
 }

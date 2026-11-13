@@ -1,6 +1,7 @@
 type Proposal={run:string;status:string;source:{session:string;message:string};contextBasis:string[];text?:string;operation?:string};
 export type MemoryTurn={
   run:string;source:string;proposal?:Proposal;request?:{reason:string};
+  operation?:{operation?:string;status:string;reason?:string;checkedAt?:string};
   saved?:{receipt:{memoryId:string;revision:number};memory:{status:string;memory?:{content:string}}};
 };
 export const memoryReasons:Record<string,string>={

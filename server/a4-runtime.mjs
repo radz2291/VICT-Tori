@@ -28,7 +28,7 @@ export function registerChild(registry,parent,adapter){
   return registry.activateAgentProfile(childRef);
 }
 
-export function createChildCapability({activation,child,parentRun,agentConfig,persist,delegated,runDelegated,capability=delegationRef,modelForTask=task=>
+export function createChildCapability({activation,child,parentRun,agentConfig,persist,delegated,runDelegated,beforeChild,capability=delegationRef,modelForTask=task=>
   createDeterministicOfflineModel({script:{[task]:{kind:'text',text:childResult}}})}){
   const reference=delegated?{id:delegated.revision.definition??'tori-local-agent',revision:delegated.revision.id}:childRef;
   const saved=capability.id===savedDelegationRef.id;
@@ -62,7 +62,7 @@ export function createChildCapability({activation,child,parentRun,agentConfig,pe
 
   async function invokeChild(task,includeContext,context) {
     const id=randomUUID(), at=()=>new Date().toISOString();
-    const run={id,parentRun:parentRun.id,parentVictTurn:context.victTurnId,parentInvocation:context.victInvocationId,
+    const run={id,ownerId:parentRun.ownerId,parentRun:parentRun.id,parentVictTurn:context.victTurnId,parentInvocation:context.victInvocationId,parentOperation:context.victIdempotencyKey,
       session:parentRun.session,activation:child.activationVersion,revision:reference.revision,number:delegated?.revision.number,name:delegated?.value.name??childName,
       definition:delegated?reference.id:undefined,
       provider:delegated?parentRun.provider:'offline-fixture',route:delegated?parentRun.route:undefined,
@@ -70,6 +70,8 @@ export function createChildCapability({activation,child,parentRun,agentConfig,pe
       fixture:parentRun.fixture,events:[]};
     persist(run);
     try{
+      await beforeChild?.(run,context.signal);
+      context.signal?.throwIfAborted();
       const threadId=mastraThreadIdForConversation(id);
       let result;
       if(delegated){

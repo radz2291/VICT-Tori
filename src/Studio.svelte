@@ -363,11 +363,26 @@
     if(page!=='Sessions'||!selected||selected.authoring||selected.archivedFixture){memoryRead++;memoryResult=undefined;return;}
     untrack(()=>void loadSessionMemory(selected.id));
   });
+  const pendingMemorySave=$derived(memoryView?.turns?.some((turn:any)=>turn.operation?.status==='running'));
+  $effect(()=>{
+    const id=activeSession;
+    if(page!=='Sessions'||!id||!pendingMemorySave)return;
+    const poll=setInterval(()=>void loadSessionMemory(id),750);
+    return ()=>clearInterval(poll);
+  });
   async function changeMemory(path:string,payload:any,id:string){
     if(id!==activeSession)throw new Error('Reopen the source Session to change this memory.');
-    const result=await request('/memory/'+path,{...payload,session:id});
-    await loadSessionMemory(id);
-    return result;
+    try{return await request('/memory/'+path,{...payload,session:id});}
+    catch(error){
+      if(path==='confirm'&&!(error as any).status){
+        // A missing response is not evidence of a failed save. Query the
+        // original operation only; this path never submits another write.
+        const reconciled=await request('/memory/check',{session:id,run:payload.run,operation:payload.operation}).catch(()=>null);
+        if(reconciled?.status==='saved')return reconciled;
+      }
+      throw error;
+    }
+    finally{await loadSessionMemory(id);}
   }
   async function stopWatchedRun(item:any){
     if(!item||observation?.run!==item.id||!observation.canStop||stoppingRun)return;
@@ -396,9 +411,16 @@
     // A partial/late delivery cannot move a terminal row back to Running.
     if(old?.state&&old.state!=='Running'&&
       (old.state==='Uncertain'?row.state!=='Uncertain'&&!row.reconciliation:row.state!==old.state))return;
+    const seen=new Map<string,any>((packet.children??[]).map((item:any)=>[item.id,item]));
+    seen.set(row.id,row);
+    const runs=state.runs.map(item=>{
+      const next=seen.get(item.id);
+      seen.delete(item.id);
+      return next??item;
+    });
     state={...state,
       sessions:state.sessions.map(item=>item.id===packet.session.id?packet.session:item),
-      runs:old?state.runs.map(item=>item.id===row.id?row:item):[row,...state.runs],
+      runs:[...seen.values(),...runs],
     };
   }
   function followRun(run:string,session:string,activation:string,streamId:string,workspace:string){
@@ -430,7 +452,14 @@
         if(abort.signal.aborted)return;
         const previous=observation?.run===run?observation:undefined;
         observation={run,gap:!!previous?.gap,canStop:false,writing:false,disconnected:true};
-        if([403,404].includes((error as any).status))return;
+        const status=(error as any).status;
+        if(status===409){
+          // A cursor from before a store restore may be ahead of disk. Rejoin
+          // from the authoritative snapshot; never advance from that cursor.
+          seen=undefined;
+          try{localStorage.removeItem(key);}catch{}
+        }
+        if([403,404].includes(status))return;
       }
       timer=setTimeout(watch,500);
     };
@@ -548,7 +577,13 @@
         activeSession=restored.session;
         if(linked){inspectSessionScope=true;runReturnSession=restored.session;changePage('Runs');void openRun(restored.id);}
         else void openSession(restored.session);
-      }else if(linked){changePage('Runs');runActionError='This Run is not available in the current Studio.';}
+      }else if(linked){
+        activeRun='';
+        inspectSessionScope=false;
+        runReturnSession='';
+        changePage('Runs');
+        runActionError='This Run is not available in the current Studio.';
+      }
       void recoverStart(next.workspace);
     }).catch(e=>error=e.message).finally(()=>loaded=true);
     const dayCheck=setInterval(()=>today=localCalendarDay(new Date()),60_000);
@@ -944,6 +979,7 @@
   }
   async function openRun(id:string,focus=false){
     const changed=activeRun!==id;
+    if(changed)runActionError='';
     if(changed&&focus)runGroupChoice=undefined;
     activeRun=id;
     if(page==='Runs'&&state.runs.some(item=>item.id===id&&item.streamId)){
@@ -1092,21 +1128,40 @@
       const accepted=await request('/run-lookup',pendingRequest);
       await attachAccepted(accepted,workspace);
       if(page==='Agents')await openSession(accepted.session);
-    }catch(error){
-      if((error as any).status===404){
-        try{localStorage.removeItem(pendingRunKey(workspace));}catch{}
-      }
-    }
+    }catch{/* Keep the identity. The acknowledgement can still be in flight. */}
   }
   async function sendBackground(input:string,id:string,activation:string,workspace:string){
-    const identity={request:crypto.randomUUID(),session:id,activation};
+    let identity={request:crypto.randomUUID(),session:id,activation}, previous;
+    try{previous=JSON.parse(localStorage.getItem(pendingRunKey(workspace))??'null');}catch{}
+    if(previous){
+      try{
+        const accepted=await request('/run-lookup',previous);
+        await attachAccepted(accepted,workspace);
+        await openSession(accepted.session);
+        return;
+      }catch(error){
+        if((error as any).status!==404){turnErrors[id]=(error as Error).message;return;}
+      }
+      if(previous.session!==id||previous.activation!==activation){
+        turnErrors[id]='Return to the original Session to check its background Run request.';
+        return;
+      }
+      identity=previous;
+    }
     try{localStorage.setItem(pendingRunKey(workspace),JSON.stringify(identity));}catch{}
     try{
       let accepted;
       try{accepted=await request('/start-run',{...identity,input,includeContext:!!sessionContext[id]});}
       catch(error){
         try{accepted=await request('/run-lookup',identity);}
-        catch{throw error;}
+        catch{
+          // A definite validation refusal on a new request can be replaced.
+          // A lost reply must be joined or explicitly sent with the same ID.
+          if(!previous&&[400,403,404,409].includes((error as any).status)){
+            try{localStorage.removeItem(pendingRunKey(workspace));}catch{}
+          }
+          throw error;
+        }
       }
       sessionContext[id]=false;
       if(sessionDrafts[id]?.trim()===input)delete sessionDrafts[id];
@@ -1920,7 +1975,8 @@
 {/snippet}
 
 {#snippet runDetails()}
-  <RunDetails {run} loadMemory={(id:string)=>request('/memory/run',{run:id})} inspectRun={async(id:string)=>{
+  <RunDetails {run} loadMemory={(id:string)=>request('/memory/run',{run:id})}
+    checkMemory={(binding:any)=>request('/memory/check',binding)} inspectRun={async(id:string)=>{
     setRunScope('all');
     runReturnSession='';
     await openRun(id,true);
@@ -2033,9 +2089,10 @@
   {:else}
     <div class="session-composer">
       {#if turnErrors[session.id]}<Feedback kind="error" message={turnErrors[session.id]}/>{/if}
+      {#if runActionError&&stoppingRun===''&&liveSessionRun}<Feedback kind="error" message={runActionError}/>{/if}
       {#if liveSessionRun}
         <div class="run-links">
-          <Button label="Inspect Run" variant="quiet" onclick={()=>inspectSessionRuns(liveSessionRun.id)}/>
+          <Button label="Inspect Run" variant="secondary" onclick={()=>inspectSessionRuns(liveSessionRun.id)}/>
           {#if liveSessionRun.background}<span class="muted">You can close this tab while Studio stays open.</span>{/if}
         </div>
         {#if observation?.run===liveSessionRun.id&&observation.disconnected}
@@ -2056,11 +2113,11 @@
           {#if session.context}
             <Toggle.Root type="button" class="session-context-toggle"
               bind:pressed={()=>!!sessionContext[session.id],pressed=>sessionContext[session.id]=pressed}
-              disabled={sendActivity?.session===session.id} aria-label="Include pinned context on next turn"
+              disabled={sessionBusy} aria-label="Include pinned context on next turn"
               title={'Include pinned context on next turn · '+session.context}>Include context</Toggle.Root>
           {/if}
-          {#if !session.authoring&&!sessionBusy}
-            <Toggle.Root type="button" class="session-context-toggle"
+          {#if !session.authoring}
+            <Toggle.Root type="button" class="session-context-toggle" disabled={sessionBusy||sending}
               bind:pressed={()=>!!backgroundChoice[session.id],pressed=>backgroundChoice[session.id]=pressed}
               aria-label="Run in background">Run in background</Toggle.Root>
           {/if}
@@ -2251,7 +2308,7 @@
                       <SessionConversation messages={session.messages} busy={sessionBusy}
                         turns={memoryView?.turns??[]} composer={sessionComposer}>
                         {#snippet attachment(turn)}
-                          <MemoryControls view={memoryView} mode="card" sessionId={session.id} {turn} act={changeMemory} busyTurn={sending}/>
+                          <MemoryControls view={memoryView} mode="card" sessionId={session.id} {turn} act={changeMemory} busyTurn={sending||sessionBusy}/>
                         {/snippet}
                       </SessionConversation>
                     {/if}
@@ -2360,7 +2417,10 @@
                   </section>
                 </div>
               {:else}
-                <div class="empty"><h1>No Runs yet</h1><p>{runScope==='session'&&session?'This Session has no recorded Runs yet.':'Recorded turns will appear here.'}</p></div>
+                <div class="empty">
+                  {#if runActionError}<Feedback kind="error" message={runActionError}/>
+                  {:else}<h1>No Runs yet</h1><p>{runScope==='session'&&session?'This Session has no recorded Runs yet.':'Recorded turns will appear here.'}</p>{/if}
+                </div>
               {/if}
             </main>
           {/if}

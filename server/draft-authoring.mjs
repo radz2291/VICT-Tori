@@ -39,6 +39,7 @@ export function createAuthoringTransport(db) {
   const operation = db.prepare('SELECT * FROM authoring_operation WHERE id=?');
   const insert = db.prepare('INSERT OR IGNORE INTO authoring_operation (id,run,channel,binding) VALUES (?,?,?,?)');
   const confirm = db.prepare('UPDATE authoring_operation SET receipt=?, received=? WHERE id=? AND receipt IS NULL');
+  const pendingEdits = db.prepare('SELECT id FROM authoring_operation WHERE run=? AND receipt IS NULL ORDER BY id');
   const receipts = db.prepare('SELECT receipt,received FROM authoring_operation WHERE run=? AND receipt IS NOT NULL ORDER BY received,id');
 
   function acknowledge(channel, receipt, graph, saveDraft, readSave) {
@@ -160,6 +161,14 @@ export function createAuthoringTransport(db) {
 
   return {
     start, acknowledge,
+    pendingEffects:runId=>pendingEdits.all(runId).map(row=>row.id),
+    findReceipt(runId,id,state){
+      const entry=operation.get(id);
+      const receipt=entry?.run===runId&&entry.receipt?JSON.parse(entry.receipt):undefined;
+      if(receipt)return 'draft-'+receipt.status;
+      const workspace=state.workspaceOperations?.[id];
+      return workspace?.runId===runId&&workspace.result?.status?'workspace-'+workspace.result.status:undefined;
+    },
     receipts: runId => receipts.all(runId).map(row => ({ ...JSON.parse(row.receipt), at: row.received })),
   };
 }

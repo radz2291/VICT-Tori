@@ -78,7 +78,7 @@ test('unversioned store migrates atomically, retaining both scopes, revisions, r
     for(let reopen=0;reopen<2;reopen++){
       store=openMemoryStore(path,{clock:()=>time});
       assert.equal(store.schemaVersion,memoryStoreSchemaVersion);
-      assert.equal(version(path),1);
+      assert.equal(version(path),memoryStoreSchemaVersion);
       assert.deepEqual(ledger(path),before);
       assert.deepEqual(memoryRows(path),headers.map(header=>Object.assign(Object.create(null),header,{derived_from:'[]',compacted_into:null})));
       const [item]=store.list(scope);
@@ -102,14 +102,14 @@ test('unversioned store migrates atomically, retaining both scopes, revisions, r
   }finally{store?.close();await rm(dir,{recursive:true,force:true});}
 });
 
-test('fresh version 1 store writes dormant defaults and leaves an unknown schema untouched',async()=>{
+test('fresh store writes dormant defaults and leaves an unknown schema untouched',async()=>{
   const dir=await mkdtemp(join(tmpdir(),'tori-memory-schema-'));
   const path=join(dir,'fresh.sqlite');
   let store;
   try{
     store=openMemoryStore(path,{clock:()=>time});
     assert.equal(store.schemaVersion,memoryStoreSchemaVersion);
-    assert.equal(version(path),1);
+    assert.equal(version(path),memoryStoreSchemaVersion);
     const proposal=store.propose(scope,{...grant,source:contextBasis[1],contextBasis,expires:time+1000});
     const result=store.confirm(scope,{...grant,operation:proposal.operation});
     assert.deepEqual(lineageOf(store.list(scope)[0]),lineage);

@@ -1,8 +1,19 @@
 <script lang="ts">
-  import { Feedback, StatusBadge } from '@victframework/ui-svelte';
+  import { Button, Feedback, StatusBadge } from '@victframework/ui-svelte';
   import { memoryAge, memoryDate, memoryReasons } from './memory-display';
-  let {run,load}=$props();
+  let {run,load,check}=$props();
   let view=$state<any>();
+  let checking=$state(false);
+  let checkError=$state('');
+  async function checkSave(){
+    if(checking||!view?.operation?.operation)return;
+    checking=true;checkError='';
+    try{
+      await check({session:run.session,run:run.id,operation:view.operation.operation});
+      view=await load(run.id);
+    }catch(e){checkError=(e as Error).message;}
+    finally{checking=false;}
+  }
   $effect(()=>{
     const id=run.id, terminal=run.status;
     let current=true;
@@ -45,7 +56,17 @@
     {#each view.evidence.omitted as item (item.id)}
       <dl><dt>Omitted</dt><dd class="hash">{item.id} · r{item.revision}<br/>{memoryReasons[item.reason]??item.reason}</dd></dl>
     {/each}
-    {#if view.receipt}
+    {#if view.operation?.status==='uncertain'}
+      <StatusBadge value="Uncertain" tone="danger"/>
+      <Feedback kind="error" message="The saved memory and receipt could not be reconciled. A retry is unavailable."/>
+      {#if view.operation.operation}
+        <dl><dt>Operation</dt><dd class="hash">{view.operation.operation}</dd></dl>
+        <Button label="Check save outcome" variant="secondary" busy={checking} onclick={()=>void checkSave()}/>
+      {/if}
+      {#if checkError}<Feedback kind="error" message={checkError}/>{/if}
+    {:else if view.operation?.status==='running'}
+      <StatusBadge value="Running"/>
+    {:else if view.receipt}
       <dl>
         <dt>Save outcome</dt><dd>Saved · {view.receipt.memoryId} · r{view.receipt.revision}</dd>
         {#if view.savedRecordStatus==='forgotten'}
@@ -57,6 +78,9 @@
         <dt>Context basis</dt><dd class="hash">{view.receipt.contextBasis.join(', ')}</dd>
         <dt>Operation</dt><dd class="hash">{view.receipt.operation}</dd>
       </dl>
+    {:else if view.operation?.status==='interrupted'&&view.operation.reason==='no-commit'}
+      <StatusBadge value="Interrupted"/>
+      <p>The original confirmation did not commit.</p>
     {:else if view.proposal}
       <p>{view.proposal==='pending'?'Confirmation pending. Nothing saved.':'Nothing saved. '+(memoryReasons[view.proposal]??view.proposal)}</p>
     {:else if view.request?.status==='not-saved'}

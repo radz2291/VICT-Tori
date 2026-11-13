@@ -26,6 +26,9 @@
   let savedRecord=$derived(view?.records?.find((item:any)=>item.id===saved?.receipt.memoryId&&item.status==='available'));
   let valueToSave=$derived(correcting?content:proposal?.text??'');
   let forgotten=$derived(saved?.memory.status==='forgotten');
+  let saveOperation=$derived(turn?.operation);
+  let uncertain=$derived(saveOperation?.status==='uncertain');
+  let saving=$derived(saveOperation?.status==='running');
   function focusHeading(){
     return tick().then(()=>card?.querySelector<HTMLElement>('h3')?.focus());
   }
@@ -52,8 +55,13 @@
     if(busy)return;
     busy=true;problem='';result='';
     try {
-      await act(path,body,sessionId);
-      if(path==='correct'||path==='forget'){
+      const outcome=await act(path,body,sessionId);
+      if(path==='check'){
+        result=outcome.status==='saved'?'The original receipt was found.':
+          outcome.status==='interrupted'?'The original save did not commit. You can confirm it again.':
+          outcome.status==='uncertain'?'The original save still cannot be reconciled.':'The save has not settled.';
+        await focusHeading();
+      }else if(path==='correct'||path==='forget'){
         close();
         if(path==='correct')result='Memory corrected.';
         else if(mode==='list')result='Memory forgotten. Older Runs keep the receipt without the text.';
@@ -79,7 +87,7 @@
 
 {#if mode==='card' && turn}
   <section class="memory-confirmation" bind:this={card}
-    data-memory-state={saved?(forgotten?'forgotten':'saved'):proposal?.status??'request'}
+    data-memory-state={uncertain?'uncertain':saving?'running':saved?(forgotten?'forgotten':'saved'):proposal?.status??'request'}
     data-memory-turn={turn.run} data-source-message={turn.source} aria-labelledby={inputId+'-heading'}>
     <div class="memory-card-heading">
       <span class="memory-card-icon" aria-hidden="true">
@@ -98,8 +106,25 @@
         <span class="memory-card-source">{proposal.contextBasis.length} source {proposal.contextBasis.length===1?'message':'messages'}</span>
       {/if}
     </div>
-    {#if proposal?.status==='pending'}
+    {#if uncertain}
+      <Feedback kind="error" message="Save outcome Uncertain. The original operation must be reconciled before a retry."/>
+      {#if saveOperation?.operation}
+        <p class="memory-card-note">Operation {saveOperation.operation}</p>
+        <div class="memory-actions memory-card-actions">
+          <Button label="Check save outcome" variant="secondary" {busy}
+            onclick={()=>void submit('check',{run:turn.run,operation:saveOperation.operation})}/>
+        </div>
+      {/if}
+    {:else if saving}
+      <Feedback message="Saving the confirmed memory…"/>
+      <div class="memory-actions memory-card-actions">
+        <Button label="Stop memory save" variant="secondary" {busy} onclick={()=>void submit('stop',{run:turn.run})}/>
+      </div>
+    {:else if proposal?.status==='pending'}
       <div class="memory-card-body">
+        {#if saveOperation?.status==='interrupted'&&saveOperation.reason==='no-commit'}
+          <Feedback message="The previous confirmation did not commit. Review the text before confirming again."/>
+        {/if}
         {#if correcting}
           <Label.Root for={inputId}>Memory to save</Label.Root>
           <Textarea id={inputId} class="tori-field" rows={3} bind:value={content} disabled={busy||busyTurn}
@@ -145,7 +170,7 @@
       <Feedback message={turn.request.reason==='memory-or-reminder'?memoryReasons['memory-or-reminder']:
         'Nothing saved. '+(memoryReasons[turn.request.reason]??'No memory was confirmed.')}/>
     {/if}
-    {#if !actionOpen&&problem&&proposal?.status!=='pending'}
+    {#if !actionOpen&&problem&&(uncertain||saving||proposal?.status!=='pending')}
       <Feedback kind="error" message={problem}/>
     {/if}
     {#if result}<Feedback message={result}/>{/if}

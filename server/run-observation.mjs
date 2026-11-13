@@ -22,9 +22,9 @@ export async function replayRun(hub,run,cursor){
   if(cursor!==undefined&&(cursor?.streamId!==streamId||!Number.isSafeInteger(cursor.lastSeq)||cursor.lastSeq<0))
     throw Object.assign(new Error('This cursor does not belong to the selected Run.'),{status:409});
   const requested={streamId,lastSeq:cursor?.lastSeq??0};
-  const replay=await hub.replay(requested);
-  if(requested.lastSeq>replay.newestSeq)
+  if(requested.lastSeq>await hub.latestSeq(streamId))
     throw Object.assign(new Error('This cursor is ahead of the Run stream.'),{status:409});
+  const replay=await hub.replay(requested);
   const events=replay.events.filter(event=>matchesRunEvent(event,run));
   // Studio's snapshot contains accepted content. Transport only carries the
   // event identities and kinds here; missing deltas never yield invented text.

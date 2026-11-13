@@ -78,7 +78,7 @@ const objectContract=(id,test,descriptiveJsonSchema)=>({
   parse(value){return test(value)?{ok:true,value}:{ok:false,issues:[{code:'INVALID',path:'$',message:'Invalid reference contract.'}]};},
 });
 
-export async function governedReadTurn({activation,stores,agentConfig,actorId,threadId,input,deadline,fixture,onEvent,childCapability,allowRead=true,draftTurn,runId,scriptBinding,recordScript=()=>{},hub=new AgentStreamHub({ledger:stores.streamLedger}),streamId=randomUUID()}) {
+export async function governedReadTurn({activation,stores,agentConfig,actorId,threadId,input,deadline,fixture,onEvent,childCapability,allowRead=true,draftTurn,runId,scriptBinding,recordScript=()=>{},hub=new AgentStreamHub({ledger:stores.streamLedger}),streamId=randomUUID(),userStop}) {
   const governance={calls:0,disposition:undefined};
   const script=createScriptCapability(scriptBinding,recordScript);
   const callLimit=activation.profile.profile.turnPolicy.maxToolCalls;
@@ -160,7 +160,8 @@ export async function governedReadTurn({activation,stores,agentConfig,actorId,th
   try{
     deadline.throwIfAborted();
     const {turn,outcomePromise}=await service.startTurn(requester,{threadId,input,inputSummary:'TORI governed turn'});
-    cancel=()=>{cancellation=service.cancelTurn(requester,{turnId:turn.turnId,reasonCode:draftTurn?.signal.aborted?'TORI_AUTHORING_STOP':'TORI_TURN_DEADLINE'}).catch(()=>undefined);};
+    cancel=()=>{cancellation??=service.cancelTurn(requester,{turnId:turn.turnId,reasonCode:
+      draftTurn?.signal.aborted?'TORI_AUTHORING_STOP':userStop?.aborted?'TORI_SESSION_STOP':'TORI_TURN_DEADLINE'}).catch(()=>undefined);};
     deadline.addEventListener('abort',cancel,{once:true});
     if(deadline.aborted)cancel();
     const outcome=await outcomePromise;

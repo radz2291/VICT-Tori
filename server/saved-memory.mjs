@@ -8,8 +8,10 @@ export const emptyAdmission=status=>({schema:'tori.memory.admission@1',status,bu
 const uuid=value=>typeof value==='string'&&/^[a-f0-9]{8}-(?:[a-f0-9]{4}-){3}[a-f0-9]{12}$/i.test(value);
 const error=(status,message)=>Object.assign(new Error(message),{status});
 
-export function createSavedMemoryHost({path,actor,project,fixture,snapshot,definitionOf,actorAllowed,turnActive}) {
+export function createSavedMemoryHost({path,actor,project,fixture,snapshot,definitionOf,actorAllowed,turnActive,fault}) {
   let opened;
+  const saves=new Map();
+  const runBusy=()=>turnActive()||saves.size>0;
   const store=()=>opened??=openMemoryStore(path);
   const notRevoked=()=>process.env.TORI_SAVED_MEMORY_REVOKED!=='1';
   const scopeFor=(state,agent)=>memoryScope(actor,project??state.workspace,agent);
@@ -37,10 +39,20 @@ export function createSavedMemoryHost({path,actor,project,fixture,snapshot,defin
       'dismissed':[409,'This proposal was dismissed. Nothing was saved.'],
       'expired':[409,'This proposal expired. Send a new request to remember it.'],
       'storage-unavailable':[409,'Storage unavailable / memory missing. Nothing was changed.'],
+      'uncertain':[409,'The save outcome is Uncertain. Check the original operation before trying again.'],
     };
     if(responses[result.status])throw error(...responses[result.status]);
     return result;
   };
+  function saveEvidence(scope, binding, check=false){
+    try{
+      const live=saves.get(binding.run);
+      const owned=!!live&&(!binding.operation||live.operation===binding.operation);
+      return check?store().reconcileSave(scope,binding,owned):store().saveDisposition(scope,binding,owned);
+    }catch{
+      return {status:'uncertain',run:binding.run,operation:binding.operation,reason:'save-storage-unavailable'};
+    }
+  }
   const operationView=(scope,result)=>{
     const {receipt}=asNotSaved(result);
     return receipt?{...result,memory:store().inspect(scope,receipt.memoryId,receipt.revision)}:result;
@@ -48,6 +60,7 @@ export function createSavedMemoryHost({path,actor,project,fixture,snapshot,defin
   return {
     scopeFor,
     access,
+    saving:()=>saves.size>0,
     admit(scope){return store().admit(scope);},
     propose(scope,proposal){return store().propose(scope,proposal);},
     cancelSession(state,id){
@@ -67,9 +80,11 @@ export function createSavedMemoryHost({path,actor,project,fixture,snapshot,defin
         if(!scope)throw error(404,'Saved-memory evidence was not found for this Run.');
         const allowed=await access();
         if(!allowed)return {status:'denied'};
-        const receipt=store().receiptForRun(scope,run.id);
+        const operation=run.savedMemoryRequest?.status==='proposed'?
+          saveEvidence(scope,{session:run.session,activation:run.activation,run:run.id}):undefined;
+        const receipt=operation?.receipt;
         return {status:'available',evidence:run.savedMemory,request:run.savedMemoryRequest,draft:run.savedMemoryDraft,
-          proposal:store().proposal(scope,run.session,run.id)?.status,receipt,
+          proposal:store().proposal(scope,run.session,run.id)?.status,receipt,operation,
           savedRecordStatus:receipt&&store().inspect(scope,receipt.memoryId).status,
           records:run.savedMemory.admitted.map(item=>({id:item.id,revision:item.revision,...store().inspect(scope,item.id,item.revision)}))};
       }
@@ -93,8 +108,9 @@ export function createSavedMemoryHost({path,actor,project,fixture,snapshot,defin
           if(proposal?.source.message===source){
             const visible=proposal.status==='pending'&&run.status!=='completed'?
               {...proposal,status:'cancelled',text:undefined,operation:undefined}:proposal;
-            const receipt=proposal.status==='saved'&&memory.receiptForRun(scope,run.id);
-            return [{run:run.id,source,proposal:visible,
+            const operation=saveEvidence(scope,{session:session.id,activation:session.activation,run:run.id});
+            const receipt=operation.receipt;
+            return [{run:run.id,source,proposal:visible,operation,
               ...(receipt?{saved:{receipt,memory:memory.inspect(scope,receipt.memoryId,receipt.revision)}}:{})}];
           }
           return feedback(run);
@@ -113,24 +129,59 @@ export function createSavedMemoryHost({path,actor,project,fixture,snapshot,defin
       };
       if(path==='/memory/dismiss'||path==='/memory/stop'){
         if(!uuid(body.run))throw error(400,'Select a saved-memory proposal.');
+        const owned=saves.get(body.run);
+        if(owned?.session===session.id&&owned.scope===scope.key){
+          if(path==='/memory/dismiss')throw error(409,'Wait for the save result or stop the original save.');
+          const disposition=saveEvidence(scope,{session:session.id,activation:session.activation,run:body.run,operation:owned.operation});
+          if(disposition.status==='saved')return operationView(scope,disposition);
+          owned.stop.abort();
+          return {status:'stopping'};
+        }
+        const outcome=saveEvidence(scope,{session:session.id,activation:session.activation,run:body.run});
+        if(outcome.status==='uncertain')asNotSaved(outcome);
         const result=store().withdraw(scope,session.id,body.run,path==='/memory/stop'?'cancelled':'dismissed');
         if(result.status==='not-found')asNotSaved(result);
         return result;
       }
-      if(turnActive())throw error(409,'Wait for the current turn before changing saved memory.');
       if(!pinAllowsSavedMemory(pin))throw error(403,'Saved memory is off for this activation.');
       if(!uuid(body.operation))throw error(400,'Invalid memory operation.');
+      if(path==='/memory/check'){
+        const run=snapshot().runs.find(item=>item.id===body.run&&item.session===session.id&&item.savedMemoryScope===scope.key);
+        if(!run||run.savedMemoryRequest?.status!=='proposed')throw error(404,'No saved-memory operation was found for this turn.');
+        const status=saveEvidence(scope,{session:session.id,activation:session.activation,run:run.id,operation:body.operation},true);
+        if(status.status==='not-found')asNotSaved(status);
+        return status;
+      }
+      if(runBusy())throw error(409,'Wait for the current turn or memory save before changing saved memory.');
       if(path==='/memory/confirm'){
         const run=snapshot().runs.find(item=>item.id===body.run&&item.session===session.id&&item.savedMemoryScope===scope.key);
         if(!run||run.status!=='completed'||run.savedMemoryRequest?.status!=='proposed')
           throw error(404,'No confirmable memory proposal was found for this turn.');
         const grant={confirmed:true,session:session.id,activation:session.activation,run:run.id,operation:body.operation};
-        const capability=gatedMemorySave(store(),scope,grant,stillAuthorized);
-        let result;
-        try {
-          result=await capability({text:body.text},{victActorId:actor,victTurnId:run.id,victIdempotencyKey:body.operation,
-            signal:new AbortController().signal});
-        }catch{throw error(503,'Studio could not confirm this save. Retry confirmation to check for a committed receipt.');}
+        const stop=new AbortController();
+        let owner, result;
+        try{
+          const memory=store();
+          result=memory.reserveSave(scope,{...grant,text:body.text,stillAuthorized});
+          if(result.status==='reserved'){
+            owner={operation:grant.operation,session:session.id,scope:scope.key,stop};
+            saves.set(run.id,owner);
+            // Only isolated deterministic hosts can pause or fault here.
+            await fault?.('reserved',grant,stop.signal);
+            const capability=gatedMemorySave(memory,scope,{...grant,beforeCommit:fault?()=>fault('before-commit',grant,stop.signal):undefined},stillAuthorized);
+            result=await capability({text:body.text},{victActorId:actor,victTurnId:run.id,victIdempotencyKey:body.operation,signal:stop.signal});
+            if(result.status==='saved')await fault?.('committed',grant,stop.signal);
+          }
+        }catch{
+          if(owner){
+            saves.delete(run.id);
+            const observed=saveEvidence(scope,grant,true);
+            if(observed.status==='saved')return operationView(scope,observed);
+            if(observed.status==='uncertain')asNotSaved(observed);
+            if(stop.signal.aborted)asNotSaved(store().withdraw(scope,session.id,run.id,'cancelled'));
+          }
+          throw error(503,'Studio could not confirm this save. Check the original operation before confirming again.');
+        }finally{if(saves.get(run.id)===owner)saves.delete(run.id);}
         return operationView(scope,result);
       }
       if(path==='/memory/correct'||path==='/memory/forget'){

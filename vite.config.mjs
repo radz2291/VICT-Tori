@@ -31,11 +31,14 @@ export default defineConfig({
           service??=import('./server/studio.mjs').then(({createStudio})=>createStudio({
             getAssembly:()=>server.ssrLoadModule('/src/assembly.ts'),
             dataDirectory:process.env.TORI_DATA_DIR??resolve('.data'),
-          }));
+          })).catch(error=>{service=undefined;throw error;});
           const app=await service;
           return send(200,await app.dispatch(path,body));
         }catch(e){return send(e.status??500,{message:e.status?e.message:'Studio could not complete this action. Check local setup.'});}
       });
+      // Vite may replace this plugin during a dev-server reload. Release the
+      // host's store lock when that server closes, after HTTP requests drain.
+      server.httpServer?.once('close',()=>{void service?.then(app=>app.close()).catch(()=>{});});
     }
   }],
   optimizeDeps:{noDiscovery:true},

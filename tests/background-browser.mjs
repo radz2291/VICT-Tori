@@ -2,12 +2,15 @@ import assert from 'node:assert/strict';
 import {createRequire} from 'node:module';
 import {mkdir,writeFile} from 'node:fs/promises';
 import {join} from 'node:path';
+import {spawn} from 'node:child_process';
+import {once} from 'node:events';
 import {setTimeout as delay} from 'node:timers/promises';
 
 const {chromium}=createRequire(import.meta.url)(process.env.TORI_PLAYWRIGHT_MODULE??'playwright');
 const url=process.env.TORI_BACKGROUND_URL??'http://127.0.0.1:48872';
 const out=process.env.TORI_BACKGROUND_EVIDENCE??'.local/background-browser';
 const isFixture=process.env.TORI_BACKGROUND_FIXTURE==='1';
+const full=process.env.TORI_BACKGROUND_STEP==='full';
 await mkdir(out,{recursive:true});
 const browser=await chromium.launch();
 const desktop=await browser.newContext({viewport:{width:1531,height:850}});
@@ -17,23 +20,30 @@ const wait=async(fn,label,ms=20000)=>{
   throw Error('Timed out: '+label);
 };
 const api=async()=>fetch(url+'/api/studio').then(r=>r.json());
+const post=async(path,body)=>{
+  const res=await fetch(url+'/api/studio/'+path,{method:'POST',headers:{Origin:url,'Content-Type':'application/json'},body:JSON.stringify(body)});
+  return {status:res.status,body:await res.json()};
+};
 const visibleState=(page,text)=>page.getByRole('main',{name:'Run outcome and timeline'}).getByText(text,{exact:true}).waitFor();
 const evidence={origin:isFixture?'fixture':'live',browser:browser.version()};
 try {
   const initial=await api();
   assert.equal(initial.fixture,isFixture);
-  const start=async(page,prompt)=>{
+  const createSession=async(page)=>{
     await page.getByRole('navigation',{name:'Studio tasks'}).getByRole('button',{name:'Sessions',exact:true}).click();
     await page.getByRole('button',{name:'New Session',exact:true}).click();
     await page.getByRole('region',{name:'Choose an agent'}).getByRole('button',{name:'Quellight',exact:true}).click();
     await page.getByRole('button',{name:/^Start Session with Quellight · r1(?: ·|$)/}).click();
+    return page.getByRole('textbox',{name:'Message',exact:true});
+  };
+  const start=async(page,prompt)=>{
+    const text=await createSession(page);
     const toggle=page.getByRole('button',{name:'Run in background',exact:true});
     await toggle.waitFor();
     assert.equal(await toggle.getAttribute('aria-pressed'),'false');
     await toggle.focus();
     await toggle.press('Space');
     assert.equal(await toggle.getAttribute('aria-pressed'),'true');
-    const text=page.getByRole('textbox',{name:'Message',exact:true});
     await text.fill(prompt);
     const request=page.waitForResponse(r=>r.url().endsWith('/api/studio/start-run'));
     await text.press('Enter');
@@ -44,7 +54,9 @@ try {
   let page=await desktop.newPage();
   await page.goto(url,{waitUntil:'domcontentloaded',timeout:120000});
   await page.getByRole('navigation',{name:'Studio tasks'}).waitFor({timeout:90000});
-  const prompt='Delegate habits research to the saved Research specialist now. Then give me a long report: include the actual finding code and ten detailed sections about assumptions, interpretation, tradeoffs and follow-up options. Clearly distinguish suggestions from facts.';
+  const step=process.env.TORI_BACKGROUND_STEP;
+  if(!['stop','effects'].includes(step)){
+  const prompt='Delegate habits research to the saved Research specialist now. Then give me a long report: include the actual finding code and four detailed sections about assumptions, interpretation, tradeoffs and follow-up options. Clearly distinguish suggestions from facts.';
   const original=await start(page,prompt);
   await page.getByText('You can close this tab while Studio stays open.',{exact:true}).waitFor();
   await page.getByRole('button',{name:'Inspect Run',exact:true}).click();
@@ -64,6 +76,15 @@ try {
   assert.equal(rejoined.activation,original.activation);
   await visibleState(page,rejoined.state);
   await page.screenshot({path:join(out,'rejoined-narrow.png')});
+  if(rejoined.state==='Running'){
+    const endpoint='**/api/studio/run-observe';
+    await page.route(endpoint,route=>route.abort('internetdisconnected'));
+    await page.getByText('Connection lost. Showing the last confirmed Run state.',{exact:true}).waitFor();
+    await page.screenshot({path:join(out,'transport-dropped.png')});
+    await page.unroute(endpoint);
+    await page.getByText('Connection lost. Showing the last confirmed Run state.',{exact:true}).waitFor({state:'hidden'});
+    evidence.transportDrop={...original,rejoined:true};
+  }
   const terminal=await wait(async()=>{
     const fresh=await api(), row=fresh.runs.find(r=>r.id===original.run);
     return row?.state!=='Running'?{row,fresh}:null;
@@ -84,7 +105,9 @@ try {
     scriptReceipt:children[0].scriptReceipts[0].invocationId,
     executionCount:originalRuns.length,resultLength:finalSession.messages.find(m=>m.id===original.run+'-agent').text.length};
   await narrow.close();
+  }
 
+  if(step!=='effects'){
   page=await desktop.newPage();
   await page.goto(url,{waitUntil:'domcontentloaded'});
   const stopped=await start(page,'Delegate the habits check to Research, then produce a detailed long report with twenty numbered reflections.');
@@ -106,6 +129,70 @@ try {
   assert.equal(settled[0].id,stopped.run);
   assert.equal(settled[0].errorCode,'TORI_SESSION_STOP');
   evidence.stop={...stopped,status:settled[0].state,code:settled[0].errorCode,executionCount:settled.length};
+  }
+  if(full||step==='effects'){
+    await page.goto(url,{waitUntil:'domcontentloaded'});
+    const sessionOpened=page.waitForResponse(r=>r.url().endsWith('/api/studio/sessions'));
+    const textbox=await createSession(page);
+    const sourceSession=(await (await sessionOpened).json()).openedSession;
+    await textbox.fill('Remember that I prefer Orchid updates in exactly three short bullets.');
+    await textbox.press('Enter');
+    const source=await wait(async()=> (await api()).runs.find(r=>r.session===sourceSession&&!r.parentRun&&r.state==='Finished'),
+      'live memory proposal turn',100000);
+    const confirmButton=page.getByRole('button',{name:'Confirm and save',exact:true});
+    await confirmButton.waitFor({timeout:35000});
+    let confirmation;
+    const lostAck='**/api/studio/memory/confirm';
+    await page.route(lostAck,async route=>{
+      const result=await route.fetch();
+      confirmation={body:route.request().postDataJSON(),result:await result.json(),status:result.status()};
+      await route.abort('internetdisconnected');
+    });
+    await confirmButton.click();
+    await wait(()=>confirmation,'save committed with response dropped',25000);
+    await page.unroute(lostAck);
+    assert.equal(confirmation.status,200,confirmation.result.message);
+    const scope={session:source.session,run:source.id,operation:confirmation.body.operation};
+    const checked=await post('memory/check',scope);
+    assert.equal(checked.body.status,'saved');
+    const receipt=confirmation.result.receipt;
+    assert.deepEqual(checked.body.receipt,receipt);
+    assert.deepEqual((await post('memory/confirm',confirmation.body)).body.receipt,receipt);
+    const memory=(await post('memory/session',{session:source.session})).body;
+    assert.equal(memory.records.filter(m=>m.id===receipt.memoryId).length,1);
+    assert.equal(memory.records.find(m=>m.id===receipt.memoryId).revision,1);
+    await page.locator('[data-memory-state="saved"]').waitFor();
+    await page.screenshot({path:join(out,'memory-saved.png')});
+    evidence.memory={run:source.id,operation:receipt.operation,memoryId:receipt.memoryId,
+      revision:1,originalReceiptReplayed:true,acknowledgementDropped:true};
+
+    await page.goto(url,{waitUntil:'domcontentloaded'});
+    const restartRun=await start(page,'Delegate a habits review to Research, then write a long report with sections. Start with the actual research lookup.');
+    await page.getByRole('button',{name:'Inspect Run',exact:true}).click();
+    await page.waitForURL(u=>u.searchParams.get('run')===restartRun.run);
+    const restartLink=page.url();
+    await visibleState(page,'Running');
+    await page.close();
+    assert.ok(process.env.TORI_BACKGROUND_RESTART_SCRIPT,'An isolated preview restart command is required.');
+    const proc=spawn('pwsh',['-NoProfile','-File',process.env.TORI_BACKGROUND_RESTART_SCRIPT,'-Restart',
+      '-Port',new URL(url).port],{stdio:'inherit',windowsHide:true});
+    assert.equal((await once(proc,'exit'))[0],0);
+    page=await desktop.newPage();
+    await page.goto(restartLink,{waitUntil:'domcontentloaded',timeout:120000});
+    await visibleState(page,'Interrupted');
+    await page.getByText('Studio restarted before the turn result was confirmed. It was not replayed.',{exact:true}).waitFor();
+    const recovered=await post('run-observe',restartRun);
+    assert.equal(recovered.status,200);
+    assert.equal(recovered.body.run.state,'Interrupted');
+    assert.equal(recovered.body.run.recovery.replay,'none');
+    assert.equal(recovered.body.ownership,undefined);
+    assert.equal(recovered.body.session.interrupted,true);
+    assert.equal((await api()).runs.filter(r=>r.session===restartRun.session&&!r.parentRun).length,1);
+    assert.deepEqual((await post('memory/confirm',confirmation.body)).body.receipt,receipt);
+    await page.screenshot({path:join(out,'restart-interrupted.png')});
+    evidence.restart={...restartRun,state:recovered.body.run.state,replay:'none',
+      streamGap:recovered.body.stream.gap,priorOwner:recovered.body.run.recovery.priorOwner,previousSaveReceiptRetained:true};
+  }
   await writeFile(join(out,'observed.json'),JSON.stringify(evidence,null,2)+'\n');
   console.log(JSON.stringify(evidence));
 }finally{await browser.close();}

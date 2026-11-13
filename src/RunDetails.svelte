@@ -1,7 +1,7 @@
 <script lang="ts">
   import { Button } from '@victframework/ui-svelte';
   import RunMemoryEvidence from './RunMemoryEvidence.svelte';
-  let {run,inspectRun,loadMemory}=$props();
+  let {run,inspectRun,loadMemory,checkMemory}=$props();
 </script>
 
 <div class="run-details">
@@ -37,7 +37,7 @@
       <dt>Thinking</dt><dd>{run.reasoningAt?'Earlier provider observation; not a public VICT reasoning event.':'No public reasoning events or summary are available for this run.'}</dd>
     </dl>
   </section>
-  {#if run.hasSavedMemoryEvidence}<RunMemoryEvidence {run} load={loadMemory}/>{/if}
+  {#if run.hasSavedMemoryEvidence}<RunMemoryEvidence {run} load={loadMemory} check={checkMemory}/>{/if}
   {#if run.draftTarget}
     <section aria-label="Draft authoring">
       <h3>Draft authoring</h3>
@@ -116,4 +116,20 @@
       {#if run.governance?.turnId}<dt>VICT turn</dt><dd class="hash">{run.governance.turnId}</dd>{/if}
     </dl>
   </section>
+  {#if run.recovery}
+    <section aria-label="Recovery evidence">
+      <h3>Recovery</h3>
+      <dl>
+        <dt>Replay</dt><dd>None</dd>
+        {#if run.recovery.victTurn}<dt>VICT turn</dt><dd>{run.recovery.victTurn.reason??run.recovery.victTurn.status}</dd>{/if}
+        {#each run.recovery.tools as item (item.id)}
+          <dt>{item.capability}</dt><dd class="hash">{item.operation}<br/>{item.disposition??item.status}</dd>
+        {/each}
+        {#each run.recovery.unconfirmedDraft as operation (operation)}
+          <dt>Unconfirmed draft edit</dt><dd class="hash">{operation}</dd>
+        {/each}
+        {#if run.recovery.invocation}<dt>Parent invocation</dt><dd class="hash">{run.recovery.invocation}</dd>{/if}
+      </dl>
+    </section>
+  {/if}
 </div>
