@@ -306,6 +306,13 @@ test('memory rollback, commit before acknowledgement, uncertainty and read-only 
         assert.ok(repaired.checkedAt);
         assert.deepEqual(repaired.receipt,reconciled.receipt);
         assert.deepEqual((await app.call('memory/confirm',input)).receipt,reconciled.receipt);
+        const liveSession=await startSession(app,activation);
+        const live=await app.call('start-run',{session:liveSession,activation,request:randomUUID(),input:'Synthetic hold model during replay'});
+        await app.event('model');
+        assert.deepEqual((await app.call('memory/confirm',input)).receipt,reconciled.receipt);
+        assert.equal((await app.request('memory/confirm',{...input,text:'Wrong payload during another Run'})).status,409);
+        assert.equal((await app.call('stop-turn',live)).status,'stopping');
+        await wait(async()=> (await app.call('run-observe',live)).run.state==='Interrupted','unrelated Run stopped');
         assert.deepEqual(memoryCounts(dir),{memories:1,revisions:1,operations:1,save_attempts:1});
         t.diagnostic(JSON.stringify({mode,run:input.run,operation:input.operation,
           ambiguous:'Uncertain',retry:'refused',reconciliation:'saved',receipt:repaired.receipt.memoryId,effects:1}));

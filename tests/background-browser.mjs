@@ -260,6 +260,26 @@ try {
       streamGap:recovered.body.stream.gap,priorOwner:recovered.body.run.recovery.priorOwner,previousSaveReceiptRetained:true};
     }
   }
+  if(step==='fixture-memory'){
+    await page.goto(url,{waitUntil:'domcontentloaded'});
+    const opened=page.waitForResponse(r=>r.url().endsWith('/api/studio/sessions'));
+    const text=await createSession(page);
+    const id=(await (await opened).json()).openedSession;
+    await page.getByRole('button',{name:'Run in background',exact:true}).click();
+    let skipped=false;
+    const lostStart='**/api/studio/start-run';
+    await page.route(lostStart,route=>{skipped=true;return route.abort('internetdisconnected');});
+    await text.fill('Synthetic missing start request.');await text.press('Enter');
+    await wait(()=>skipped,'start not delivered');
+    await page.getByText('No Run has been found yet. Sending again uses the same request.',{exact:true}).waitFor();
+    await page.unroute(lostStart);
+    const deletion=await post('delete-session',{session:id});
+    assert.equal(deletion.status,200);
+    await page.reload({waitUntil:'domcontentloaded'});
+    const newer=await start(page,'Synthetic start after deleting the abandoned request Session.');
+    assert.notEqual(newer.session,id);
+    evidence.abandonedSessionCleared=true;
+  }
   await writeFile(join(out,'observed.json'),JSON.stringify(evidence,null,2)+'\n');
   console.log(JSON.stringify(evidence));
 }finally{await browser.close();}

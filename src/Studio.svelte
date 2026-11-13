@@ -594,7 +594,10 @@
       }
       try{
         const saved=JSON.parse(localStorage.getItem(pendingRunKey(next.workspace))??'null');
-        if(saved&&[saved.request,saved.session,saved.activation].every(value=>typeof value==='string'))pendingStart=saved;
+        if(saved&&[saved.request,saved.session,saved.activation].every(value=>typeof value==='string')){
+          if(next.sessions.some(item=>item.id===saved.session&&item.activation===saved.activation))pendingStart=saved;
+          else clearPendingStart(next.workspace,saved);
+        }
       }catch{}
     }).catch(e=>error=e.message).finally(()=>loaded=true);
     const dayCheck=setInterval(()=>today=localCalendarDay(new Date()),60_000);
@@ -1113,6 +1116,7 @@
     deleteError='';
     try{
       const next=await request('/delete-session',{session:id});
+      if(pendingStart?.session===id)clearPendingStart(state.workspace,pendingStart);
       delete sessionDrafts[id];
       delete sessionContext[id];
       delete turnErrors[id];

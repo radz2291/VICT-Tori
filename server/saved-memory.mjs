@@ -154,12 +154,18 @@ export function createSavedMemoryHost({path,actor,project,fixture,snapshot,defin
         if(status.status==='not-found')asNotSaved(status);
         return status;
       }
-      if(runBusy())throw error(409,'Wait for the current turn or memory save before changing saved memory.');
       if(path==='/memory/confirm'){
         const run=snapshot().runs.find(item=>item.id===body.run&&item.session===session.id&&item.savedMemoryScope===scope.key);
         if(!run||run.status!=='completed'||run.savedMemoryRequest?.status!=='proposed')
           throw error(404,'No confirmable memory proposal was found for this turn.');
         const grant={confirmed:true,session:session.id,activation:session.activation,run:run.id,operation:body.operation};
+        if(runBusy()){
+          // A committed receipt can be read without acquiring a write slot.
+          // Still require the original scope, operation and exact payload.
+          const prior=store().replaySave(scope,{...grant,text:body.text});
+          if(prior.status!=='not-settled')return operationView(scope,prior);
+          throw error(409,'Wait for the current turn or memory save before changing saved memory.');
+        }
         const stop=new AbortController();
         let owner, result;
         try{
@@ -187,6 +193,7 @@ export function createSavedMemoryHost({path,actor,project,fixture,snapshot,defin
         return operationView(scope,result);
       }
       if(path==='/memory/correct'||path==='/memory/forget'){
+        if(runBusy())throw error(409,'Wait for the current turn or memory save before changing saved memory.');
         if(!uuid(body.id))throw error(400,'Select a memory to change.');
         let result;
         try{result=store().change(scope,{action:path.slice('/memory/'.length),id:body.id,session:session.id,

@@ -185,6 +185,17 @@ export function openMemoryStore(path,{clock=Date.now,ids=randomUUID,budget=memor
     withdrawSession(scope,session) {
       change("UPDATE proposals SET status='cancelled',text=NULL WHERE scope=? AND session=? AND status='pending'",scope.key,session);
     },
+    replaySave(scope,input) {
+      const {session,activation,run,operation,text}=input;
+      if(!validMemoryText(text))return ok('invalid-text');
+      const proposal=proposalFor(scope,session,run);
+      if(!proposal)return missingProposal(scope,input);
+      if(proposal.operation!==operation||proposal.activation!==activation)return ok('not-found');
+      const disposition=saveDisposition(scope,proposal);
+      if(disposition.status==='uncertain')return disposition;
+      if(disposition.status==='saved')return replay(scope,operation,saveDigest(scope,input));
+      return ok('not-settled');
+    },
     reserveSave(scope,input) {
       const {session,activation,run,operation,text,stillAuthorized=()=>true}=input;
       if(!validMemoryText(text))return ok('invalid-text');
