@@ -8,7 +8,9 @@ const subject=String.raw`(?:this|that|it|preference|memory|reminder|request|note
 const state=String.raw`(?:['’]s|\s+(?:is|was|has\s+been|had\s+been|got))\s+`;
 const memoryObject=String.raw`(?:(?:your|my|our|the|this|that|a|an)\s+)?(?:(?:saved|standing|persistent|permanent|long[- ]term)\s+)?(?:memor(?:y|ies)|preferences?)\b`;
 const preferenceSubject=String.raw`(?:your|the|this|that)\s+(?:saved\s+|standing\s+)?(?:[\p{L}-]+\s+)*preferences?`;
-const preferenceDetail=String.raw`(?:\s+for\s+[^.!?;\n]+)?`;
+// A qualified value may be present. A separate destination belongs only
+// to the patterns that explicitly require a Studio memory location.
+const preferenceValue=String.raw`(?:(?!\s+(?:in|into|inside|within|under|on|via)\s+)[^.!?;\n])+`;
 const speaker=String.raw`(?:i|we)(?:['’]ve|\s+have)?\s+${modifiers}`;
 const effect=String.raw`(?:saved|stored|memorized|persisted|updated|forgotten|deleted)`;
 const sentenceEnd=String.raw`(?=\s*(?:[.!;]|$))`;
@@ -25,9 +27,9 @@ const explicitClaims=[
   new RegExp(String.raw`^(?:saved|stored|added)\s+${memoryPlace}${futureUse}${sentenceEnd}`,'iu'),
   new RegExp(String.raw`^${speaker}(?:saved|stored|memorized|persisted)\s+(?:this|that|it)(?:\s+as\s+(?:a|your|the)\s+(?:saved|standing)\s+preference)?${futureUse}${sentenceEnd}`,'iu'),
   new RegExp(String.raw`^(?:${speaker})?(?:saved|stored|memorized|persisted|updated|forgot|deleted)\s+${memoryObject}${futureUse}${sentenceEnd}`,'iu'),
-  new RegExp(String.raw`^${speaker}(?:saved|stored|recorded)\s+${preferenceSubject}${preferenceDetail}${sentenceEnd}`,'iu'),
-  new RegExp(String.raw`^${speaker}updated\s+${preferenceSubject}(?:\s+to\s+[^.!?;\n]+)?${sentenceEnd}`,'iu'),
-  new RegExp(String.raw`^${speaker}(?:saved|stored|put|added|recorded|logged)\s+(?:[^.?!\n]+?\s+)?${memoryPlace}${futureUse}${sentenceEnd}`,'iu'),
+  new RegExp(String.raw`^${speaker}(?:saved|stored|recorded)\s+${preferenceSubject}(?:\s+for\s+${preferenceValue})?${sentenceEnd}`,'iu'),
+  new RegExp(String.raw`^${speaker}updated\s+${preferenceSubject}(?:\s+to\s+${preferenceValue})?${sentenceEnd}`,'iu'),
+  new RegExp(String.raw`^${speaker}(?:saved|stored|put|added|recorded|logged|updated)\s+(?:[^.?!\n]+?\s+)?${memoryPlace}${futureUse}${sentenceEnd}`,'iu'),
   new RegExp(String.raw`^(?:(?:your|the)\s+(?:memory|preferences?)|this|that|it)${state}${modifiers}(?:${effect}|retained)(?:\s+${memoryPlace})?${futureUse}${sentenceEnd}`,'iu'),
   new RegExp(String.raw`^(?:your|the)\s+(?:memory|preferences?)${state}${modifiers}(?:added\s+${memoryPlace}|${memoryPlace})${futureUse}${sentenceEnd}`,'iu'),
   new RegExp(String.raw`^(?:saya|kami|aku)\s+(?:dah|sudah|telah|baru\s+sahaja)\s+(?:menyimpan|simpan|mencatat|catat)\s+(?:${malayObject}(?:\s+${malayPlace})?|(?:[^.!?;\n]+\s+)?${malayPlace})${malayFuture}${sentenceEnd}`,'iu'),

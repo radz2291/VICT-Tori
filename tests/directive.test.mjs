@@ -26,6 +26,8 @@ const ordinarySaveLanguage = new Map([
   ['Terangkan sama ada apa-apa sudah disimpan.', 'Saya belum simpan pilihan ini dalam memori.'],
   ['Di manakah salinan PDF itu?', 'Saya sudah simpan ini sebagai fail PDF.'],
   ['Clarify the statement about the browser.', 'I saved your preferences in Chrome.'],
+  ['Clarify the browser dark mode preference.', 'I saved your preference for dark mode in Chrome.'],
+  ['Clarify the browser settings update.', 'I updated your preference to dark mode in Chrome.'],
   ['Explain the reported claim.', 'I never said I saved your preferences.'],
   ['Show the support agent’s question.', 'Your preference was saved?'],
 ]);
@@ -46,6 +48,7 @@ const unconfirmedClaims = [
   "I've saved your preference for two bullets.",
   'I’ve recorded your formatting preference.',
   'I’ve updated your saved preference to two bullets.',
+  'I saved your preference for dark mode in memory.',
   'It’s already saved in memory.',
   'I saved “use short bullets” in memory.',
   'Saya dah simpan pilihan ini dalam memori.',
