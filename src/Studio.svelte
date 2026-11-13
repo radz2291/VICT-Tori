@@ -18,6 +18,7 @@
   import RunDetails from './RunDetails.svelte';
   import MemoryControls from './MemoryControls.svelte';
   import SessionConversation from './SessionConversation.svelte';
+  import { acceptRunPacket } from './run-observer.mjs';
   import {add,binding,canWire,change,emptyAssembly,field,history,instructions,modelName,readiness,resolved,wire,outputTokens,tokenSourceId,agentResources,resourceChoices,optionalBindings,isOptionalBinding,nodeVisibilityLabel,assemblyPatchOperations,configureOperations} from './assembly';
 
   type DockPanel='Authoring Agent'|'Assembly / Selection'|'Inspector';
@@ -89,6 +90,13 @@
   let memoryView=$derived(memoryResult?.session===session?.id?memoryResult?.view:undefined);
   let memoryRead=0;
   let stoppingSession=$state(false);
+  let backgroundChoice=$state<Record<string,boolean>>({});
+  let observation=$state.raw<{run:string;gap:boolean;canStop:boolean;writing:boolean;disconnected:boolean}>();
+  let stoppingRun=$state('');
+  let runActionError=$state('');
+  const cursorKey=(workspace:string,run:string)=>'tori-run-cursor:'+workspace+':'+run;
+  const pendingRunKey=(workspace:string)=>'tori-pending-run:'+workspace;
+  const resumeRunKey=(workspace:string)=>'tori-background-run:'+workspace;
   let error=$state(''), graphError=$state('');
   let activeSession=$state(''), activeRun=$state('');
   let sessionDrafts=$state<Record<string,string>>({});
@@ -153,12 +161,16 @@
   let run=$derived(state.runs.find((r)=>r.id===activeRun));
   let sessionRuns=$derived(state.runs.filter(r=>r.session===activeSession));
   let sessionRun=$derived(sessionRuns.find(item=>item.id===activeRun)??sessionRuns.find(item=>!item.parentRun)??sessionRuns[0]);
-  const interruptedRun=$derived(session?.interrupted?sessionRuns.find(item=>!item.parentRun&&['failed','cancelled','interrupted'].includes(item.status)):undefined);
+  const currentSessionRun=$derived(sessionRuns.find(item=>!item.parentRun));
+  const watchedRun=$derived(page==='Runs'?run:page==='Sessions'?currentSessionRun:undefined);
+  const liveSessionRun=$derived(currentSessionRun?.state==='Running'?currentSessionRun:undefined);
+  const sessionBusy=$derived(sendActivity?.session===session?.id||!!liveSessionRun);
+  const interruptedRun=$derived(session?.interrupted?sessionRuns.find(item=>!item.parentRun&&['failed','cancelled','interrupted','uncertain'].includes(item.status)):undefined);
   let runReturnTarget=$derived(state.sessions.find(item=>item.id===runReturnSession));
   let runSession=$derived(state.sessions.find(item=>item.id===run?.session));
   const recordIdentity=(record:any)=>record.name+' · r'+(record.number??record.revision);
   const recordMode=(record:any)=>record.archivedFixture?'Fixture history':record.fixture?'Fixture':'Live';
-  const runStatus=(status:string)=>status.charAt(0).toUpperCase()+status.slice(1);
+  const runStatus=(status:string)=>status==='running'?'Running':status==='completed'?'Finished':status==='uncertain'?'Uncertain':'Interrupted';
   const secondsFormat=new Intl.NumberFormat(undefined,{minimumFractionDigits:1,maximumFractionDigits:3});
   const timelineSecondsFormat=new Intl.NumberFormat(undefined,{minimumFractionDigits:3,maximumFractionDigits:3});
   const timelineClockFormat=new Intl.DateTimeFormat(undefined,{hour:'numeric',minute:'2-digit',second:'2-digit',fractionalSecondDigits:3});
@@ -330,11 +342,11 @@
     }
   }
 
-  async function request(path='',data?:any,definition=state.definition) {
+  async function request(path='',data?:any,definition=state.definition,signal?:AbortSignal) {
     const suffix=data===undefined&&definition?'?definition='+encodeURIComponent(definition):'';
-    const response=await fetch('/api/studio'+path+suffix, data===undefined?{}:{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({...data,definition})});
+    const response=await fetch('/api/studio'+path+suffix, data===undefined?{signal}:{method:'POST',signal,headers:{'Content-Type':'application/json'},body:JSON.stringify({...data,definition})});
     const result=await response.json();
-    if(!response.ok) throw new Error(result.message||'Studio could not complete this action.');
+    if(!response.ok) throw Object.assign(new Error(result.message||'Studio could not complete this action.'),{status:response.status});
     return result;
   }
   async function loadSessionMemory(id:string){
@@ -357,7 +369,18 @@
     await loadSessionMemory(id);
     return result;
   }
+  async function stopWatchedRun(item:any){
+    if(!item||observation?.run!==item.id||!observation.canStop||stoppingRun)return;
+    stoppingRun=item.id;
+    runActionError='';
+    try{await request('/stop-turn',{session:item.session,run:item.id,activation:item.activation});}
+    catch(error){runActionError=(error as Error).message;stoppingRun='';}
+  }
   async function stopSessionTurn(){
+    if(liveSessionRun&&observation?.run===liveSessionRun.id&&observation.canStop){
+      await stopWatchedRun(liveSessionRun);
+      return;
+    }
     const activity=sendActivity;
     if(!activity?.canStop||!activity.turn||stoppingSession)return;
     stoppingSession=true;
@@ -367,6 +390,61 @@
     }
     catch(error){turnErrors[activity.session]=(error as Error).message;stoppingSession=false;}
   }
+  function mergeObserved(packet:any){
+    const row=packet.run;
+    const old=state.runs.find(item=>item.id===row.id);
+    // A partial/late delivery cannot move a terminal row back to Running.
+    if(old?.state&&old.state!=='Running'&&
+      (old.state==='Uncertain'?row.state!=='Uncertain'&&!row.reconciliation:row.state!==old.state))return;
+    state={...state,
+      sessions:state.sessions.map(item=>item.id===packet.session.id?packet.session:item),
+      runs:old?state.runs.map(item=>item.id===row.id?row:item):[row,...state.runs],
+    };
+  }
+  function followRun(run:string,session:string,activation:string,streamId:string,workspace:string){
+    const target={run,session,activation};
+    const abort=new AbortController();
+    const key=cursorKey(workspace,run);
+    let seen:any;
+    try {
+      const stored=JSON.parse(localStorage.getItem(key)??'null');
+      if(stored?.cursor?.streamId===streamId&&Number.isSafeInteger(stored.cursor.lastSeq)&&stored.cursor.lastSeq>=0)
+        seen=stored;
+    }catch{}
+    let timer:ReturnType<typeof setTimeout>;
+    const watch=async()=>{
+      try{
+        const packet=await request('/run-observe',{...target,cursor:seen?.cursor},undefined,abort.signal);
+        if(abort.signal.aborted)return;
+        const next=acceptRunPacket(seen,packet,target);
+        if(next===seen){timer=setTimeout(watch,500);return;}
+        seen=next;
+        mergeObserved({...packet,run:next.run});
+        observation={run,gap:next.gap,canStop:packet.canStop,writing:packet.writing,disconnected:false};
+        try{localStorage.setItem(key,JSON.stringify({cursor:next.cursor,gap:next.gap}));}catch{}
+        if(next.run.state!=='Running'){
+          if(stoppingRun===run)stoppingRun='';
+          return;
+        }
+      }catch(error){
+        if(abort.signal.aborted)return;
+        const previous=observation?.run===run?observation:undefined;
+        observation={run,gap:!!previous?.gap,canStop:false,writing:false,disconnected:true};
+        if([403,404].includes((error as any).status))return;
+      }
+      timer=setTimeout(watch,500);
+    };
+    void watch();
+    return ()=>{abort.abort();clearTimeout(timer);};
+  }
+  const watchedRunId=$derived(watchedRun?.id), watchedSessionId=$derived(watchedRun?.session);
+  const watchedActivation=$derived(watchedRun?.activation), watchedStream=$derived(watchedRun?.streamId);
+  const workspaceId=$derived(state.workspace);
+  $effect(()=>{
+    const run=watchedRunId,id=watchedSessionId,pin=watchedActivation,stream=watchedStream,workspace=workspaceId;
+    if(!run||!id||!pin||!stream||!workspace)return;
+    return untrack(()=>followRun(run,id,pin,stream,workspace));
+  });
   function applyState(next:any){
     const workspaceChanged=next.workspace!==state.workspace;
     if(workspaceChanged){
@@ -459,7 +537,20 @@
       runGrouping=prefs.runGrouping==='date'?'date':'session';
       runScopePreference=prefs.runScopePreference==='session'?'session':'all';
     }catch{}
-    request().then(next=>{applyState(next);reopen(next);restoreWorkingDraft(next);void recoverDraftReceipts(next);}).catch(e=>error=e.message).finally(()=>loaded=true);
+    request().then(next=>{
+      applyState(next);reopen(next);restoreWorkingDraft(next);void recoverDraftReceipts(next);
+      const url=new URL(window.location.href);
+      const linked=url.searchParams.get('run');
+      let remembered:string|null=null;
+      try{remembered=localStorage.getItem(resumeRunKey(next.workspace));}catch{}
+      const restored=next.runs.find(item=>item.id===(linked??remembered)&&item.streamId);
+      if(restored){
+        activeSession=restored.session;
+        if(linked){inspectSessionScope=true;runReturnSession=restored.session;changePage('Runs');void openRun(restored.id);}
+        else void openSession(restored.session);
+      }else if(linked){changePage('Runs');runActionError='This Run is not available in the current Studio.';}
+      void recoverStart(next.workspace);
+    }).catch(e=>error=e.message).finally(()=>loaded=true);
     const dayCheck=setInterval(()=>today=localCalendarDay(new Date()),60_000);
     return ()=>{
       mq.removeEventListener('change',measure);
@@ -750,6 +841,10 @@
   });
   const activate=()=>action(async()=>{applyState(await request('/activate',{revision:state.revision}));});
   function changePage(next:string){
+    if(next!=='Runs'){
+      const url=new URL(window.location.href);
+      if(url.searchParams.has('run')){url.searchParams.delete('run');window.history.replaceState(null,'',url);}
+    }
     launchOpen=false;
     mobileOpen=false;
     if(next!=='Agents'){cancelWire();selectedWire='';if(wireDrag)wireDrag.cancelled=true;}
@@ -851,6 +946,11 @@
     const changed=activeRun!==id;
     if(changed&&focus)runGroupChoice=undefined;
     activeRun=id;
+    if(page==='Runs'&&state.runs.some(item=>item.id===id&&item.streamId)){
+      const url=new URL(window.location.href);
+      url.searchParams.set('run',id);
+      window.history.replaceState(null,'',url);
+    }
     if(focus&&mobileOpen)sheetInvoker=null;
     mobileOpen=false;
     await tick();
@@ -972,10 +1072,57 @@
       deleteTarget=null;
     }catch(e){deleteError=(e as Error).message;}
   });
+  async function attachAccepted(accepted:any,workspace:string){
+    const {run,session:id,activation}=accepted;
+    const packet=await request('/run-observe',{run,session:id,activation});
+    const acceptedPacket=acceptRunPacket(undefined,packet,{run,session:id,activation});
+    mergeObserved(packet);
+    observation={run,gap:acceptedPacket.gap,canStop:packet.canStop,writing:packet.writing,disconnected:false};
+    try{
+      localStorage.setItem(resumeRunKey(workspace),run);
+      localStorage.setItem(cursorKey(workspace,run),JSON.stringify({cursor:acceptedPacket.cursor,gap:acceptedPacket.gap}));
+      localStorage.removeItem(pendingRunKey(workspace));
+    }catch{}
+  }
+  async function recoverStart(workspace:string){
+    let pendingRequest;
+    try{pendingRequest=JSON.parse(localStorage.getItem(pendingRunKey(workspace))??'null');}catch{}
+    if(!pendingRequest)return;
+    try{
+      const accepted=await request('/run-lookup',pendingRequest);
+      await attachAccepted(accepted,workspace);
+      if(page==='Agents')await openSession(accepted.session);
+    }catch(error){
+      if((error as any).status===404){
+        try{localStorage.removeItem(pendingRunKey(workspace));}catch{}
+      }
+    }
+  }
+  async function sendBackground(input:string,id:string,activation:string,workspace:string){
+    const identity={request:crypto.randomUUID(),session:id,activation};
+    try{localStorage.setItem(pendingRunKey(workspace),JSON.stringify(identity));}catch{}
+    try{
+      let accepted;
+      try{accepted=await request('/start-run',{...identity,input,includeContext:!!sessionContext[id]});}
+      catch(error){
+        try{accepted=await request('/run-lookup',identity);}
+        catch{throw error;}
+      }
+      sessionContext[id]=false;
+      if(sessionDrafts[id]?.trim()===input)delete sessionDrafts[id];
+      await attachAccepted(accepted,workspace);
+    }catch(error){turnErrors[id]=(error as Error).message;}
+  }
   async function send(input:string){
     const id=activeSession;
-    if(sending||pending||!session?.connectionReady||session.interrupted)return;
+    if(sending||pending||liveSessionRun||!session?.connectionReady||session.interrupted)return;
     sending=true;
+    if(backgroundChoice[id]&&!session.authoring){
+      delete turnErrors[id];
+      try{await sendBackground(input,id,session.activation,state.workspace);}
+      finally{sending=false;}
+      return;
+    }
     delete turnErrors[id];
     sendActivity={session:id,phase:'waiting'};
     const activityAbort=new AbortController();
@@ -1886,9 +2033,19 @@
   {:else}
     <div class="session-composer">
       {#if turnErrors[session.id]}<Feedback kind="error" message={turnErrors[session.id]}/>{/if}
-      <Patterns.PromptInput bind:value={()=>sessionDrafts[session.id]??'',value=>sessionDrafts[session.id]=value} busy={sendActivity?.session===session.id}
-        onSend={!sending&&!pending?send:undefined}
-        onStop={sendActivity?.session===session.id&&sendActivity?.canStop&&!stoppingSession?stopSessionTurn:undefined}>
+      {#if liveSessionRun}
+        <div class="run-links">
+          <Button label="Inspect Run" variant="quiet" onclick={()=>inspectSessionRuns(liveSessionRun.id)}/>
+          {#if liveSessionRun.background}<span class="muted">You can close this tab while Studio stays open.</span>{/if}
+        </div>
+        {#if observation?.run===liveSessionRun.id&&observation.disconnected}
+          <Feedback message="Connection lost. Waiting to read the Run’s current state."/>
+        {/if}
+      {/if}
+      <Patterns.PromptInput bind:value={()=>sessionDrafts[session.id]??'',value=>sessionDrafts[session.id]=value} busy={sessionBusy}
+        onSend={!sending&&!pending&&!sessionBusy?send:undefined}
+        onStop={!stoppingSession&&!stoppingRun&&((sendActivity?.session===session.id&&sendActivity?.canStop)||
+          (liveSessionRun&&observation?.run===liveSessionRun.id&&observation.canStop))?stopSessionTurn:undefined}>
         {#snippet footer()}
           {@const revision=session.number??session.revision}
           <Badge variant="secondary" class="session-agent-chip" title={revision==null?session.name:recordIdentity(session)}>
@@ -1902,8 +2059,13 @@
               disabled={sendActivity?.session===session.id} aria-label="Include pinned context on next turn"
               title={'Include pinned context on next turn · '+session.context}>Include context</Toggle.Root>
           {/if}
-          {#if sendActivity?.session===session.id}
-            <span class="session-turn-state"><StatusBadge value={stoppingSession?'Stopping…':sendActivity.phase==='answer'?'Writing answer':'Waiting for answer'}/></span>
+          {#if !session.authoring&&!sessionBusy}
+            <Toggle.Root type="button" class="session-context-toggle"
+              bind:pressed={()=>!!backgroundChoice[session.id],pressed=>backgroundChoice[session.id]=pressed}
+              aria-label="Run in background">Run in background</Toggle.Root>
+          {/if}
+          {#if sessionBusy}
+            <span class="session-turn-state"><StatusBadge value="Running"/></span>
           {/if}
         {/snippet}
       </Patterns.PromptInput>
@@ -2083,10 +2245,10 @@
                 {#key session.id}
                   <div class="conversation" bind:this={conversationPane} use:rememberReadingPosition={session.id}>
                     {#if session.authoring || session.archivedFixture}
-                      <Conversation messages={session.messages} busy={sendActivity?.session===session.id}
+                      <Conversation messages={session.messages} busy={sessionBusy}
                         composer={sessionComposer} emptyMessage="Start a conversation."/>
                     {:else}
-                      <SessionConversation messages={session.messages} busy={sendActivity?.session===session.id}
+                      <SessionConversation messages={session.messages} busy={sessionBusy}
                         turns={memoryView?.turns??[]} composer={sessionComposer}>
                         {#snippet attachment(turn)}
                           <MemoryControls view={memoryView} mode="card" sessionId={session.id} {turn} act={changeMemory} busyTurn={sending}/>
@@ -2111,7 +2273,15 @@
                       <span class="run-section-label" id="run-outcome-heading">Outcome</span>
                     </header>
                     <div class="run-section-card">
-                      {#if run.message}<Feedback kind={run.status==='failed'?'error':'status'} message={run.message}/>{/if}
+                      {#if run.message}<Feedback kind={run.state==='Uncertain'||run.status==='failed'?'error':'status'} message={run.message}/>{/if}
+                      {#if runActionError}<Feedback kind="error" message={runActionError}/>{/if}
+                      {#if observation?.run===run.id}
+                        {#if observation.disconnected}
+                          <Feedback message="Connection lost. Showing the last confirmed Run state."/>
+                        {:else if observation.gap}
+                          <Feedback message="Some stream events could not be replayed. The saved Run result is shown below."/>
+                        {/if}
+                      {/if}
                       <dl class="run-summary-meta">
                         <div>
                           <dt>Agent</dt>
@@ -2120,17 +2290,20 @@
                         <div><dt>Version</dt><dd>{revision==null?'Not recorded':'r'+revision}</dd></div>
                         <div>
                           <dt>Status</dt>
-                          <dd><StatusBadge value={runStatus(run.status)} tone={run.status==='failed'?'danger':'neutral'}/></dd>
+                          <dd><StatusBadge value={runStatus(run.status)} tone={run.state==='Uncertain'||run.status==='failed'?'danger':'neutral'}/></dd>
                         </div>
-                        <div><dt>Execution</dt><dd>{recordMode(run)}</dd></div>
+                        <div><dt>Execution</dt><dd>{recordMode(run)}{run.background?' · Background':''}</dd></div>
                       </dl>
                       <dl class="run-summary-meta run-summary-timing">
                         <div><dt>Started</dt><dd><time datetime={run.started}>{historyDate(run.started)}</time></dd></div>
                         {#if runDuration}<div><dt>Duration</dt><dd>{runDuration}</dd></div>{/if}
                         {#if runTokenUsage}<div><dt>Token usage</dt><dd>{runTokenUsage}</dd></div>{/if}
                       </dl>
-                      {#if !selectedPrompt || parent || children.length}
+                      {#if !selectedPrompt || parent || children.length || (run.state==='Running'&&run.streamId)}
                         <div class="run-links">
+                          {#if run.state==='Running'&&observation?.run===run.id&&observation.canStop}
+                            <Button label="Stop Run" variant="secondary" disabled={stoppingRun===run.id} onclick={()=>stopWatchedRun(run)}/>
+                          {/if}
                           {#if !selectedPrompt}
                             {#if runSession}
                               <ControlButton.Root class="vict-btn vict-btn--quiet" onclick={()=>openSession(runSession.id,true)}>Open Session</ControlButton.Root>

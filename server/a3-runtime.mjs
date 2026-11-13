@@ -78,9 +78,7 @@ const objectContract=(id,test,descriptiveJsonSchema)=>({
   parse(value){return test(value)?{ok:true,value}:{ok:false,issues:[{code:'INVALID',path:'$',message:'Invalid reference contract.'}]};},
 });
 
-export async function governedReadTurn({activation,stores,agentConfig,actorId,threadId,input,deadline,fixture,onEvent,childCapability,allowRead=true,draftTurn,runId,scriptBinding,recordScript=()=>{}}) {
-  const hub=new AgentStreamHub({ledger:stores.streamLedger});
-  const streamId=randomUUID();
+export async function governedReadTurn({activation,stores,agentConfig,actorId,threadId,input,deadline,fixture,onEvent,childCapability,allowRead=true,draftTurn,runId,scriptBinding,recordScript=()=>{},hub=new AgentStreamHub({ledger:stores.streamLedger}),streamId=randomUUID()}) {
   const governance={calls:0,disposition:undefined};
   const script=createScriptCapability(scriptBinding,recordScript);
   const callLimit=activation.profile.profile.turnPolicy.maxToolCalls;

@@ -6,6 +6,7 @@ import { workspaceBinding, workspaceReadOnly, workspaceRefs } from '../packages/
 import { registeredTool, registeredTools } from '../src/registered-tools.mjs';
 import { authoringChatSessions, knownOperation, lastAuthoringTest, operationDigest, rememberOperation, runEvidence, workspaceCapabilities } from './workspace-actions.mjs';
 import { publicProviderStream } from './provider-stream.mjs';
+import { isRunKey, matchesRunEvent, replayRun, runState } from './run-observation.mjs';
 import { reportsMemoryEffect } from './memory-reply.mjs';
 import { withCompleteScopedThreadReads } from './mastra-session-store.mjs';
 import { createSavedMemoryHost, emptyAdmission, pinnedMemoryPolicy, pinAllowsSavedMemory } from './saved-memory.mjs';
@@ -19,7 +20,7 @@ import { join, resolve } from 'node:path';
 import { DatabaseSync } from 'node:sqlite';
 import { createOpenAICompatible } from '@ai-sdk/openai-compatible';
 import { APICallError } from '@ai-sdk/provider';
-import { ConversationDeletionCoordinator, AgentProfileRegistry, authenticatedActorContext, pinAgentTurnRunner, validateAgentActivationRecord } from '@victframework/runtime';
+import { AgentStreamHub, ConversationDeletionCoordinator, AgentProfileRegistry, authenticatedActorContext, pinAgentTurnRunner, validateAgentActivationRecord } from '@victframework/runtime';
 import { createGovernedMemoryDeletionPort, fenceCompletedDeletions, createDedicatedMastraStore, MastraProductAgent, MastraThreadCoordinator, mastraThreadIdForConversation, sanitizeCapabilityToolName, MASTRA_ADAPTER_COMPATIBILITY } from '@victframework/mastra';
 
 const provider='zai';
@@ -239,11 +240,30 @@ export function createStudio({getAssembly,dataDirectory,turnDeadlineMs=maxHostDe
   let activeTurn;
   let storage,sessionStore;
   const threads=new MastraThreadCoordinator();
-  let controlStores, governanceStore, lifecycle, recovered;
+  let controlStores, observationHub, governanceStore, lifecycle, recovered;
+  const controls=()=>controlStores??=createSqliteAgentControlStores({path:join(dir,'a3-control.sqlite')});
+  const runHub=()=>observationHub??=new AgentStreamHub({ledger:controls().streamLedger});
+  async function localRunActor(scope) {
+    const actors=controls().actors;
+    let record=await actors.get(actor);
+    if(!record&&scope==='agent.turn.start'){
+      await actors.upsert({actorId:actor,status:'active',roles:['developer'],createdAt:Date.now()});
+      record=await actors.get(actor);
+    }
+    if(record?.status!=='active')throw new StudioError(403,'Run access is no longer permitted.');
+    const principal=authenticatedActorContext(record,actor);
+    if(scope&&!principal.scopes.includes(scope))throw new StudioError(403,'This Run action is not permitted.');
+  }
+  function runBinding(state,run,input) {
+    const session=state.sessions.find(item=>item.id===input.session&&item.fixture===fixture);
+    if(!run?.observation||run.fixture!==fixture||run.session!==session?.id||run.activation!==session?.activation||
+      run.activation!==input.activation||run.observation.actor!==actor||run.observation.workspace!==state.workspace)
+      throw new StudioError(404,'This Run is not available in the selected Session and revision.');
+  }
   const openMemory=async()=>{
     storage??=await createDedicatedMastraStore({dataDir:dir,retention:{messagesMaxAgeMs:2592000000,threadsMaxAgeMs:2592000000,spansMaxAgeMs:86400000}});
     sessionStore??=withCompleteScopedThreadReads(storage.store);
-    controlStores??=createSqliteAgentControlStores({path:join(dir,'a3-control.sqlite')});
+    controls();
     governanceStore??=createSqliteAgentGovernanceStore({path:join(dir,'a3-memory-governance.sqlite')});
     lifecycle??=new ConversationDeletionCoordinator({
       governance:governanceStore,
@@ -337,7 +357,9 @@ export function createStudio({getAssembly,dataDirectory,turnDeadlineMs=maxHostDe
         const title=s.title||(characters.length>80?characters.slice(0,79).join('')+'…':excerpt)||'New Session';
         return {...s,title,lastActivityAt:activity.get(s.id)??s.created,definition:sessionDefinitions.get(s.activation),
           connectionReady:s.fixture===fixture&&!!credential(s.route??'general'),archivedFixture:!!s.fixture&&s.fixture!==fixture};
-      }),runs:state.runs.map(({authoringRequest,...run})=>{
+      }),runs:state.runs.map(({authoringRequest,observation,startRequest,...run})=>{
+      run.state=runState(run);
+      if(observation){run.streamId=observation.stream;run.background=!!startRequest;}
       const draftReceipts=run.draftTarget?authoringTransport.receipts(run.id):undefined;
       if(!draftReceipts&&!run.authoringActions&&!run.scriptReceipts)return run;
       return {...run,draftReceipts,events:[
@@ -491,12 +513,38 @@ export function createStudio({getAssembly,dataDirectory,turnDeadlineMs=maxHostDe
       return {active:true,...channel.poll()};
     }
 
+    if(path==='/run-lookup'||path==='/run-observe'){
+      await localRunActor('agent.stream.read');
+      const current=snapshot();
+      const run=path==='/run-lookup'
+        ?current.runs.find(item=>isRunKey(input.request)&&item.startRequest?.id===input.request)
+        :current.runs.find(item=>item.id===input.run);
+      runBinding(current,run,input);
+      if(path==='/run-lookup')return {run:run.id,session:run.session,activation:run.activation};
+      const stream=await replayRun(runHub(),run,input.cursor);
+      const assembly=await getAssembly();
+      // Replay can race completion; use the authoritative snapshot for state.
+      const latest=snapshot();
+      const selected=latest.runs.find(item=>item.id===run.id);
+      runBinding(latest,selected,input);
+      const view=projection(latest,defaultDefinition,assembly);
+      const owner=activeTurn?.run?.id===run.id?activeTurn:undefined;
+      return {run:view.runs.find(item=>item.id===run.id),
+        session:view.sessions.find(item=>item.id===run.session),stream,
+        canStop:!!owner?.stop&&!owner.stop.signal.aborted,writing:!!owner?.publicTextStarted};
+    }
     if(path==='/activity'){
       if(!activeTurn||activeTurn.session!==input.session)return {phase:null};
       return {phase:activeTurn.publicTextStarted?'answer':'waiting',turn:activeTurn.run?.id,canStop:!!activeTurn.stop};
     }
     if(path.startsWith('/memory/'))return memories.handle(path,input);
     if(path==='/stop-turn'){
+      const current=snapshot();
+      const run=current.runs.find(item=>item.id===input.run);
+      if(run?.observation){
+        await localRunActor('agent.turn.cancel');
+        runBinding(snapshot(),run,run.startRequest?input:{...input,activation:input.activation??run.activation});
+      }
       if(activeTurn?.session===input.session&&activeTurn?.run?.id===input.run&&activeTurn.stop){
         activeTurn.stop.abort();
         return {status:'stopping'};
@@ -573,13 +621,36 @@ export function createStudio({getAssembly,dataDirectory,turnDeadlineMs=maxHostDe
         if(deletion.status!=='completed')throw conflict('Session deletion is pending recovery.');
         return {...projection(snapshot(),definition,assembly),deletion};
       }finally{activeTurn=undefined;}
+    } else if(path==='/start-run'){
+      await localRunActor('agent.turn.start');
+      if(!isRunKey(input.request))throw new StudioError(400,'A Run request identity is required.');
+      return startBackground(assembly,definition,input);
     } else if(path==='/turn'){
       return executeTurn(state,assembly,definition,input);
     } else throw new StudioError(404,'Unknown Studio operation.');
     store(state);
     return projection(state,definition,assembly);
   }
-  async function executeTurn(state,assembly,definition,input,nested){
+  function startBackground(assembly,definition,input){
+    // Claim and persist before dispatch. Retrying an acknowledgement can
+    // only resolve the same request and never create another Run.
+    const current=snapshot();
+    const {request:id,session,activation}=input;
+    const pinned=current.sessions.find(item=>item.id===session&&item.fixture===fixture);
+    if(!pinned||pinned.activation!==activation)throw new StudioError(404,'The selected Session or revision is unavailable.');
+    const fingerprint=operationDigest({actor,workspace:current.workspace,session,activation,
+      text:typeof input.input==='string'?input.input.trim():null,includeContext:input.includeContext===true});
+    const existing=current.runs.find(item=>item.startRequest?.id===id);
+    if(existing){
+      runBinding(current,existing,input);
+      if(existing.startRequest.fingerprint!==fingerprint)throw conflict('This Run request was already used for a different message.');
+      return {run:existing.id,session,activation};
+    }
+    return new Promise((accept,reject)=>{
+      executeTurn(current,assembly,definition,input,undefined,{id,fingerprint,accept}).catch(reject);
+    });
+  }
+  async function executeTurn(state,assembly,definition,input,nested,background){
     const saved=newest(state.drafts,definition);
     const session=state.sessions.find(s=>s.id===input.session);
     const key=credential(session?.route);
@@ -599,6 +670,7 @@ export function createStudio({getAssembly,dataDirectory,turnDeadlineMs=maxHostDe
     if(child?.activationVersion!==pin.child)throw conflict('The pinned child activation could not be restored.');
     const target=input.draftTarget;
     const workspace=workspaceAuthoring(value);
+    if(background&&value.authoring)throw conflict('Use the Authoring Agent dock for draft changes.');
     let authoringRequest;
     if(workspace&&validAuthoringTarget(target,true)){
       const key=operationDigest({channel:target.channel});
@@ -627,6 +699,9 @@ export function createStudio({getAssembly,dataDirectory,turnDeadlineMs=maxHostDe
     const run={id:randomUUID(),session:session.id,activation:session.activation,revision:revision.id,number:revision.number,name:session.name,
       memory:pin.memory??'recent-100@1',
       provider,model,route:pin.route??'general',tokens:value.tokens,outputContract:pin.output,execution,started:now(),status:'running',events:[],...(fixture?{fixture}:{})};
+    if(background)run.startRequest={id:background.id,fingerprint:background.fingerprint};
+    if(!nested&&!value.authoring)run.observation={actor,workspace:state.workspace,stream:randomUUID(),
+      profile:activation.agentProfileVersion,thread:mastraThreadIdForConversation(session.id)};
     run.events.push({at:run.started,label:'Turn accepted by Studio'});
     const authoringHistory=authoringDock?{input:text,messages:savedAuthoringHistory(state,session,memoryWindow(value.memory))}:undefined;
     const direct=!nested&&!value.authoring;
@@ -648,7 +723,7 @@ export function createStudio({getAssembly,dataDirectory,turnDeadlineMs=maxHostDe
     const deadlineAt=Date.now()+turnDeadlineMs;
     const draftTurn=value.authoring?authoringTransport.start(target,actor,run.id,deadlineAt,definition):undefined;
     const owner={session:session.id,publicTextStarted:false,draftTurn,definition,run,
-      ...(direct&&memoryEnabled?{stop:new AbortController()}:{}),
+      ...(direct&&(memoryEnabled||background)?{stop:new AbortController()}:{}),
     };
     if(draftTurn&&(!workspace||target.hasDraft)){
       draftTurn.setInstructions(target.instructions);
@@ -676,7 +751,12 @@ export function createStudio({getAssembly,dataDirectory,turnDeadlineMs=maxHostDe
       nested.owner.testing=owner;
     }else activeTurn=owner;
     state.runs.unshift(run);
-    store(state);
+    try{store(state);}catch(error){
+      if(nested)nested.owner.testing=undefined;
+      else activeTurn=undefined;
+      throw error;
+    }
+    background?.accept({run:run.id,session:run.session,activation:run.activation});
     const evidence={providerAttempts:0,modelSteps:0};
     const expiry=AbortSignal.timeout(turnDeadlineMs);
     const deadline=AbortSignal.any([expiry,...(draftTurn?[draftTurn.signal]:[]),...(nested?[nested.signal]:[]),...(owner.stop?[owner.stop.signal]:[])]);
@@ -729,6 +809,8 @@ export function createStudio({getAssembly,dataDirectory,turnDeadlineMs=maxHostDe
         if(event.kind==='text.delta'&&event.delta.length)owner.publicTextStarted=true;
       };
       const threadId=mastraThreadIdForConversation(session.id);
+      if(run.observation)await localRunActor('agent.turn.start');
+      const observation=run.observation?{hub:runHub(),streamId:run.observation.stream}:{};
       let outcome;
       if(draftTurn){
         if(!await controlStores.actors.get(actor))await controlStores.actors.upsert({actorId:actor,status:'active',roles:['developer'],createdAt:Date.now()});
@@ -770,12 +852,18 @@ export function createStudio({getAssembly,dataDirectory,turnDeadlineMs=maxHostDe
           persistRun(childRun);
         }});
         outcome=await governedReadTurn({activation,stores:controlStores,agentConfig,actorId:actor,threadId,input:text,deadline,fixture,onEvent,childCapability,
-          runId:run.id,scriptBinding:value.tool,recordScript:receipt=>scriptEvidence(run,receipt)});
+          runId:run.id,...observation,scriptBinding:value.tool,recordScript:receipt=>scriptEvidence(run,receipt)});
         run.governance=outcome.governance;
       }else{
         const adapter=MastraProductAgent.create(activation,agentConfig);
         outcome=await pinAgentTurnRunner(adapter,activation).runTurn({turnId:run.id,threadId,actorId:actor,input:text},
-          {abortSignal:deadline,victRunId:run.id,onEvent});
+          {abortSignal:deadline,victRunId:run.id,...(observation.hub?{
+            streamId:observation.streamId,
+            onEvent:async event=>{
+              if(!matchesRunEvent(event,run))throw new Error('TORI_RUN_STREAM_BINDING');
+              onEvent(await observation.hub.publish(event));
+            },
+          }:{onEvent})});
         await adapter.flush();
       }
       run.status=outcome.status==='completed'&&!outcome.text?.trim()?'failed':outcome.status;
@@ -877,7 +965,7 @@ export function createStudio({getAssembly,dataDirectory,turnDeadlineMs=maxHostDe
       run.status='cancelled';
       run.errorCode=draftTurn?.signal.aborted?'TORI_AUTHORING_STOP':owner.stop?.signal.aborted?'TORI_SESSION_STOP':'TORI_TURN_DEADLINE';
       run.message=draftTurn?.signal.aborted?'The authoring turn was stopped. Check the draft receipt for any committed edit.':
-        owner.stop?.signal.aborted?'The turn was stopped. No pending memory was saved.':'The turn reached the host deadline.';
+        owner.stop?.signal.aborted?(background?'The turn was stopped. Check the Run for any completed work.':'The turn was stopped. No pending memory was saved.'):'The turn reached the host deadline.';
       session.interrupted=true;
     }
     if(memoryDraft&&run.status!=='completed')run.savedMemoryRequest={status:'not-saved',feedback:true,reason:deadline.aborted?'cancelled':'draft-failed'};
