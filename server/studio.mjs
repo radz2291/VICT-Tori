@@ -516,13 +516,14 @@ export function createStudio({getAssembly,dataDirectory,turnDeadlineMs=maxHostDe
     job.stop.abort();
     return true;
   }
-  function startInterpretation({run,scope,directive,key,input}) {
+  function startInterpretation({run,scope,directive,key,input,turnStop}) {
     const {policy,revision}=directive;
     const deadlineAt=run.directive.acceptedAt+policy.deadlineMs;
     const remaining=deadlineAt-directiveClock();
     const stop=new AbortController();
     const expiry=directiveTimeout(Math.max(0,remaining));
-    const signal=AbortSignal.any([stop.signal,expiry]);
+    const signal=AbortSignal.any([stop.signal,expiry,turnStop]);
+    const turn=Promise.withResolvers();
     const job={session:run.session,stop};
     const evidence={providerAttempts:0,modelSteps:0,finish:null,usage:null,observedModel:null};
     const pinStillAvailable=state=>{
@@ -532,8 +533,19 @@ export function createStudio({getAssembly,dataDirectory,turnDeadlineMs=maxHostDe
     };
     interpretations.set(run.id,job);
     const timedOut=()=>remaining<=0||expiry.aborted||directiveClock()>=deadlineAt;
-    const cancelled=()=>stop.signal.aborted||interpretations.get(run.id)!==job;
-    const stoppedResult=()=>cancelled()?{kind:'cancelled',reason:'stopped'}:{kind:'timeout',reason:'deadline'};
+    const stoppedResult=()=>{
+      if(turnStop.aborted||stop.signal.reason==='originating-turn-unavailable')
+        return {kind:'cancelled',reason:'originating-turn-unavailable'};
+      if(stop.signal.aborted||interpretations.get(run.id)!==job)return {kind:'cancelled',reason:'stopped'};
+      return {kind:'timeout',reason:'deadline'};
+    };
+    const publish=(state,current,change)=>{
+      current.directive={...current.directive,...change};
+      store(state);
+      // The ordinary turn can still persist admission and completion evidence.
+      run.directive=current.directive;
+      run.savedMemoryRequest=current.savedMemoryRequest;
+    };
     job.done=(async()=>{
       let result;
       try{
@@ -543,45 +555,52 @@ export function createStudio({getAssembly,dataDirectory,turnDeadlineMs=maxHostDe
           const client=directiveModel(key,policy,evidence);
           result=await settleWithSignal(interpretDirective(client,policy,input,signal,evidence,directiveClock),signal);
         }
+        // A public card requires a durable, successful originating turn.
+        // The provider pass itself starts independently of the ordinary reply.
+        if(result.kind==='proposal'||result.kind==='clarify')await settleWithSignal(turn.promise,signal);
       }catch{
         result=signal.aborted||timedOut()?stoppedResult():{kind:'unavailable',reason:'draft-failed'};
       }
-      const allowed=result.kind==='proposal'&&await settleWithSignal(memories.access(),signal).catch(()=>false);
+      const reviewable=result.kind==='proposal'||result.kind==='clarify';
+      const allowed=reviewable&&await settleWithSignal(memories.access(),signal).catch(()=>false);
       const state=snapshot();
       const current=state.runs.find(item=>item.id===run.id&&item.directive?.status==='pending');
       if(!current||!state.sessions.some(item=>item.id===run.session))return;
-      if(signal.aborted||timedOut()||cancelled())result=stoppedResult();
+      if(signal.aborted||timedOut())result=stoppedResult();
+      else if(reviewable){
+        if(current.status!=='completed')result={kind:'cancelled',reason:'originating-turn-unavailable'};
+        else if(!allowed||!pinStillAvailable(state))result={kind:'denied',reason:'access-denied'};
+      }
       if(result.kind==='proposal'){
-        if(!allowed||!pinStillAvailable(state))result={kind:'denied',reason:'access-denied'};
-        else {
-          const source=run.id+'-user';
-          const basis=result.basis.map(id=>id===input.current.id?source:id);
-          const proposal=memories.propose(scope,{session:run.session,activation:run.activation,run:run.id,source,
-            contextBasis:basis,text:result.draft,expires:run.directive.acceptedAt+proposalLifetimeMs,directiveRevision:revision});
-          if(proposal?.status==='pending')current.savedMemoryRequest={status:'proposed'};
-          else result={kind:'unavailable',reason:'storage-unavailable'};
-        }
+        const source=run.id+'-user';
+        const basis=result.basis.map(id=>id===input.current.id?source:id);
+        const proposal=memories.propose(scope,{session:run.session,activation:run.activation,run:run.id,source,
+          contextBasis:basis,text:result.draft,expires:run.directive.acceptedAt+proposalLifetimeMs,directiveRevision:revision});
+        if(proposal?.status==='pending')current.savedMemoryRequest={status:'proposed'};
+        else result={kind:'unavailable',reason:'storage-unavailable'};
       }
       if(result.kind==='clarify')current.savedMemoryRequest={status:'not-saved',feedback:true,
         reason:input.truncated?'context-unavailable':'clarification-needed'};
       if(result.kind==='proposal')current.directive.sourceCount=result.basis.length;
-      current.directive={...current.directive,status:result.kind,reason:result.reason,
+      publish(state,current,{status:result.kind,reason:result.reason,
         dispatchedAt:evidence.dispatchedAt,completedAt:directiveClock(),firstPublicTextAt:evidence.firstPublicTextAt,
         providerAttempts:evidence.providerAttempts,http:evidence.http,observedModel:evidence.observedModel,
-        sentOutputTokens:evidence.sentMaxOutputTokens,reasoningEffort:evidence.sentReasoningEffort,finish:evidence.finish,usage:evidence.usage};
-      store(state);
+        sentOutputTokens:evidence.sentMaxOutputTokens,reasoningEffort:evidence.sentReasoningEffort,finish:evidence.finish,usage:evidence.usage});
     })().catch(()=>{
       const state=snapshot();
       const current=state.runs.find(item=>item.id===run.id&&item.directive?.status==='pending');
       if(current){
         memories.abandonDirective(state,current);
-        current.directive={...current.directive,status:'unavailable',reason:'storage-unavailable',completedAt:directiveClock()};
-        store(state);
+        publish(state,current,{status:'unavailable',reason:'storage-unavailable',completedAt:directiveClock()});
       }
     }).finally(()=>{if(interpretations.get(run.id)===job)interpretations.delete(run.id);});
     // A durable pending marker is settled without replay on the next startup
     // if storage failed while recording this result.
     void job.done.catch(()=>{});
+    return completed=>{
+      if(!completed)stop.abort('originating-turn-unavailable');
+      turn.resolve();
+    };
   }
   function scriptEvidence(run,receipt) {
     (run.scriptReceipts??=[]).push(receipt);
@@ -919,6 +938,7 @@ export function createStudio({getAssembly,dataDirectory,turnDeadlineMs=maxHostDe
       throw error;
     }
     background?.accept({run:run.id,session:run.session,activation:run.activation,streamId:run.observation.stream});
+    const finishInterpretation=interpretation&&startInterpretation({run,scope,directive,key,input:interpretation,turnStop:owner.stop.signal});
     const evidence={providerAttempts:0,modelSteps:0};
     const expiry=AbortSignal.timeout(turnDeadlineMs);
     const deadline=AbortSignal.any([expiry,...(draftTurn?[draftTurn.signal]:[]),...(nested?[nested.signal]:[]),...(owner.stop?[owner.stop.signal]:[])]);
@@ -1132,7 +1152,6 @@ export function createStudio({getAssembly,dataDirectory,turnDeadlineMs=maxHostDe
       session.interrupted=true;
     }
     if(memoryDraft&&run.status!=='completed')run.savedMemoryRequest={status:'not-saved',feedback:true,reason:deadline.aborted?'cancelled':'draft-failed'};
-    if(interpretation&&run.status!=='completed')run.directive={...run.directive,status:'cancelled',reason:'originating-turn-unavailable',completedAt:directiveClock()};
     run.providerAttempts=evidence.providerAttempts;
     if(pin.tool||pin.child||draftTurn)run.modelSteps=evidence.modelSteps;
     run.sentTemperature=evidence.sentTemperature;
@@ -1145,12 +1164,13 @@ export function createStudio({getAssembly,dataDirectory,turnDeadlineMs=maxHostDe
     const latest=snapshot();
     latest.runs=[run,...latest.runs.filter(r=>r.id!==run.id)];
     latest.sessions=latest.sessions.map(s=>s.id===session.id?session:s);
-    try{store(latest);}
+    let persisted=false;
+    try{store(latest);persisted=true;}
     finally{
       if(nested)nested.owner.testing=undefined;
       else activeTurn=undefined;
+      finishInterpretation?.(persisted&&run.status==='completed');
     }
-    if(interpretation&&run.status==='completed')startInterpretation({run,scope,directive,key,input:interpretation});
     return nested?{testRun:run.id}:projection(latest,definition,assembly);
   }
   return {dispatch,close:async()=>{

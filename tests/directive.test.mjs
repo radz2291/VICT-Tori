@@ -197,13 +197,11 @@ test('pinned Studio Directive settles independently with exact review, recovery 
       assert.deepEqual(body.tools ?? [], []);
       assert.ok(!body.messages.some(item => item.content.includes('Write ordinary answers with context.')));
     }
-    if (holds.has(text)) {
-      const gate = holds.get(text);
-      if (gate.interpretation === isDirective) {
-        gate.started.resolve(call);
-        // Deliberately emit valid text even if the caller's signal aborted.
-        await gate.release.promise;
-      }
+    const gate=holds.get(JSON.stringify([text,isDirective]));
+    if (gate) {
+      gate.started.resolve(call);
+      // Deliberately emit valid text even if the caller's signal aborted.
+      await gate.release.promise;
     }
     if (isLegacyDraft) {
       const envelope = body.messages.find(item => item.content.startsWith('Authorized conversation and message references'));
@@ -215,6 +213,7 @@ test('pinned Studio Directive settles independently with exact review, recovery 
       if (response.http) return new Response('{}',{status:response.http});
       return completion(body.model, JSON.stringify(response));
     }
+    if(text==='Hold the Orchid procedure for a failed turn.')return new Response('{}',{status:500});
     assert.ok(!body.messages.some(item => item.content.includes('Authorized recognition focus:')));
     return completion(body.model,'The Orchid project is on track.');
   };
@@ -228,8 +227,8 @@ test('pinned Studio Directive settles independently with exact review, recovery 
     return journal;
   };
   const typeGate = (text, interpretation=true) => {
-    const gate={interpretation,started:defer(),release:defer()};
-    holds.set(text,gate);
+    const gate={started:defer(),release:defer()};
+    holds.set(JSON.stringify([text,interpretation]),gate);
     return gate;
   };
   const save = async (journal, expected) => (await dispatch('/save',{graph:journal.graph,expected})).revision;
@@ -267,10 +266,13 @@ test('pinned Studio Directive settles independently with exact review, recovery 
 
     replies.set(source,{kind:'proposal',draft,basis:['current']});
     const held=typeGate(source);
-    const originating=await turn(session,source,{actor:'forged',activation:historic.version,canvas:{deadlineMs:1}});
+    const replyGate=typeGate(source,false);
+    const originTurn=turn(session,source,{actor:'forged',activation:historic.version,canvas:{deadlineMs:1}});
+    const [wire]=await Promise.all([held.started.promise,replyGate.started.promise]);
+    replyGate.release.resolve();
+    const originating=await originTurn;
     assert.equal(originating.status,'completed');
     assert.equal(originating.directive.status,'pending');
-    const wire=await held.started.promise;
     assert.equal(wire.input.current.text,source);
     assert.equal(wire.signal.aborted,false);
     const second=await turn(session,'Give a regular Orchid status while the draft is pending.');
@@ -309,6 +311,22 @@ test('pinned Studio Directive settles independently with exact review, recovery 
     assert.deepEqual((await dispatch('/memory/confirm',confirm)).receipt,receipt);
     assert.deepEqual((await dispatch('/memory/check',exact)).receipt,receipt);
     assert.equal((await runView(originating.id)).provenance.messages[0].status,'available');
+    assert.deepEqual(counts(),{memories:1,revisions:1,operations:1,save_attempts:1});
+
+    const badOrdinary='Hold the Orchid procedure for a failed turn.';
+    const heldOrdinary=typeGate(badOrdinary,false);
+    const heldDirective=typeGate(badOrdinary);
+    replies.set(badOrdinary,{kind:'proposal',draft,basis:['current']});
+    const failedTurn=turn(await sessionOn(active),badOrdinary);
+    const [accepted]=await Promise.all([heldDirective.started.promise,heldOrdinary.started.promise]);
+    heldDirective.release.resolve();
+    const heldRun=(await dispatch('')).runs.find(item=>item.status==='running'&&item.directive?.status==='pending');
+    assert.ok(heldRun);
+    assert.equal((await runView(heldRun.id)).proposal,undefined);
+    heldOrdinary.release.resolve();
+    assert.equal((await failedTurn).status,'failed');
+    assert.equal((await waitRun(heldRun.id,'cancelled')).proposal,undefined);
+    assert.equal(accepted.signal.aborted,true);
     assert.deepEqual(counts(),{memories:1,revisions:1,operations:1,save_attempts:1});
 
     const failure='Synthetic failed interpretation.';
