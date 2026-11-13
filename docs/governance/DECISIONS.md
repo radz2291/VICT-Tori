@@ -106,6 +106,12 @@ The nine tests replace the earlier three-test-only acceptance framing: old A →
 
 **Nudges, forgetting and language packs.** A later near-miss classifier may ask whether the operator meant to save a memory when phrasing, abbreviations, another language or an implicit preference make intent unclear. Its authority is limited to asking. Explicit human confirmation governs any save. Forgetting uses the Studio action for this slice. Revisit voice-triggered forgetting with the nudge slice and apply the same confirmation principle if it is approved. Defer language packs until needed. Each pack will specify prefixes, verbs and negation twins, including affirmative inversions such as Malay `jangan lupa`.
 
+### V1c Background Foundation — 13 November 2026, owner authorized
+
+**Authority.** Radzi accepted TORI-006 in Work and directed the next ticket. Its accepted product is `d49bedf362d3521bcbf714bc6be7a04b34289bb7`, with evidence at `9873f93db1ceea87dfbead6283afd88f5b1b71a3`. Proceed with the [Background Foundation contract](../implementation/BACKGROUND-FOUNDATION.md) at `025be4d05455d6d9a3606f7202a73cc65a34dcf8` as a separate V1c slice.
+
+**Decision.** Run the pinned Mastra and VICT probes before dependent product changes. Use the four-state Run model and recovery matrix to prove detach, reconnect, cancellation and effect reconciliation. The host can claim restart continuation only for verified mechanisms. Keep O-05 open until the resulting recovery matrix has evidence. Retain the accepted Memory Foundation and Authoring behavior as regression baselines. Run Visibility and Specialist Communication follows this slice.
+
 ## Amendment format
 
 Append: decision ID/date; concrete question; owner instruction or implementation evidence; prior rule; selected option and reason; affected contracts/tests/stages; migration; next proof. Preserve old evidence. Only the owner can accept a product-scope reduction or custom-UI exception; an agent may resolve routine implementation choices inside existing scope.
