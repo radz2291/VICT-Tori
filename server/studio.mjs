@@ -199,7 +199,7 @@ function providerModel(key, route, evidence, settings) {
         evidence.modelSteps++;
         evidence.finishReason=reason==='tool_calls'?'tool_calls':'other';
       },settings.guardMemoryReply?text=>{
-        if(!reportsMemoryEffect(text))return true;
+        if(!reportsMemoryEffect(text,settings.guardMemoryReply==='explicit'))return true;
         evidence.memoryReplyRejected=true;
         return false;
       }:undefined);
@@ -984,7 +984,7 @@ export function createStudio({getAssembly,dataDirectory,turnDeadlineMs=maxHostDe
         ...(memoryOnly?{maxToolCalls:0}:{}),context:context.content,authoringGuide,authoringHistory,
         inspectOnly:workspace&&!draftTurn.allowChanges,
         savedMemoryContext,memoryReplyGuide:intent.kind!=='ordinary'?memoryReplyGuide:undefined,
-        guardMemoryReply:directive.status==='bound'||intent.kind!=='ordinary',
+        guardMemoryReply:directive.status==='bound'?'explicit':intent.kind!=='ordinary',
       }),threadCoordinator:threads,tracing:{sampling:{type:'never'}}};
       const onEvent=event=>{
         if(!validateAgentStreamEvent(event).ok)return;

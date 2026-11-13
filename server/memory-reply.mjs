@@ -7,6 +7,14 @@ const location=String.raw`(?:(?:my|your|our|the)\s+)?(?:(?:saved|persistent|perm
 const modifiers=String.raw`(?:(?:just|now|successfully|already|permanently)\s+)*`;
 const subject=String.raw`(?:this|that|it|preference|memory|reminder|request|note)`;
 const state=String.raw`(?:['’]s|\s+(?:is|was|has\s+been|had\s+been|got))\s+`;
+const memoryObject=String.raw`(?:(?:your|my|our|the|this|that|a|an)\s+)?(?:(?:saved|standing|persistent|permanent|long[- ]term)\s+)?(?:memor(?:y|ies)|preferences?)\b`;
+const explicitClaims=[
+  /(?:^|\n)\s*(?:[#>-]+\s*)?memory (?:saved|stored|updated|forgotten)[.!]?\s*(?:$|\n)/iu,
+  /\breview the (?:memory proposal|proposal in studio)\b/iu,
+  new RegExp(String.raw`\b(?:sav(?:e|ed|ing)|stor(?:e|ed|ing)|memoriz(?:e|ed|ing)|persist(?:ed|ing)?|updated|forgot|deleted)\s+${memoryObject}`,'iu'),
+  new RegExp(String.raw`\b(?:saved|stored|put|added|recorded|logged)\s+[^.?!\n]+?\s+(?:to|in|into)\s+${location}`,'iu'),
+  new RegExp(String.raw`\b(?:memory|preference)${state}${modifiers}(?:saved|stored|memorized|persisted|retained|forgotten|deleted)\b`,'iu'),
+];
 const claimPatterns=[
   /\bmemory proposal\b|\breview the (?:text|proposal) in studio\b|\bnothing (?:was )?saved\b/iu,
   /(?:^|\n)\s*(?:[#>-]+\s*)?(?:memory )?saved[.!]?\s*(?:$|\n)/iu,
@@ -22,7 +30,7 @@ const claimPatterns=[
   /\bkeep\s+(?:this|that|it)\s+in\s+mind\s+(?:for\s+(?:future|later)|going\s+forward|from\s+now\s+on)\b/iu,
 ];
 
-export function reportsMemoryEffect(text){
+export function reportsMemoryEffect(text,explicitOnly=false){
   const spoken=text.normalize('NFKC').replace(/[*_`\u200B-\u200D\uFEFF]+/gu,'');
-  return claimPatterns.some(pattern=>pattern.test(spoken));
+  return (explicitOnly?explicitClaims:claimPatterns).some(pattern=>pattern.test(spoken));
 }
