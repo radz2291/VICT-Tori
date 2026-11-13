@@ -469,7 +469,8 @@ try {
       assert.equal(narrowForgot.receipt.memoryId,narrowReceipt.receipt.memoryId);
       await narrowSaved.getByRole('status').filter({hasText:/^Forgotten$/}).waitFor();
       await narrowSaved.getByText('This memory was forgotten. Its save receipt is still in Runs.',{exact:true}).waitFor();
-      assert.equal(await page.getByText(/memory forgotten|memory was forgotten/i).count(),1);
+      // Count Feedback, excluding the separate status badge in the card header.
+      assert.equal(await page.locator('p.vict-state[role="status"]').filter({hasText:/memory forgotten|memory was forgotten/i}).count(),1);
       await capture('memory-narrow-forgotten',narrowSaved);
       const narrowRun=await send(narrowSession,'Remember that narrow notes use action verbs.','narrowProposal');
       const narrow=await attached(narrowRun.id);
