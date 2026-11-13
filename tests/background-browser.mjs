@@ -22,7 +22,8 @@ const wait=async(fn,label,ms=20000)=>{
 };
 const api=async()=>fetch(url+'/api/studio').then(r=>r.json());
 const post=async(path,body)=>{
-  const res=await fetch(url+'/api/studio/'+path,{method:'POST',headers:{Origin:url,'Content-Type':'application/json'},body:JSON.stringify(body)});
+  const res=await fetch(url+'/api/studio/'+path,{method:'POST',
+    headers:{Origin:url,'Content-Type':'application/json',Connection:'close'},body:JSON.stringify(body)});
   return {status:res.status,body:await res.json()};
 };
 const visibleState=(page,text)=>page.getByRole('main',{name:'Run outcome and timeline'}).getByText(text,{exact:true}).waitFor();

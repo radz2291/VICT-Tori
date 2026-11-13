@@ -392,11 +392,11 @@
     finally{await loadSessionMemory(id);}
   }
   async function stopWatchedRun(item:any){
-    if(!item||observation?.run!==item.id||!observation.canStop||stoppingRun)return;
+    if(!item||observation?.run!==item.id||!observation.canStop||stoppingRun===item.id)return;
     stoppingRun=item.id;
     runActionError='';
     try{await request('/stop-turn',{session:item.session,run:item.id,activation:item.activation});}
-    catch(error){runActionError=(error as Error).message;stoppingRun='';}
+    catch(error){runActionError=(error as Error).message;if(stoppingRun===item.id)stoppingRun='';}
   }
   async function stopSessionTurn(){
     if(liveSessionRun&&observation?.run===liveSessionRun.id&&observation.canStop){
@@ -2166,7 +2166,7 @@
       {/if}
       <Patterns.PromptInput bind:value={()=>sessionDrafts[session.id]??'',value=>sessionDrafts[session.id]=value} busy={sessionBusy}
         onSend={!sending&&!pending&&!sessionBusy?send:undefined}
-        onStop={!stoppingSession&&!stoppingRun&&((sendActivity?.session===session.id&&sendActivity?.canStop)||
+        onStop={!stoppingSession&&(!liveSessionRun||stoppingRun!==liveSessionRun.id)&&((sendActivity?.session===session.id&&sendActivity?.canStop)||
           (liveSessionRun&&observation?.run===liveSessionRun.id&&observation.canStop))?stopSessionTurn:undefined}>
         {#snippet footer()}
           {@const revision=session.number??session.revision}
