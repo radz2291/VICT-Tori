@@ -86,6 +86,11 @@ async function interpret(test, client) {
   }
 }
 
+function scoreObservation(row, observed) {
+  if (observed.result) return assess(row, observed.result);
+  return observed.invalidOutput ? { invalid: 1 } : { unavailable: 1 };
+}
+
 async function checkConnector() {
   const source = heldOut[0];
   let calls = 0;
@@ -111,6 +116,9 @@ async function checkConnector() {
   assert.ok(!JSON.stringify(evidence).includes('private-fixture-canary'));
 }
 
+assert.deepEqual(scoreObservation({ outcome: 'proposal' }, { invalidOutput: true }), { invalid: 1 });
+assert.deepEqual(scoreObservation({ outcome: 'proposal' }, { http: 500 }), { unavailable: 1 });
+assert.equal(scoreObservation({ outcome: 'proposal' }, { result: none }).missed, 1);
 assert.equal(baseline.length, 173);
 assert.equal(heldOut.length, 25);
 assert.equal(new Set([...baseline, ...heldOut].map(row => row.id)).size, 198);
@@ -145,12 +153,12 @@ if (!process.argv.includes('--live')) {
   assert.ok(Number.isInteger(trials) && trials >= 1 && trials <= 3);
   for (let trial = 1; trial <= trials; trial++) {
     for (const [group, rows] of [['baseline', baseline], ['held-out', heldOut]]) {
-      const totals = { missed: 0, unwanted: 0, wrongText: 0, clarificationMismatch: 0, unavailable: 0 };
+      const totals = { missed: 0, unwanted: 0, wrongText: 0, clarificationMismatch: 0, invalid: 0, unavailable: 0 };
       const latencies = [];
       let calls = 0, inputTokens = 0, outputTokens = 0, usageReported = 0;
       for (const row of rows) {
         const observed = await interpret(row, client);
-        const scores = observed.result ? assess(row, observed.result) : { unavailable: 1 };
+        const scores = scoreObservation(row, observed);
         console.log(JSON.stringify({ trial, group, id: row.id, expected: row.outcome, ...observed, scores }));
         for (const [name, value] of Object.entries(scores)) totals[name] += value;
         calls += observed.calls;
