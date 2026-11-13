@@ -1,0 +1,32 @@
+{
+  "browser": "153.0.8010.12",
+  "viewports": {
+    "desktop": {
+      "width": 1531,
+      "height": 850
+    },
+    "narrow": {
+      "width": 390,
+      "height": 844
+    }
+  },
+  "typography": {
+    "readingText": {
+      "fontFamily": "Inter, \"Segoe UI\", system-ui, sans-serif",
+      "fontSize": "13px",
+      "lineHeight": "19.5px"
+    },
+    "caption": {
+      "fontFamily": "Inter, \"Segoe UI\", system-ui, sans-serif",
+      "fontSize": "11px",
+      "lineHeight": "15.4px"
+    },
+    "headingWeight": 650
+  },
+  "narrowRejectedEdit": {
+    "utf8Bytes": 1026,
+    "focus": "editor",
+    "alertVisible": true,
+    "receipt": false
+  }
+}

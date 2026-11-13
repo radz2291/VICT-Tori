@@ -1,5 +1,9 @@
 # TORI handoff
 
+## TORI-006 typography
+
+The [Studio preview](http://127.0.0.1:48836/) runs product `15806e7d7377283650715067163ecb75dce3a4ef`. Reopen the existing Quellight Session to compare the memory card, messages, and composer. The [typography check](docs/evidence/v1c-memory/TYPOGRAPHY.md) records the exact candidate and review evidence.
+
 ## TORI-006 card polish
 
 The [Studio preview](http://127.0.0.1:48836/) runs product `3851a1e8ea04c5ed2ddde0bb40585c27f5829854`. Reopen the original Quellight Session to inspect the saved card. A fresh explicit request produces the polished pending card. See the [review evidence](docs/evidence/v1c-memory/CARD-POLISH.md).
