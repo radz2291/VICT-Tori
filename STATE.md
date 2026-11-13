@@ -1,5 +1,7 @@
 # TORI current state
 
+**13 November 2026 — V1c Background Foundation authorized.** Radzi accepted TORI-006 at product `d49bedf362d3521bcbf714bc6be7a04b34289bb7`, evidence `9873f93db1ceea87dfbead6283afd88f5b1b71a3`. Background Foundation starts on `codex/tori-v1c-background-foundation` under the [accepted spec](docs/implementation/BACKGROUND-FOUNDATION.md) at `025be4d05455d6d9a3606f7202a73cc65a34dcf8`. Record conformance findings and the recovery matrix before dependent implementation. See the [handoff](HANDOFF.md#v1c-background-foundation).
+
 **13 November 2026 — TORI-006 Authoring compatibility.** Product `d49bedf362d3521bcbf714bc6be7a04b34289bb7` restores live workspace inspection on the Memory Foundation branch. The [Authoring regression report](docs/evidence/v1c-memory/AUTHORING-DISCOVERY.md) records the runtime cause, old and repaired live behavior, and verification. Radzi owns acceptance in Work.
 
 **13 November 2026 — TORI-006 typography review.** Product `15806e7d7377283650715067163ecb75dce3a4ef` aligns Studio’s conversational text, memory cards and editors to the same font and reading scale. The [typography evidence](docs/evidence/v1c-memory/TYPOGRAPHY.md) records the browser checks and preview. Radzi owns acceptance in Work.
