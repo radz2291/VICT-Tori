@@ -535,7 +535,7 @@ export function createStudio({getAssembly,dataDirectory,turnDeadlineMs=maxHostDe
         ?current.runs.find(item=>isRunKey(input.request)&&item.startRequest?.id===input.request)
         :current.runs.find(item=>item.id===input.run);
       runBinding(current,run,input);
-      if(path==='/run-lookup')return {run:run.id,session:run.session,activation:run.activation};
+      if(path==='/run-lookup')return {run:run.id,session:run.session,activation:run.activation,streamId:run.observation.stream};
       const live=activeTurn?.run?.id===run.id?activeTurn:undefined;
       // Only an active owner keeps VICT's transient buffer in memory. A
       // settled Run is recoverable from its persisted response and ledger.
@@ -665,10 +665,11 @@ export function createStudio({getAssembly,dataDirectory,turnDeadlineMs=maxHostDe
     if(existing){
       runBinding(current,existing,input);
       if(existing.startRequest.fingerprint!==fingerprint)throw conflict('This Run request was already used for a different message.');
-      return {run:existing.id,session,activation};
+      return {run:existing.id,session,activation,streamId:existing.observation.stream};
     }
     return new Promise((accept,reject)=>{
-      executeTurn(current,assembly,definition,input,undefined,{id,fingerprint,accept}).catch(reject);
+      executeTurn(current,assembly,definition,{...input,includeContext:input.includeContext===true},
+        undefined,{id,fingerprint,accept}).catch(reject);
     });
   }
   async function executeTurn(state,assembly,definition,input,nested,background){
@@ -778,7 +779,7 @@ export function createStudio({getAssembly,dataDirectory,turnDeadlineMs=maxHostDe
       else activeTurn=undefined;
       throw error;
     }
-    background?.accept({run:run.id,session:run.session,activation:run.activation});
+    background?.accept({run:run.id,session:run.session,activation:run.activation,streamId:run.observation.stream});
     const evidence={providerAttempts:0,modelSteps:0};
     const expiry=AbortSignal.timeout(turnDeadlineMs);
     const deadline=AbortSignal.any([expiry,...(draftTurn?[draftTurn.signal]:[]),...(nested?[nested.signal]:[]),...(owner.stop?[owner.stop.signal]:[])]);

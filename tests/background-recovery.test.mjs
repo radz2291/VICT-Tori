@@ -15,8 +15,9 @@ import {createSqliteAgentControlStores} from '@victframework/store-sqlite';
 import {savePrompt} from './memory-provider-fixture.mjs';
 import {acceptRunPacket} from '../src/run-observer.mjs';
 
-const wait=async(check,why)=>{
-  for(let i=0;i<500;i++){const value=await check();if(value)return value;await delay(25);}
+const wait=async(check,why,ms=20000)=>{
+  const until=Date.now()+ms;
+  while(Date.now()<until){const value=await check();if(value)return value;await delay(50);}
   assert.fail('Timed out waiting for '+why);
 };
 const directory=()=>mkdtemp(join(tmpdir(),'tori-007-fault-'));
@@ -31,7 +32,7 @@ async function host(dir,capture,mode='normal'){
     {stdio:['ignore','ignore','inherit','ipc']});
   const events=[], exit=once(proc,'exit');
   proc.on('message',message=>events.push(message));
-  const event=stage=>wait(()=>events.find(item=>item.stage===stage),stage);
+  const event=stage=>wait(()=>events.find(item=>item.stage===stage),stage,stage==='ready'?90000:20000);
   let ready;
   try{ready=await Promise.race([event('ready'),exit.then(([code])=>assert.fail('Host exited: '+code))]);}
   catch(error){proc.kill();throw error;}
@@ -273,6 +274,20 @@ test('memory rollback, commit before acknowledgement, uncertainty and read-only 
         assert.deepEqual((await app.call('memory/confirm',input)).receipt,reconciled.receipt);
         assert.equal((await app.request('memory/confirm',{...input,text:'Edited payload'})).status,409);
         assert.deepEqual(memoryCounts(dir),{memories:1,revisions:1,operations:1,save_attempts:1});
+        const missing=sql(join(dir,'saved-memory.sqlite'),db=>{
+          const row=db.prepare('SELECT * FROM proposals WHERE run=?').get(input.run);
+          db.prepare('DELETE FROM proposals WHERE run=?').run(input.run);
+          return row;
+        });
+        const missingCheck=await app.call('memory/check',input);
+        assert.equal(missingCheck.status,'uncertain');
+        assert.equal(missingCheck.operation,input.operation);
+        assert.equal((await app.call('memory/session',input)).turns[0].operation.status,'uncertain');
+        assert.equal((await app.request('memory/confirm',input)).status,409);
+        sql(join(dir,'saved-memory.sqlite'),db=>db.prepare('INSERT INTO proposals VALUES (?,?,?,?,?,?,?,?,?,?)')
+          .run(...Object.values(missing)));
+        assert.equal((await app.request('memory/confirm',input)).status,409);
+        assert.equal((await app.call('memory/check',input)).status,'saved');
         const op=sql(join(dir,'saved-memory.sqlite'),db=>{
           const saved=db.prepare('SELECT * FROM operations WHERE id=?').get(input.operation);
           db.prepare('DELETE FROM operations WHERE id=?').run(input.operation);

@@ -100,6 +100,17 @@ export function openMemoryStore(path,{clock=Date.now,ids=randomUUID,budget=memor
   const saveDigest=(scope,{session,activation,run,operation,text})=>
     fingerprint(['save',scope.key,session,activation,run,operation,text]);
   const attemptFor=operation=>query('SELECT * FROM save_attempts WHERE operation=?',operation);
+  const missingProposal=(scope,{session,activation,run,operation})=>{
+    const attempt=operation?attemptFor(operation):query('SELECT * FROM save_attempts WHERE scope=? AND run=?',scope.key,run);
+    const exact=attempt?.scope===scope.key&&attempt.session===session&&attempt.activation===activation&&attempt.run===run;
+    if(attempt&&!exact)return ok('not-found');
+    const ledger=operation?query('SELECT * FROM operations WHERE id=?',operation):
+      query('SELECT * FROM operations WHERE scope=? AND run=?',scope.key,run);
+    const receipt=safeReceipt(ledger?.receipt);
+    if(exact||(ledger?.scope===scope.key&&ledger?.run===run&&receipt?.source?.session===session))
+      return ok('uncertain',{operation:operation??attempt?.operation??ledger.id,run,reason:'missing-original-proposal'});
+    return ok('not-found');
+  };
   const writeDecision=(operation,state,at=date(clock()))=>
     change('UPDATE save_attempts SET decision=?,checked_at=? WHERE operation=?',state,at,operation);
   function saveDisposition(scope,proposal,owned=false,reconciling=false){
@@ -180,7 +191,8 @@ export function openMemoryStore(path,{clock=Date.now,ids=randomUUID,budget=memor
       return tx(()=>{
         if(!stillAuthorized())return ok('denied');
         const proposal=proposalFor(scope,session,run);
-        if(!proposal||proposal.operation!==operation||proposal.activation!==activation)return ok('not-found');
+        if(!proposal)return missingProposal(scope,input);
+        if(proposal.operation!==operation||proposal.activation!==activation)return ok('not-found');
         const digest=saveDigest(scope,input);
         const attempt=attemptFor(operation);
         if(attempt?.scope!==undefined&&attempt.scope!==scope.key)return ok('not-found');
@@ -202,13 +214,21 @@ export function openMemoryStore(path,{clock=Date.now,ids=randomUUID,budget=memor
     },
     saveDisposition(scope,{session,activation,run,operation},owned=false) {
       const proposal=proposalFor(scope,session,run);
-      if(!proposal||proposal.activation!==activation||(operation!==undefined&&proposal.operation!==operation))return ok('not-found');
+      if(!proposal)return missingProposal(scope,{session,activation,run,operation});
+      if(proposal.activation!==activation||(operation!==undefined&&proposal.operation!==operation))return ok('not-found');
       return saveDisposition(scope,proposal,owned);
     },
     reconcileSave(scope,{session,activation,run,operation},owned=false) {
       return tx(()=>{
         const proposal=proposalFor(scope,session,run);
-        if(!proposal||proposal.activation!==activation||(operation!==undefined&&proposal.operation!==operation))return ok('not-found');
+        if(!proposal){
+          const result=missingProposal(scope,{session,activation,run,operation});
+          if(result.status!=='uncertain'||!attemptFor(result.operation))return result;
+          const checkedAt=date(clock());
+          writeDecision(result.operation,result.status,checkedAt);
+          return {...result,checkedAt};
+        }
+        if(proposal.activation!==activation||(operation!==undefined&&proposal.operation!==operation))return ok('not-found');
         const result=saveDisposition(scope,proposal,owned,true);
         const attempt=attemptFor(proposal.operation);
         if(!owned&&attempt&&attempt.scope===scope.key&&attempt.run===run){
@@ -224,7 +244,8 @@ export function openMemoryStore(path,{clock=Date.now,ids=randomUUID,budget=memor
       return tx(()=>{
         if(!stillAuthorized())return ok('denied');
         const proposal=proposalFor(scope,session,run);
-        if(!proposal||proposal.operation!==operation||proposal.activation!==activation)return ok('not-found');
+        if(!proposal)return missingProposal(scope,{session,activation,run,operation});
+        if(proposal.operation!==operation||proposal.activation!==activation)return ok('not-found');
         const digest=saveDigest(scope,{session,activation,run,operation,text});
         const disposition=saveDisposition(scope,proposal);
         if(disposition.status==='uncertain')return disposition;

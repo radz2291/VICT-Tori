@@ -162,15 +162,16 @@
   let sessionRuns=$derived(state.runs.filter(r=>r.session===activeSession));
   let sessionRun=$derived(sessionRuns.find(item=>item.id===activeRun)??sessionRuns.find(item=>!item.parentRun)??sessionRuns[0]);
   const currentSessionRun=$derived(sessionRuns.find(item=>!item.parentRun));
-  const watchedRun=$derived(page==='Runs'?run:page==='Sessions'?currentSessionRun:undefined);
+  const runOwner=$derived(run?.parentRun?state.runs.find(item=>item.id===run.parentRun):run);
+  const watchedRun=$derived(page==='Runs'?runOwner:page==='Sessions'?currentSessionRun:undefined);
   const liveSessionRun=$derived(currentSessionRun?.state==='Running'?currentSessionRun:undefined);
-  const sessionBusy=$derived(sendActivity?.session===session?.id||!!liveSessionRun);
+  const sessionBusy=$derived((!!session&&sendActivity?.session===session.id)||!!liveSessionRun||!!currentSessionRun?.awaitingObservation);
   const interruptedRun=$derived(session?.interrupted?sessionRuns.find(item=>!item.parentRun&&['failed','cancelled','interrupted','uncertain'].includes(item.status)):undefined);
   let runReturnTarget=$derived(state.sessions.find(item=>item.id===runReturnSession));
   let runSession=$derived(state.sessions.find(item=>item.id===run?.session));
   const recordIdentity=(record:any)=>record.name+' · r'+(record.number??record.revision);
   const recordMode=(record:any)=>record.archivedFixture?'Fixture history':record.fixture?'Fixture':'Live';
-  const runStatus=(status:string)=>status==='running'?'Running':status==='completed'?'Finished':status==='uncertain'?'Uncertain':'Interrupted';
+  const runStatus=(status?:string)=>status==='running'?'Running':status==='completed'?'Finished':status==='uncertain'?'Uncertain':'Interrupted';
   const secondsFormat=new Intl.NumberFormat(undefined,{minimumFractionDigits:1,maximumFractionDigits:3});
   const timelineSecondsFormat=new Intl.NumberFormat(undefined,{minimumFractionDigits:3,maximumFractionDigits:3});
   const timelineClockFormat=new Intl.DateTimeFormat(undefined,{hour:'numeric',minute:'2-digit',second:'2-digit',fractionalSecondDigits:3});
@@ -572,7 +573,8 @@
       const linked=url.searchParams.get('run');
       let remembered:string|null=null;
       try{remembered=localStorage.getItem(resumeRunKey(next.workspace));}catch{}
-      const restored=next.runs.find(item=>item.id===(linked??remembered)&&item.streamId);
+      const restored=next.runs.find(item=>item.id===(linked??remembered)&&
+        (item.streamId||next.runs.some(parent=>parent.id===item.parentRun&&parent.streamId)));
       if(restored){
         activeSession=restored.session;
         if(linked){inspectSessionScope=true;runReturnSession=restored.session;changePage('Runs');void openRun(restored.id);}
@@ -982,9 +984,11 @@
     if(changed)runActionError='';
     if(changed&&focus)runGroupChoice=undefined;
     activeRun=id;
-    if(page==='Runs'&&state.runs.some(item=>item.id===id&&item.streamId)){
+    const selected=state.runs.find(item=>item.id===id);
+    if(page==='Runs'){
       const url=new URL(window.location.href);
-      url.searchParams.set('run',id);
+      if(selected?.streamId||state.runs.some(parent=>parent.id===selected?.parentRun&&parent.streamId))url.searchParams.set('run',id);
+      else url.searchParams.delete('run');
       window.history.replaceState(null,'',url);
     }
     if(focus&&mobileOpen)sheetInvoker=null;
@@ -1109,16 +1113,22 @@
     }catch(e){deleteError=(e as Error).message;}
   });
   async function attachAccepted(accepted:any,workspace:string){
-    const {run,session:id,activation}=accepted;
-    const packet=await request('/run-observe',{run,session:id,activation});
-    const acceptedPacket=acceptRunPacket(undefined,packet,{run,session:id,activation});
-    mergeObserved(packet);
-    observation={run,gap:acceptedPacket.gap,canStop:packet.canStop,writing:packet.writing,disconnected:false};
+    const {run,session:id,activation,streamId}=accepted;
     try{
       localStorage.setItem(resumeRunKey(workspace),run);
-      localStorage.setItem(cursorKey(workspace,run),JSON.stringify({cursor:acceptedPacket.cursor,gap:acceptedPacket.gap}));
       localStorage.removeItem(pendingRunKey(workspace));
     }catch{}
+    if(!state.runs.some(item=>item.id===run)){
+      // Acknowledgement proves identity. Until an observation arrives this
+      // row can drive polling, but does not claim current execution state.
+      const source=state.sessions.find(item=>item.id===id);
+      if(!source)throw new Error('Reopen the Session to follow its accepted Run.');
+      const placeholder={id:run,session:id,activation,streamId,background:true,name:source.name,
+        revision:source.revision,number:source.number,fixture:source.fixture,started:source.lastActivityAt,
+        events:[],awaitingObservation:true};
+      state={...state,runs:[placeholder,...state.runs]};
+      observation={run,gap:false,canStop:false,writing:false,disconnected:false};
+    }
   }
   async function recoverStart(workspace:string){
     let pendingRequest;
@@ -1909,7 +1919,7 @@
                             {:else}
                               <time class="definition-name" datetime={runActivity(item)}>{runHistoryTime(item)}</time>
                             {/if}
-                            <span>{runStatus(item.status)}</span>
+                            {#if !item.awaitingObservation}<span>{runStatus(item.status)}</span>{/if}
                           </span>
                           {#if showRunDescriptions}
                             <span class="definition-note">
@@ -2090,6 +2100,9 @@
     <div class="session-composer">
       {#if turnErrors[session.id]}<Feedback kind="error" message={turnErrors[session.id]}/>{/if}
       {#if runActionError&&stoppingRun===''&&liveSessionRun}<Feedback kind="error" message={runActionError}/>{/if}
+      {#if currentSessionRun?.awaitingObservation}
+        <Feedback message={observation?.disconnected?'Connection lost. Checking the accepted Run.':'Checking the accepted Run…'}/>
+      {/if}
       {#if liveSessionRun}
         <div class="run-links">
           <Button label="Inspect Run" variant="secondary" onclick={()=>inspectSessionRuns(liveSessionRun.id)}/>
@@ -2121,7 +2134,7 @@
               bind:pressed={()=>!!backgroundChoice[session.id],pressed=>backgroundChoice[session.id]=pressed}
               aria-label="Run in background">Run in background</Toggle.Root>
           {/if}
-          {#if sessionBusy}
+          {#if sessionBusy&&!currentSessionRun?.awaitingObservation}
             <span class="session-turn-state"><StatusBadge value="Running"/></span>
           {/if}
         {/snippet}
@@ -2332,7 +2345,7 @@
                     <div class="run-section-card">
                       {#if run.message}<Feedback kind={run.state==='Uncertain'||run.status==='failed'?'error':'status'} message={run.message}/>{/if}
                       {#if runActionError}<Feedback kind="error" message={runActionError}/>{/if}
-                      {#if observation?.run===run.id}
+                      {#if observation?.run===runOwner?.id}
                         {#if observation.disconnected}
                           <Feedback message="Connection lost. Showing the last confirmed Run state."/>
                         {:else if observation.gap}
@@ -2347,7 +2360,10 @@
                         <div><dt>Version</dt><dd>{revision==null?'Not recorded':'r'+revision}</dd></div>
                         <div>
                           <dt>Status</dt>
-                          <dd><StatusBadge value={runStatus(run.status)} tone={run.state==='Uncertain'||run.status==='failed'?'danger':'neutral'}/></dd>
+                          <dd>
+                            {#if run.awaitingObservation}<Feedback message="Checking the accepted Run…"/>
+                            {:else}<StatusBadge value={runStatus(run.status)} tone={run.state==='Uncertain'||run.status==='failed'?'danger':'neutral'}/>{/if}
+                          </dd>
                         </div>
                         <div><dt>Execution</dt><dd>{recordMode(run)}{run.background?' · Background':''}</dd></div>
                       </dl>
@@ -2356,10 +2372,11 @@
                         {#if runDuration}<div><dt>Duration</dt><dd>{runDuration}</dd></div>{/if}
                         {#if runTokenUsage}<div><dt>Token usage</dt><dd>{runTokenUsage}</dd></div>{/if}
                       </dl>
-                      {#if !selectedPrompt || parent || children.length || (run.state==='Running'&&run.streamId)}
+                      {#if !selectedPrompt || parent || children.length || (run.state==='Running'&&runOwner?.streamId)}
                         <div class="run-links">
-                          {#if run.state==='Running'&&observation?.run===run.id&&observation.canStop}
-                            <Button label="Stop Run" variant="secondary" disabled={stoppingRun===run.id} onclick={()=>stopWatchedRun(run)}/>
+                          {#if run.state==='Running'&&runOwner&&observation?.run===runOwner.id&&observation.canStop}
+                            <Button label={run.parentRun?'Stop parent Run':'Stop Run'} variant="secondary"
+                              disabled={stoppingRun===runOwner.id} onclick={()=>stopWatchedRun(runOwner)}/>
                           {/if}
                           {#if !selectedPrompt}
                             {#if runSession}

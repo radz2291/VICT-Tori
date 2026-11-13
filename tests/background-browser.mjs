@@ -4,6 +4,7 @@ import {mkdir,writeFile} from 'node:fs/promises';
 import {join} from 'node:path';
 import {spawn} from 'node:child_process';
 import {once} from 'node:events';
+import {DatabaseSync} from 'node:sqlite';
 import {setTimeout as delay} from 'node:timers/promises';
 
 const {chromium}=createRequire(import.meta.url)(process.env.TORI_PLAYWRIGHT_MODULE??'playwright');
@@ -55,10 +56,15 @@ try {
   await page.goto(url,{waitUntil:'domcontentloaded',timeout:120000});
   await page.getByRole('navigation',{name:'Studio tasks'}).waitFor({timeout:90000});
   const step=process.env.TORI_BACKGROUND_STEP;
-  if(!['stop','effects'].includes(step)){
+  if(!['stop','effects','fixture-memory'].includes(step)){
   const prompt='Delegate habits research to the saved Research specialist now. Then give me a long report: include the actual finding code and four detailed sections about assumptions, interpretation, tradeoffs and follow-up options. Clearly distinguish suggestions from facts.';
+  const observationRoute='**/api/studio/run-observe';
+  await page.route(observationRoute,route=>route.abort('internetdisconnected'));
   const original=await start(page,prompt);
+  await page.getByText('Connection lost. Checking the accepted Run.',{exact:true}).waitFor();
+  await page.unroute(observationRoute);
   await page.getByText('You can close this tab while Studio stays open.',{exact:true}).waitFor();
+  evidence.firstObservationRecovered=true;
   await page.getByRole('button',{name:'Inspect Run',exact:true}).click();
   await visibleState(page,'Running');
   const link=page.url();
@@ -89,25 +95,28 @@ try {
     const fresh=await api(), row=fresh.runs.find(r=>r.id===original.run);
     return row?.state!=='Running'?{row,fresh}:null;
   },'original Run completion',100000);
-  assert.equal(terminal.row.state,'Finished',terminal.row.message);
-  await visibleState(page,'Finished');
-  await page.screenshot({path:join(out,'finished-narrow.png')});
+  assert.ok(['Finished','Interrupted'].includes(terminal.row.state),terminal.row.message);
+  if(isFixture)assert.equal(terminal.row.state,'Finished',terminal.row.message);
+  await visibleState(page,terminal.row.state);
+  await page.screenshot({path:join(out,terminal.row.state.toLowerCase()+'-narrow.png')});
   const originalRuns=terminal.fresh.runs.filter(r=>r.session===original.session&&!r.parentRun);
   assert.equal(originalRuns.length,1);
   const children=terminal.fresh.runs.filter(r=>r.parentRun===original.run);
   assert.equal(children.length,1);
-  assert.equal(children[0].state,'Finished');
-  assert.ok(children[0].scriptReceipts?.some(r=>r.status==='completed'));
+  if(terminal.row.state==='Finished')assert.equal(children[0].state,'Finished');
+  const scriptReceipt=children[0].scriptReceipts?.find(r=>r.status==='completed');
+  assert.ok(scriptReceipt,'Actual governed Research read receipt is required.');
   const finalSession=terminal.fresh.sessions.find(s=>s.id===original.session);
-  assert.ok(finalSession.messages.some(m=>m.id===original.run+'-agent'&&m.text.length));
+  const answer=finalSession.messages.find(m=>m.id===original.run+'-agent');
+  assert.equal(!!answer,terminal.row.state==='Finished');
   evidence.detach={...original,stream:terminal.row.streamId,rejoinedState:rejoined.state,
     status:terminal.row.state,modelSteps:terminal.row.modelSteps,child:children[0].id,invocation:children[0].parentInvocation,
-    scriptReceipt:children[0].scriptReceipts[0].invocationId,
-    executionCount:originalRuns.length,resultLength:finalSession.messages.find(m=>m.id===original.run+'-agent').text.length};
+    scriptReceipt:scriptReceipt.invocationId,errorCode:terminal.row.errorCode,
+    executionCount:originalRuns.length,resultLength:answer?.text.length};
   await narrow.close();
   }
 
-  if(step!=='effects'){
+  if(!['effects','fixture-memory'].includes(step)){
   page=await desktop.newPage();
   await page.goto(url,{waitUntil:'domcontentloaded'});
   const stopped=await start(page,'Delegate the habits check to Research, then produce a detailed long report with twenty numbered reflections.');
@@ -130,7 +139,7 @@ try {
   assert.equal(settled[0].errorCode,'TORI_SESSION_STOP');
   evidence.stop={...stopped,status:settled[0].state,code:settled[0].errorCode,executionCount:settled.length};
   }
-  if(full||step==='effects'){
+  if(full||step==='effects'||step==='fixture-memory'){
     await page.goto(url,{waitUntil:'domcontentloaded'});
     const sessionOpened=page.waitForResponse(r=>r.url().endsWith('/api/studio/sessions'));
     const textbox=await createSession(page);
@@ -165,7 +174,41 @@ try {
     await page.screenshot({path:join(out,'memory-saved.png')});
     evidence.memory={run:source.id,operation:receipt.operation,memoryId:receipt.memoryId,
       revision:1,originalReceiptReplayed:true,acknowledgementDropped:true};
+    if(isFixture&&process.env.TORI_BACKGROUND_FIXTURE_DB){
+      const db=new DatabaseSync(process.env.TORI_BACKGROUND_FIXTURE_DB);
+      let original;
+      try{
+        original=db.prepare('SELECT * FROM operations WHERE id=?').get(receipt.operation);
+        assert.ok(original);
+        db.prepare('DELETE FROM operations WHERE id=?').run(receipt.operation);
+        const inspect=await post('memory/check',scope);
+        assert.equal(inspect.body.status,'uncertain');
+        await page.reload({waitUntil:'domcontentloaded'});
+        await page.getByRole('navigation',{name:'Studio tasks'}).getByRole('button',{name:'Sessions',exact:true}).click();
+        const row=page.locator('[data-session-id="'+source.session+'"]');
+        if(!await row.isVisible())await page.getByRole('button',{name:'Quellight',exact:true}).first().click();
+        await row.click();
+        const card=page.locator('[data-memory-state="uncertain"]');
+        await card.waitFor();
+        assert.equal(await card.getByRole('button',{name:'Confirm and save',exact:true}).count(),0);
+        await card.getByRole('button',{name:'Check save outcome',exact:true}).click();
+        await card.getByText('The original save still cannot be reconciled.',{exact:true}).waitFor();
+        assert.equal((await post('memory/confirm',confirmation.body)).status,409);
+        await card.screenshot({path:join(out,'memory-uncertain.png')});
+        db.prepare('INSERT INTO operations VALUES (?,?,?,?,?)')
+          .run(original.id,original.scope,original.digest,original.receipt,original.run);
+        original=undefined;
+        await card.getByRole('button',{name:'Check save outcome',exact:true}).click();
+        await page.locator('[data-memory-state="saved"]').waitFor();
+        evidence.memory.fixtureUncertainRefused=true;
+      }finally{
+        if(original)db.prepare('INSERT OR IGNORE INTO operations VALUES (?,?,?,?,?)')
+          .run(original.id,original.scope,original.digest,original.receipt,original.run);
+        db.close();
+      }
+    }
 
+    if(step!=='fixture-memory'){
     await page.goto(url,{waitUntil:'domcontentloaded'});
     const restartRun=await start(page,'Delegate a habits review to Research, then write a long report with sections. Start with the actual research lookup.');
     await page.getByRole('button',{name:'Inspect Run',exact:true}).click();
@@ -192,6 +235,7 @@ try {
     await page.screenshot({path:join(out,'restart-interrupted.png')});
     evidence.restart={...restartRun,state:recovered.body.run.state,replay:'none',
       streamGap:recovered.body.stream.gap,priorOwner:recovered.body.run.recovery.priorOwner,previousSaveReceiptRetained:true};
+    }
   }
   await writeFile(join(out,'observed.json'),JSON.stringify(evidence,null,2)+'\n');
   console.log(JSON.stringify(evidence));

@@ -105,14 +105,16 @@ export function createSavedMemoryHost({path,actor,project,fixture,snapshot,defin
           if(run.status==='running')return [];
           const source=run.id+'-user';
           const proposal=proposals.get(run.id);
+          const operation=run.savedMemoryRequest?.status==='proposed'?
+            saveEvidence(scope,{session:session.id,activation:session.activation,run:run.id}):undefined;
           if(proposal?.source.message===source){
             const visible=proposal.status==='pending'&&run.status!=='completed'?
               {...proposal,status:'cancelled',text:undefined,operation:undefined}:proposal;
-            const operation=saveEvidence(scope,{session:session.id,activation:session.activation,run:run.id});
-            const receipt=operation.receipt;
+            const receipt=operation?.receipt;
             return [{run:run.id,source,proposal:visible,operation,
               ...(receipt?{saved:{receipt,memory:memory.inspect(scope,receipt.memoryId,receipt.revision)}}:{})}];
           }
+          if(operation?.status==='uncertain')return [{run:run.id,source,operation}];
           return feedback(run);
         });
         const latest=turns.find(turn=>turn.proposal);

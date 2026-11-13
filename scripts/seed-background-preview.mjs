@@ -26,7 +26,7 @@ if(initial.activeAgents.some(a=>a.name==='Quellight')){
     function edit(draft,...operations){assert.ok(draft.apply(operations).ok);}
     const research=agent('Research','Use only the approved Research Topics script for synthetic project facts. For habits, call Research Topics with key habits. Report the returned code and short finding.');
     edit(research,a.add('tool'),a.change('tool','reference','research-topics@1'),a.wire('tool','tool'),
-      a.change('agent','maxSteps',3),a.change('agent','maxToolCalls',1));
+      a.change('agent','maxSteps',3),a.change('agent','maxToolCalls',2));
     const researchDef=(await post('definitions',{})).definition;
     const researchRevision=(await post('save',{definition:researchDef,graph:research.graph})).revision;
     await post('activate',{definition:researchDef,revision:researchRevision});
