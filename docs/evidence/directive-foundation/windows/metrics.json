@@ -1,0 +1,274 @@
+{
+  "baseline": {
+    "cases": 173,
+    "operator": 167,
+    "gateRows": 6,
+    "gatedObserved": 6,
+    "gateCalls": 0,
+    "attemptCoverage": {
+      "count": 167,
+      "denominator": 167,
+      "percent": 100
+    },
+    "validCoverage": {
+      "count": 161,
+      "denominator": 167,
+      "percent": 96.41
+    },
+    "validPerAttempt": {
+      "count": 161,
+      "denominator": 167,
+      "percent": 96.41
+    },
+    "missed": {
+      "count": 0,
+      "denominator": 61,
+      "percent": 0
+    },
+    "missIds": [],
+    "expectedSaveLostInvalid": [
+      "baseline-76-1",
+      "baseline-128-1",
+      "baseline-128-2",
+      "baseline-142-1"
+    ],
+    "expectedSaveLostUnavailable": [],
+    "expectedSaveUnattempted": [],
+    "delivery": {
+      "count": 61,
+      "denominator": 65,
+      "percent": 93.85
+    },
+    "unwanted": {
+      "count": 1,
+      "denominator": 100,
+      "percent": 1
+    },
+    "unwantedIds": [
+      "baseline-104-1"
+    ],
+    "incorrectMeaning": {
+      "count": 0,
+      "denominator": 61,
+      "percent": 0
+    },
+    "incorrectMeaningIds": [],
+    "anchorTriage": {
+      "count": 4,
+      "denominator": 61,
+      "percent": 6.56
+    },
+    "anchorTriageIds": [
+      "baseline-73-1",
+      "baseline-77-1",
+      "baseline-120-1",
+      "baseline-121-1"
+    ],
+    "clarificationMismatch": {
+      "count": 4,
+      "denominator": 161,
+      "percent": 2.48
+    },
+    "unnecessaryClarification": {
+      "count": 4,
+      "denominator": 151,
+      "percent": 2.65
+    },
+    "missingClarification": {
+      "count": 0,
+      "denominator": 10,
+      "percent": 0
+    },
+    "unnecessaryClarificationIds": [
+      "baseline-82-1",
+      "baseline-88-1",
+      "baseline-89-1",
+      "baseline-90-1"
+    ],
+    "missingClarificationIds": [],
+    "invalid": {
+      "count": 6,
+      "denominator": 167,
+      "percent": 3.59
+    },
+    "invalidIds": [
+      "baseline-76-1",
+      "baseline-101-1",
+      "baseline-105-1",
+      "baseline-128-1",
+      "baseline-128-2",
+      "baseline-142-1"
+    ],
+    "unavailable": {
+      "count": 0,
+      "denominator": 167,
+      "percent": 0
+    },
+    "unavailableIds": [],
+    "latencyMs": {
+      "n": 167,
+      "p50": 4696,
+      "p95": 14251,
+      "max": 25274
+    },
+    "firstPublicTextMs": {
+      "n": 161,
+      "p50": 4439,
+      "p95": 11612,
+      "max": 25163
+    },
+    "usage": {
+      "input": {
+        "n": 167,
+        "p50": 251,
+        "p95": 270,
+        "max": 283,
+        "total": 42140
+      },
+      "output": {
+        "n": 167,
+        "p50": 165,
+        "p95": 693,
+        "max": 768,
+        "total": 38212
+      },
+      "reasoning": {
+        "n": 167,
+        "p50": 153,
+        "p95": 663,
+        "max": 768,
+        "total": 36185
+      }
+    },
+    "models": [
+      "glm-5.3-flash"
+    ]
+  },
+  "held-out": {
+    "cases": 25,
+    "operator": 23,
+    "gateRows": 2,
+    "gatedObserved": 2,
+    "gateCalls": 0,
+    "attemptCoverage": {
+      "count": 23,
+      "denominator": 23,
+      "percent": 100
+    },
+    "validCoverage": {
+      "count": 22,
+      "denominator": 23,
+      "percent": 95.65
+    },
+    "validPerAttempt": {
+      "count": 22,
+      "denominator": 23,
+      "percent": 95.65
+    },
+    "missed": {
+      "count": 0,
+      "denominator": 6,
+      "percent": 0
+    },
+    "missIds": [],
+    "expectedSaveLostInvalid": [],
+    "expectedSaveLostUnavailable": [],
+    "expectedSaveUnattempted": [],
+    "delivery": {
+      "count": 6,
+      "denominator": 6,
+      "percent": 100
+    },
+    "unwanted": {
+      "count": 0,
+      "denominator": 16,
+      "percent": 0
+    },
+    "unwantedIds": [],
+    "incorrectMeaning": {
+      "count": 0,
+      "denominator": 6,
+      "percent": 0
+    },
+    "incorrectMeaningIds": [],
+    "anchorTriage": {
+      "count": 1,
+      "denominator": 6,
+      "percent": 16.67
+    },
+    "anchorTriageIds": [
+      "held-out-5"
+    ],
+    "clarificationMismatch": {
+      "count": 1,
+      "denominator": 22,
+      "percent": 4.55
+    },
+    "unnecessaryClarification": {
+      "count": 1,
+      "denominator": 20,
+      "percent": 5
+    },
+    "missingClarification": {
+      "count": 0,
+      "denominator": 2,
+      "percent": 0
+    },
+    "unnecessaryClarificationIds": [
+      "held-out-9"
+    ],
+    "missingClarificationIds": [],
+    "invalid": {
+      "count": 1,
+      "denominator": 23,
+      "percent": 4.35
+    },
+    "invalidIds": [
+      "held-out-17"
+    ],
+    "unavailable": {
+      "count": 0,
+      "denominator": 23,
+      "percent": 0
+    },
+    "unavailableIds": [],
+    "latencyMs": {
+      "n": 23,
+      "p50": 5116,
+      "p95": 14752,
+      "max": 15421
+    },
+    "firstPublicTextMs": {
+      "n": 22,
+      "p50": 4937,
+      "p95": 13284,
+      "max": 15312
+    },
+    "usage": {
+      "input": {
+        "n": 23,
+        "p50": 256,
+        "p95": 280,
+        "max": 288,
+        "total": 5935
+      },
+      "output": {
+        "n": 23,
+        "p50": 202,
+        "p95": 767,
+        "max": 768,
+        "total": 7132
+      },
+      "reasoning": {
+        "n": 23,
+        "p50": 195,
+        "p95": 739,
+        "max": 766,
+        "total": 6817
+      }
+    },
+    "models": [
+      "glm-5.3-flash"
+    ]
+  }
+}

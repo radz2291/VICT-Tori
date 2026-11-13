@@ -1,0 +1,67 @@
+{
+  "source": "Actual pinned TORI turn pipeline, synthetic provider",
+  "cases": [
+    {
+      "mode": "off",
+      "totalMs": 1835.22,
+      "mainCalls": 1,
+      "draftCalls": 0,
+      "reply": "completed",
+      "baselineReplyGuardSeen": true,
+      "forgedConfirmationRefused": true,
+      "proposal": "absent",
+      "reason": "policy-off"
+    },
+    {
+      "mode": "success",
+      "observedPublicTextBeforeDraftReleased": true,
+      "textObservedByMs": 847.41,
+      "ordinarySendWhileDraftPending": "busy",
+      "draftGateReleasedByMs": 1034.63,
+      "totalMs": 1069.11,
+      "mainCalls": 1,
+      "draftCalls": 1,
+      "reply": "completed",
+      "baselineReplyGuardSeen": true,
+      "forgedConfirmationRefused": true,
+      "proposal": "pending"
+    },
+    {
+      "mode": "failed",
+      "observedPublicTextBeforeDraftReleased": true,
+      "textObservedByMs": 719.42,
+      "ordinarySendWhileDraftPending": "busy",
+      "draftGateReleasedByMs": 901.66,
+      "totalMs": 1062.62,
+      "mainCalls": 1,
+      "draftCalls": 1,
+      "reply": "completed",
+      "baselineReplyGuardSeen": true,
+      "forgedConfirmationRefused": true,
+      "proposal": "absent",
+      "reason": "draft-failed"
+    },
+    {
+      "mode": "late-stop",
+      "observedPublicTextBeforeDraftReleased": true,
+      "textObservedByMs": 781.05,
+      "ordinarySendWhileDraftPending": "busy",
+      "draftGateReleasedByMs": 941.67,
+      "totalMs": 971.49,
+      "mainCalls": 1,
+      "draftCalls": 1,
+      "reply": "completed",
+      "baselineReplyGuardSeen": true,
+      "forgedConfirmationRefused": true,
+      "proposal": "absent",
+      "reason": "cancelled",
+      "fixtureReturnedAfterAbort": true
+    }
+  ],
+  "beforeAnyOperatorClick": {
+    "memories": 0,
+    "revisions": 0,
+    "operations": 0,
+    "save_attempts": 0
+  }
+}

@@ -161,5 +161,12 @@ try {
   globalThis.fetch = originalFetch;
   await studio?.close();
   await vite?.close();
-  await rm(dir, { recursive: true, force: true });
+  try {
+    await rm(dir, { recursive: true, force: true });
+  } catch (error) {
+    if (process.platform !== 'win32' || error.code !== 'EBUSY') throw error;
+    // LibSQL can hold its SQLite file until process exit on Windows. Let the
+    // launching probe remove this disposable fixture after Node exits.
+    console.error(JSON.stringify({ cleanup: 'after-exit', directory: dir }));
+  }
 }

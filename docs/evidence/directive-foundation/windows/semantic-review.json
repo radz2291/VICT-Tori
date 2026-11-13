@@ -1,0 +1,53 @@
+{
+  "reviewer": "Codex Windows probe operator",
+  "definition": "A substantive error invents, omits or changes the user’s fact, preference, referent, scope, or qualification. Meta framing, surface phrasing, and strict exact-anchor discrepancies are called out separately when substantive meaning survives.",
+  "caseNotes": {
+    "baseline-27-1": {
+      "finding": "Correct preference. Redundant 'Save this preference' meta phrasing."
+    },
+    "baseline-41-1": {
+      "finding": "Correct preference. Redundant 'Please remember' meta phrasing."
+    },
+    "baseline-73-1": {
+      "finding": "Correct five-minute Friday weekly-review preference and prior citation. Strict exact-text anchor flags this paraphrase."
+    },
+    "baseline-77-1": {
+      "expected": "Reuse input, decision, next step, and a due date for future planning updates.",
+      "finding": "Correct four-part method and prior citation. Strict exact-text anchor flags this paraphrase."
+    },
+    "baseline-104-1": {
+      "finding": "Unwanted proposal. The input identifies an example as a quotation."
+    },
+    "baseline-120-1": {
+      "expected": "Reuse input, decision, next step, and a due date for future planning updates.",
+      "finding": "Correct four-part method and prior citation. Redundant 'Remember' framing and strict exact-text anchor flag."
+    },
+    "baseline-121-1": {
+      "finding": "Correct four-part method and prior citation. The wording references this Session and is longer than necessary. Strict exact-text anchor flags this paraphrase."
+    },
+    "baseline-128-1": {
+      "expected": "Retain the four-part planning method for next month’s brief. Preserve the time qualification."
+    },
+    "baseline-128-2": {
+      "expected": "Retain the four-part planning method for next month's brief. Preserve the time qualification."
+    },
+    "baseline-141-1": {
+      "finding": "Exact source method and prior citation."
+    },
+    "held-out-2": {
+      "finding": "Correct standing preference with both shortness and bullet count. The second sentence repeats the standing instruction."
+    },
+    "held-out-3": {
+      "finding": "Correct Malay draft. Preserves that the operator's project summaries must have three short points."
+    },
+    "held-out-4": {
+      "finding": "The generic Orchid two-short-bullet instruction preserves the preference. Indonesian-leaning phrasing and 'next chat' emphasize a narrower time frame than the operator’s mixed-language carry-forward request."
+    },
+    "held-out-5": {
+      "finding": "Correct default for future planning briefs with all four parts and the prior citation. Strict exact-text anchor flags this paraphrase."
+    },
+    "held-out-25": {
+      "finding": "Keeps two bullets, cites the Orchid source, and excludes the budget. 'Future updates' can read broadly outside its Orchid context. Radzi should check the intended scope."
+    }
+  }
+}

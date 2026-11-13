@@ -1,0 +1,342 @@
+{
+  "focusedTest": {
+    "exit": 0,
+    "tests": 178,
+    "suites": 0,
+    "pass": 178,
+    "fail": 0,
+    "cancelled": 0,
+    "skipped": 0,
+    "todo": 0,
+    "duration_ms": 92355.768
+  },
+  "fullSerialTest": {
+    "exit": 0,
+    "tests": 218,
+    "suites": 0,
+    "pass": 218,
+    "fail": 0,
+    "cancelled": 0,
+    "skipped": 0,
+    "todo": 0,
+    "duration_ms": 337350.9971,
+    "recovery": [
+      {
+        "fault": "tab-close",
+        "kind": "in-flight turn",
+        "session": "8b8f041f-ee58-4cf0-ae6b-af183bffdc5a",
+        "activation": "v1_c0acfa8e65f58e254369efa393cfb7f9944ed3365c59928616e4b2ef35baa285",
+        "run": "78ec460e-6e8c-41d4-a1b8-5e54ebd74326",
+        "owner": "a4fef160-24f1-41c3-ae6d-2f9817ca41a3",
+        "firstPid": 35448,
+        "currentPid": 35448,
+        "rejoined": "Running",
+        "terminal": "Finished",
+        "stream": "135238f4-f083-4b8d-b18e-f0f336f30b33"
+      },
+      {
+        "fault": "tab-close",
+        "kind": "background Run",
+        "run": "0d01c5c9-2df9-48b9-a63f-fb27190e1796",
+        "session": "320cd735-0ef7-4b6f-a020-fbb49e543275",
+        "activation": "v1_fcdedb651ff0976879ea9ff0ba6b989e7646f341cf030bf7f360761061571bd5",
+        "streamId": "3881c55f-e2d8-4d4a-bf15-b4b61f620369",
+        "owner": "9e965e8a-5944-407b-a640-8fa1ccbbffe8",
+        "firstPid": 15016,
+        "currentPid": 15016,
+        "rejoined": "Running",
+        "terminal": "Finished",
+        "stream": "3881c55f-e2d8-4d4a-bf15-b4b61f620369"
+      },
+      {
+        "fault": "tab-close",
+        "kind": "memory save",
+        "run": "9b17f8f2-2c56-4745-a83a-b7ab45a74300",
+        "operation": "1ef3e86b-a7bc-46bd-91f0-23146f1f6594",
+        "firstPid": 38328,
+        "currentPid": 38328,
+        "rejoined": "Running",
+        "terminal": "Finished",
+        "receipt": "499b44fb-11a1-49d1-890a-6ceea199b73b",
+        "effects": 1
+      },
+      {
+        "fault": "tab-close",
+        "kind": "pending child",
+        "run": "89169bda-8828-42d2-b41f-aad53ee51da1",
+        "session": "ce177c5e-b3ff-4349-b5b6-c376e0ff5d97",
+        "activation": "v1_82b841664fe717a9fa2128e9656b907a6c406e293ef3975abfdc198d7948e194",
+        "streamId": "04858209-73a0-4cff-8e96-1c957e040344",
+        "owner": "e16cd4e9-4796-4925-bfdd-95d218674b3d",
+        "firstPid": 48596,
+        "currentPid": 48596,
+        "rejoined": "Running",
+        "terminal": "Finished",
+        "stream": "04858209-73a0-4cff-8e96-1c957e040344",
+        "child": "cff7b45b-9a39-468e-91d0-89d4768941d8",
+        "invocation": "fc782ed1-53a4-48ff-8ffd-1971a71f27da",
+        "operation": "89169bda-8828-42d2-b41f-aad53ee51da1:synthetic-delegation:tori.delegate.saved-agent:1:65897e82bb5aabd1993e6563aae879ef5c32a1e53afcfde8fdac5b1289e591e9"
+      },
+      {
+        "fault": "transport-drop",
+        "kind": "in-flight turn",
+        "session": "d9ad18df-6a6f-4291-a2f7-7f665921ce1a",
+        "activation": "v1_5d82ed5dbed8d7476e2a3938ca49ee6733ca5badaa8e9c7d051259e7eca3e8b8",
+        "run": "5b97c4f1-44fa-4b60-bd7b-ea39d5e5b79b",
+        "owner": "dd572a5e-d027-4804-9feb-d5304518dfda",
+        "firstPid": 41648,
+        "currentPid": 41648,
+        "rejoined": "Running",
+        "terminal": "Finished",
+        "stream": "93769235-2d53-48cf-bf27-d2826a791b68"
+      },
+      {
+        "fault": "transport-drop",
+        "kind": "background Run",
+        "run": "1afc5c78-77ce-4c45-891d-05a176348cbe",
+        "session": "e79f84ce-1c14-4da9-ba93-1c6a5dbe7d6a",
+        "activation": "v1_be859f7aa02a121edb0e7b9e812cdc269811c588534be34308d12a015a1a882b",
+        "streamId": "056b48ea-863f-4eb5-b392-a501a3659a44",
+        "owner": "d23c5eb1-fe42-4946-9b0e-19df3695c68f",
+        "firstPid": 37340,
+        "currentPid": 37340,
+        "rejoined": "Running",
+        "terminal": "Finished",
+        "stream": "056b48ea-863f-4eb5-b392-a501a3659a44"
+      },
+      {
+        "fault": "transport-drop",
+        "kind": "memory save",
+        "run": "09efea4b-cc03-4cfc-88df-e0979f724026",
+        "operation": "7e867cf1-f7bf-49fa-af9a-93aa20dd39ff",
+        "firstPid": 17752,
+        "currentPid": 17752,
+        "rejoined": "Running",
+        "terminal": "Finished",
+        "receipt": "41b1cb8e-df05-4ede-8028-8320cc26fdb3",
+        "effects": 1
+      },
+      {
+        "fault": "transport-drop",
+        "kind": "pending child",
+        "run": "15d75da1-fe50-4550-98bb-1cf8048eed78",
+        "session": "0f0e6470-8f7f-4d21-b4b4-e2b9c483bf21",
+        "activation": "v1_77c09b614ffbb9f3ac421b07326bfdaf0c099719502f26872572c95e3fc417ab",
+        "streamId": "c762f00f-e0c2-43de-84b9-5d5d6923441e",
+        "owner": "b87cc46f-40a6-4e7a-be79-01ed57754d9e",
+        "firstPid": 25680,
+        "currentPid": 25680,
+        "rejoined": "Running",
+        "terminal": "Finished",
+        "stream": "c762f00f-e0c2-43de-84b9-5d5d6923441e",
+        "child": "2e1485b4-d635-4384-bcee-188330a92e61",
+        "invocation": "19ad5998-fc78-460b-af32-77ff7c43e51c",
+        "operation": "15d75da1-fe50-4550-98bb-1cf8048eed78:synthetic-delegation:tori.delegate.saved-agent:1:65897e82bb5aabd1993e6563aae879ef5c32a1e53afcfde8fdac5b1289e591e9"
+      },
+      {
+        "fault": "process-exit",
+        "kind": "in-flight turn",
+        "session": "0f2685b6-badd-4a09-b2ac-7081299b42bd",
+        "activation": "v1_5f66853a8e8bdcc7b09314187bac432ca9438cd30db32eec2f9b293514aa16fe",
+        "run": "f867a287-24d8-40b4-ad8d-66bb6c7d3dd6",
+        "firstPid": 47692,
+        "currentPid": 46448,
+        "priorOwner": "67c9c627-95ad-4b7b-bb8c-ba7725fad1c5",
+        "terminal": "Interrupted",
+        "replay": "none",
+        "stream": "6da1a71d-6d81-4732-bfc4-9bd3e522666e"
+      },
+      {
+        "fault": "process-exit",
+        "kind": "background Run",
+        "run": "6ca7eece-df81-4520-9261-91e4ddd7c5b8",
+        "session": "4875e29c-cd51-4b5f-bba0-d3ad43803d96",
+        "activation": "v1_6d16dbe6cce92ef59348fe411d82d20daecbc5def67d05552fb6c2eb9b54c2b8",
+        "streamId": "6d18e028-983b-4e29-a999-b66b61ebdc19",
+        "firstPid": 45552,
+        "currentPid": 42936,
+        "priorOwner": "35e068b8-9a8d-4599-b7b8-632c4288c1c1",
+        "terminal": "Interrupted",
+        "replay": "none",
+        "stream": "6d18e028-983b-4e29-a999-b66b61ebdc19"
+      },
+      {
+        "fault": "process-exit",
+        "kind": "memory save",
+        "run": "e5943887-a94d-43dd-ac52-b57ad165ad6a",
+        "operation": "65798b1a-ab2d-4840-9dd2-7eba4726f4d5",
+        "firstPid": 50216,
+        "currentPid": 19564,
+        "terminal": "Interrupted",
+        "reason": "no-commit",
+        "effects": 0
+      },
+      {
+        "fault": "process-exit",
+        "kind": "pending child",
+        "run": "d237f983-7fc5-433f-a7db-dd1644ace083",
+        "session": "b7eb0f7f-f659-492d-803a-bc307ff55184",
+        "activation": "v1_29054e34a2279391c896ff47c5d49310f492864123956d821e3603ccf3ccaccb",
+        "streamId": "49cc1075-1593-4acf-80bc-bdd6febb9717",
+        "firstPid": 39064,
+        "currentPid": 33756,
+        "priorOwner": "8f88446c-8b3c-4131-94e5-634ca5863e78",
+        "terminal": "Interrupted",
+        "replay": "none",
+        "stream": "49cc1075-1593-4acf-80bc-bdd6febb9717",
+        "child": "9821d781-2ee3-45aa-8f6c-b6794464bb46",
+        "invocation": "6f47c5cc-b07e-448a-abcb-eded158056b8",
+        "operation": "d237f983-7fc5-433f-a7db-dd1644ace083:synthetic-delegation:tori.delegate.saved-agent:1:65897e82bb5aabd1993e6563aae879ef5c32a1e53afcfde8fdac5b1289e591e9"
+      },
+      {
+        "fault": "cold-reopen",
+        "kind": "in-flight turn",
+        "session": "7e04d324-eaa0-416d-aa94-05001700d45c",
+        "activation": "v1_f571e52d5a3bcd2f7646eb17c6f666d3c0200974ff9e60088106d7ed884f14d6",
+        "run": "60547294-2b67-45a4-bf1f-037af8ee4247",
+        "firstPid": 37948,
+        "currentPid": 28232,
+        "priorOwner": "4cdc5466-ac38-4043-a25e-cf94a82b6316",
+        "terminal": "Interrupted",
+        "replay": "none",
+        "stream": "80b7da46-b438-4db6-b50c-28e923df247c"
+      },
+      {
+        "fault": "cold-reopen",
+        "kind": "background Run",
+        "run": "69aa1851-6edc-4832-a075-d43736786169",
+        "session": "575ac3e1-c9fd-40e2-a3e5-abc51fa0e58d",
+        "activation": "v1_8932eb04341402a41651f33c295cd1963abb48aab27d43a567c250dc675e080b",
+        "streamId": "e6c8feaa-20f1-4ee6-984a-e02d8caf291c",
+        "firstPid": 39632,
+        "currentPid": 39144,
+        "priorOwner": "3878007d-f8d4-4c02-be24-6573b4e4a19f",
+        "terminal": "Interrupted",
+        "replay": "none",
+        "stream": "e6c8feaa-20f1-4ee6-984a-e02d8caf291c"
+      },
+      {
+        "fault": "cold-reopen",
+        "kind": "memory save",
+        "run": "574f8563-9aa6-4f3f-811a-7646b48a404f",
+        "operation": "a32b58f3-4400-40ef-a4ae-b8ce8017f743",
+        "firstPid": 50068,
+        "currentPid": 44540,
+        "terminal": "Interrupted",
+        "reason": "no-commit",
+        "effects": 0
+      },
+      {
+        "fault": "cold-reopen",
+        "kind": "pending child",
+        "run": "27cb6fe5-63a0-41ac-99f4-cc5d2f448c07",
+        "session": "ae1967a4-5604-4eb9-9b8a-3640c5340adc",
+        "activation": "v1_1c98d4ae584e8b6df79d28409082cf76c4e892f731d4ba56be7e18821aea61f9",
+        "streamId": "3daf62e3-2ab4-412a-985a-f17ea564d74c",
+        "firstPid": 47896,
+        "currentPid": 51472,
+        "priorOwner": "a2938f84-5ad5-4b7e-a851-ce3f740b13f7",
+        "terminal": "Interrupted",
+        "replay": "none",
+        "stream": "3daf62e3-2ab4-412a-985a-f17ea564d74c",
+        "child": "7816045f-516b-4e21-baaa-cc5a861c2459",
+        "invocation": "c67a7fe2-3ebe-4667-8496-4d3ed93f40c1",
+        "operation": "27cb6fe5-63a0-41ac-99f4-cc5d2f448c07:synthetic-delegation:tori.delegate.saved-agent:1:65897e82bb5aabd1993e6563aae879ef5c32a1e53afcfde8fdac5b1289e591e9"
+      }
+    ]
+  },
+  "build": {
+    "exit": 0,
+    "transformedModules": 1856,
+    "warning": "Vite chunk larger than 500 kB after minification",
+    "rawLogSha256": "165dde7ca800b22c2733881162f6953310d5620acaa6218a39816a317cb61b43"
+  },
+  "browsers": {
+    "a1ThroughA4": {
+      "exit": 0,
+      "mode": "deterministic fixture only",
+      "requests": [
+        4096,
+        2048,
+        4096,
+        2048,
+        4096,
+        4096,
+        4096,
+        4096,
+        4096
+      ],
+      "invalidDrafts": [
+        "63",
+        "64.5",
+        "32769"
+      ],
+      "restartIsolation": true,
+      "sessionTitles": true,
+      "activeAgentPicker": true
+    },
+    "v1b": {
+      "exit": 0,
+      "live": false,
+      "applied": {
+        "actorId": "tori-local-owner",
+        "turnId": "e6bc8a6c-6e38-4706-99b6-32f7f22c2697",
+        "operationId": "e6bc8a6c-6e38-4706-99b6-32f7f22c2697:authoring-fixture-1:tori.draft.instructions:1:f9c7ec76fc794143a891c65c87fa9409bea062119d70aa646a99be8802c6991f",
+        "draftId": "9176211d-ae4b-4e8b-9b75-aa3284090bb3",
+        "occurrenceId": "agent.instructions",
+        "expectedRevision": 4,
+        "editDigest": "aa740e2ad8f73bcdc23fb235321fccd40d54631f863b7b9241928bfd14039cac",
+        "status": "applied",
+        "revision": 5,
+        "at": "2026-11-13T12:12:58.251Z"
+      },
+      "run": "e6bc8a6c-6e38-4706-99b6-32f7f22c2697",
+      "session": "ddd8e82f-fd08-43b1-96ef-596888779b1a"
+    },
+    "authoring": {
+      "exit": 0,
+      "live": false,
+      "build": "555261b6-5ea2-4e2e-a1a9-d1560ddbf6fa",
+      "review": "2327b56f-7b35-484c-9fa6-097f60cba5cc",
+      "edit": "c4b5324f-6b23-4f47-bfcf-5a4d08e14438",
+      "test": "857b29b4-2864-4402-ab37-1a8d813fbe98",
+      "child": "08d776cc-021e-4aed-9535-fbd874a4e34d",
+      "second": "7b4b34a4-5634-4b79-b95e-2a9485213dca"
+    },
+    "memory": {
+      "exit": 0,
+      "observation": "memory-browser.json"
+    },
+    "background": {
+      "exit": 0,
+      "observation": "background-browser.json"
+    },
+    "legacyAssembly": {
+      "exit": 1,
+      "detail": "30-second timeout at missing #inspector-agent-name in tests/browser.mjs line 29."
+    }
+  },
+  "failedAttempts": {
+    "preflightPipelineInitial": {
+      "exit": 1,
+      "assertionsCompleted": true,
+      "phase": "teardown",
+      "code": "EBUSY",
+      "detail": "Windows held the disposable mastra-store.db file."
+    },
+    "npmTestInitial": {
+      "exit": "stopped after hang",
+      "failedTest": "A2 sampling, retry limit, and deadline",
+      "code": "EPERM",
+      "detail": "Vite cache rename from deps_temp_981e67bf to deps. Shared Vite runtime also reported WebSocket port 24678 already in use."
+    },
+    "backgroundBrowserInitial": {
+      "exit": 1,
+      "detail": "The fixture missed the actual governed Research read receipt. The replacement recognized its public tool name."
+    },
+    "assemblyBrowserLegacy": {
+      "exit": 1,
+      "detail": "30-second timeout at missing #inspector-agent-name in tests/browser.mjs line 29."
+    }
+  }
+}
