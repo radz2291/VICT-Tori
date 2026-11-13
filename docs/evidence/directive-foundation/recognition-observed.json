@@ -1,0 +1,14 @@
+{
+  "baseline": 173,
+  "heldOut": 25,
+  "grammar": {
+    "legacyBaselineMismatches": 0,
+    "heldOut": {
+      "missed": 6,
+      "unwanted": 0,
+      "clarificationMismatch": 2
+    }
+  },
+  "pinnedConnectorFixture": "passed",
+  "note": "Fixture verifies transport and scoring. Live recognition was not run."
+}

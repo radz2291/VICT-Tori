@@ -1,0 +1,18 @@
+{
+  "nativeArtifactCode": "VICT_AGENT_INVALID_ARTIFACT",
+  "extendedConfigCode": "VICT_AGENT_UNKNOWN_ARTIFACT_FIELD",
+  "extendedProfileCode": "VICT_AGENT_INVALID_PROFILE",
+  "exactRevisionRestore": true,
+  "unboundUnavailable": true,
+  "oldRevisionAfterEdit": true,
+  "missingOrSubstitutedRevisionDenied": true,
+  "mutatedSidecarDenied": true,
+  "clientDraftIgnoredByHarness": true,
+  "registeredToolOrGrantCount": 0,
+  "activationIds": [
+    "v1_2b3406274822fd611a91b4a1179ccad5a0f939513c7a3c391af8402afc3abf15",
+    "v1_11a85cbab2a5281db31aa9278949f449993f2006785bc5d3afad3083752204bb",
+    "v1_33c6a54d6b9a3d794e138470284903da4d151e0c2f5a2da6db033e4609427347"
+  ],
+  "proof": "Installed VICT activation APIs and disposable server-side resolver. No Studio Canvas integration."
+}
