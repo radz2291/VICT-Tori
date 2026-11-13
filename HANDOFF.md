@@ -2,6 +2,8 @@
 
 ## Directive Foundation implementation
 
+The implementation candidate is `76022e09b58c22ae618f0361225ec058ab3b813b` on `codex/tori-directive-foundation`. Use the [isolated Quellight walkthrough](docs/evidence/directive-foundation/implementation/WALKTHROUGH.md), [Windows qualification](docs/evidence/directive-foundation/implementation/REPORT.md) and [fresh independent review](docs/evidence/directive-foundation/implementation/INDEPENDENT.md). The original authorization and pins below are the stage baseline. Radzi owns acceptance in Work.
+
 Radzi accepted TORI-008's probe investigation and directs the [amended contract](docs/implementation/DIRECTIVE-FOUNDATION.md) to be pinned in a separate implementation ticket. Start from the exact contract commit recorded in Work on `codex/tori-directive-foundation`. Its prepared parent is `6a712af2f60dd040214a6f1b1662d631157f9c1d`, containing the accepted probe evidence above unchanged product `fe25266c098840d98cdfa70bd5e4dcbf8a8f7d1d`. Memory baseline is `d49bedf362d3521bcbf714bc6be7a04b34289bb7`; lock blob is `746b69fbefb4a9123029f54ab4ca47a00aaa5310`. Acceptance uses Windows/Node 22.13.1 and the existing pinned VICT/Mastra archives.
 
 The same local Windows stage agent may build; use a fresh independent verifier for the exact candidate. Read [AGENTS](AGENTS.md), [STATE](STATE.md), the [owner decision](docs/governance/DECISIONS.md#directive-foundation-implementation-contract--13-november-2026), the Work handoff and [protocol](docs/governance/ROLLADICE-WORK.md). Check current runs and preserve concurrent work, previews and user data. Claim only the new implementation assignment when launched. Ticket preparation alone starts no worker.

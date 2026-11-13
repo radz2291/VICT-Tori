@@ -1,0 +1,493 @@
+{
+  "standard": {
+    "baseline": {
+      "cases": 173,
+      "nonOperator": 6,
+      "nonOperatorCalls": 0,
+      "delivery": {
+        "count": 63,
+        "denominator": 65,
+        "ids": [
+          "baseline-1-1",
+          "baseline-2-1",
+          "baseline-3-1",
+          "baseline-4-1",
+          "baseline-5-1",
+          "baseline-6-1",
+          "baseline-7-1",
+          "baseline-8-1",
+          "baseline-9-1",
+          "baseline-10-1",
+          "baseline-11-1",
+          "baseline-12-1",
+          "baseline-13-1",
+          "baseline-14-1",
+          "baseline-15-1",
+          "baseline-16-1",
+          "baseline-17-1",
+          "baseline-18-1",
+          "baseline-19-1",
+          "baseline-20-1",
+          "baseline-21-1",
+          "baseline-22-1",
+          "baseline-23-1",
+          "baseline-24-1",
+          "baseline-25-1",
+          "baseline-27-1",
+          "baseline-29-1",
+          "baseline-31-1",
+          "baseline-33-1",
+          "baseline-35-1",
+          "baseline-37-1",
+          "baseline-39-1",
+          "baseline-41-1",
+          "baseline-43-1",
+          "baseline-45-1",
+          "baseline-47-1",
+          "baseline-49-1",
+          "baseline-51-1",
+          "baseline-53-1",
+          "baseline-55-1",
+          "baseline-57-1",
+          "baseline-59-1",
+          "baseline-61-1",
+          "baseline-63-1",
+          "baseline-65-1",
+          "baseline-69-1",
+          "baseline-72-1",
+          "baseline-73-1",
+          "baseline-74-1",
+          "baseline-74-2",
+          "baseline-75-1",
+          "baseline-76-1",
+          "baseline-77-1",
+          "baseline-87-1",
+          "baseline-107-1",
+          "baseline-108-1",
+          "baseline-109-1",
+          "baseline-120-1",
+          "baseline-121-1",
+          "baseline-128-1",
+          "baseline-128-2",
+          "baseline-141-1",
+          "baseline-142-1"
+        ]
+      },
+      "missedValid": {
+        "count": 0,
+        "denominator": 63,
+        "ids": []
+      },
+      "unwanted": {
+        "count": 0,
+        "denominator": 102,
+        "ids": []
+      },
+      "substantiveErrors": {
+        "count": 0,
+        "denominator": 63,
+        "ids": []
+      },
+      "anchors": {
+        "count": 4,
+        "denominator": 63,
+        "ids": [
+          "baseline-77-1",
+          "baseline-120-1",
+          "baseline-128-1",
+          "baseline-128-2"
+        ]
+      },
+      "clarificationMismatch": {
+        "count": 0,
+        "denominator": 165,
+        "ids": []
+      },
+      "invalid": {
+        "count": 0,
+        "denominator": 167,
+        "ids": []
+      },
+      "unavailable": {
+        "count": 0,
+        "denominator": 167,
+        "ids": []
+      },
+      "timeout": {
+        "count": 2,
+        "denominator": 167,
+        "ids": [
+          "baseline-67-1",
+          "baseline-67-2"
+        ]
+      },
+      "capExhaustion": {
+        "count": 0,
+        "denominator": 167,
+        "ids": []
+      },
+      "finishMissing": {
+        "count": 2,
+        "denominator": 167,
+        "ids": [
+          "baseline-67-1",
+          "baseline-67-2"
+        ]
+      },
+      "finish": {
+        "stop": 165,
+        "missing": 2
+      },
+      "latencyMs": {
+        "n": 167,
+        "p50": 1078,
+        "p95": 2765,
+        "max": 22019
+      },
+      "firstPublicTextMs": {
+        "n": 165,
+        "p50": 934,
+        "p95": 2147,
+        "max": 6007
+      },
+      "tokenUsage": {
+        "input": {
+          "n": 165,
+          "p50": 925,
+          "p95": 944,
+          "max": 957,
+          "total": 152848
+        },
+        "output": {
+          "n": 165,
+          "p50": 18,
+          "p95": 43,
+          "max": 91,
+          "total": 3183
+        },
+        "reasoning": {
+          "n": 165,
+          "p50": 6,
+          "p95": 19,
+          "max": 84,
+          "total": 1135
+        }
+      }
+    },
+    "held-out": {
+      "cases": 25,
+      "nonOperator": 2,
+      "nonOperatorCalls": 0,
+      "delivery": {
+        "count": 6,
+        "denominator": 6,
+        "ids": [
+          "held-out-1",
+          "held-out-2",
+          "held-out-3",
+          "held-out-4",
+          "held-out-5",
+          "held-out-25"
+        ]
+      },
+      "missedValid": {
+        "count": 0,
+        "denominator": 6,
+        "ids": []
+      },
+      "unwanted": {
+        "count": 0,
+        "denominator": 17,
+        "ids": []
+      },
+      "substantiveErrors": {
+        "count": 0,
+        "denominator": 6,
+        "ids": []
+      },
+      "anchors": {
+        "count": 1,
+        "denominator": 6,
+        "ids": [
+          "held-out-5"
+        ]
+      },
+      "clarificationMismatch": {
+        "count": 0,
+        "denominator": 23,
+        "ids": []
+      },
+      "invalid": {
+        "count": 0,
+        "denominator": 23,
+        "ids": []
+      },
+      "unavailable": {
+        "count": 0,
+        "denominator": 23,
+        "ids": []
+      },
+      "timeout": {
+        "count": 0,
+        "denominator": 23,
+        "ids": []
+      },
+      "capExhaustion": {
+        "count": 0,
+        "denominator": 23,
+        "ids": []
+      },
+      "finishMissing": {
+        "count": 0,
+        "denominator": 23,
+        "ids": []
+      },
+      "finish": {
+        "stop": 23
+      },
+      "latencyMs": {
+        "n": 23,
+        "p50": 1191,
+        "p95": 2259,
+        "max": 8244
+      },
+      "firstPublicTextMs": {
+        "n": 23,
+        "p50": 993,
+        "p95": 2192,
+        "max": 8213
+      },
+      "tokenUsage": {
+        "input": {
+          "n": 23,
+          "p50": 929,
+          "p95": 954,
+          "max": 962,
+          "total": 21412
+        },
+        "output": {
+          "n": 23,
+          "p50": 17,
+          "p95": 44,
+          "max": 74,
+          "total": 533
+        },
+        "reasoning": {
+          "n": 23,
+          "p50": 7,
+          "p95": 29,
+          "max": 67,
+          "total": 254
+        }
+      }
+    },
+    "fresh": {
+      "cases": 16,
+      "nonOperator": 2,
+      "nonOperatorCalls": 0,
+      "delivery": {
+        "count": 4,
+        "denominator": 4,
+        "ids": [
+          "fresh-1",
+          "fresh-2",
+          "fresh-3",
+          "fresh-14"
+        ]
+      },
+      "missedValid": {
+        "count": 0,
+        "denominator": 4,
+        "ids": []
+      },
+      "unwanted": {
+        "count": 0,
+        "denominator": 10,
+        "ids": []
+      },
+      "substantiveErrors": {
+        "count": 0,
+        "denominator": 4,
+        "ids": []
+      },
+      "anchors": {
+        "count": 0,
+        "denominator": 4,
+        "ids": []
+      },
+      "clarificationMismatch": {
+        "count": 0,
+        "denominator": 14,
+        "ids": []
+      },
+      "invalid": {
+        "count": 0,
+        "denominator": 14,
+        "ids": []
+      },
+      "unavailable": {
+        "count": 0,
+        "denominator": 14,
+        "ids": []
+      },
+      "timeout": {
+        "count": 0,
+        "denominator": 14,
+        "ids": []
+      },
+      "capExhaustion": {
+        "count": 0,
+        "denominator": 14,
+        "ids": []
+      },
+      "finishMissing": {
+        "count": 0,
+        "denominator": 14,
+        "ids": []
+      },
+      "finish": {
+        "stop": 14
+      },
+      "latencyMs": {
+        "n": 14,
+        "p50": 1175,
+        "p95": 4165,
+        "max": 4165
+      },
+      "firstPublicTextMs": {
+        "n": 14,
+        "p50": 930,
+        "p95": 4094,
+        "max": 4094
+      },
+      "tokenUsage": {
+        "input": {
+          "n": 14,
+          "p50": 927,
+          "p95": 955,
+          "max": 955,
+          "total": 13033
+        },
+        "output": {
+          "n": 14,
+          "p50": 17,
+          "p95": 37,
+          "max": 37,
+          "total": 279
+        },
+        "reasoning": {
+          "n": 14,
+          "p50": 6,
+          "p95": 14,
+          "max": 14,
+          "total": 98
+        }
+      }
+    }
+  },
+  "cautious": {
+    "fresh": {
+      "cases": 16,
+      "nonOperator": 2,
+      "nonOperatorCalls": 0,
+      "delivery": {
+        "count": 4,
+        "denominator": 4,
+        "ids": [
+          "fresh-1",
+          "fresh-2",
+          "fresh-3",
+          "fresh-14"
+        ]
+      },
+      "missedValid": {
+        "count": 0,
+        "denominator": 4,
+        "ids": []
+      },
+      "unwanted": {
+        "count": 0,
+        "denominator": 10,
+        "ids": []
+      },
+      "substantiveErrors": {
+        "count": 0,
+        "denominator": 4,
+        "ids": []
+      },
+      "anchors": {
+        "count": 0,
+        "denominator": 4,
+        "ids": []
+      },
+      "clarificationMismatch": {
+        "count": 0,
+        "denominator": 14,
+        "ids": []
+      },
+      "invalid": {
+        "count": 0,
+        "denominator": 14,
+        "ids": []
+      },
+      "unavailable": {
+        "count": 0,
+        "denominator": 14,
+        "ids": []
+      },
+      "timeout": {
+        "count": 0,
+        "denominator": 14,
+        "ids": []
+      },
+      "capExhaustion": {
+        "count": 0,
+        "denominator": 14,
+        "ids": []
+      },
+      "finishMissing": {
+        "count": 0,
+        "denominator": 14,
+        "ids": []
+      },
+      "finish": {
+        "stop": 14
+      },
+      "latencyMs": {
+        "n": 14,
+        "p50": 1177,
+        "p95": 2153,
+        "max": 2153
+      },
+      "firstPublicTextMs": {
+        "n": 14,
+        "p50": 1076,
+        "p95": 1818,
+        "max": 1818
+      },
+      "tokenUsage": {
+        "input": {
+          "n": 14,
+          "p50": 959,
+          "p95": 987,
+          "max": 987,
+          "total": 13481
+        },
+        "output": {
+          "n": 14,
+          "p50": 15,
+          "p95": 46,
+          "max": 46,
+          "total": 255
+        },
+        "reasoning": {
+          "n": 14,
+          "p50": 6,
+          "p95": 14,
+          "max": 14,
+          "total": 75
+        }
+      }
+    }
+  }
+}

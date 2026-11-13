@@ -1,0 +1,62 @@
+# TORI-009 Directive Foundation
+
+Product `76022e09b58c22ae618f0361225ec058ab3b813b` on `codex/tori-directive-foundation`, from accepted contract `69d0485ca78345fcca01dac8f991b3020f4b065a`. The lock blob is `746b69fbefb4a9123029f54ab4ca47a00aaa5310`. The isolated owner preview uses synthetic Quellight r2 and live Z.AI Coding. [Walkthrough](WALKTHROUGH.md) · [Constants and public UI controls](CLASSIFICATION.md) · [Independent verdict](INDEPENDENT.md)
+
+Fresh verifier `/root/tori009_recheck` issued a scoped PASS on that exact product in evidence commit `ebe27a604686a3b6ad59e4a044f228474f7d3abc`. The report's acceptance scope is Directive Foundation. Radzi owns the Studio walkthrough and acceptance.
+
+## Windows qualification
+
+- **D, pin and authority.** Configure and Canvas use the same typed VICT graph transaction. A saved incomplete draft refuses activation before dispatch. Legacy records, new bound pins, disconnected revisions and altered or revoked policies resolve distinctly across restart. The Directive recognizes only the current direct operator turn. It dispatches without tools; the ordinary model call receives no interpretation prompt or draft. The approval check fences exact Session, turn, policy, proposal revision and text. The tests cover stale, altered, wrong-scope, revoked and cancelled requests, one atomic receipt, and original-operation reconciliation.
+- **D and S, independent deadline and recovery.** Option C starts both provider calls independently under the accepted turn. A valid proposal waits for durable success of its originating turn and the pin’s deadline. A controlled clock advanced to 100,000 ms under a 120,000 ms pin. The ordinary reply and next Send finished with the first interpretation held. An exact Stop discarded a valid late result and left the newer turn intact. Chromium also killed a host with a pending interpretation, opened the same store, observed interruption and retained the original saved receipt. [Windows fixture](../../../../tests/directive.test.mjs) · [Browser observation](directive-browser.json)
+- **D, deployment retention.** Defaults are 30 days for messages, 30 days for threads, and one day for spans. Environment values are exact positive integers of milliseconds through 315,360,000,000. Startup rejects malformed, empty, zero, negative, fractional, indefinite or out-of-range input before store use. The controlled store-open fixture pruned one expired message, thread and span from the actual dedicated Mastra store while keeping the recent records. An independent source-resolution exercise made an actual Studio Session source unavailable; its saved memory, original receipt and exact reconciliation survived. The configured ages cover the dedicated Mastra tables. Studio’s application-domain transcript lives separately in `studio.sqlite`, and the saved record and receipt live in `saved-memory.sqlite`. The current VICT helper has no indefinite setting. Provenance is pointer-only pending the owner’s snapshot decision.
+- **S and L, quiet preview.** The repeatable Chromium fixture exercised two authoring views, real undo/redo, review correction, confirmation, manual entry and dismissal, Stop, and narrow layout. A disposable live host completed the same synthetic binding and exact corrected save, accepted a subsequent Send, returned no card or clarification for the three recall inputs, and recovered the original receipt on restart. A new Session used the same admitted memory ID/revision to produce two Orchid bullets. The fixture is the direct held-interpretation overlap proof. Both the early and final live walks are preserved. [Live walk](live-walkthrough.json) · [Early preview](early-preview.json)
+
+## Recognition
+
+The production interpreter blob is `06708cf5a4c8956f92105ef98f575b010ab22813`. The recognition runs used this exact blob and the same production provider settings. The final scope-limited ordinary reply guard neither touches these instructions nor runs inside the Directive call. The default pin is `705b63a94e4747253b71e17e3426787678988c5848c7e9e32b7db5035abd558a` with 8,192 UTF-8 history bytes, a 22-second deadline, 1,536 requested and dispatched output tokens, Standard sensitivity with tuning off, and one tool-free GLM-5.3 Flash Coding call per eligible case. The provider-supported low reasoning effort keeps classification short. [Z.AI thinking documentation](https://docs.z.ai/guides/capabilities/thinking)
+
+| Measure | Baseline, 173 fixed cases | Held-out, 25 fixed cases | Fresh Standard, 16 cases | Fresh Cautious, 16 cases |
+| --- | ---: | ---: | ---: | ---: |
+| Delivered genuine saves, all expected saves | 63/65 | 6/6 | 4/4 | 4/4 |
+| Missed genuine saves among valid results | 0/63 | 0/6 | 0/4 | 0/4 |
+| Unwanted drafts among valid non-save cases | 0/102 | 0/17 | 0/10 | 0/10 |
+| Substantive errors among genuine drafts | 0/63 | 0/6 | 0/4 | 0/4 |
+| Clarification mismatches among valid results | 0/165 | 0/23 | 0/14 | 0/14 |
+| Invalid or unavailable responses | 0/167 each | 0/23 each | 0/14 each | 0/14 each |
+| Deadline timeout among attempted calls | 2/167 | 0/23 | 0/14 | 0/14 |
+| Observed output-cap exhaustion | 0/167 | 0/23 | 0/14 | 0/14 |
+| Non-operator dispatches | 0/6 | 0/2 | 0/2 | 0/2 |
+| Completion latency p50/p95 (ms) | 1,078/2,765 | 1,191/2,259 | 1,175/4,165 | 1,177/2,153 |
+
+The two deadline misses were the typographic and straight-apostrophe variants of “Don’t forget that: I prefer short project updates.” Both stopped at 22 seconds before a reported HTTP response, public text, finish, or usage. They remain delivery misses. All 202 valid Standard results had normalized `stop` and reported usage. The largest reported output in the fixed baseline was 91 tokens and the largest reasoning count was 84. All four previously lost, capped genuine saves returned grounded proposals, including the two next-month-only planning variants. Earlier capture lacked provider finish codes. The live ordinary reply used forward-looking phrasing about the user’s request. The separate card is the save status, and the pre-confirmation memory list was empty. [Standard rows](standard.ndjson) · [Cautious rows](cautious.ndjson) · [Metrics](metrics.json) · [All attempts and failures](trials/README.md)
+
+The stage owner reviewed each returned proposal. The four baseline anchor differences and one held-out anchor difference are supported paraphrases. Both next-month drafts retain the temporal limit. Held-out 4 now reads “Pakai dua bullet pendek untuk future Orchid updates.” The earlier Indonesian-leaning and English-only wording remains in the record. Held-out 25 reads “Use two bullets for future Orchid updates.” The excluded budget is absent. Human wording acceptance belongs to Radzi. [Actual texts and review](DRAFT-REVIEW.md)
+
+Live history cases fit 992 bytes within 1 KiB and 65,504 bytes within 64 KiB and returned the exact three-bullet Wren rule with authorized source IDs. At 8 KiB the source was outside the retained suffix and the interpreter clarified. These three cases use synthetic ordered history and the same production interpreter and route. [History cases](history.ndjson)
+
+The independent report records the SHA-256 of the observed Windows files. Git normalizes line endings in the three committed NDJSON files. Their stored SHA-256 values are `ca369ed885950beac7ec3e5e479ec63edee94edfe5333f5a44f984d40cac4c7b` for Standard, `e091d6fe0af9fb8d0a269bfa22860bfc291f7653273b306e25349e0f8e5646c6` for Cautious and `2f88c75bd9a1745978114c25c9b7b8ea3b94b9393fe3cbb18c03ed8ce852cff7` for the history cases. The live transcript JSON already matches the verifier's byte hash.
+
+## Reproduction and scope
+
+Windows 10.0.26300 x64, Node 22.13.1, npm 11.19.1, Playwright Core 1.63.0, Chromium 153.0.8010.12. All 16 archive SHA-512 values matched the unchanged lock and all SHA-256 values matched the accepted manifest. VICT package version 0.4.0-rc.1, Mastra core 1.64.0, LibSQL 1.22.3, Mastra memory 1.28.2, OpenAI-compatible connector 2.0.0. [Environment](environment.json) · [Archive manifest](../windows/environment.json)
+
+| Command or suite | Observed result |
+| --- | --- |
+| `npm ci --no-audit --no-fund` | Exit 0 with the existing install/engine advisories. |
+| `node --test --test-concurrency=1 --test-timeout=360000 tests/*.test.mjs` | 222/222 on `3b4a587` and `a7eae27`, including all 16 Background recovery cells. |
+| `node --test --test-concurrency=1 --test-timeout=180000 tests/directive.test.mjs tests/provider-stream.test.mjs` | 6/6 on `76022e0`, covering exact confirmation, the narrow output guard and the two benign-reply regressions. Prior affected Memory suite 8/8 at `a7eae27`. |
+| `npm run build` | Exit 0 on `76022e0` with the existing Vite chunk-size advisory. |
+| `node tests/directive-browser.mjs` | Exit 0 on `76022e0` on Chromium 153.0.8010.12, with desktop and phone captures and actual process restart. |
+| `node tests/a1-browser.mjs` | Exit 0 with A2, A3 and A4 enabled in fixture mode. |
+| `node tests/v1b-browser.mjs` | Exit 0 on the isolated `a7eae27` rerun. Earlier attempts coincided with Vite restarting on source edits. |
+| `node tests/memory-browser.mjs` | Exit 0 on the isolated `a7eae27` rerun. Save, correction, history isolation, legacy intent, Forget and restart retained the established path. |
+| `node docs/evidence/directive-foundation/browser/windows-warm-browser.mjs authoring` | Exit 0 in fixture mode. |
+| `node docs/evidence/directive-foundation/browser/windows-warm-browser.mjs assembly` | Exit 0 after adapting obsolete selectors and revealing saved nodes explicitly on reload. The invalid wire, exact graph, save/reload, Undo/Redo, layout and activation assertions remain. |
+| `pwsh -NoProfile -File docs/evidence/directive-foundation/browser/windows-background.ps1` | Exit 0 with exact Run reattachment, child receipt, scoped Stop, no replay after restart, original receipt replay and Uncertain reconciliation in the historical fixture. |
+| `npm pack ./packages/directive ./packages/memory`, independent `npm ci --offline --no-audit --no-fund`, `node installed-consumer.mjs` | Exit 0 on packed artifacts. The scratch manifest and lock extend the original install with two local tarball entries and full integrity strings. Product dependencies and lock retain their original pins. The fresh consumer restores the public VICT activation, enforces bounded history, and writes/replays one exact versioned receipt. [Consumer script](../installed-consumer.mjs) |
+| `node docs/evidence/directive-foundation/qualify-implementation.mjs --live-qualification` with separate `--cautious` and `--context` runs | 214 Standard, 16 Cautious fresh cases and live history results above. Live route resolved inside the process. |
+| `node docs/evidence/directive-foundation/implementation/live-walkthrough.mjs --live-walkthrough` | Exit 0 on the final product. Live disposable host, exact three-to-two bullet confirmation and real restart. |
+
+The packed Directive and memory SHA-256 values are respectively `e83b8f1f39363a8a9cf001de94f023c3cb26d65a212990c92b7c3f6efbcbd154` and `636e884727691a4e0c8c6b2c20ac5e09ef7667298bc4317cdbe291eb3b0d8a49`. Initial scratch installs failed npm peer resolution; the lock-based consumer succeeded without dependency overrides. Ports, disposable stores and the browser module path are supplied as in the [Windows browser handoff](../WINDOWS-HANDOFF.md). The initial full run exposed a locked SQLite read on the old memory path; a read-only revision lookup resolved that regression. Windows disconnected during a subsequent run. The restarted serial suite passed, including A3, which was flaky before the disconnect. Browser failures caused by dev-server reloads are recorded separately from product failures.
+
+The [first independent challenge](trials/INITIAL-INDEPENDENT-FINDING.md) caught dispatch starting after the reply. The recheck caught a late cross-tab correction reporting a bare success after an already committed save. A settled review now returns HTTP 409 and preserves the original record and receipt. Separate checks caught an explicit ordinary provider memory claim and rejected overly broad repairs that also blocked “I will save you some time” or advice about saving external preferences. One earlier live recall response was withheld by the broad intermediate guard. The final scoped output check refuses explicit completed memory-effect claims without supplying interpretation state to conversation, and the exact live quiet recall passed. [Independent verdict](INDEPENDENT.md)

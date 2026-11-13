@@ -1,0 +1,41 @@
+{
+  "standard": {
+    "baseline-75-1": {
+      "verdict": "correct",
+      "finding": "Both note lines appear verbatim, in order."
+    },
+    "baseline-77-1": {
+      "verdict": "correct",
+      "finding": "All four method elements and the planning scope are retained. Brief and update name the same sourced format here."
+    },
+    "baseline-121-1": {
+      "verdict": "correct",
+      "finding": "The request to reuse how the plan was made resolves to the past four-part method and cites the source."
+    },
+    "baseline-128-1": {
+      "verdict": "correct",
+      "finding": "Includes all four method elements and limits their applicability to next month’s brief."
+    },
+    "baseline-128-2": {
+      "verdict": "correct",
+      "finding": "Includes all four method elements and limits their applicability to next month's brief."
+    },
+    "held-out-3": {
+      "verdict": "correct",
+      "finding": "Malay wording retains the three short points and project-summary context. The saved rule stands for future use."
+    },
+    "held-out-4": {
+      "verdict": "correct",
+      "finding": "Retains the user's 'pakai dua bullet pendek' Malay phrasing and English Orchid update terms. The earlier Indonesian-leaning phrasing and English-only attempt remain in the trial record. Owner wording review is pending."
+    },
+    "held-out-25": {
+      "verdict": "correct",
+      "finding": "The retained rule is scoped to future Orchid updates and two bullets. The excluded budget topic and value are absent. The earlier source ID remains a pointer with both items in its transcript."
+    },
+    "fresh-14": {
+      "verdict": "correct",
+      "finding": "Keeps the four-bullet rule for future Maple reports and omits the excluded context completely."
+    }
+  },
+  "cautious": {}
+}

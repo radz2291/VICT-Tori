@@ -1,0 +1,213 @@
+{
+  "fixture": false,
+  "initial": {
+    "activation": "v1_6b3b565cef3bb103694f5c8b39d0ce39439005eead1dd60ab20052c66944d698",
+    "policy": "705b63a94e4747253b71e17e3426787678988c5848c7e9e32b7db5035abd558a",
+    "session": "af031db2-2357-4e01-9a8b-072375beaef7",
+    "firstRevision": 1,
+    "directiveRevision": 2,
+    "fixture": false
+  },
+  "first": {
+    "id": "2fa49c9e-df6e-4632-9765-36a0649c48d5",
+    "initial": "pending",
+    "elapsedMs": 6508,
+    "reply": "Got it — Orchid updates will come as three short bullets from here on.",
+    "proposal": "Give me Orchid updates in three short bullets going forward.",
+    "directive": {
+      "status": "proposal",
+      "acceptedAt": 1794584069254,
+      "binding": "directive",
+      "contextTruncated": false,
+      "historyUsedBytes": 2,
+      "policyRevision": "705b63a94e4747253b71e17e3426787678988c5848c7e9e32b7db5035abd558a",
+      "historyBytes": 8192,
+      "deadlineMs": 22000,
+      "outputTokens": 1536,
+      "model": "glm-5.3-flash",
+      "route": "coding",
+      "finish": "stop",
+      "usage": {
+        "input": 844,
+        "output": 25,
+        "reasoning": 0
+      },
+      "sourceCount": 1,
+      "dispatchedAt": 1794584069442,
+      "completedAt": 1794584075752,
+      "firstPublicTextAt": 1794584071552,
+      "providerAttempts": 1,
+      "http": 200,
+      "observedModel": "glm-5.3-flash",
+      "sentOutputTokens": 1536,
+      "reasoningEffort": "low"
+    }
+  },
+  "follow": {
+    "id": "49fc3324-c293-41ba-8ff6-0cb6697baf46",
+    "initial": "none",
+    "elapsedMs": 10698,
+    "reply": "You set a standing preference: Orchid updates should be delivered as three short bullets."
+  },
+  "confirmed": "For future Orchid updates, use two short bullets.",
+  "receipt": {
+    "schema": "tori.memory.receipt@1",
+    "capability": "tori.memory.save",
+    "capabilityRevision": "1",
+    "operation": "1a2894cb-0aaa-485c-b9cf-f344036d3696",
+    "action": "save",
+    "outcome": "saved",
+    "scope": {
+      "actor": "tori-local-owner",
+      "project": "330e582d-8538-4ad6-b974-6f12383138c4",
+      "agent": "tori-local-agent"
+    },
+    "memoryId": "5bfcaf0a-ee40-4558-aebc-e74a7f5f4d9e",
+    "revision": 1,
+    "source": {
+      "session": "af031db2-2357-4e01-9a8b-072375beaef7",
+      "message": "2fa49c9e-df6e-4632-9765-36a0649c48d5-user"
+    },
+    "savedByRun": "2fa49c9e-df6e-4632-9765-36a0649c48d5",
+    "contextBasis": [
+      "2fa49c9e-df6e-4632-9765-36a0649c48d5-user"
+    ],
+    "operatorSession": "af031db2-2357-4e01-9a8b-072375beaef7",
+    "at": "2026-11-13T15:34:46.519Z",
+    "directive": {
+      "policyRevision": "705b63a94e4747253b71e17e3426787678988c5848c7e9e32b7db5035abd558a",
+      "proposalRevision": 2
+    }
+  },
+  "quiet": [
+    {
+      "id": "fa02d0f6-4eaf-43a1-8818-d98fa88d16f9",
+      "initial": "none",
+      "elapsedMs": 25534,
+      "reply": "I don't retain past conversations — only what's in your saved memory carries over between sessions. That currently has one note: Orchid updates should use two short bullets. Since you asked for three earlier in this chat, just let me know if two is now the preference.",
+      "input": "Do you remember what we talked about last week?",
+      "directive": {
+        "status": "none",
+        "acceptedAt": 1794584086540,
+        "binding": "directive",
+        "contextTruncated": false,
+        "historyUsedBytes": 623,
+        "policyRevision": "705b63a94e4747253b71e17e3426787678988c5848c7e9e32b7db5035abd558a",
+        "historyBytes": 8192,
+        "deadlineMs": 22000,
+        "outputTokens": 1536,
+        "model": "glm-5.3-flash",
+        "route": "coding",
+        "finish": "stop",
+        "usage": {
+          "input": 1045,
+          "output": 13,
+          "reasoning": 6
+        },
+        "dispatchedAt": 1794584086548,
+        "completedAt": 1794584087891,
+        "firstPublicTextAt": 1794584087806,
+        "providerAttempts": 1,
+        "http": 200,
+        "observedModel": "glm-5.3-flash",
+        "sentOutputTokens": 1536,
+        "reasoningEffort": "low"
+      }
+    },
+    {
+      "id": "422e06fb-90b7-434d-bc0b-443dbd7271ce",
+      "initial": "none",
+      "elapsedMs": 6436,
+      "reply": "I don't retain past conversations — only your saved memory carries over between sessions. It currently has one note: Orchid updates should use two short bullets.",
+      "input": "Do you remember what we discussed last week?",
+      "directive": {
+        "status": "none",
+        "acceptedAt": 1794584112081,
+        "binding": "directive",
+        "contextTruncated": false,
+        "historyUsedBytes": 1100,
+        "policyRevision": "705b63a94e4747253b71e17e3426787678988c5848c7e9e32b7db5035abd558a",
+        "historyBytes": 8192,
+        "deadlineMs": 22000,
+        "outputTokens": 1536,
+        "model": "glm-5.3-flash",
+        "route": "coding",
+        "finish": "stop",
+        "usage": {
+          "input": 1183,
+          "output": 13,
+          "reasoning": 6
+        },
+        "dispatchedAt": 1794584112088,
+        "completedAt": 1794584113534,
+        "firstPublicTextAt": 1794584113481,
+        "providerAttempts": 1,
+        "http": 200,
+        "observedModel": "glm-5.3-flash",
+        "sentOutputTokens": 1536,
+        "reasoningEffort": "low"
+      }
+    },
+    {
+      "id": "61cb4da0-7ae8-4f90-ae91-e3de283d8167",
+      "initial": "none",
+      "elapsedMs": 4721,
+      "reply": "Saya tidak menyimpan perbualan lepas — hanya memori tersimpan yang kekal antara sesi. Ia kini mempunyai satu nota: kemas kini Orchid untuk masa hadapan gunakan dua poin pendek.",
+      "input": "Ingat lagi apa kita bincang minggu lepas?",
+      "directive": {
+        "status": "none",
+        "acceptedAt": 1794584118524,
+        "binding": "directive",
+        "contextTruncated": false,
+        "historyUsedBytes": 1467,
+        "policyRevision": "705b63a94e4747253b71e17e3426787678988c5848c7e9e32b7db5035abd558a",
+        "historyBytes": 8192,
+        "deadlineMs": 22000,
+        "outputTokens": 1536,
+        "model": "glm-5.3-flash",
+        "route": "coding",
+        "finish": "stop",
+        "usage": {
+          "input": 1301,
+          "output": 7,
+          "reasoning": 0
+        },
+        "dispatchedAt": 1794584118533,
+        "completedAt": 1794584119770,
+        "firstPublicTextAt": 1794584119711,
+        "providerAttempts": 1,
+        "http": 200,
+        "observedModel": "glm-5.3-flash",
+        "sentOutputTokens": 1536,
+        "reasoningEffort": "low"
+      }
+    }
+  ],
+  "restart": {
+    "fresh": "a3110962-3cb2-4ccf-aa9c-5d932be12273",
+    "remembered": {
+      "id": "52694c55-14fe-4159-90bd-7662675388a7",
+      "initial": "none",
+      "elapsedMs": 3511,
+      "reply": "- Design is approved and implementation is underway.\n- Demo is scheduled for Friday."
+    },
+    "admitted": [
+      {
+        "id": "5bfcaf0a-ee40-4558-aebc-e74a7f5f4d9e",
+        "revision": 1,
+        "source": {
+          "session": "af031db2-2357-4e01-9a8b-072375beaef7",
+          "message": "2fa49c9e-df6e-4632-9765-36a0649c48d5-user"
+        },
+        "savedByRun": "2fa49c9e-df6e-4632-9765-36a0649c48d5",
+        "contextBasis": [
+          "2fa49c9e-df6e-4632-9765-36a0649c48d5-user"
+        ],
+        "createdAt": "2026-11-13T15:34:46.519Z",
+        "updatedAt": "2026-11-13T15:34:46.519Z",
+        "ageMs": 54361,
+        "lastUsedAt": "2026-11-13T15:35:40.880Z"
+      }
+    ]
+  }
+}

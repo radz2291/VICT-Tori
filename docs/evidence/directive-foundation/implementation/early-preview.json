@@ -1,0 +1,60 @@
+{
+  "run": "e93d123a-8532-46ef-aff7-52bd31e7d769",
+  "session": "4f0f64af-e258-40f0-98b2-63d5fa3c9330",
+  "initial": "pending",
+  "outcome": {
+    "status": "proposal",
+    "acceptedAt": 1794579712858,
+    "binding": "directive",
+    "policyRevision": "c65a60ccb7ab6a9225fc975d86f694304b9d59a789114edb7ab255b75c68c4b8",
+    "historyBytes": 8192,
+    "deadlineMs": 22000,
+    "outputTokens": 1536,
+    "model": "glm-5.3-flash",
+    "route": "coding",
+    "finish": "stop",
+    "usage": {
+      "input": 377,
+      "output": 305,
+      "reasoning": 280
+    },
+    "dispatchedAt": 1794579718879,
+    "completedAt": 1794579724809,
+    "firstPublicTextAt": 1794579724588,
+    "providerAttempts": 1,
+    "http": 200,
+    "observedModel": "glm-5.3-flash",
+    "sentOutputTokens": 1536
+  },
+  "originalDraft": "Going forward, provide Orchid updates in three short bullets.",
+  "receipt": {
+    "schema": "tori.memory.receipt@1",
+    "capability": "tori.memory.save",
+    "capabilityRevision": "1",
+    "operation": "51108e3b-d417-4e59-9ae0-de12dad000f4",
+    "action": "save",
+    "outcome": "saved",
+    "scope": {
+      "actor": "tori-local-owner",
+      "project": "3d1e7b0b-b347-4403-8bc5-bbe449ccb063",
+      "agent": "tori-local-agent"
+    },
+    "memoryId": "6630c6a4-8e8c-4dbf-a506-34335b6034f0",
+    "revision": 1,
+    "source": {
+      "session": "4f0f64af-e258-40f0-98b2-63d5fa3c9330",
+      "message": "e93d123a-8532-46ef-aff7-52bd31e7d769-user"
+    },
+    "savedByRun": "e93d123a-8532-46ef-aff7-52bd31e7d769",
+    "contextBasis": [
+      "e93d123a-8532-46ef-aff7-52bd31e7d769-user"
+    ],
+    "operatorSession": "4f0f64af-e258-40f0-98b2-63d5fa3c9330",
+    "at": "2026-11-13T14:22:05.114Z",
+    "directive": {
+      "policyRevision": "c65a60ccb7ab6a9225fc975d86f694304b9d59a789114edb7ab255b75c68c4b8",
+      "proposalRevision": 2
+    }
+  },
+  "confirmed": "For future Orchid updates, use two short bullets."
+}

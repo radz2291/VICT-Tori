@@ -1,0 +1,111 @@
+{
+  "fixture": true,
+  "chromium": "153.0.8010.12",
+  "activation": {
+    "definition": "tori-local-agent",
+    "version": "v1_9fa82670ca867325cf1b8b82c258eb33c18bef4d5dffddfc6bb12f61fb7f6200",
+    "revision": "9021b379-e5e2-4f16-9eae-424641508a4f",
+    "number": 2,
+    "name": "Quellight",
+    "route": "coding",
+    "authoring": false,
+    "workspaceAuthoring": false,
+    "savedMemory": true,
+    "memoryPolicy": {
+      "schema": "tori.memory-policy@1",
+      "artifact": {
+        "id": "tori-conversation-memory",
+        "revision": "recent-100@1+governed@1"
+      },
+      "savedMemory": "governed@1",
+      "organizer": "off"
+    },
+    "directive": {
+      "status": "bound",
+      "revision": "feddb4e3aae4fe4e6d5f3150fe700dbfaa988ba5efde64d3515616b2a0331de5",
+      "policy": {
+        "schema": "tori.directive-policy@1",
+        "binding": "directive",
+        "primitive": "Keep",
+        "action": "save-preference-or-fact",
+        "origin": "operator",
+        "location": "direct-turn",
+        "applicability": "turn-start-memory-admission",
+        "review": "Float",
+        "scope": "trusted-actor-project-agent",
+        "reasoningEffort": "low",
+        "name": "Standing Directive",
+        "recognition": "Recognize an affirmative request in the current operator message to retain a specific fact or preference for future conversations. Use authorized earlier exchanges only to resolve that request.",
+        "tuning": "off",
+        "sensitivity": "cautious",
+        "historyBytes": 4096,
+        "deadlineMs": 120000,
+        "outputTokens": 1536,
+        "model": "glm-5.3-flash",
+        "route": "coding"
+      }
+    },
+    "execution": {
+      "maxSteps": 1,
+      "maxToolCalls": 0,
+      "maxRetries": 0
+    }
+  },
+  "receipt": {
+    "schema": "tori.memory.receipt@1",
+    "capability": "tori.memory.save",
+    "capabilityRevision": "1",
+    "operation": "2a21d150-4939-48eb-b3e0-26b0cb92c657",
+    "action": "save",
+    "outcome": "saved",
+    "scope": {
+      "actor": "tori-local-owner",
+      "project": "a1da940e-204e-4f40-b9a5-3059ef4b95da",
+      "agent": "tori-local-agent"
+    },
+    "memoryId": "776b03eb-4438-49f8-80dc-eed065d2c019",
+    "revision": 1,
+    "source": {
+      "session": "1dc0449e-01e4-4ce3-b34a-29a002f37494",
+      "message": "ee41afb8-153b-45ad-8621-17046999aca0-user"
+    },
+    "savedByRun": "ee41afb8-153b-45ad-8621-17046999aca0",
+    "contextBasis": [
+      "ee41afb8-153b-45ad-8621-17046999aca0-user"
+    ],
+    "operatorSession": "1dc0449e-01e4-4ce3-b34a-29a002f37494",
+    "at": "2026-11-13T15:59:46.009Z",
+    "directive": {
+      "policyRevision": "feddb4e3aae4fe4e6d5f3150fe700dbfaa988ba5efde64d3515616b2a0331de5",
+      "proposalRevision": 2
+    }
+  },
+  "nextSendCompleted": "6e4bc446-05f2-4fa6-94d1-b29db33d4a77",
+  "stopped": "5ea6b47a-722f-4431-b40f-06dd02f845c6",
+  "quiet": [
+    "41a0c0fd-bfc7-4b41-932c-32b54301ba52",
+    "7fdf78b6-b57f-4174-a95c-32d7d6ecc477",
+    "3953c925-da04-45f0-8bfe-6979ad94924d"
+  ],
+  "interrupted": "21e9eb88-15fb-4dda-aef3-cdc63fd4c86a",
+  "recall": {
+    "id": "54667c6e-1d7e-4d8f-9009-b0b738c583aa",
+    "answer": "- Design is approved.\n- Implementation is in progress. The demo is Friday.",
+    "admitted": {
+      "id": "776b03eb-4438-49f8-80dc-eed065d2c019",
+      "revision": 1,
+      "source": {
+        "session": "1dc0449e-01e4-4ce3-b34a-29a002f37494",
+        "message": "ee41afb8-153b-45ad-8621-17046999aca0-user"
+      },
+      "savedByRun": "ee41afb8-153b-45ad-8621-17046999aca0",
+      "contextBasis": [
+        "ee41afb8-153b-45ad-8621-17046999aca0-user"
+      ],
+      "createdAt": "2026-11-13T15:59:46.009Z",
+      "updatedAt": "2026-11-13T15:59:46.009Z",
+      "ageMs": 71407,
+      "lastUsedAt": "2026-11-13T16:00:57.416Z"
+    }
+  }
+}
