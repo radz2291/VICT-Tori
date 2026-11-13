@@ -1,5 +1,7 @@
 # TORI-006 owner repair review
 
+The [card polish review](CARD-POLISH.md) records the latest preview and the visual changes. This page retains the preceding implementation evidence.
+
 Product `fce6283857ee79095f9ba1188cc20ac35a660ac7` (tree `898214e33056f4ba238babd876e08194bda23487`) on `codex/tori-v1c-memory-foundation`. The [owner addendum](OWNER-REVIEW.md) is pinned at `129c6dca734b328d85cff5108ed47bdcef396998`; the [base contract](../../implementation/MEMORY-FOUNDATION.md) remains pinned at `8854562dda920f583e6cc1d80de51f6add6d7ba9`. Groups A and B are included. [Group C](../../governance/DECISIONS.md) remains future work. Radzi owns acceptance.
 
 ## Walkthrough

@@ -1,5 +1,9 @@
 # TORI handoff
 
+## TORI-006 card polish
+
+The [Studio preview](http://127.0.0.1:48836/) runs product `3851a1e8ea04c5ed2ddde0bb40585c27f5829854`. Reopen the original Quellight Session to inspect the saved card. A fresh explicit request produces the polished pending card. See the [review evidence](docs/evidence/v1c-memory/CARD-POLISH.md).
+
 ## TORI-006 owner review repair
 
 TORI-006 product `fce6283857ee79095f9ba1188cc20ac35a660ac7` on `codex/tori-v1c-memory-foundation` implements Groups A and B of the [owner repair addendum](docs/evidence/v1c-memory/OWNER-REVIEW.md) at `129c6dca734b328d85cff5108ed47bdcef396998`, under the base contract at `8854562dda920f583e6cc1d80de51f6add6d7ba9`. The [repair evidence and walkthrough](docs/evidence/v1c-memory/REPAIR-REVIEW.md) link the exact independent verdict and observed vocabulary. The [decision register](docs/governance/DECISIONS.md) retains Group C.

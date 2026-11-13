@@ -1,0 +1,316 @@
+{
+  "origin": "deterministic provider",
+  "desktop": {
+    "width": 1531,
+    "height": 850
+  },
+  "narrow": {
+    "width": 390,
+    "height": 844
+  },
+  "runs": {
+    "draft": {
+      "run": "93b8bbaf-a65e-4ebf-8c8c-f52a3e8081d3",
+      "session": "f9e23272-1e7e-462c-ae8a-c6c39e49395e",
+      "reply": "Let’s keep the project update clear and easy to scan."
+    },
+    "freshRecall": {
+      "run": "b2b7b37f-69e8-461f-a8e6-52f8b32fee97",
+      "session": "3fd8b6c5-e88d-4d4d-baed-031faa0eadba",
+      "reply": "- Design is approved.\n- Implementation is in progress.\n- The demo is Friday."
+    },
+    "historyOnly": {
+      "run": "d48a73e1-ea1e-45aa-8531-e401243799bb",
+      "session": "0c6e8459-5909-4a30-8f39-2df17c1f8165",
+      "reply": "Design is approved. Implementation is in progress. The demo is Friday."
+    },
+    "correctedRecall": {
+      "run": "72fef0a3-8dfe-4341-9dd5-8ee9745f4ad7",
+      "session": "12110292-4b6a-4725-a03a-9088b8f56bf3",
+      "reply": "- Design is approved.\n- Implementation is in progress. The demo is Friday."
+    },
+    "afterForget": {
+      "run": "b9303ad3-2dd2-49e6-8a61-7c4b006899f6",
+      "session": "1acc9352-25c4-4990-9da3-6372b4d9d328",
+      "reply": "Design is approved. Implementation is in progress. The demo is Friday."
+    },
+    "afterForgetRestart": {
+      "run": "387e39b1-c35e-4d71-a451-caa6947081c6",
+      "session": "30324166-a633-42aa-a8c0-b7bd8ee9ed1a",
+      "reply": "Design is approved. Implementation is in progress. The demo is Friday."
+    },
+    "planningContext": {
+      "run": "c9aa1255-95b3-46de-8fc5-2da8b2a975ff",
+      "session": "dd25377d-0ce1-4802-bb51-f3661c7ddc81",
+      "reply": "Let’s keep the project update clear and easy to scan."
+    },
+    "contextDraft": {
+      "run": "1ba5c464-4ac9-4bb2-8397-a31bd895ecdc",
+      "session": "dd25377d-0ce1-4802-bb51-f3661c7ddc81",
+      "reply": "That brief had a clear rhythm: input, decision, then the next step and its due date."
+    },
+    "afterContext": {
+      "run": "0661b092-9f06-44f2-906a-9915e7ee1dec",
+      "session": "dd25377d-0ce1-4802-bb51-f3661c7ddc81",
+      "reply": "Let’s keep the project update clear and easy to scan."
+    },
+    "contextRecall": {
+      "run": "5f36e46b-f365-43ac-b947-1013e0c52167",
+      "session": "87c7137b-6feb-4b0c-9c9c-5eddc98e289b",
+      "reply": "Let’s keep the project update clear and easy to scan."
+    },
+    "polishedCardPair": {
+      "run": "5453d2d2-94ee-499c-895b-25b69fd191b9",
+      "session": "16217cd4-19e8-4803-9018-7dce96045ea8",
+      "reply": "Let’s keep the project update clear and easy to scan."
+    },
+    "affirmative1": {
+      "run": "ce5e8610-7772-43bd-a8e8-1299fbad1892",
+      "session": "95a862db-b11c-4f08-bc4d-e389b0a34228",
+      "reply": "Let’s keep the project update clear and easy to scan."
+    },
+    "affirmative2": {
+      "run": "41124755-8b9f-4d3a-94c6-3181d49fd090",
+      "session": "95a862db-b11c-4f08-bc4d-e389b0a34228",
+      "reply": "Let’s keep the project update clear and easy to scan."
+    },
+    "affirmative3": {
+      "run": "7e899ece-0721-4ef0-a19d-5e8952343fa7",
+      "session": "95a862db-b11c-4f08-bc4d-e389b0a34228",
+      "reply": "Let’s keep the project update clear and easy to scan."
+    },
+    "affirmative4": {
+      "run": "6d0b1076-802b-4739-b647-2d23a1c824d2",
+      "session": "95a862db-b11c-4f08-bc4d-e389b0a34228",
+      "reply": "Let’s keep the project update clear and easy to scan."
+    },
+    "negation1": {
+      "run": "a27e87d3-f4af-4808-85ef-eb53f3017bfc",
+      "session": "95a862db-b11c-4f08-bc4d-e389b0a34228",
+      "reply": "Let’s keep the project update clear and easy to scan."
+    },
+    "negation2": {
+      "run": "788579ce-98b3-4d67-99b4-7d2d0a45d632",
+      "session": "95a862db-b11c-4f08-bc4d-e389b0a34228",
+      "reply": "Let’s keep the project update clear and easy to scan."
+    },
+    "clarification1": {
+      "run": "795c45e6-50a9-4c54-b10c-4bcb5435bbde",
+      "session": "95a862db-b11c-4f08-bc4d-e389b0a34228",
+      "reply": "Let’s keep the project update clear and easy to scan."
+    },
+    "clarification2": {
+      "run": "c1178115-167f-4640-9ea6-5ba220e2bea9",
+      "session": "95a862db-b11c-4f08-bc4d-e389b0a34228",
+      "reply": "Let’s keep the project update clear and easy to scan."
+    },
+    "narrowProposal": {
+      "run": "acdb7c46-1613-4bec-80c0-57e0f1f54511",
+      "session": "1a560858-599e-464f-af73-9d978fd1a3dc",
+      "reply": "Let’s keep the project update clear and easy to scan."
+    },
+    "budget": {
+      "run": "72567a1f-9ed3-497c-84c0-cf3c62adbbd5",
+      "session": "766c62f2-2d0d-4283-8ca1-e8c9ab8df04a",
+      "reply": "- Design is approved.\n- Implementation is in progress.\n- The demo is Friday."
+    }
+  },
+  "chromium": "153.0.8010.12",
+  "activation": "v1_b9e427e748efc39512bdf3efb8be5c910d2597b0d05c7d86012f1230b03ad5c5",
+  "cardGuidanceContrast": 7.213273770815071,
+  "confirmationContrast": 13.783925247951698,
+  "save": {
+    "schema": "tori.memory.receipt@1",
+    "capability": "tori.memory.save",
+    "capabilityRevision": "1",
+    "operation": "df596e51-e854-4245-bc60-5801b0913205",
+    "action": "save",
+    "outcome": "saved",
+    "scope": {
+      "actor": "tori-local-owner",
+      "project": "5b423c4d-031e-42fb-8b8f-e97247cbf199",
+      "agent": "tori-local-agent"
+    },
+    "memoryId": "df821319-de64-4918-880e-84e4e588e309",
+    "revision": 1,
+    "source": {
+      "session": "f9e23272-1e7e-462c-ae8a-c6c39e49395e",
+      "message": "93b8bbaf-a65e-4ebf-8c8c-f52a3e8081d3-user"
+    },
+    "savedByRun": "93b8bbaf-a65e-4ebf-8c8c-f52a3e8081d3",
+    "contextBasis": [
+      "93b8bbaf-a65e-4ebf-8c8c-f52a3e8081d3-user"
+    ],
+    "operatorSession": "f9e23272-1e7e-462c-ae8a-c6c39e49395e",
+    "at": "2026-11-13T03:39:33.592Z"
+  },
+  "cardSavedContrast": 6.350236577688571,
+  "firstAdmission": {
+    "schema": "tori.memory.admission@1",
+    "budgetBytes": 2048,
+    "bytes": 203,
+    "admitted": [
+      {
+        "id": "df821319-de64-4918-880e-84e4e588e309",
+        "revision": 1,
+        "source": {
+          "session": "f9e23272-1e7e-462c-ae8a-c6c39e49395e",
+          "message": "93b8bbaf-a65e-4ebf-8c8c-f52a3e8081d3-user"
+        },
+        "savedByRun": "93b8bbaf-a65e-4ebf-8c8c-f52a3e8081d3",
+        "contextBasis": [
+          "93b8bbaf-a65e-4ebf-8c8c-f52a3e8081d3-user"
+        ],
+        "createdAt": "2026-11-13T03:39:33.592Z",
+        "updatedAt": "2026-11-13T03:39:33.592Z",
+        "ageMs": 24102,
+        "lastUsedAt": "2026-11-13T03:39:57.694Z"
+      }
+    ],
+    "omitted": [],
+    "status": "admitted"
+  },
+  "correction": {
+    "schema": "tori.memory.receipt@1",
+    "capability": "tori.memory.save",
+    "capabilityRevision": "1",
+    "operation": "72a28ada-57d9-46be-929f-c30793e866e8",
+    "action": "correct",
+    "outcome": "corrected",
+    "scope": {
+      "actor": "tori-local-owner",
+      "project": "5b423c4d-031e-42fb-8b8f-e97247cbf199",
+      "agent": "tori-local-agent"
+    },
+    "memoryId": "df821319-de64-4918-880e-84e4e588e309",
+    "revision": 2,
+    "source": {
+      "session": "f9e23272-1e7e-462c-ae8a-c6c39e49395e",
+      "message": "93b8bbaf-a65e-4ebf-8c8c-f52a3e8081d3-user"
+    },
+    "savedByRun": "93b8bbaf-a65e-4ebf-8c8c-f52a3e8081d3",
+    "contextBasis": [
+      "93b8bbaf-a65e-4ebf-8c8c-f52a3e8081d3-user"
+    ],
+    "operatorSession": "3fd8b6c5-e88d-4d4d-baed-031faa0eadba",
+    "at": "2026-11-13T03:40:00.248Z"
+  },
+  "forget": {
+    "schema": "tori.memory.receipt@1",
+    "capability": "tori.memory.save",
+    "capabilityRevision": "1",
+    "operation": "405a1211-b9e3-4615-936f-2f607f373fbf",
+    "action": "forget",
+    "outcome": "forgotten",
+    "scope": {
+      "actor": "tori-local-owner",
+      "project": "5b423c4d-031e-42fb-8b8f-e97247cbf199",
+      "agent": "tori-local-agent"
+    },
+    "memoryId": "df821319-de64-4918-880e-84e4e588e309",
+    "revision": 2,
+    "source": {
+      "session": "f9e23272-1e7e-462c-ae8a-c6c39e49395e",
+      "message": "93b8bbaf-a65e-4ebf-8c8c-f52a3e8081d3-user"
+    },
+    "savedByRun": "93b8bbaf-a65e-4ebf-8c8c-f52a3e8081d3",
+    "contextBasis": [
+      "93b8bbaf-a65e-4ebf-8c8c-f52a3e8081d3-user"
+    ],
+    "operatorSession": "12110292-4b6a-4725-a03a-9088b8f56bf3",
+    "at": "2026-11-13T03:40:22.190Z"
+  },
+  "suggestedContext": "Use input → decision → next step, with the due date. Add a lighthearted joke about a calendar taking a day off.",
+  "contextual": {
+    "schema": "tori.memory.receipt@1",
+    "capability": "tori.memory.save",
+    "capabilityRevision": "1",
+    "operation": "ecb59e0f-e324-43a2-9eb5-41b8cc17a5bd",
+    "action": "save",
+    "outcome": "saved",
+    "scope": {
+      "actor": "tori-local-owner",
+      "project": "5b423c4d-031e-42fb-8b8f-e97247cbf199",
+      "agent": "tori-local-agent"
+    },
+    "memoryId": "551ca39d-50fa-40b0-81aa-007222324b77",
+    "revision": 1,
+    "source": {
+      "session": "dd25377d-0ce1-4802-bb51-f3661c7ddc81",
+      "message": "1ba5c464-4ac9-4bb2-8397-a31bd895ecdc-user"
+    },
+    "savedByRun": "1ba5c464-4ac9-4bb2-8397-a31bd895ecdc",
+    "contextBasis": [
+      "c9aa1255-95b3-46de-8fc5-2da8b2a975ff-user",
+      "1ba5c464-4ac9-4bb2-8397-a31bd895ecdc-user"
+    ],
+    "operatorSession": "dd25377d-0ce1-4802-bb51-f3661c7ddc81",
+    "at": "2026-11-13T03:40:48.941Z"
+  },
+  "cardComparison": {
+    "width": 835,
+    "height": 667,
+    "savedHeight": 125.25,
+    "pendingHeight": 142.28125
+  },
+  "narrowComposerContrast": 13.783925247951698,
+  "narrowRejectedEdit": {
+    "utf8Bytes": 1026,
+    "focus": "editor",
+    "alertVisible": true,
+    "receipt": false
+  },
+  "budget": {
+    "schema": "tori.memory.admission@1",
+    "budgetBytes": 2048,
+    "bytes": 1230,
+    "admitted": [
+      {
+        "id": "e90765d8-a31f-4ed8-a8ad-f422b71a4d68",
+        "revision": 1,
+        "source": {
+          "session": "13364b33-d5d6-4b01-825a-58edcf857043",
+          "message": "8515a6e5-831c-457f-b2d7-d856f4edded1-user"
+        },
+        "savedByRun": "8515a6e5-831c-457f-b2d7-d856f4edded1",
+        "contextBasis": [
+          "8515a6e5-831c-457f-b2d7-d856f4edded1-user"
+        ],
+        "createdAt": "2026-11-13T03:41:11.082Z",
+        "updatedAt": "2026-11-13T03:41:11.082Z",
+        "ageMs": 349,
+        "lastUsedAt": "2026-11-13T03:41:11.431Z"
+      },
+      {
+        "id": "551ca39d-50fa-40b0-81aa-007222324b77",
+        "revision": 1,
+        "source": {
+          "session": "dd25377d-0ce1-4802-bb51-f3661c7ddc81",
+          "message": "1ba5c464-4ac9-4bb2-8397-a31bd895ecdc-user"
+        },
+        "savedByRun": "1ba5c464-4ac9-4bb2-8397-a31bd895ecdc",
+        "contextBasis": [
+          "c9aa1255-95b3-46de-8fc5-2da8b2a975ff-user",
+          "1ba5c464-4ac9-4bb2-8397-a31bd895ecdc-user"
+        ],
+        "createdAt": "2026-11-13T03:40:48.941Z",
+        "updatedAt": "2026-11-13T03:40:48.941Z",
+        "ageMs": 22490,
+        "lastUsedAt": "2026-11-13T03:41:11.431Z"
+      }
+    ],
+    "omitted": [
+      {
+        "id": "02f18c81-1cbf-4ce2-b215-5c413d780f07",
+        "revision": 1,
+        "reason": "budget"
+      },
+      {
+        "id": "60e2fbb7-c597-458b-8757-84ac6fa8d0d3",
+        "revision": 1,
+        "reason": "budget"
+      }
+    ],
+    "status": "admitted"
+  }
+}

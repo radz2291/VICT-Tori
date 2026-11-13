@@ -1,5 +1,7 @@
 # TORI-006 Studio control audit
 
+The [card polish review](CARD-POLISH.md#public-control-audit) records the updated card roles and states.
+
 The installed public packages are the accepted TORI-005 artifacts, all VICT version 0.4.0-rc.1, with their exact archive hashes in the [dependency manifest](../authoring-foundation/dependencies.json). Review the actual component imports and rendered states in the memory walkthrough. No new UI primitive or owner exception was introduced.
 
 | Surface and control roles | Installed public exports and actual composition | States to inspect |
