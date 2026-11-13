@@ -16,7 +16,10 @@ import { mastraRetention, maxRetentionAgeMs } from '../server/retention.mjs';
 const source = 'Going forward, give me Orchid updates in three short bullets. Keep that as my preference.';
 const savedText = 'For future Orchid updates, use two short bullets.';
 const draft = 'For future Orchid updates, use three short bullets.';
-const ordinarySaveLanguage = 'I will save you some time by summarizing the two planning notes.';
+const ordinarySaveLanguage = new Map([
+  ['Summarize the two planning notes.', 'I will save you some time by summarizing the two planning notes.'],
+  ['How do I customize an external dashboard?', 'To personalize the browser dashboard, you can save your preferences under Settings.'],
+]);
 const quiet = ['Do you remember what we talked about last week?', 'Do you remember what we discussed last week?',
   'Ingat lagi apa kita bincang minggu lepas?'];
 const endpoint = 'https://api.z.ai/api/coding/paas/v4/chat/completions';
@@ -216,7 +219,7 @@ test('pinned Studio Directive settles independently with exact review, recovery 
     }
     if(text==='Hold the Orchid procedure for a failed turn.')return new Response('{}',{status:500});
     if(text==='Keep the Orchid review format for future meetings.')return completion(body.model,"I've saved your preference.");
-    if(text==='Summarize the two planning notes.')return completion(body.model,ordinarySaveLanguage);
+    if(ordinarySaveLanguage.has(text))return completion(body.model,ordinarySaveLanguage.get(text));
     assert.ok(!body.messages.some(item => item.content.includes('Authorized recognition focus:')));
     return completion(body.model,'The Orchid project is on track.');
   };
@@ -393,11 +396,13 @@ test('pinned Studio Directive settles independently with exact review, recovery 
     assert.equal(counts().memories,1);
     await dispatch('/memory/dismiss',{session,run:ordinary.id});
 
-    const innocent=await turn(session,'Summarize the two planning notes.');
-    assert.equal(innocent.status,'completed');
-    await waitRun(innocent.id,'none');
-    assert.ok((await dispatch('')).sessions.find(item=>item.id===session).messages
-      .some(item=>item.id===innocent.id+'-agent'&&item.text===ordinarySaveLanguage));
+    for(const [input,answer] of ordinarySaveLanguage){
+      const innocent=await turn(session,input);
+      assert.equal(innocent.status,'completed');
+      await waitRun(innocent.id,'none');
+      assert.ok((await dispatch('')).sessions.find(item=>item.id===session).messages
+        .some(item=>item.id===innocent.id+'-agent'&&item.text===answer));
+    }
 
     assert.ok(journal.apply([assembly.change('directive','deadlineMs',5000),assembly.change('directive','historyBytes',1024)]).ok);
     const edited=await save(journal,validRev);
