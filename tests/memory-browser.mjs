@@ -83,9 +83,15 @@ const focused=control=>control.evaluate(node=>node===document.activeElement);
 const contrast=(control,background)=>control.evaluate((element,selector)=>{
   const foreground=getComputedStyle(element).color;
   const surface=getComputedStyle(selector?element.closest(selector):element).backgroundColor;
-  const luminance=color=>color.match(/[\d.]+/g).slice(0,3).map(Number).map(n=>n/255)
-    .map(n=>n<=.04045?n/12.92:((n+.055)/1.055)**2.4)
-    .reduce((sum,n,i)=>sum+n*[.2126,.7152,.0722][i],0);
+  const pixel=document.createElement('canvas').getContext('2d',{willReadFrequently:true});
+  const luminance=color=>{
+    pixel.clearRect(0,0,1,1);
+    pixel.fillStyle=color;
+    pixel.fillRect(0,0,1,1);
+    return [...pixel.getImageData(0,0,1,1).data].slice(0,3).map(n=>n/255)
+      .map(n=>n<=.04045?n/12.92:((n+.055)/1.055)**2.4)
+      .reduce((sum,n,i)=>sum+n*[.2126,.7152,.0722][i],0);
+  };
   const scores=[luminance(foreground),luminance(surface)].sort((a,b)=>b-a);
   return (scores[0]+.05)/(scores[1]+.05);
 },background);
@@ -130,6 +136,10 @@ async function send(session,prompt,label){
 }
 async function details(pageName){
   const toggle=button(pageName+' sidebar');
+  // A viewport change can replace the dock with its drawer before Details opens.
+  if(page.viewportSize()?.width<=720){
+    await page.locator('.execution-right-dock').waitFor({state:'detached'});
+  }
   if(await toggle.getAttribute('aria-expanded')!=='true')await toggle.click();
   const control=button('Details');
   if(await control.getAttribute('aria-expanded')!=='true')await control.click();
@@ -195,7 +205,12 @@ try {
   inCharacter(save.reply);
   const card=await attached(save.id);
   await card.getByRole('heading',{name:'Memory proposal'}).waitFor();
-  assert.equal(await card.getByText(/Review the wording/).count(),1);
+  const reviewGuidance=card.getByText('Review before saving for future Sessions.',{exact:true});
+  assert.equal(await reviewGuidance.count(),1);
+  assert.ok((await proposalText(card).boundingBox()).y<(await reviewGuidance.boundingBox()).y);
+  observed.cardGuidanceContrast=await contrast(reviewGuidance,'.memory-confirmation');
+  assert.ok(observed.cardGuidanceContrast>=4.5,'Proposal guidance contrast: '+observed.cardGuidanceContrast);
+  assert.equal(await card.getByText('1 source message',{exact:true}).count(),1);
   const exact=await proposalText(card).textContent();
   assert.ok(exact);
   assert.equal(await card.getByText('Saved',{exact:true}).count(),0);
@@ -227,8 +242,12 @@ try {
   observed.save=confirmed.receipt;
   await confirmedText(card).waitFor();
   assert.equal(await confirmedText(card).textContent(),exact);
-  assert.equal(await card.getByText('Saved',{exact:true}).count(),1);
-  assert.equal(await focused(card.getByRole('heading',{name:'Memory proposal'})),true);
+  const savedBadge=card.getByRole('status').filter({hasText:'Saved'});
+  assert.equal(await savedBadge.count(),1);
+  observed.cardSavedContrast=await contrast(savedBadge);
+  assert.ok(observed.cardSavedContrast>=4.5,'Saved badge contrast: '+observed.cardSavedContrast);
+  assert.equal(await card.getByRole('heading',{name:'Memory proposal',exact:true}).count(),0);
+  assert.equal(await focused(card.getByRole('heading',{name:'Memory',exact:true})),true);
   await capture('memory-saved',card);
   await stop();
   assert.equal(await start(),workspace);
@@ -367,6 +386,20 @@ try {
     assert.equal(await page.getByTestId('conversation-message').getByText(/Memory proposal:|calendar taking a day off/i).count(),0);
     await capture('memory-context-reopened',reopened);
     if(!live){
+      await page.setViewportSize({width:835,height:667});
+      const comparison=await send(conversation,'Pls remember that planning briefs use clear section names.','polishedCardPair');
+      const comparisonCard=await attached(comparison.id);
+      const proposalBounds=await comparisonCard.boundingBox();
+      const savedBounds=await reopened.boundingBox();
+      assert.ok(savedBounds.height<proposalBounds.height,'Saved cards should be more compact than pending proposals.');
+      observed.cardComparison={width:835,height:667,savedHeight:savedBounds.height,pendingHeight:proposalBounds.height};
+      await page.getByTestId('conversation-feed').evaluate((feed,id)=>{
+        const card=feed.querySelector('[data-memory-turn="'+id+'"]');
+        feed.scrollTop+=card.getBoundingClientRect().bottom-feed.getBoundingClientRect().bottom+12;
+      },comparison.id);
+      await capture('memory-card-pair');
+      await route('memory/dismiss',()=>comparisonCard.getByRole('button',{name:'Dismiss'}).click());
+      await page.setViewportSize(observed.desktop);
       const vocabulary=await chooseSession();
       for(const [index,prompt] of [
         'Pls remember that project updates use short titles.',
@@ -410,6 +443,18 @@ try {
       assert.equal((await post('memory/session',{session:vocabulary})).records.length,1);
       await page.setViewportSize(observed.narrow);
       const narrowSession=await chooseSession();
+      const narrowSavedRun=await send(narrowSession,'Remember that narrow notes start with a clear subject.');
+      const narrowSaved=await attached(narrowSavedRun.id);
+      const narrowReceipt=await route('memory/confirm',()=>narrowSaved.getByRole('button',{name:'Confirm and save'}).click());
+      await narrowSaved.getByRole('status').filter({hasText:'Saved'}).waitFor();
+      await capture('memory-narrow-saved',narrowSaved);
+      await narrowSaved.getByRole('button',{name:'Forget memory'}).press('Enter');
+      const narrowForget=page.getByRole('dialog',{name:'Forget saved memory'});
+      await narrowForget.waitFor();
+      const narrowForgot=await route('memory/forget',()=>narrowForget.getByRole('button',{name:'Forget',exact:true}).press('Enter'));
+      assert.equal(narrowForgot.receipt.memoryId,narrowReceipt.receipt.memoryId);
+      await narrowSaved.getByRole('status').filter({hasText:'Forgotten'}).waitFor();
+      await capture('memory-narrow-forgotten',narrowSaved);
       const narrowRun=await send(narrowSession,'Remember that narrow notes use action verbs.','narrowProposal');
       const narrow=await attached(narrowRun.id);
       const narrowCorrect=narrow.getByRole('button',{name:'Correct',exact:true});

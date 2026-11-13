@@ -76,25 +76,38 @@
 </script>
 
 {#if mode==='card' && turn}
-  <section class="memory-confirmation" bind:this={card} data-memory-turn={turn.run} data-source-message={turn.source} aria-labelledby={inputId+'-heading'}>
+  {@const forgotten=saved?.memory.status==='forgotten'}
+  <section class="memory-confirmation" bind:this={card}
+    data-memory-state={saved?(forgotten?'forgotten':'saved'):proposal?.status??'request'}
+    data-memory-turn={turn.run} data-source-message={turn.source} aria-labelledby={inputId+'-heading'}>
     <div class="memory-card-heading">
-      <h3 id={inputId+'-heading'} tabindex="-1">{proposal?'Memory proposal':'Memory request'}</h3>
-      {#if saved}<StatusBadge value={saved.memory.status==='forgotten'?'Forgotten':'Saved'}/>{/if}
+      <span class="memory-card-icon" aria-hidden="true">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M6 20V6a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v14l-6-4-6 4Z"/>
+        </svg>
+      </span>
+      <h3 id={inputId+'-heading'} tabindex="-1">{saved?'Memory':proposal?'Memory proposal':'Memory request'}</h3>
+      {#if saved}
+        <StatusBadge value={forgotten?'Forgotten':'Saved'} tone={forgotten?'neutral':'success'}/>
+      {:else if proposal?.status==='pending'}
+        <span class="memory-card-source">{proposal.contextBasis.length} source {proposal.contextBasis.length===1?'message':'messages'}</span>
+      {/if}
     </div>
     {#if proposal?.status==='pending'}
-      <p class="memory-meta">Review the wording. Confirm to save it for future Sessions, or correct or dismiss it here.</p>
-      {#if correcting}
-        <label for={inputId}>Memory to save</label>
-        <Textarea id={inputId} class="tori-field" rows={3} bind:value={content} disabled={busy||busyTurn}
-          aria-describedby={problem?inputId+'-problem':undefined}/>
-      {:else}
-        <p class="memory-value" data-testid="memory-proposal-text">{proposal.text}</p>
-      {/if}
-      {#if !actionOpen&&problem}
-        <div id={inputId+'-problem'}><Feedback kind="error" message={problem}/></div>
-      {/if}
-      <p class="memory-meta">Based on {proposal.contextBasis.length} {proposal.contextBasis.length===1?'message':'messages'} in this Session.</p>
-      <div class="memory-actions">
+      <div class="memory-card-body">
+        {#if correcting}
+          <label for={inputId}>Memory to save</label>
+          <Textarea id={inputId} class="tori-field" rows={3} bind:value={content} disabled={busy||busyTurn}
+            aria-describedby={problem?inputId+'-problem':undefined}/>
+        {:else}
+          <p class="memory-value" data-testid="memory-proposal-text">{proposal.text}</p>
+        {/if}
+        {#if !actionOpen&&problem}
+          <div id={inputId+'-problem'}><Feedback kind="error" message={problem}/></div>
+        {/if}
+        {#if !correcting}<p class="memory-card-note">Review before saving for future Sessions.</p>{/if}
+      </div>
+      <div class="memory-actions memory-card-actions">
         <Button label="Confirm and save" {busy} disabled={busyTurn||!valueToSave.trim()}
           onclick={()=>void submit('confirm',{run:proposal.run,operation:proposal.operation,text:valueToSave})}/>
         {#if correcting}
@@ -102,21 +115,25 @@
         {:else}
           <Button label="Correct" actionId="correct-proposal" variant="secondary" {busy} disabled={busyTurn} onclick={()=>void correctProposal()}/>
         {/if}
-        <Button label="Dismiss" variant="secondary" {busy} disabled={busyTurn} onclick={()=>void submit('dismiss',{run:proposal.run})}/>
+        <Button label="Dismiss" variant="secondary" presentation={{class:'memory-card-quiet memory-card-dismiss'}} {busy} disabled={busyTurn}
+          onclick={()=>void submit('dismiss',{run:proposal.run})}/>
       </div>
     {:else if saved?.memory.memory}
-      <p class="memory-value" data-testid="memory-confirmed-text">{saved.memory.memory.content}</p>
-      {#if savedRecord}
-        {#if savedRecord.revision!==saved.receipt.revision}
-          <p class="memory-meta">Confirmed here as revision {saved.receipt.revision}. Current saved revision: {savedRecord.revision}.</p>
+      <div class="memory-card-body">
+        <p class="memory-value" data-testid="memory-confirmed-text">{saved.memory.memory.content}</p>
+        {#if savedRecord&&savedRecord.revision!==saved.receipt.revision}
+          <p class="memory-card-note">Confirmed as revision {saved.receipt.revision}. Current revision: {savedRecord.revision}.</p>
         {/if}
-        <div class="memory-actions">
+      </div>
+      {#if savedRecord}
+        <div class="memory-actions memory-card-actions">
           <Button label="Correct memory" variant="secondary" haspopup="dialog" disabled={busy||busyTurn} onclick={(event)=>edit(event,savedRecord,'correct')}/>
-          <Button label="Forget memory" variant="secondary" haspopup="dialog" disabled={busy||busyTurn} onclick={(event)=>edit(event,savedRecord,'forget')}/>
+          <Button label="Forget memory" variant="secondary" presentation={{class:'memory-card-quiet memory-card-forget'}} haspopup="dialog"
+            disabled={busy||busyTurn} onclick={(event)=>edit(event,savedRecord,'forget')}/>
         </div>
       {/if}
     {:else if saved}
-      <Feedback message={saved.memory.status==='forgotten'?'The original save has a receipt. The memory has since been forgotten.':memoryReasons['storage-unavailable']}/>
+      <Feedback message={forgotten?'This memory was forgotten. Its save receipt is still in Runs.':memoryReasons['storage-unavailable']}/>
     {:else if proposal}
       <Feedback message={proposal.status==='saved'?memoryReasons['storage-unavailable']:'Nothing saved. '+(memoryReasons[proposal.status]??'Proposal closed.')}/>
     {:else if turn.request}
