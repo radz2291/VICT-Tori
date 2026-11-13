@@ -113,12 +113,25 @@ dt{color:#a4adbb}dd{margin:0;overflow-wrap:anywhere}.hash{font:11px/1.5 ui-monos
 .vict-controls .mobile-sheet [data-dialog-description]{margin:2px 0 12px}
 .vict-controls select.vict-select{min-height:32px;padding:5px 8px}
 .tori-scope .vict-ai{
+  --vict-ai-font:var(--vict-font-family);
+  --font-sans:var(--vict-font-family);
   --vict-ai-background:var(--studio-field);
   --vict-ai-foreground:var(--vict-color-text);
   --vict-ai-primary:var(--vict-color-accent);
   --vict-theme-highlight:color-mix(in srgb,var(--vict-color-text) 9%,var(--studio-field));
   --vict-theme-highlight-text:var(--vict-color-text);
   --destructive:var(--vict-color-danger);
+}
+
+/* Match AI prose and editors to the Studio reading scale. Code keeps its monospace face. */
+.tori-scope .vict-ai.vict-ai-conversation{
+  font:var(--vict-font-sizeBase)/1.5 var(--vict-font-family)
+}
+.tori-scope .vict-ai.vict-ai-conversation [data-slot="bubble-content"],
+.tori-scope .vict-ai.vict-ai-conversation .vict-ai-markdown :is(p,li,blockquote,td,th),
+.tori-scope .vict-ai.vict-ai-conversation .vict-conversation-textarea,
+.tori-scope :is(.memory-confirmation,.memory-dialog,.memory-panel,.run-memory-evidence) :is(.memory-value,textarea.tori-field){
+  font-size:var(--vict-font-sizeBase);line-height:1.5
 }
 
 /* Keep rich VICT messages readable against the same graphite palette in every view. */
@@ -370,7 +383,6 @@ dt{color:#a4adbb}dd{margin:0;overflow-wrap:anywhere}.hash{font:11px/1.5 ui-monos
   gap:var(--vict-space-3);
   padding:var(--vict-space-2) var(--vict-space-1)
 }
-.authoring-dock-content .vict-ai [data-participant]{font-size:var(--vict-font-sizeBase);line-height:1.45}
 .authoring-dock-content .vict-ai-markdown :is(h1,h2,h3,h4,h5,h6){
   font-size:1em;line-height:1.35;
   margin-block:var(--vict-space-2) var(--vict-space-1)
@@ -588,7 +600,7 @@ dt{color:#a4adbb}dd{margin:0;overflow-wrap:anywhere}.hash{font:11px/1.5 ui-monos
 .session-transcript .session-message pre{max-width:100%;overflow:auto}
 .session-transcript .vict-state[data-state="empty"]{text-align:center}
 .tori-scope .session-transcript .vict-ai-composer{border:1px solid var(--vict-color-border);border-radius:12px;background:var(--studio-field);color:var(--vict-color-text)}
-.session-transcript .vict-ai-composer .vict-conversation-textarea{width:100%;min-height:64px;max-height:160px;overflow:auto;padding:10px 12px;field-sizing:content;font:inherit}
+.session-transcript .vict-ai-composer .vict-conversation-textarea{width:100%;min-height:64px;max-height:160px;overflow:auto;padding:10px 12px;field-sizing:content}
 .session-view .vict-ai-messages,.session-composer,.session-readonly,.runs-content{width:min(100%,840px);margin-inline:auto}
 .session-view .vict-ai .vict-ai-messages{padding-inline:var(--vict-space-4)}
 .conversation [data-message-id][tabindex="-1"]{scroll-margin-block-start:var(--vict-space-2)}
@@ -727,14 +739,14 @@ dt{color:#a4adbb}dd{margin:0;overflow-wrap:anywhere}.hash{font:11px/1.5 ui-monos
 }
 .memory-confirmation:not([data-memory-state=pending]){border-color:var(--line)}
 .memory-card-heading{display:flex;flex-wrap:wrap;align-items:center;gap:var(--vict-space-1) var(--vict-space-2)}
-.memory-card-heading h3{margin:0;font-size:.875rem;font-weight:650;line-height:1.25}
+.memory-card-heading h3{margin:0;font-size:var(--vict-font-sizeBase);font-weight:650;line-height:1.25}
 .memory-card-heading h3:focus{outline:1px solid var(--vict-color-focusRing);outline-offset:3px;border-radius:2px}
 .memory-card-icon{
   display:grid;place-items:center;flex:none;width:24px;height:24px;
   border-radius:calc(var(--vict-radius-base) / 2);background:var(--vict-color-surface);color:var(--vict-color-textMuted)
 }
 .memory-confirmation[data-memory-state=pending] .memory-card-icon{background:var(--studio-selected);color:var(--vict-color-accent)}
-.memory-card-source,.memory-card-note{color:var(--vict-color-textMuted);font-size:.8125rem;line-height:1.4}
+.memory-card-source,.memory-card-note{color:var(--vict-color-textMuted);font-size:11px;line-height:1.4}
 .memory-card-source,.memory-card-status{margin-inline-start:auto}
 .studio .memory-card-heading .vict-status{background:var(--vict-color-surface);color:var(--vict-color-textMuted)}
 .studio .memory-card-heading .vict-status--success{
@@ -742,7 +754,6 @@ dt{color:#a4adbb}dd{margin:0;overflow-wrap:anywhere}.hash{font:11px/1.5 ui-monos
   background:color-mix(in srgb,var(--memory-saved-color) 10%,var(--studio-panel));color:var(--memory-saved-color)
 }
 .memory-card-body{display:grid;gap:var(--vict-space-1);min-inline-size:0}
-.memory-card-body .memory-value{font-size:1rem;line-height:1.5}
 .memory-card-body label,.memory-card-note,.memory-confirmation :is(.vict-state,.vict-alert){margin:0}
 .tori-scope .memory-confirmation textarea.tori-field,.tori-scope .memory-dialog textarea.tori-field{width:100%;background:var(--studio-field);color:var(--vict-color-text);border:1px solid var(--vict-color-border);border-radius:var(--vict-radius-base)}
 .memory-card-actions{border-block-start:1px solid var(--vict-color-border);padding-block-start:var(--vict-space-2)}

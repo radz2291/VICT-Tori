@@ -80,6 +80,10 @@ function inCharacter(reply){
   assert.doesNotMatch(reply,/(?:memory proposal|review the text in studio|nothing was saved|i(?:['’]ve| have| just) (?:saved|stored|memorized|remembered)|i(?:['’]ll| will) remember)/i);
 }
 const focused=control=>control.evaluate(node=>node===document.activeElement);
+const typography=control=>control.evaluate(node=>{
+  const {fontFamily,fontSize,lineHeight}=getComputedStyle(node);
+  return {fontFamily,fontSize,lineHeight};
+});
 const contrast=(control,background)=>control.evaluate((element,selector)=>{
   const foreground=getComputedStyle(element).color;
   const surface=getComputedStyle(selector?element.closest(selector):element).backgroundColor;
@@ -205,7 +209,22 @@ try {
   inCharacter(save.reply);
   const card=await attached(save.id);
   await card.getByRole('heading',{name:'Memory proposal'}).waitFor();
+  const studioFont=(await typography(task('Sessions'))).fontFamily;
+  const readingText=await typography(proposalText(card));
+  assert.equal(readingText.fontFamily,studioFont);
+  for(const control of [
+    message(save.id+'-user').locator('[data-slot="bubble-content"]'),
+    message(save.id+'-agent').locator('p').first(),
+    page.getByRole('textbox',{name:'Message',exact:true}),
+  ])assert.deepEqual(await typography(control),readingText);
   const reviewGuidance=card.getByText('Review before saving for future Sessions.',{exact:true});
+  const caption=await typography(reviewGuidance);
+  assert.equal(caption.fontFamily,studioFont);
+  assert.ok(parseFloat(caption.fontSize)<parseFloat(readingText.fontSize));
+  for(const control of [card.getByRole('heading'),card.getByRole('button',{name:'Confirm and save'})]){
+    assert.equal((await typography(control)).fontFamily,studioFont);
+  }
+  observed.typography={readingText,caption};
   assert.equal(await reviewGuidance.count(),1);
   assert.ok((await proposalText(card).boundingBox()).y<(await reviewGuidance.boundingBox()).y);
   observed.cardGuidanceContrast=await contrast(reviewGuidance,'.memory-confirmation');
@@ -221,6 +240,7 @@ try {
   await draft.waitFor();
   assert.equal(await focused(draft),true);
   assert.equal(await draft.inputValue(),exact);
+  assert.deepEqual(await typography(draft),readingText);
   observed.confirmationContrast=await contrast(draft);
   assert.ok(observed.confirmationContrast>=4.5,'Draft field contrast: '+observed.confirmationContrast);
   assert.match(exact,/(three|3).{0,35}bullet/i);
@@ -242,8 +262,10 @@ try {
   observed.save=confirmed.receipt;
   await confirmedText(card).waitFor();
   assert.equal(await confirmedText(card).textContent(),exact);
+  assert.deepEqual(await typography(confirmedText(card)),readingText);
   const savedBadge=card.getByRole('status').filter({hasText:'Saved'});
   assert.equal(await savedBadge.count(),1);
+  assert.equal((await typography(savedBadge)).fontFamily,studioFont);
   observed.cardSavedContrast=await contrast(savedBadge);
   assert.ok(observed.cardSavedContrast>=4.5,'Saved badge contrast: '+observed.cardSavedContrast);
   assert.equal(await card.getByRole('heading',{name:'Memory proposal',exact:true}).count(),0);
@@ -268,6 +290,9 @@ try {
   await runViaSession();
   await memoryRegion().getByText('1 memory admitted',{exact:true}).waitFor();
   await memoryRegion().getByText(exact,{exact:true}).waitFor();
+  assert.deepEqual(await typography(memoryRegion().getByText(exact,{exact:true})),readingText);
+  const runReply=page.locator('.run-turn [data-participant="assistant"] .vict-ai-markdown li').first();
+  assert.deepEqual(await typography(runReply),readingText);
   await capture('memory-run-recall',memoryRegion().getByRole('heading',{name:'Saved memory'}));
   if(!early){
     await task('Agents').click();
@@ -291,7 +316,11 @@ try {
     await list.getByText(exact,{exact:true}).waitFor();
     await list.getByRole('button',{name:'Correct memory'}).click();
     let dialog=page.getByRole('dialog',{name:'Correct saved memory'});
-    await dialog.getByRole('textbox',{name:'Corrected memory'}).fill(correctedText);
+    const correctionEditor=dialog.getByRole('textbox',{name:'Corrected memory'});
+    assert.deepEqual(await typography(list.getByText(exact,{exact:true})),readingText);
+    assert.deepEqual(await typography(correctionEditor),readingText);
+    assert.equal((await typography(dialog.getByRole('heading'))).fontFamily,studioFont);
+    await correctionEditor.fill(correctedText);
     const corrected=await route('memory/correct',()=>dialog.getByRole('button',{name:'Save correction'}).click());
     assert.equal(corrected.receipt.revision,2);
     assert.equal(corrected.memory.memory.content,correctedText);
@@ -475,6 +504,8 @@ try {
       const narrowRun=await send(narrowSession,'Remember that narrow notes use action verbs.','narrowProposal');
       const narrow=await attached(narrowRun.id);
       const narrowCorrect=narrow.getByRole('button',{name:'Correct',exact:true});
+      assert.deepEqual(await typography(proposalText(narrow)),readingText);
+      assert.deepEqual(await typography(page.getByRole('textbox',{name:'Message',exact:true})),readingText);
       observed.narrowComposerContrast=await contrast(page.getByRole('textbox',{name:'Message',exact:true}),'.vict-ai-composer');
       assert.ok(observed.narrowComposerContrast>=4.5,'Narrow composer contrast: '+observed.narrowComposerContrast);
       const bounds=await narrow.boundingBox();
@@ -486,6 +517,7 @@ try {
       const narrowEditor=narrow.getByRole('textbox',{name:'Memory to save'});
       await narrowEditor.waitFor();
       assert.equal(await focused(narrowEditor),true);
+      assert.deepEqual(await typography(narrowEditor),readingText);
       await capture('memory-narrow-editor',narrow);
       await narrowEditor.fill('é'.repeat(513));
       const narrowConfirm=narrow.getByRole('button',{name:'Confirm and save'});
