@@ -1,5 +1,17 @@
 # TORI handoff
 
+## Directive Foundation implementation
+
+Radzi accepted TORI-008's probe investigation and directs the [amended contract](docs/implementation/DIRECTIVE-FOUNDATION.md) to be pinned in a separate implementation ticket. Start from the exact contract commit recorded in Work on `codex/tori-directive-foundation`. Its prepared parent is `6a712af2f60dd040214a6f1b1662d631157f9c1d`, containing the accepted probe evidence above unchanged product `fe25266c098840d98cdfa70bd5e4dcbf8a8f7d1d`. Memory baseline is `d49bedf362d3521bcbf714bc6be7a04b34289bb7`; lock blob is `746b69fbefb4a9123029f54ab4ca47a00aaa5310`. Acceptance uses Windows/Node 22.13.1 and the existing pinned VICT/Mastra archives.
+
+The same local Windows stage agent may build; use a fresh independent verifier for the exact candidate. Read [AGENTS](AGENTS.md), [STATE](STATE.md), the [owner decision](docs/governance/DECISIONS.md#directive-foundation-implementation-contract--13-november-2026), the Work handoff and [protocol](docs/governance/ROLLADICE-WORK.md). Check current runs and preserve concurrent work, previews and user data. Claim only the new implementation assignment when launched. Ticket preparation alone starts no worker.
+
+First map cancellation ownership, source provenance and deployment startup configuration; classify new values under [Canvas is the code](AGENTS.md#canvas-is-the-code). Build one optional binding, exact policy activation, independent interpretation and a Float confirmation card; offer an early preview. Use the accepted 8,192-byte history/22-second defaults as editable pinned policy. Select and prove the documented A/B/C reconciliation before offering an interpretation deadline that exceeds the old 90 s host timeout. Raise and record output allowance on the same Coding model/route, capture finish reason, and eliminate the English/Malay recall misclassification during implementation qualification. There is no separate pre-implementation recognition recheck gate.
+
+Complete retention deployment configuration, no-regression/repair evidence, compatibility and Stop/confirmation boundaries, the Assembly selector repair, full Windows suites/build and installed-consumer proof. Every slice, including this one, delivers a constants-classification inventory. Node-family work owns the four deferred memory controls; broad UI redesign, observer/Stack, grants, the snapshot fork and dependency upgrades are outside this slice. The accepted quiet UI remains the reference.
+
+Return exact candidate/verifier pins, the selected deadline range, effective settings, public Run/receipt evidence, actual draft table and runnable owner walkthrough in Work Review. Radzi accepts the product. The independent Run Visibility and Sessions copy tracks are not started or changed by this handoff.
+
 ## V1c Background Foundation
 
 Start the separate **V1c — Background Foundation** ticket in Rolladice Work on `codex/tori-v1c-background-foundation`. Read the [accepted contract](docs/implementation/BACKGROUND-FOUNDATION.md) at `025be4d05455d6d9a3606f7202a73cc65a34dcf8` and the [Work protocol](docs/governance/ROLLADICE-WORK.md). The accepted TORI-006 product is `d49bedf362d3521bcbf714bc6be7a04b34289bb7`, with evidence at `9873f93db1ceea87dfbead6283afd88f5b1b71a3`.

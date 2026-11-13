@@ -4,6 +4,22 @@ Read [STATE.md](STATE.md), [HANDOFF.md](HANDOFF.md), and the referenced stage be
 
 ## Product rules
 
+### Canvas is the code
+
+Canvas is the code. Traditional agent building fixes behavior in source: triggers in grammars, thresholds in constants, limits as literals. In TORI, that power belongs on the authoring surface. Wiring and editing on canvas is how agent behavior is programmed; source code implements the machinery but must not own decisions that belong to composition. Every hardcoded value is a decision made without the owner — a literal in a source file is a defect against this doctrine unless it is deliberately classified.
+
+Every value, trigger, limit and behavior must belong to one of three layers:
+
+1. **Knobs** — canvas-authorable, per-agent policy answering how much, how long or which, bounded by governed ranges. Examples: interpretation transcript budget and deadline, memory admission budget, record cap, proposal lifetime, sensitivity and memory window.
+2. **Governed constants** — mechanics, enforcement and safety bounds that must not bend per agent, changed only by an owner-accepted contract amendment. Examples: once-only writes, schema guards, knob bound ranges and deadline-shorter-than-proposal-lifetime.
+3. **Composition** — authority and capability existence. A capability fires because it is wired and activated, never because code says so. Wiring is consent; activation is the grant; nothing creates authority by itself. The host still enforces current authorization, and protected memory writes still require exact human confirmation.
+
+The standing test for any new constant, setting or behavior is: **which layer is this?** “None — it is a literal in source” is not an answer. Every slice ships a constants-classification pass covering new values, their source, owner, surface and enforcement evidence before merge. Existing unclassified literals stay tracked to their owning slices; recording the doctrine does not authorize an unlimited retrofit.
+
+**Explicit deployment ownership:** store retention is a deployment-level how-long setting, not agent behavior. Its knobs live in server deployment configuration rather than canvas; the installed store's accepted ranges and validation are governed. This is the owner-specified configuration-scope exception, not a fourth authority layer.
+
+The [13 November doctrine decision](docs/governance/DECISIONS.md#canvas-as-code-doctrine--13-november-2026) and [constants inventory](docs/governance/DECISIONS.md#memory-node-family-constants-inventory--13-november-2026) assign legacy findings. [Directive Foundation](docs/implementation/DIRECTIVE-FOUNDATION.md#binding-node-configuration) owns its deadline/budget knobs, host-deadline reconciliation and deployment retention path. The memory node-family slice owns admission budget, record cap, legacy draft context and proposal lifetime. That slice must restate Directive-recognition versus Memory-Policy ownership together when exposing them.
+
 - Apply the adopted [Node & Edge Foundation](docs/specs/NODE-EDGE-FOUNDATION.md). Preserve resource/invocation identities and shared form/node values; allow incomplete drafts to save, and require readiness for activation/execution. Six edge meanings are explicit. U0 partial-execution interactions are labelled simulations; live Run Node/To/From require safe engine/adapter support and never automatically replay protected actions. Prove native mapping in G0 and fixtures A–C in U0 before claiming those criteria.
 
 - Build the actual independent TORI Studio and reusable TORI capabilities. Follow [Foundation](docs/specs/FOUNDATION.md), [Architecture](docs/specs/ARCHITECTURE.md), and [Contracts](docs/specs/CONTRACTS.md).
