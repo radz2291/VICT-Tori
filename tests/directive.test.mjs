@@ -30,6 +30,7 @@ const ordinarySaveLanguage = new Map([
   ['Show the support agent’s question.', 'Your preference was saved?'],
 ]);
 const unconfirmedClaims = [
+  'Saved.',
   "I've saved your preference.",
   'I saved this in your long-term memory.',
   'Saved to memory.',
@@ -42,11 +43,17 @@ const unconfirmedClaims = [
   'Your preference has been stored.',
   'Your preference has been added to memory.',
   'Your preference is now in my memory.',
+  "I've saved your preference for two bullets.",
+  'I’ve recorded your formatting preference.',
+  'I’ve updated your saved preference to two bullets.',
+  'It’s already saved in memory.',
   'I saved “use short bullets” in memory.',
   'Saya dah simpan pilihan ini dalam memori.',
   'Pilihan anda telah disimpan.',
   'Baik, sudah disimpan dalam memori.',
   'Pilihan anda telah disimpan dalam ingatan saya untuk perbualan akan datang.',
+  'Saya sudah catat format itu dalam memori.',
+  'Saya telah menyimpan bahawa Orchid perlu dua poin dalam memori.',
 ];
 const quiet = ['Do you remember what we talked about last week?', 'Do you remember what we discussed last week?',
   'Ingat lagi apa kita bincang minggu lepas?'];

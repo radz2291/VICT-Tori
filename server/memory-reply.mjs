@@ -7,6 +7,8 @@ const modifiers=String.raw`(?:(?:just|now|successfully|already|permanently)\s+)*
 const subject=String.raw`(?:this|that|it|preference|memory|reminder|request|note)`;
 const state=String.raw`(?:['’]s|\s+(?:is|was|has\s+been|had\s+been|got))\s+`;
 const memoryObject=String.raw`(?:(?:your|my|our|the|this|that|a|an)\s+)?(?:(?:saved|standing|persistent|permanent|long[- ]term)\s+)?(?:memor(?:y|ies)|preferences?)\b`;
+const preferenceSubject=String.raw`(?:your|the|this|that)\s+(?:saved\s+|standing\s+)?(?:[\p{L}-]+\s+)*preferences?`;
+const preferenceDetail=String.raw`(?:\s+for\s+[^.!?;\n]+)?`;
 const speaker=String.raw`(?:i|we)(?:['’]ve|\s+have)?\s+${modifiers}`;
 const effect=String.raw`(?:saved|stored|memorized|persisted|updated|forgotten|deleted)`;
 const sentenceEnd=String.raw`(?=\s*(?:[.!;]|$))`;
@@ -19,12 +21,16 @@ const quotation=/(?<![\p{L}\p{N}])'[^'\n]*'(?![\p{L}\p{N}])|"(?:\\.|[^"\\])*"|�
 const attributedQuotation=/(?:\b(?:example|documentation|sample|quotation|phrase|contoh|petikan)\b|\b(?:says?|reads?|wrote|said)\s*:?)\s*[^.!?\n]*$/iu;
 const explicitClaims=[
   new RegExp(String.raw`^(?:memory|preferences?)\s+${effect}${futureUse}${sentenceEnd}`,'iu'),
+  new RegExp(String.raw`^(?:saved|stored)${sentenceEnd}`,'iu'),
   new RegExp(String.raw`^(?:saved|stored|added)\s+${memoryPlace}${futureUse}${sentenceEnd}`,'iu'),
   new RegExp(String.raw`^${speaker}(?:saved|stored|memorized|persisted)\s+(?:this|that|it)(?:\s+as\s+(?:a|your|the)\s+(?:saved|standing)\s+preference)?${futureUse}${sentenceEnd}`,'iu'),
   new RegExp(String.raw`^(?:${speaker})?(?:saved|stored|memorized|persisted|updated|forgot|deleted)\s+${memoryObject}${futureUse}${sentenceEnd}`,'iu'),
+  new RegExp(String.raw`^${speaker}(?:saved|stored|recorded)\s+${preferenceSubject}${preferenceDetail}${sentenceEnd}`,'iu'),
+  new RegExp(String.raw`^${speaker}updated\s+${preferenceSubject}(?:\s+to\s+[^.!?;\n]+)?${sentenceEnd}`,'iu'),
   new RegExp(String.raw`^${speaker}(?:saved|stored|put|added|recorded|logged)\s+(?:[^.?!\n]+?\s+)?${memoryPlace}${futureUse}${sentenceEnd}`,'iu'),
-  new RegExp(String.raw`^(?:your|the)\s+(?:memory|preferences?)${state}${modifiers}(?:${effect}|retained|added\s+${memoryPlace}|${memoryPlace})${futureUse}${sentenceEnd}`,'iu'),
-  new RegExp(String.raw`^(?:saya|kami|aku)\s+(?:dah|sudah|telah|baru\s+sahaja)\s+(?:menyimpan|simpan)\s+(?:${malayObject}(?:\s+${malayPlace})?|${malayPlace})${malayFuture}${sentenceEnd}`,'iu'),
+  new RegExp(String.raw`^(?:(?:your|the)\s+(?:memory|preferences?)|this|that|it)${state}${modifiers}(?:${effect}|retained)(?:\s+${memoryPlace})?${futureUse}${sentenceEnd}`,'iu'),
+  new RegExp(String.raw`^(?:your|the)\s+(?:memory|preferences?)${state}${modifiers}(?:added\s+${memoryPlace}|${memoryPlace})${futureUse}${sentenceEnd}`,'iu'),
+  new RegExp(String.raw`^(?:saya|kami|aku)\s+(?:dah|sudah|telah|baru\s+sahaja)\s+(?:menyimpan|simpan|mencatat|catat)\s+(?:${malayObject}(?:\s+${malayPlace})?|(?:[^.!?;\n]+\s+)?${malayPlace})${malayFuture}${sentenceEnd}`,'iu'),
   new RegExp(String.raw`^(?:${malayObject}\s+)?(?:(?:dah|sudah|telah)\s+)?disimpan(?:\s+${malayPlace})?${malayFuture}${sentenceEnd}`,'iu'),
 ];
 const claimPatterns=[
