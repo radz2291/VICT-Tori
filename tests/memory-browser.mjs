@@ -409,6 +409,10 @@ try {
       },comparison.id);
       await capture('memory-card-pair');
       await route('memory/dismiss',()=>comparisonCard.getByRole('button',{name:'Dismiss'}).click());
+      await compactSaved.getByRole('button',{name:'Forget memory'}).click();
+      const comparisonForget=page.getByRole('dialog',{name:'Forget saved memory'});
+      await route('memory/forget',()=>comparisonForget.getByRole('button',{name:'Forget',exact:true}).click());
+      await compactSaved.getByText('Forgotten',{exact:true}).waitFor();
       await page.setViewportSize(observed.desktop);
       const vocabulary=await chooseSession();
       for(const [index,prompt] of [
