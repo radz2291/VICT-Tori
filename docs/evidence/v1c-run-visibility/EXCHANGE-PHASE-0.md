@@ -34,3 +34,5 @@ Installed surfaces: `dist/agent/agent.d.ts` (`network`, `sendSignal`, `queueMess
 | Evidence | Reuse existing stream and Run evidence. Add typed exchange receipt correlation outside `vict.agent-stream@1` with safe content/status and exact reservation and disposition. |
 
 The candidate path still requires conformance. A raw Mastra pass cannot establish that the installed VICT adapter shares a ledger, issues the authority handle or persists the receipt. Any adapter change remains a separate owner decision.
+
+[Selected-path conformance and proposed adapter change](EXCHANGE-CONFORMANCE.md).
