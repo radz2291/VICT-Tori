@@ -1,0 +1,131 @@
+{
+  "fixture": true,
+  "chromium": "153.0.8010.12",
+  "activation": {
+    "definition": "tori-local-agent",
+    "version": "v1_94156162d40c56b190747947e59aee98f7bcb15ab0fbee307cb9a3c1a16b26ad",
+    "revision": "35da1292-69ed-477a-885f-3af80cd86e1b",
+    "number": 2,
+    "name": "Quellight",
+    "route": "coding",
+    "authoring": false,
+    "workspaceAuthoring": false,
+    "savedMemory": true,
+    "memoryPolicy": {
+      "schema": "tori.memory-policy@1",
+      "artifact": {
+        "id": "tori-conversation-memory",
+        "revision": "recent-100@1+governed@1"
+      },
+      "savedMemory": "governed@1",
+      "organizer": "off"
+    },
+    "directive": {
+      "status": "bound",
+      "revision": "feddb4e3aae4fe4e6d5f3150fe700dbfaa988ba5efde64d3515616b2a0331de5",
+      "policy": {
+        "schema": "tori.directive-policy@1",
+        "binding": "directive",
+        "primitive": "Keep",
+        "action": "save-preference-or-fact",
+        "origin": "operator",
+        "location": "direct-turn",
+        "applicability": "turn-start-memory-admission",
+        "review": "Float",
+        "scope": "trusted-actor-project-agent",
+        "reasoningEffort": "low",
+        "name": "Standing Directive",
+        "recognition": "Recognize an affirmative request in the current operator message to retain a specific fact or preference for future conversations. Use authorized earlier exchanges only to resolve that request.",
+        "tuning": "off",
+        "sensitivity": "cautious",
+        "historyBytes": 4096,
+        "deadlineMs": 120000,
+        "outputTokens": 1536,
+        "model": "glm-5.3-flash",
+        "route": "coding"
+      }
+    },
+    "execution": {
+      "maxSteps": 1,
+      "maxToolCalls": 0,
+      "maxRetries": 0
+    }
+  },
+  "receipt": {
+    "schema": "tori.memory.receipt@1",
+    "capability": "tori.memory.save",
+    "capabilityRevision": "1",
+    "operation": "f9dedc51-d0ac-4c74-9e2a-9e51fed13a44",
+    "action": "save",
+    "outcome": "saved",
+    "scope": {
+      "actor": "tori-local-owner",
+      "project": "a93e3a04-b9aa-4d3f-86ed-7a6e373d7196",
+      "agent": "tori-local-agent"
+    },
+    "memoryId": "2d47c4ed-e93b-4e3a-bbde-e9c68545d3f0",
+    "revision": 1,
+    "source": {
+      "session": "a241dc78-159f-4de2-b825-a2018a772686",
+      "message": "1e5b139b-07a7-4b24-b033-4202601c08c2-user"
+    },
+    "savedByRun": "1e5b139b-07a7-4b24-b033-4202601c08c2",
+    "contextBasis": [
+      "1e5b139b-07a7-4b24-b033-4202601c08c2-user"
+    ],
+    "operatorSession": "a241dc78-159f-4de2-b825-a2018a772686",
+    "at": "2026-11-14T16:48:17.386Z",
+    "directive": {
+      "policyRevision": "feddb4e3aae4fe4e6d5f3150fe700dbfaa988ba5efde64d3515616b2a0331de5",
+      "proposalRevision": 2
+    }
+  },
+  "nextSendCompleted": "59d188e3-9e33-4362-811f-1b20f62dfbca",
+  "sameSession": {
+    "id": "0c776fc5-9c26-4824-8245-577d3a8b8d27",
+    "answer": "- Design is approved.\n- Implementation is in progress. The demo is Friday.",
+    "admitted": {
+      "id": "2d47c4ed-e93b-4e3a-bbde-e9c68545d3f0",
+      "revision": 1,
+      "source": {
+        "session": "a241dc78-159f-4de2-b825-a2018a772686",
+        "message": "1e5b139b-07a7-4b24-b033-4202601c08c2-user"
+      },
+      "savedByRun": "1e5b139b-07a7-4b24-b033-4202601c08c2",
+      "contextBasis": [
+        "1e5b139b-07a7-4b24-b033-4202601c08c2-user"
+      ],
+      "createdAt": "2026-11-14T16:48:17.386Z",
+      "updatedAt": "2026-11-14T16:48:17.386Z",
+      "ageMs": 212,
+      "lastUsedAt": "2026-11-14T16:48:17.598Z"
+    }
+  },
+  "stopped": "91faa80c-b1da-4f04-8f46-b45e991877aa",
+  "quiet": [
+    "0ec14a2c-bc7f-474d-a4af-36c9bfe2ad02",
+    "82aa83bd-3057-415e-8e6b-921a1e86c9d0",
+    "a92adbd4-18d9-434a-84ac-40db6ddd9329"
+  ],
+  "interrupted": "af91c0f5-09f4-4483-8fee-8cfb5eec77dc",
+  "recall": {
+    "id": "8fc50bb9-57bd-470a-ad78-cbe6e4ceb99b",
+    "answer": "- Design is approved.\n- Implementation is in progress. The demo is Friday.",
+    "admitted": {
+      "id": "2d47c4ed-e93b-4e3a-bbde-e9c68545d3f0",
+      "revision": 1,
+      "source": {
+        "session": "a241dc78-159f-4de2-b825-a2018a772686",
+        "message": "1e5b139b-07a7-4b24-b033-4202601c08c2-user"
+      },
+      "savedByRun": "1e5b139b-07a7-4b24-b033-4202601c08c2",
+      "contextBasis": [
+        "1e5b139b-07a7-4b24-b033-4202601c08c2-user"
+      ],
+      "createdAt": "2026-11-14T16:48:17.386Z",
+      "updatedAt": "2026-11-14T16:48:17.386Z",
+      "ageMs": 22227,
+      "lastUsedAt": "2026-11-14T16:48:39.613Z"
+    }
+  }
+}

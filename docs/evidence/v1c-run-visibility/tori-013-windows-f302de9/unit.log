@@ -1,0 +1,2620 @@
+TAP version 13
+# (node:2284) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# 12:30:01 am [vite] (client) Forced re-optimization of dependencies
+# Upstream LLM API error {
+#   error: APICallError [AI_APICallError]: Z.AI rejected the request.
+#       at fetch (file:///C:/Users/RZ1/Desktop/RZ/261114-TORI013-f302de9/server/studio.mjs:201:15)
+#       at async postToApi (file:///C:/Users/RZ1/Desktop/RZ/261114-TORI013-f302de9/node_modules/@ai-sdk/provider-utils/dist/index.mjs:2167:22)
+#       at async OpenAICompatibleChatLanguageModel.doStream (file:///C:/Users/RZ1/Desktop/RZ/261114-TORI013-f302de9/node_modules/@ai-sdk/openai-compatible/dist/index.mjs:508:50)
+#       at async AISDKV6LanguageModel.doStream (file:///C:/Users/RZ1/Desktop/RZ/261114-TORI013-f302de9/node_modules/@mastra/core/dist/llm-DNEWp-X9.js:116:10) {
+#     cause: undefined,
+#     url: 'https://api.z.ai/api/coding/paas/v4/chat/completions',
+#     requestBodyValues: undefined,
+#     statusCode: 429,
+#     responseHeaders: undefined,
+#     responseBody: undefined,
+#     isRetryable: true,
+#     data: undefined,
+#     [Symbol(vercel.ai.error)]: true,
+#     [Symbol(vercel.ai.error.AI_APICallError)]: true
+#   },
+#   runId: '1476f399-27d8-4968-b1f4-f19bff360473',
+#   provider: 'zai.chat',
+#   modelId: 'glm-5.3-flash'
+# }
+# Upstream LLM API error {
+#   error: APICallError [AI_APICallError]: Z.AI rejected the request.
+#       at fetch (file:///C:/Users/RZ1/Desktop/RZ/261114-TORI013-f302de9/server/studio.mjs:201:15)
+#       at async postToApi (file:///C:/Users/RZ1/Desktop/RZ/261114-TORI013-f302de9/node_modules/@ai-sdk/provider-utils/dist/index.mjs:2167:22)
+#       at async OpenAICompatibleChatLanguageModel.doStream (file:///C:/Users/RZ1/Desktop/RZ/261114-TORI013-f302de9/node_modules/@ai-sdk/openai-compatible/dist/index.mjs:508:50)
+#       at async AISDKV6LanguageModel.doStream (file:///C:/Users/RZ1/Desktop/RZ/261114-TORI013-f302de9/node_modules/@mastra/core/dist/llm-DNEWp-X9.js:116:10) {
+#     cause: undefined,
+#     url: 'https://api.z.ai/api/coding/paas/v4/chat/completions',
+#     requestBodyValues: undefined,
+#     statusCode: 429,
+#     responseHeaders: undefined,
+#     responseBody: undefined,
+#     isRetryable: true,
+#     data: undefined,
+#     [Symbol(vercel.ai.error)]: true,
+#     [Symbol(vercel.ai.error.AI_APICallError)]: true
+#   },
+#   runId: 'a009db85-49dd-4de1-aaf9-a677f06bc5ec',
+#   provider: 'zai.chat',
+#   modelId: 'glm-5.3-flash'
+# }
+# Upstream LLM API error {
+#   error: APICallError [AI_APICallError]: Z.AI rejected the request.
+#       at fetch (file:///C:/Users/RZ1/Desktop/RZ/261114-TORI013-f302de9/server/studio.mjs:201:15)
+#       at async postToApi (file:///C:/Users/RZ1/Desktop/RZ/261114-TORI013-f302de9/node_modules/@ai-sdk/provider-utils/dist/index.mjs:2167:22)
+#       at async OpenAICompatibleChatLanguageModel.doStream (file:///C:/Users/RZ1/Desktop/RZ/261114-TORI013-f302de9/node_modules/@ai-sdk/openai-compatible/dist/index.mjs:508:50)
+#       at async AISDKV6LanguageModel.doStream (file:///C:/Users/RZ1/Desktop/RZ/261114-TORI013-f302de9/node_modules/@mastra/core/dist/llm-DNEWp-X9.js:116:10) {
+#     cause: undefined,
+#     url: 'https://api.z.ai/api/coding/paas/v4/chat/completions',
+#     requestBodyValues: undefined,
+#     statusCode: 429,
+#     responseHeaders: undefined,
+#     responseBody: undefined,
+#     isRetryable: true,
+#     data: undefined,
+#     [Symbol(vercel.ai.error)]: true,
+#     [Symbol(vercel.ai.error.AI_APICallError)]: true
+#   },
+#   runId: '5d4a2332-0b08-460e-bcf5-1dc892b85c08',
+#   provider: 'zai.chat',
+#   modelId: 'glm-5.3-flash'
+# }
+# Subtest: A2 sampling, retry limit, and deadline
+ok 1 - A2 sampling, retry limit, and deadline
+  ---
+  duration_ms: 33571.4609
+  ...
+# (node:13384) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# {"fixture":"protected in-memory counter","receipts":[{"decision":"approved","turnId":"42baa204-b74c-4568-9677-46d02310a21f","approvalId":"cf98f933-4c05-468e-8928-cfaf40a1bead","invocationId":"82abacdf-f689-47a2-b935-2a0b0b06e6ab","effects":1,"status":"completed","events":["tool.requested","tool.started","tool.awaiting_approval","tool.completed"]},{"decision":"declined","turnId":"11f36642-fcea-4e01-a4f5-255d780707e2","approvalId":"ba3f11f3-8002-471b-b057-3ddafd848ce2","invocationId":"82079b2f-46da-4b74-8e14-da426fb7c7dd","effects":0,"status":"declined","events":["tool.requested","tool.started","tool.awaiting_approval","tool.failed"]}]}
+# Subtest: a distinct approver can allow or refuse a synthetic protected effect
+ok 2 - a distinct approver can allow or refuse a synthetic protected effect
+  ---
+  duration_ms: 2406.7705
+  ...
+# (node:7776) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# 12:30:42 am [vite] (client) Forced re-optimization of dependencies
+# {"contextReads":3,"governedToolCalls":2,"modelSteps":[2,1],"terminal":["completed","TORI_MODEL_STEP_LIMIT"],"deletion":["application-domain","memory-store"]}
+# Subtest: A3 Studio uses pinned context, scoped memory, and a governed MCP read with a model-step boundary
+ok 3 - A3 Studio uses pinned context, scoped memory, and a governed MCP read with a model-step boundary
+  ---
+  duration_ms: 25952.9793
+  ...
+# Subtest: context refusal never returns content
+ok 4 - context refusal never returns content
+  ---
+  duration_ms: 1.7543
+  ...
+# (node:46940) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# {"valid":"accepted","invalid":"VICT_AGENT_STRUCTURED_OUTPUT_REJECTED","parent":"36b19289-f4c7-4637-8739-25a1ef0964f2","child":"13524bf2-c704-42cb-bab4-4b56504b85d3","invocation":"9b54f8f2-88ec-4354-a9d2-1177b83368cc","denial":"TORI_CHILD_SCOPE_DENIED"}
+# Subtest: A4 pins the output parser and one governed child, with denial and trace
+ok 5 - A4 pins the output parser and one governed child, with denial and trace
+  ---
+  duration_ms: 9159.0404
+  ...
+# Subtest: parent cancellation reaches the pinned child model and settles the child Run
+ok 6 - parent cancellation reaches the pinned child model and settles the child Run
+  ---
+  duration_ms: 666.6607
+  ...
+# (node:39960) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: typed links, shared edit and history retain the last valid graph
+ok 7 - typed links, shared edit and history retain the last valid graph
+  ---
+  duration_ms: 4742.5841
+  ...
+# Subtest: output limit upgrades older graphs, rejects wrong wires and checks numeric boundaries
+ok 8 - output limit upgrades older graphs, rejects wrong wires and checks numeric boundaries
+  ---
+  duration_ms: 51.9844
+  ...
+# Subtest: a legacy workspace authoring graph keeps its budget and can activate with a different policy
+ok 9 - a legacy workspace authoring graph keeps its budget and can activate with a different policy
+  ---
+  duration_ms: 100.5531
+  ...
+# Subtest: save incomplete, reject stale writes, pin and restore activation after restart
+ok 10 - save incomplete, reject stale writes, pin and restore activation after restart
+  ---
+  duration_ms: 179.2985
+  ...
+# (node:26568) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: authoring restores completed history and a prior test after a deadline and restart
+ok 11 - authoring restores completed history and a prior test after a deadline and restart
+  ---
+  duration_ms: 18330.5062
+  ...
+# (node:34052) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# (node:53520) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: all 16 O-05 cells retain authoritative identities without replay
+    # Subtest: tab-close / in-flight turn
+    ok 1 - tab-close / in-flight turn
+      ---
+      duration_ms: 13016.1723
+      ...
+    # {"fault":"tab-close","kind":"in-flight turn","session":"9b512978-7245-4821-bb16-66bbdbcbe919","activation":"v1_b5371cfd1ac8d1aa2fec3feee22064c358ff3ac10a7d372f0432f47615e55cd7","run":"ca2fbc3f-37e6-4047-8d54-009bf4aff629","owner":"16a733bc-a062-4f90-a80d-28d477e7b505","firstPid":53520,"currentPid":53520,"rejoined":"Running","terminal":"Finished","stream":"f6d44248-2a98-4975-a5a5-9cb076d8d4d5"}
+# (node:44096) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+# (Use `node --trace-warnings ...` to show where the warning was created)
+    # Subtest: tab-close / background Run
+    ok 2 - tab-close / background Run
+      ---
+      duration_ms: 13001.7319
+      ...
+    # {"fault":"tab-close","kind":"background Run","run":"54d8d1db-3de2-4a9a-ba50-c51a880a096b","session":"bc51f1d7-4644-4114-9a6e-54ed485b4da1","activation":"v1_69d645b894ab505b482e7e5873e957910ff1ca910fecb7ca7d5bb64d81c74ffb","streamId":"ec725ee8-0212-40da-8c5a-ded05a64d278","owner":"18b51690-5c31-4342-9a6f-72106492278b","firstPid":44096,"currentPid":44096,"rejoined":"Running","terminal":"Finished","stream":"ec725ee8-0212-40da-8c5a-ded05a64d278"}
+# (node:53520) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+# (Use `node --trace-warnings ...` to show where the warning was created)
+    # Subtest: tab-close / memory save
+    ok 3 - tab-close / memory save
+      ---
+      duration_ms: 24732.9798
+      ...
+    # {"fault":"tab-close","kind":"memory save","run":"85ef7ab3-a9b0-4def-aae3-c9eddcda742d","operation":"d126bf21-a621-4843-8725-0b33ac59753b","firstPid":53520,"currentPid":53520,"rejoined":"Running","terminal":"Finished","receipt":"fdea3e94-03ef-4c66-a28c-ed0021d9173a","effects":1}
+# (node:35520) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+# (Use `node --trace-warnings ...` to show where the warning was created)
+    # Subtest: tab-close / pending child
+    ok 4 - tab-close / pending child
+      ---
+      duration_ms: 21997.7759
+      ...
+    # {"fault":"tab-close","kind":"pending child","run":"e3bfea2a-378b-41d6-833d-9b0e357c9331","session":"6f047409-88cc-4ac8-beb6-b64d1e75928c","activation":"v1_8b17a86ec10fa179ce7a79d00465fe2ae2239523b5d7f929619c307549491129","streamId":"8e26ee4c-d007-44f8-b98c-089993796232","owner":"a3f10921-95df-4e23-a760-0d6a0bfc955a","firstPid":35520,"currentPid":35520,"rejoined":"Running","terminal":"Finished","stream":"8e26ee4c-d007-44f8-b98c-089993796232","child":"9dcf28c9-c072-4e54-ba76-e0d9c008637b","invocation":"ccf7f4db-ed4f-4a90-8dc3-d3ffba80ce95","operation":"e3bfea2a-378b-41d6-833d-9b0e357c9331:synthetic-delegation:tori.delegate.saved-agent:1:65897e82bb5aabd1993e6563aae879ef5c32a1e53afcfde8fdac5b1289e591e9"}
+# (node:42200) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+# (Use `node --trace-warnings ...` to show where the warning was created)
+    # Subtest: transport-drop / in-flight turn
+    ok 5 - transport-drop / in-flight turn
+      ---
+      duration_ms: 8810.6074
+      ...
+    # {"fault":"transport-drop","kind":"in-flight turn","session":"70d4ffc6-39fe-441a-b7ce-c6d21f0a9548","activation":"v1_d8367ec5efa241a0a076b373301f6b09d4a8f1f87cad3ad9849d957634cdff2b","run":"d5343558-9efc-4de9-9f80-327dadb8f386","owner":"31dfe3e1-f1eb-4cc1-95a0-8eb9e0942003","firstPid":42200,"currentPid":42200,"rejoined":"Running","terminal":"Finished","stream":"00e57352-0877-4927-b59e-1f22d2be1a9e"}
+# (node:49416) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+# (Use `node --trace-warnings ...` to show where the warning was created)
+    # Subtest: transport-drop / background Run
+    ok 6 - transport-drop / background Run
+      ---
+      duration_ms: 8524.6105
+      ...
+    # {"fault":"transport-drop","kind":"background Run","run":"dd043461-3ffe-408b-9ca1-ae9f85addf1d","session":"985de2cd-e2ea-4f0d-a053-b35998855fab","activation":"v1_b54653f5931258c697dae0e4ade1dc7e7839695f15b8680dd80d834988cc98bd","streamId":"722df543-7947-4c51-96ad-f7c0315c712f","owner":"e994f56f-06de-4b73-ac52-e0dd5e579ac7","firstPid":49416,"currentPid":49416,"rejoined":"Running","terminal":"Finished","stream":"722df543-7947-4c51-96ad-f7c0315c712f"}
+# (node:20004) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+# (Use `node --trace-warnings ...` to show where the warning was created)
+    # Subtest: transport-drop / memory save
+    ok 7 - transport-drop / memory save
+      ---
+      duration_ms: 7962.5718
+      ...
+    # {"fault":"transport-drop","kind":"memory save","run":"e4bb23b1-cdfa-4007-b07b-b41abf087182","operation":"4e78efe3-fe5f-4cbb-a057-53ef53c18845","firstPid":20004,"currentPid":20004,"rejoined":"Running","terminal":"Finished","receipt":"191c6add-e5da-4ee3-9065-9f1c98fec95d","effects":1}
+# (node:45708) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+# (Use `node --trace-warnings ...` to show where the warning was created)
+    # Subtest: transport-drop / pending child
+    ok 8 - transport-drop / pending child
+      ---
+      duration_ms: 9342.7547
+      ...
+    # {"fault":"transport-drop","kind":"pending child","run":"6bd0c032-484c-4726-8ddc-c3fb3a256ec6","session":"405b40cd-1497-4923-92c6-df8763eb3561","activation":"v1_0d207b8b7b85054a6268c21103ef830967bf0ac317b804b1cbd5bc524215d2d6","streamId":"16edac30-046f-456f-a2f9-87e2340ed3eb","owner":"88130466-a087-4a2f-8b1e-df7bea742497","firstPid":45708,"currentPid":45708,"rejoined":"Running","terminal":"Finished","stream":"16edac30-046f-456f-a2f9-87e2340ed3eb","child":"b41086c0-7781-4d4a-a441-02589b2c7132","invocation":"fc52a2bf-1442-44ec-ad65-6869cba6eb61","operation":"6bd0c032-484c-4726-8ddc-c3fb3a256ec6:synthetic-delegation:tori.delegate.saved-agent:1:65897e82bb5aabd1993e6563aae879ef5c32a1e53afcfde8fdac5b1289e591e9"}
+# (node:34960) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# (node:35496) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+# (Use `node --trace-warnings ...` to show where the warning was created)
+    # Subtest: process-exit / in-flight turn
+    ok 9 - process-exit / in-flight turn
+      ---
+      duration_ms: 22136.5391
+      ...
+    # {"fault":"process-exit","kind":"in-flight turn","session":"def508d1-7d2e-4386-99f6-e12df5252893","activation":"v1_007f2d1623c1249d20dea041b0a7fce40679010de0a5edeb8f24d866b3094a94","run":"e15b1f10-1230-482f-adf7-b7ffd504cf75","firstPid":34960,"currentPid":35496,"priorOwner":"44ae1413-49ea-4ba1-8fee-f0e7c9f2894b","terminal":"Interrupted","replay":"none","stream":"abc3ad0f-37dd-4b70-9aa6-fb25d82ef90b"}
+# (node:49884) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# (node:17228) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+# (Use `node --trace-warnings ...` to show where the warning was created)
+    # Subtest: process-exit / background Run
+    ok 10 - process-exit / background Run
+      ---
+      duration_ms: 23733.8178
+      ...
+    # {"fault":"process-exit","kind":"background Run","run":"18af01f5-5b69-47d9-a9b6-292bd3c987f7","session":"ee892504-0c23-45af-856c-69443a68ae2e","activation":"v1_70d7d2cb1097e9b50596f4e9cff4951d3630bbdecaf9404b2b0d1e448031352e","streamId":"bc6d91ff-e7a9-411d-b24b-31341676eb8e","firstPid":49884,"currentPid":17228,"priorOwner":"d775426f-98eb-477c-98cc-f983f7401e1d","terminal":"Interrupted","replay":"none","stream":"bc6d91ff-e7a9-411d-b24b-31341676eb8e"}
+# (node:48948) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# (node:43632) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+# (Use `node --trace-warnings ...` to show where the warning was created)
+    # Subtest: process-exit / memory save
+    ok 11 - process-exit / memory save
+      ---
+      duration_ms: 23770.1849
+      ...
+    # {"fault":"process-exit","kind":"memory save","run":"299f195f-e95e-4cb4-aa3c-56a9d3e8df01","operation":"eb37dcc6-5326-4162-b829-7ec432fb63ae","firstPid":48948,"currentPid":43632,"terminal":"Interrupted","reason":"no-commit","effects":0}
+# (node:53220) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# (node:54156) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+# (Use `node --trace-warnings ...` to show where the warning was created)
+    # Subtest: process-exit / pending child
+    ok 12 - process-exit / pending child
+      ---
+      duration_ms: 22230.6571
+      ...
+    # {"fault":"process-exit","kind":"pending child","run":"1f4b0dac-32a8-4a51-b330-b78f1847ae7d","session":"9045794d-6e7a-428e-a35e-8d03ef938e52","activation":"v1_70bba20492a390345ff63880977cc61c563585f3cdf8416a98e00fbe012709dd","streamId":"a3dcc78e-5aae-482d-9e3a-6c385e2c1f3a","firstPid":53220,"currentPid":54156,"priorOwner":"64091f5d-8bc6-4ac9-844b-8c9041252ce0","terminal":"Interrupted","replay":"none","stream":"a3dcc78e-5aae-482d-9e3a-6c385e2c1f3a","child":"1b96a506-f3b7-4b4e-8beb-0dff3e53aff7","invocation":"172c887b-9343-40b6-8c42-4d57e23faa5d","operation":"1f4b0dac-32a8-4a51-b330-b78f1847ae7d:synthetic-delegation:tori.delegate.saved-agent:1:65897e82bb5aabd1993e6563aae879ef5c32a1e53afcfde8fdac5b1289e591e9"}
+# (node:53052) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# (node:48960) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+# (Use `node --trace-warnings ...` to show where the warning was created)
+    # Subtest: cold-reopen / in-flight turn
+    ok 13 - cold-reopen / in-flight turn
+      ---
+      duration_ms: 21246.8307
+      ...
+    # {"fault":"cold-reopen","kind":"in-flight turn","session":"41310e25-ca5e-4bce-8619-48382de61520","activation":"v1_acc863b99b06fc662f5b2088229b04fcace6fcca6abf395f1aa6a62b38cb2fd5","run":"363b6dfa-175e-4cf1-89a3-4df47ea91663","firstPid":53052,"currentPid":48960,"priorOwner":"cb957777-d43f-44e8-8d56-551b00a6b266","terminal":"Interrupted","replay":"none","stream":"3aa40b56-d723-490d-8949-bb3fa56fecc4"}
+# (node:54072) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# (node:15000) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+# (Use `node --trace-warnings ...` to show where the warning was created)
+    # Subtest: cold-reopen / background Run
+    ok 14 - cold-reopen / background Run
+      ---
+      duration_ms: 20616.0115
+      ...
+    # {"fault":"cold-reopen","kind":"background Run","run":"e83d31aa-0b52-4e3f-af91-9584e3111880","session":"657c4ce9-16c3-4bc9-9427-0494b4cc651b","activation":"v1_363bfc1d8590fcfa484aada588c87953a0828d10a21b4d9bdb61011c2931080f","streamId":"c04eb166-d717-40eb-8fa0-44e5b1f228b4","firstPid":54072,"currentPid":15000,"priorOwner":"9bd37d36-2e1e-4f7f-940d-267a954259cd","terminal":"Interrupted","replay":"none","stream":"c04eb166-d717-40eb-8fa0-44e5b1f228b4"}
+# (node:42084) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# (node:23276) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+# (Use `node --trace-warnings ...` to show where the warning was created)
+    # Subtest: cold-reopen / memory save
+    ok 15 - cold-reopen / memory save
+      ---
+      duration_ms: 23151.4021
+      ...
+    # {"fault":"cold-reopen","kind":"memory save","run":"4cc04940-52f6-4b23-a227-663277d3f0e5","operation":"6a4fce7b-821c-4f89-b312-0de45ea47e3e","firstPid":42084,"currentPid":23276,"terminal":"Interrupted","reason":"no-commit","effects":0}
+# (node:45368) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# (node:22360) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+# (Use `node --trace-warnings ...` to show where the warning was created)
+    # Subtest: cold-reopen / pending child
+    ok 16 - cold-reopen / pending child
+      ---
+      duration_ms: 22548.2991
+      ...
+    # {"fault":"cold-reopen","kind":"pending child","run":"851da5a6-2dc9-4cf4-b508-7e8ca68ccee4","session":"eee0ecba-a1ad-452b-baa4-d43e06f6b21e","activation":"v1_cf991b227ae5fdf52bc1eef757bfe96b474f06c46c458f4bb70af9fe3c6b00f3","streamId":"5f99f5a7-21e7-4ba0-b7a6-c1c5bd2f0517","firstPid":45368,"currentPid":22360,"priorOwner":"999b5abb-3f86-4a30-b5ce-7c5bfb589964","terminal":"Interrupted","replay":"none","stream":"5f99f5a7-21e7-4ba0-b7a6-c1c5bd2f0517","child":"7a29612e-1290-459c-9b14-7823490a584f","invocation":"1263902d-c5ac-4780-99f1-eb32b52dd65e","operation":"851da5a6-2dc9-4cf4-b508-7e8ca68ccee4:synthetic-delegation:tori.delegate.saved-agent:1:65897e82bb5aabd1993e6563aae879ef5c32a1e53afcfde8fdac5b1289e591e9"}
+    1..16
+ok 12 - all 16 O-05 cells retain authoritative identities without replay
+  ---
+  duration_ms: 292660.5332
+  ...
+# (node:20300) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# (node:24816) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: memory rollback, commit before acknowledgement, uncertainty and read-only reconciliation
+    # Subtest: crash-in-transaction
+    ok 1 - crash-in-transaction
+      ---
+      duration_ms: 24353.4754
+      ...
+# (node:40860) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# (node:40608) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+# (Use `node --trace-warnings ...` to show where the warning was created)
+    # Subtest: hold-ack
+    ok 2 - hold-ack
+      ---
+      duration_ms: 23820.0371
+      ...
+# (node:33472) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+# (Use `node --trace-warnings ...` to show where the warning was created)
+    # Subtest: hold-save
+    ok 3 - hold-save
+      ---
+      duration_ms: 14796.306
+      ...
+    1..3
+ok 13 - memory rollback, commit before acknowledgement, uncertainty and read-only reconciliation
+  ---
+  duration_ms: 65555.2141
+  ...
+# {"mode":"crash-in-transaction","run":"161aa93e-5f76-4171-bbec-37a2beb49676","operation":"ab92a267-bbe1-4946-b4c6-1e7f9271943b","ambiguous":"Uncertain","retry":"refused","reconciliation":"saved","receipt":"5e255b73-6f52-4bda-adbf-12d5c3bb9132","effects":1}
+# {"mode":"hold-ack","run":"f367a26a-cd80-4afc-8f0a-0ac509441dda","operation":"c072f6d8-c94a-4c91-9424-464b078ec719","ambiguous":"Uncertain","retry":"refused","reconciliation":"saved","receipt":"fc34a613-e24f-455c-8ce7-4772994a778e","effects":1}
+# {"mode":"hold-save","run":"f78e30b7-dadf-4f66-b026-80c7daa97e7a","operation":"fca1f0b3-240c-4558-a05c-3bdff88cb127","disposition":"interrupted","effects":0}
+# Subtest: cursor projection deduplicates/reorders, flags gaps and preserves authoritative terminal states
+ok 14 - cursor projection deduplicates/reorders, flags gaps and preserves authoritative terminal states
+  ---
+  duration_ms: 1.7103
+  ...
+# Subtest: a second host cannot take ownership; abandoned protected intent stays Uncertain after startup
+ok 15 - a second host cannot take ownership; abandoned protected intent stays Uncertain after startup
+  ---
+  duration_ms: 856.7996
+  ...
+# (node:27784) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: Directive windows count complete UTF-8 records and preserve the current input
+ok 16 - Directive windows count complete UTF-8 records and preserve the current input
+  ---
+  duration_ms: 54.7061
+  ...
+# Subtest: server retention settings resolve on startup with exact supported bounds
+ok 17 - server retention settings resolve on startup with exact supported bounds
+  ---
+  duration_ms: 2.0778
+  ...
+# Subtest: startup prunes expired Mastra data using the resolved deployment policy
+ok 18 - startup prunes expired Mastra data using the resolved deployment policy
+  ---
+  duration_ms: 7304.7345
+  ...
+# Error in LLM execution {
+#   error: Error: TORI_MEMORY_REPLY_UNCONFIRMED
+#       at Object.flush (file:///C:/Users/RZ1/Desktop/RZ/261114-TORI013-f302de9/server/provider-stream.mjs:46:65)
+#       at invokePromiseCallback (node:internal/webstreams/util:172:10)
+#       at Object.<anonymous> (node:internal/webstreams/util:177:23)
+#       at transformStreamDefaultSinkCloseAlgorithm (node:internal/webstreams/transformstream:621:43)
+#       at node:internal/webstreams/transformstream:379:11
+#       at writableStreamDefaultControllerProcessClose (node:internal/webstreams/writablestream:1162:28)
+#       at writableStreamDefaultControllerAdvanceQueueIfNeeded (node:internal/webstreams/writablestream:1242:5)
+#       at writableStreamDefaultControllerClose (node:internal/webstreams/writablestream:1209:3)
+#       at writableStreamClose (node:internal/webstreams/writablestream:722:3)
+#       at writableStreamDefaultWriterClose (node:internal/webstreams/writablestream:1091:10),
+#   runId: '41cddcba-c429-4957-b73b-0dc4eee7a479',
+#   provider: 'zai.chat',
+#   modelId: 'glm-5.3-flash'
+# }
+# Error in agent stream {
+#   error: Error: TORI_MEMORY_REPLY_UNCONFIRMED
+#       at Object.flush (file:///C:/Users/RZ1/Desktop/RZ/261114-TORI013-f302de9/server/provider-stream.mjs:46:65)
+#       at invokePromiseCallback (node:internal/webstreams/util:172:10)
+#       at Object.<anonymous> (node:internal/webstreams/util:177:23)
+#       at transformStreamDefaultSinkCloseAlgorithm (node:internal/webstreams/transformstream:621:43)
+#       at node:internal/webstreams/transformstream:379:11
+#       at writableStreamDefaultControllerProcessClose (node:internal/webstreams/writablestream:1162:28)
+#       at writableStreamDefaultControllerAdvanceQueueIfNeeded (node:internal/webstreams/writablestream:1242:5)
+#       at writableStreamDefaultControllerClose (node:internal/webstreams/writablestream:1209:3)
+#       at writableStreamClose (node:internal/webstreams/writablestream:722:3)
+#       at writableStreamDefaultWriterClose (node:internal/webstreams/writablestream:1091:10),
+#   runId: '41cddcba-c429-4957-b73b-0dc4eee7a479',
+#   provider: 'zai.chat',
+#   modelId: 'glm-5.3-flash'
+# }
+# Error in LLM execution {
+#   error: Error: TORI_MEMORY_REPLY_UNCONFIRMED
+#       at Object.flush (file:///C:/Users/RZ1/Desktop/RZ/261114-TORI013-f302de9/server/provider-stream.mjs:46:65)
+#       at invokePromiseCallback (node:internal/webstreams/util:172:10)
+#       at Object.<anonymous> (node:internal/webstreams/util:177:23)
+#       at transformStreamDefaultSinkCloseAlgorithm (node:internal/webstreams/transformstream:621:43)
+#       at node:internal/webstreams/transformstream:379:11
+#       at writableStreamDefaultControllerProcessClose (node:internal/webstreams/writablestream:1162:28)
+#       at writableStreamDefaultControllerAdvanceQueueIfNeeded (node:internal/webstreams/writablestream:1242:5)
+#       at writableStreamDefaultControllerClose (node:internal/webstreams/writablestream:1209:3)
+#       at writableStreamClose (node:internal/webstreams/writablestream:722:3)
+#       at writableStreamDefaultWriterClose (node:internal/webstreams/writablestream:1091:10),
+#   runId: '1dd8c20a-a117-4f5c-9127-1bb689a505ee',
+#   provider: 'zai.chat',
+#   modelId: 'glm-5.3-flash'
+# }
+# Error in agent stream {
+#   error: Error: TORI_MEMORY_REPLY_UNCONFIRMED
+#       at Object.flush (file:///C:/Users/RZ1/Desktop/RZ/261114-TORI013-f302de9/server/provider-stream.mjs:46:65)
+#       at invokePromiseCallback (node:internal/webstreams/util:172:10)
+#       at Object.<anonymous> (node:internal/webstreams/util:177:23)
+#       at transformStreamDefaultSinkCloseAlgorithm (node:internal/webstreams/transformstream:621:43)
+#       at node:internal/webstreams/transformstream:379:11
+#       at writableStreamDefaultControllerProcessClose (node:internal/webstreams/writablestream:1162:28)
+#       at writableStreamDefaultControllerAdvanceQueueIfNeeded (node:internal/webstreams/writablestream:1242:5)
+#       at writableStreamDefaultControllerClose (node:internal/webstreams/writablestream:1209:3)
+#       at writableStreamClose (node:internal/webstreams/writablestream:722:3)
+#       at writableStreamDefaultWriterClose (node:internal/webstreams/writablestream:1091:10),
+#   runId: '1dd8c20a-a117-4f5c-9127-1bb689a505ee',
+#   provider: 'zai.chat',
+#   modelId: 'glm-5.3-flash'
+# }
+# Error in LLM execution {
+#   error: Error: TORI_MEMORY_REPLY_UNCONFIRMED
+#       at Object.flush (file:///C:/Users/RZ1/Desktop/RZ/261114-TORI013-f302de9/server/provider-stream.mjs:46:65)
+#       at invokePromiseCallback (node:internal/webstreams/util:172:10)
+#       at Object.<anonymous> (node:internal/webstreams/util:177:23)
+#       at transformStreamDefaultSinkCloseAlgorithm (node:internal/webstreams/transformstream:621:43)
+#       at node:internal/webstreams/transformstream:379:11
+#       at writableStreamDefaultControllerProcessClose (node:internal/webstreams/writablestream:1162:28)
+#       at writableStreamDefaultControllerAdvanceQueueIfNeeded (node:internal/webstreams/writablestream:1242:5)
+#       at writableStreamDefaultControllerClose (node:internal/webstreams/writablestream:1209:3)
+#       at writableStreamClose (node:internal/webstreams/writablestream:722:3)
+#       at writableStreamDefaultWriterClose (node:internal/webstreams/writablestream:1091:10),
+#   runId: '55f0920f-cbea-4b12-b064-b78f0df0aba4',
+#   provider: 'zai.chat',
+#   modelId: 'glm-5.3-flash'
+# }
+# Error in agent stream {
+#   error: Error: TORI_MEMORY_REPLY_UNCONFIRMED
+#       at Object.flush (file:///C:/Users/RZ1/Desktop/RZ/261114-TORI013-f302de9/server/provider-stream.mjs:46:65)
+#       at invokePromiseCallback (node:internal/webstreams/util:172:10)
+#       at Object.<anonymous> (node:internal/webstreams/util:177:23)
+#       at transformStreamDefaultSinkCloseAlgorithm (node:internal/webstreams/transformstream:621:43)
+#       at node:internal/webstreams/transformstream:379:11
+#       at writableStreamDefaultControllerProcessClose (node:internal/webstreams/writablestream:1162:28)
+#       at writableStreamDefaultControllerAdvanceQueueIfNeeded (node:internal/webstreams/writablestream:1242:5)
+#       at writableStreamDefaultControllerClose (node:internal/webstreams/writablestream:1209:3)
+#       at writableStreamClose (node:internal/webstreams/writablestream:722:3)
+#       at writableStreamDefaultWriterClose (node:internal/webstreams/writablestream:1091:10),
+#   runId: '55f0920f-cbea-4b12-b064-b78f0df0aba4',
+#   provider: 'zai.chat',
+#   modelId: 'glm-5.3-flash'
+# }
+# Error in LLM execution {
+#   error: Error: TORI_MEMORY_REPLY_UNCONFIRMED
+#       at Object.flush (file:///C:/Users/RZ1/Desktop/RZ/261114-TORI013-f302de9/server/provider-stream.mjs:46:65)
+#       at invokePromiseCallback (node:internal/webstreams/util:172:10)
+#       at Object.<anonymous> (node:internal/webstreams/util:177:23)
+#       at transformStreamDefaultSinkCloseAlgorithm (node:internal/webstreams/transformstream:621:43)
+#       at node:internal/webstreams/transformstream:379:11
+#       at writableStreamDefaultControllerProcessClose (node:internal/webstreams/writablestream:1162:28)
+#       at writableStreamDefaultControllerAdvanceQueueIfNeeded (node:internal/webstreams/writablestream:1242:5)
+#       at writableStreamDefaultControllerClose (node:internal/webstreams/writablestream:1209:3)
+#       at writableStreamClose (node:internal/webstreams/writablestream:722:3)
+#       at writableStreamDefaultWriterClose (node:internal/webstreams/writablestream:1091:10),
+#   runId: '23d471a3-2f78-43bd-94cd-92a554fee99c',
+#   provider: 'zai.chat',
+#   modelId: 'glm-5.3-flash'
+# }
+# Error in agent stream {
+#   error: Error: TORI_MEMORY_REPLY_UNCONFIRMED
+#       at Object.flush (file:///C:/Users/RZ1/Desktop/RZ/261114-TORI013-f302de9/server/provider-stream.mjs:46:65)
+#       at invokePromiseCallback (node:internal/webstreams/util:172:10)
+#       at Object.<anonymous> (node:internal/webstreams/util:177:23)
+#       at transformStreamDefaultSinkCloseAlgorithm (node:internal/webstreams/transformstream:621:43)
+#       at node:internal/webstreams/transformstream:379:11
+#       at writableStreamDefaultControllerProcessClose (node:internal/webstreams/writablestream:1162:28)
+#       at writableStreamDefaultControllerAdvanceQueueIfNeeded (node:internal/webstreams/writablestream:1242:5)
+#       at writableStreamDefaultControllerClose (node:internal/webstreams/writablestream:1209:3)
+#       at writableStreamClose (node:internal/webstreams/writablestream:722:3)
+#       at writableStreamDefaultWriterClose (node:internal/webstreams/writablestream:1091:10),
+#   runId: '23d471a3-2f78-43bd-94cd-92a554fee99c',
+#   provider: 'zai.chat',
+#   modelId: 'glm-5.3-flash'
+# }
+# Error in LLM execution {
+#   error: Error: TORI_MEMORY_REPLY_UNCONFIRMED
+#       at Object.flush (file:///C:/Users/RZ1/Desktop/RZ/261114-TORI013-f302de9/server/provider-stream.mjs:46:65)
+#       at invokePromiseCallback (node:internal/webstreams/util:172:10)
+#       at Object.<anonymous> (node:internal/webstreams/util:177:23)
+#       at transformStreamDefaultSinkCloseAlgorithm (node:internal/webstreams/transformstream:621:43)
+#       at node:internal/webstreams/transformstream:379:11
+#       at writableStreamDefaultControllerProcessClose (node:internal/webstreams/writablestream:1162:28)
+#       at writableStreamDefaultControllerAdvanceQueueIfNeeded (node:internal/webstreams/writablestream:1242:5)
+#       at writableStreamDefaultControllerClose (node:internal/webstreams/writablestream:1209:3)
+#       at writableStreamClose (node:internal/webstreams/writablestream:722:3)
+#       at writableStreamDefaultWriterClose (node:internal/webstreams/writablestream:1091:10),
+#   runId: 'f3ee1a95-a127-4f0c-8cc4-5412f8fea3dd',
+#   provider: 'zai.chat',
+#   modelId: 'glm-5.3-flash'
+# }
+# Error in agent stream {
+#   error: Error: TORI_MEMORY_REPLY_UNCONFIRMED
+#       at Object.flush (file:///C:/Users/RZ1/Desktop/RZ/261114-TORI013-f302de9/server/provider-stream.mjs:46:65)
+#       at invokePromiseCallback (node:internal/webstreams/util:172:10)
+#       at Object.<anonymous> (node:internal/webstreams/util:177:23)
+#       at transformStreamDefaultSinkCloseAlgorithm (node:internal/webstreams/transformstream:621:43)
+#       at node:internal/webstreams/transformstream:379:11
+#       at writableStreamDefaultControllerProcessClose (node:internal/webstreams/writablestream:1162:28)
+#       at writableStreamDefaultControllerAdvanceQueueIfNeeded (node:internal/webstreams/writablestream:1242:5)
+#       at writableStreamDefaultControllerClose (node:internal/webstreams/writablestream:1209:3)
+#       at writableStreamClose (node:internal/webstreams/writablestream:722:3)
+#       at writableStreamDefaultWriterClose (node:internal/webstreams/writablestream:1091:10),
+#   runId: 'f3ee1a95-a127-4f0c-8cc4-5412f8fea3dd',
+#   provider: 'zai.chat',
+#   modelId: 'glm-5.3-flash'
+# }
+# Error in LLM execution {
+#   error: Error: TORI_MEMORY_REPLY_UNCONFIRMED
+#       at Object.flush (file:///C:/Users/RZ1/Desktop/RZ/261114-TORI013-f302de9/server/provider-stream.mjs:46:65)
+#       at invokePromiseCallback (node:internal/webstreams/util:172:10)
+#       at Object.<anonymous> (node:internal/webstreams/util:177:23)
+#       at transformStreamDefaultSinkCloseAlgorithm (node:internal/webstreams/transformstream:621:43)
+#       at node:internal/webstreams/transformstream:379:11
+#       at writableStreamDefaultControllerProcessClose (node:internal/webstreams/writablestream:1162:28)
+#       at writableStreamDefaultControllerAdvanceQueueIfNeeded (node:internal/webstreams/writablestream:1242:5)
+#       at writableStreamDefaultControllerClose (node:internal/webstreams/writablestream:1209:3)
+#       at writableStreamClose (node:internal/webstreams/writablestream:722:3)
+#       at writableStreamDefaultWriterClose (node:internal/webstreams/writablestream:1091:10),
+#   runId: '8cf44115-87ea-42b3-a1f9-47b60f0c2ee1',
+#   provider: 'zai.chat',
+#   modelId: 'glm-5.3-flash'
+# }
+# Error in agent stream {
+#   error: Error: TORI_MEMORY_REPLY_UNCONFIRMED
+#       at Object.flush (file:///C:/Users/RZ1/Desktop/RZ/261114-TORI013-f302de9/server/provider-stream.mjs:46:65)
+#       at invokePromiseCallback (node:internal/webstreams/util:172:10)
+#       at Object.<anonymous> (node:internal/webstreams/util:177:23)
+#       at transformStreamDefaultSinkCloseAlgorithm (node:internal/webstreams/transformstream:621:43)
+#       at node:internal/webstreams/transformstream:379:11
+#       at writableStreamDefaultControllerProcessClose (node:internal/webstreams/writablestream:1162:28)
+#       at writableStreamDefaultControllerAdvanceQueueIfNeeded (node:internal/webstreams/writablestream:1242:5)
+#       at writableStreamDefaultControllerClose (node:internal/webstreams/writablestream:1209:3)
+#       at writableStreamClose (node:internal/webstreams/writablestream:722:3)
+#       at writableStreamDefaultWriterClose (node:internal/webstreams/writablestream:1091:10),
+#   runId: '8cf44115-87ea-42b3-a1f9-47b60f0c2ee1',
+#   provider: 'zai.chat',
+#   modelId: 'glm-5.3-flash'
+# }
+# Error in LLM execution {
+#   error: Error: TORI_MEMORY_REPLY_UNCONFIRMED
+#       at Object.flush (file:///C:/Users/RZ1/Desktop/RZ/261114-TORI013-f302de9/server/provider-stream.mjs:46:65)
+#       at invokePromiseCallback (node:internal/webstreams/util:172:10)
+#       at Object.<anonymous> (node:internal/webstreams/util:177:23)
+#       at transformStreamDefaultSinkCloseAlgorithm (node:internal/webstreams/transformstream:621:43)
+#       at node:internal/webstreams/transformstream:379:11
+#       at writableStreamDefaultControllerProcessClose (node:internal/webstreams/writablestream:1162:28)
+#       at writableStreamDefaultControllerAdvanceQueueIfNeeded (node:internal/webstreams/writablestream:1242:5)
+#       at writableStreamDefaultControllerClose (node:internal/webstreams/writablestream:1209:3)
+#       at writableStreamClose (node:internal/webstreams/writablestream:722:3)
+#       at writableStreamDefaultWriterClose (node:internal/webstreams/writablestream:1091:10),
+#   runId: 'd33a8589-b417-4b4c-a1f2-f0a493c277b5',
+#   provider: 'zai.chat',
+#   modelId: 'glm-5.3-flash'
+# }
+# Error in agent stream {
+#   error: Error: TORI_MEMORY_REPLY_UNCONFIRMED
+#       at Object.flush (file:///C:/Users/RZ1/Desktop/RZ/261114-TORI013-f302de9/server/provider-stream.mjs:46:65)
+#       at invokePromiseCallback (node:internal/webstreams/util:172:10)
+#       at Object.<anonymous> (node:internal/webstreams/util:177:23)
+#       at transformStreamDefaultSinkCloseAlgorithm (node:internal/webstreams/transformstream:621:43)
+#       at node:internal/webstreams/transformstream:379:11
+#       at writableStreamDefaultControllerProcessClose (node:internal/webstreams/writablestream:1162:28)
+#       at writableStreamDefaultControllerAdvanceQueueIfNeeded (node:internal/webstreams/writablestream:1242:5)
+#       at writableStreamDefaultControllerClose (node:internal/webstreams/writablestream:1209:3)
+#       at writableStreamClose (node:internal/webstreams/writablestream:722:3)
+#       at writableStreamDefaultWriterClose (node:internal/webstreams/writablestream:1091:10),
+#   runId: 'd33a8589-b417-4b4c-a1f2-f0a493c277b5',
+#   provider: 'zai.chat',
+#   modelId: 'glm-5.3-flash'
+# }
+# Error in LLM execution {
+#   error: Error: TORI_MEMORY_REPLY_UNCONFIRMED
+#       at Object.flush (file:///C:/Users/RZ1/Desktop/RZ/261114-TORI013-f302de9/server/provider-stream.mjs:46:65)
+#       at invokePromiseCallback (node:internal/webstreams/util:172:10)
+#       at Object.<anonymous> (node:internal/webstreams/util:177:23)
+#       at transformStreamDefaultSinkCloseAlgorithm (node:internal/webstreams/transformstream:621:43)
+#       at node:internal/webstreams/transformstream:379:11
+#       at writableStreamDefaultControllerProcessClose (node:internal/webstreams/writablestream:1162:28)
+#       at writableStreamDefaultControllerAdvanceQueueIfNeeded (node:internal/webstreams/writablestream:1242:5)
+#       at writableStreamDefaultControllerClose (node:internal/webstreams/writablestream:1209:3)
+#       at writableStreamClose (node:internal/webstreams/writablestream:722:3)
+#       at writableStreamDefaultWriterClose (node:internal/webstreams/writablestream:1091:10),
+#   runId: '469af4c1-1bd6-4dfe-9d59-753bbbf12161',
+#   provider: 'zai.chat',
+#   modelId: 'glm-5.3-flash'
+# }
+# Error in agent stream {
+#   error: Error: TORI_MEMORY_REPLY_UNCONFIRMED
+#       at Object.flush (file:///C:/Users/RZ1/Desktop/RZ/261114-TORI013-f302de9/server/provider-stream.mjs:46:65)
+#       at invokePromiseCallback (node:internal/webstreams/util:172:10)
+#       at Object.<anonymous> (node:internal/webstreams/util:177:23)
+#       at transformStreamDefaultSinkCloseAlgorithm (node:internal/webstreams/transformstream:621:43)
+#       at node:internal/webstreams/transformstream:379:11
+#       at writableStreamDefaultControllerProcessClose (node:internal/webstreams/writablestream:1162:28)
+#       at writableStreamDefaultControllerAdvanceQueueIfNeeded (node:internal/webstreams/writablestream:1242:5)
+#       at writableStreamDefaultControllerClose (node:internal/webstreams/writablestream:1209:3)
+#       at writableStreamClose (node:internal/webstreams/writablestream:722:3)
+#       at writableStreamDefaultWriterClose (node:internal/webstreams/writablestream:1091:10),
+#   runId: '469af4c1-1bd6-4dfe-9d59-753bbbf12161',
+#   provider: 'zai.chat',
+#   modelId: 'glm-5.3-flash'
+# }
+# Error in LLM execution {
+#   error: Error: TORI_MEMORY_REPLY_UNCONFIRMED
+#       at Object.flush (file:///C:/Users/RZ1/Desktop/RZ/261114-TORI013-f302de9/server/provider-stream.mjs:46:65)
+#       at invokePromiseCallback (node:internal/webstreams/util:172:10)
+#       at Object.<anonymous> (node:internal/webstreams/util:177:23)
+#       at transformStreamDefaultSinkCloseAlgorithm (node:internal/webstreams/transformstream:621:43)
+#       at node:internal/webstreams/transformstream:379:11
+#       at writableStreamDefaultControllerProcessClose (node:internal/webstreams/writablestream:1162:28)
+#       at writableStreamDefaultControllerAdvanceQueueIfNeeded (node:internal/webstreams/writablestream:1242:5)
+#       at writableStreamDefaultControllerClose (node:internal/webstreams/writablestream:1209:3)
+#       at writableStreamClose (node:internal/webstreams/writablestream:722:3)
+#       at writableStreamDefaultWriterClose (node:internal/webstreams/writablestream:1091:10),
+#   runId: '5b13e4f4-baba-4a0f-a368-f22d0cdf890d',
+#   provider: 'zai.chat',
+#   modelId: 'glm-5.3-flash'
+# }
+# Error in agent stream {
+#   error: Error: TORI_MEMORY_REPLY_UNCONFIRMED
+#       at Object.flush (file:///C:/Users/RZ1/Desktop/RZ/261114-TORI013-f302de9/server/provider-stream.mjs:46:65)
+#       at invokePromiseCallback (node:internal/webstreams/util:172:10)
+#       at Object.<anonymous> (node:internal/webstreams/util:177:23)
+#       at transformStreamDefaultSinkCloseAlgorithm (node:internal/webstreams/transformstream:621:43)
+#       at node:internal/webstreams/transformstream:379:11
+#       at writableStreamDefaultControllerProcessClose (node:internal/webstreams/writablestream:1162:28)
+#       at writableStreamDefaultControllerAdvanceQueueIfNeeded (node:internal/webstreams/writablestream:1242:5)
+#       at writableStreamDefaultControllerClose (node:internal/webstreams/writablestream:1209:3)
+#       at writableStreamClose (node:internal/webstreams/writablestream:722:3)
+#       at writableStreamDefaultWriterClose (node:internal/webstreams/writablestream:1091:10),
+#   runId: '5b13e4f4-baba-4a0f-a368-f22d0cdf890d',
+#   provider: 'zai.chat',
+#   modelId: 'glm-5.3-flash'
+# }
+# Error in LLM execution {
+#   error: Error: TORI_MEMORY_REPLY_UNCONFIRMED
+#       at Object.flush (file:///C:/Users/RZ1/Desktop/RZ/261114-TORI013-f302de9/server/provider-stream.mjs:46:65)
+#       at invokePromiseCallback (node:internal/webstreams/util:172:10)
+#       at Object.<anonymous> (node:internal/webstreams/util:177:23)
+#       at transformStreamDefaultSinkCloseAlgorithm (node:internal/webstreams/transformstream:621:43)
+#       at node:internal/webstreams/transformstream:379:11
+#       at writableStreamDefaultControllerProcessClose (node:internal/webstreams/writablestream:1162:28)
+#       at writableStreamDefaultControllerAdvanceQueueIfNeeded (node:internal/webstreams/writablestream:1242:5)
+#       at writableStreamDefaultControllerClose (node:internal/webstreams/writablestream:1209:3)
+#       at writableStreamClose (node:internal/webstreams/writablestream:722:3)
+#       at writableStreamDefaultWriterClose (node:internal/webstreams/writablestream:1091:10),
+#   runId: 'ac8d852e-284d-49d3-a7b1-1269586bc846',
+#   provider: 'zai.chat',
+#   modelId: 'glm-5.3-flash'
+# }
+# Error in agent stream {
+#   error: Error: TORI_MEMORY_REPLY_UNCONFIRMED
+#       at Object.flush (file:///C:/Users/RZ1/Desktop/RZ/261114-TORI013-f302de9/server/provider-stream.mjs:46:65)
+#       at invokePromiseCallback (node:internal/webstreams/util:172:10)
+#       at Object.<anonymous> (node:internal/webstreams/util:177:23)
+#       at transformStreamDefaultSinkCloseAlgorithm (node:internal/webstreams/transformstream:621:43)
+#       at node:internal/webstreams/transformstream:379:11
+#       at writableStreamDefaultControllerProcessClose (node:internal/webstreams/writablestream:1162:28)
+#       at writableStreamDefaultControllerAdvanceQueueIfNeeded (node:internal/webstreams/writablestream:1242:5)
+#       at writableStreamDefaultControllerClose (node:internal/webstreams/writablestream:1209:3)
+#       at writableStreamClose (node:internal/webstreams/writablestream:722:3)
+#       at writableStreamDefaultWriterClose (node:internal/webstreams/writablestream:1091:10),
+#   runId: 'ac8d852e-284d-49d3-a7b1-1269586bc846',
+#   provider: 'zai.chat',
+#   modelId: 'glm-5.3-flash'
+# }
+# Error in LLM execution {
+#   error: Error: TORI_MEMORY_REPLY_UNCONFIRMED
+#       at Object.flush (file:///C:/Users/RZ1/Desktop/RZ/261114-TORI013-f302de9/server/provider-stream.mjs:46:65)
+#       at invokePromiseCallback (node:internal/webstreams/util:172:10)
+#       at Object.<anonymous> (node:internal/webstreams/util:177:23)
+#       at transformStreamDefaultSinkCloseAlgorithm (node:internal/webstreams/transformstream:621:43)
+#       at node:internal/webstreams/transformstream:379:11
+#       at writableStreamDefaultControllerProcessClose (node:internal/webstreams/writablestream:1162:28)
+#       at writableStreamDefaultControllerAdvanceQueueIfNeeded (node:internal/webstreams/writablestream:1242:5)
+#       at writableStreamDefaultControllerClose (node:internal/webstreams/writablestream:1209:3)
+#       at writableStreamClose (node:internal/webstreams/writablestream:722:3)
+#       at writableStreamDefaultWriterClose (node:internal/webstreams/writablestream:1091:10),
+#   runId: 'c4ed0d15-c465-4483-bc45-a9e7b7a7345d',
+#   provider: 'zai.chat',
+#   modelId: 'glm-5.3-flash'
+# }
+# Error in agent stream {
+#   error: Error: TORI_MEMORY_REPLY_UNCONFIRMED
+#       at Object.flush (file:///C:/Users/RZ1/Desktop/RZ/261114-TORI013-f302de9/server/provider-stream.mjs:46:65)
+#       at invokePromiseCallback (node:internal/webstreams/util:172:10)
+#       at Object.<anonymous> (node:internal/webstreams/util:177:23)
+#       at transformStreamDefaultSinkCloseAlgorithm (node:internal/webstreams/transformstream:621:43)
+#       at node:internal/webstreams/transformstream:379:11
+#       at writableStreamDefaultControllerProcessClose (node:internal/webstreams/writablestream:1162:28)
+#       at writableStreamDefaultControllerAdvanceQueueIfNeeded (node:internal/webstreams/writablestream:1242:5)
+#       at writableStreamDefaultControllerClose (node:internal/webstreams/writablestream:1209:3)
+#       at writableStreamClose (node:internal/webstreams/writablestream:722:3)
+#       at writableStreamDefaultWriterClose (node:internal/webstreams/writablestream:1091:10),
+#   runId: 'c4ed0d15-c465-4483-bc45-a9e7b7a7345d',
+#   provider: 'zai.chat',
+#   modelId: 'glm-5.3-flash'
+# }
+# Error in LLM execution {
+#   error: Error: TORI_MEMORY_REPLY_UNCONFIRMED
+#       at Object.flush (file:///C:/Users/RZ1/Desktop/RZ/261114-TORI013-f302de9/server/provider-stream.mjs:46:65)
+#       at invokePromiseCallback (node:internal/webstreams/util:172:10)
+#       at Object.<anonymous> (node:internal/webstreams/util:177:23)
+#       at transformStreamDefaultSinkCloseAlgorithm (node:internal/webstreams/transformstream:621:43)
+#       at node:internal/webstreams/transformstream:379:11
+#       at writableStreamDefaultControllerProcessClose (node:internal/webstreams/writablestream:1162:28)
+#       at writableStreamDefaultControllerAdvanceQueueIfNeeded (node:internal/webstreams/writablestream:1242:5)
+#       at writableStreamDefaultControllerClose (node:internal/webstreams/writablestream:1209:3)
+#       at writableStreamClose (node:internal/webstreams/writablestream:722:3)
+#       at writableStreamDefaultWriterClose (node:internal/webstreams/writablestream:1091:10),
+#   runId: '5d50db33-3a79-4036-9f7e-5fd65a272b9e',
+#   provider: 'zai.chat',
+#   modelId: 'glm-5.3-flash'
+# }
+# Error in agent stream {
+#   error: Error: TORI_MEMORY_REPLY_UNCONFIRMED
+#       at Object.flush (file:///C:/Users/RZ1/Desktop/RZ/261114-TORI013-f302de9/server/provider-stream.mjs:46:65)
+#       at invokePromiseCallback (node:internal/webstreams/util:172:10)
+#       at Object.<anonymous> (node:internal/webstreams/util:177:23)
+#       at transformStreamDefaultSinkCloseAlgorithm (node:internal/webstreams/transformstream:621:43)
+#       at node:internal/webstreams/transformstream:379:11
+#       at writableStreamDefaultControllerProcessClose (node:internal/webstreams/writablestream:1162:28)
+#       at writableStreamDefaultControllerAdvanceQueueIfNeeded (node:internal/webstreams/writablestream:1242:5)
+#       at writableStreamDefaultControllerClose (node:internal/webstreams/writablestream:1209:3)
+#       at writableStreamClose (node:internal/webstreams/writablestream:722:3)
+#       at writableStreamDefaultWriterClose (node:internal/webstreams/writablestream:1091:10),
+#   runId: '5d50db33-3a79-4036-9f7e-5fd65a272b9e',
+#   provider: 'zai.chat',
+#   modelId: 'glm-5.3-flash'
+# }
+# Error in LLM execution {
+#   error: Error: TORI_MEMORY_REPLY_UNCONFIRMED
+#       at Object.flush (file:///C:/Users/RZ1/Desktop/RZ/261114-TORI013-f302de9/server/provider-stream.mjs:46:65)
+#       at invokePromiseCallback (node:internal/webstreams/util:172:10)
+#       at Object.<anonymous> (node:internal/webstreams/util:177:23)
+#       at transformStreamDefaultSinkCloseAlgorithm (node:internal/webstreams/transformstream:621:43)
+#       at node:internal/webstreams/transformstream:379:11
+#       at writableStreamDefaultControllerProcessClose (node:internal/webstreams/writablestream:1162:28)
+#       at writableStreamDefaultControllerAdvanceQueueIfNeeded (node:internal/webstreams/writablestream:1242:5)
+#       at writableStreamDefaultControllerClose (node:internal/webstreams/writablestream:1209:3)
+#       at writableStreamClose (node:internal/webstreams/writablestream:722:3)
+#       at writableStreamDefaultWriterClose (node:internal/webstreams/writablestream:1091:10),
+#   runId: '7e27b5a0-15aa-4aad-9c68-9f6e46b5264f',
+#   provider: 'zai.chat',
+#   modelId: 'glm-5.3-flash'
+# }
+# Error in agent stream {
+#   error: Error: TORI_MEMORY_REPLY_UNCONFIRMED
+#       at Object.flush (file:///C:/Users/RZ1/Desktop/RZ/261114-TORI013-f302de9/server/provider-stream.mjs:46:65)
+#       at invokePromiseCallback (node:internal/webstreams/util:172:10)
+#       at Object.<anonymous> (node:internal/webstreams/util:177:23)
+#       at transformStreamDefaultSinkCloseAlgorithm (node:internal/webstreams/transformstream:621:43)
+#       at node:internal/webstreams/transformstream:379:11
+#       at writableStreamDefaultControllerProcessClose (node:internal/webstreams/writablestream:1162:28)
+#       at writableStreamDefaultControllerAdvanceQueueIfNeeded (node:internal/webstreams/writablestream:1242:5)
+#       at writableStreamDefaultControllerClose (node:internal/webstreams/writablestream:1209:3)
+#       at writableStreamClose (node:internal/webstreams/writablestream:722:3)
+#       at writableStreamDefaultWriterClose (node:internal/webstreams/writablestream:1091:10),
+#   runId: '7e27b5a0-15aa-4aad-9c68-9f6e46b5264f',
+#   provider: 'zai.chat',
+#   modelId: 'glm-5.3-flash'
+# }
+# Error in LLM execution {
+#   error: Error: TORI_MEMORY_REPLY_UNCONFIRMED
+#       at Object.flush (file:///C:/Users/RZ1/Desktop/RZ/261114-TORI013-f302de9/server/provider-stream.mjs:46:65)
+#       at invokePromiseCallback (node:internal/webstreams/util:172:10)
+#       at Object.<anonymous> (node:internal/webstreams/util:177:23)
+#       at transformStreamDefaultSinkCloseAlgorithm (node:internal/webstreams/transformstream:621:43)
+#       at node:internal/webstreams/transformstream:379:11
+#       at writableStreamDefaultControllerProcessClose (node:internal/webstreams/writablestream:1162:28)
+#       at writableStreamDefaultControllerAdvanceQueueIfNeeded (node:internal/webstreams/writablestream:1242:5)
+#       at writableStreamDefaultControllerClose (node:internal/webstreams/writablestream:1209:3)
+#       at writableStreamClose (node:internal/webstreams/writablestream:722:3)
+#       at writableStreamDefaultWriterClose (node:internal/webstreams/writablestream:1091:10),
+#   runId: '02dfc9eb-7117-4fad-bea9-80ceccae6298',
+#   provider: 'zai.chat',
+#   modelId: 'glm-5.3-flash'
+# }
+# Error in agent stream {
+#   error: Error: TORI_MEMORY_REPLY_UNCONFIRMED
+#       at Object.flush (file:///C:/Users/RZ1/Desktop/RZ/261114-TORI013-f302de9/server/provider-stream.mjs:46:65)
+#       at invokePromiseCallback (node:internal/webstreams/util:172:10)
+#       at Object.<anonymous> (node:internal/webstreams/util:177:23)
+#       at transformStreamDefaultSinkCloseAlgorithm (node:internal/webstreams/transformstream:621:43)
+#       at node:internal/webstreams/transformstream:379:11
+#       at writableStreamDefaultControllerProcessClose (node:internal/webstreams/writablestream:1162:28)
+#       at writableStreamDefaultControllerAdvanceQueueIfNeeded (node:internal/webstreams/writablestream:1242:5)
+#       at writableStreamDefaultControllerClose (node:internal/webstreams/writablestream:1209:3)
+#       at writableStreamClose (node:internal/webstreams/writablestream:722:3)
+#       at writableStreamDefaultWriterClose (node:internal/webstreams/writablestream:1091:10),
+#   runId: '02dfc9eb-7117-4fad-bea9-80ceccae6298',
+#   provider: 'zai.chat',
+#   modelId: 'glm-5.3-flash'
+# }
+# Error in LLM execution {
+#   error: Error: TORI_MEMORY_REPLY_UNCONFIRMED
+#       at Object.flush (file:///C:/Users/RZ1/Desktop/RZ/261114-TORI013-f302de9/server/provider-stream.mjs:46:65)
+#       at invokePromiseCallback (node:internal/webstreams/util:172:10)
+#       at Object.<anonymous> (node:internal/webstreams/util:177:23)
+#       at transformStreamDefaultSinkCloseAlgorithm (node:internal/webstreams/transformstream:621:43)
+#       at node:internal/webstreams/transformstream:379:11
+#       at writableStreamDefaultControllerProcessClose (node:internal/webstreams/writablestream:1162:28)
+#       at writableStreamDefaultControllerAdvanceQueueIfNeeded (node:internal/webstreams/writablestream:1242:5)
+#       at writableStreamDefaultControllerClose (node:internal/webstreams/writablestream:1209:3)
+#       at writableStreamClose (node:internal/webstreams/writablestream:722:3)
+#       at writableStreamDefaultWriterClose (node:internal/webstreams/writablestream:1091:10),
+#   runId: 'aaa819fe-4af8-4207-8263-0947d143aaa8',
+#   provider: 'zai.chat',
+#   modelId: 'glm-5.3-flash'
+# }
+# Error in agent stream {
+#   error: Error: TORI_MEMORY_REPLY_UNCONFIRMED
+#       at Object.flush (file:///C:/Users/RZ1/Desktop/RZ/261114-TORI013-f302de9/server/provider-stream.mjs:46:65)
+#       at invokePromiseCallback (node:internal/webstreams/util:172:10)
+#       at Object.<anonymous> (node:internal/webstreams/util:177:23)
+#       at transformStreamDefaultSinkCloseAlgorithm (node:internal/webstreams/transformstream:621:43)
+#       at node:internal/webstreams/transformstream:379:11
+#       at writableStreamDefaultControllerProcessClose (node:internal/webstreams/writablestream:1162:28)
+#       at writableStreamDefaultControllerAdvanceQueueIfNeeded (node:internal/webstreams/writablestream:1242:5)
+#       at writableStreamDefaultControllerClose (node:internal/webstreams/writablestream:1209:3)
+#       at writableStreamClose (node:internal/webstreams/writablestream:722:3)
+#       at writableStreamDefaultWriterClose (node:internal/webstreams/writablestream:1091:10),
+#   runId: 'aaa819fe-4af8-4207-8263-0947d143aaa8',
+#   provider: 'zai.chat',
+#   modelId: 'glm-5.3-flash'
+# }
+# Error in LLM execution {
+#   error: Error: TORI_MEMORY_REPLY_UNCONFIRMED
+#       at Object.flush (file:///C:/Users/RZ1/Desktop/RZ/261114-TORI013-f302de9/server/provider-stream.mjs:46:65)
+#       at invokePromiseCallback (node:internal/webstreams/util:172:10)
+#       at Object.<anonymous> (node:internal/webstreams/util:177:23)
+#       at transformStreamDefaultSinkCloseAlgorithm (node:internal/webstreams/transformstream:621:43)
+#       at node:internal/webstreams/transformstream:379:11
+#       at writableStreamDefaultControllerProcessClose (node:internal/webstreams/writablestream:1162:28)
+#       at writableStreamDefaultControllerAdvanceQueueIfNeeded (node:internal/webstreams/writablestream:1242:5)
+#       at writableStreamDefaultControllerClose (node:internal/webstreams/writablestream:1209:3)
+#       at writableStreamClose (node:internal/webstreams/writablestream:722:3)
+#       at writableStreamDefaultWriterClose (node:internal/webstreams/writablestream:1091:10),
+#   runId: '711068ad-fa5b-4f6e-9d1e-b91b972b8432',
+#   provider: 'zai.chat',
+#   modelId: 'glm-5.3-flash'
+# }
+# Error in agent stream {
+#   error: Error: TORI_MEMORY_REPLY_UNCONFIRMED
+#       at Object.flush (file:///C:/Users/RZ1/Desktop/RZ/261114-TORI013-f302de9/server/provider-stream.mjs:46:65)
+#       at invokePromiseCallback (node:internal/webstreams/util:172:10)
+#       at Object.<anonymous> (node:internal/webstreams/util:177:23)
+#       at transformStreamDefaultSinkCloseAlgorithm (node:internal/webstreams/transformstream:621:43)
+#       at node:internal/webstreams/transformstream:379:11
+#       at writableStreamDefaultControllerProcessClose (node:internal/webstreams/writablestream:1162:28)
+#       at writableStreamDefaultControllerAdvanceQueueIfNeeded (node:internal/webstreams/writablestream:1242:5)
+#       at writableStreamDefaultControllerClose (node:internal/webstreams/writablestream:1209:3)
+#       at writableStreamClose (node:internal/webstreams/writablestream:722:3)
+#       at writableStreamDefaultWriterClose (node:internal/webstreams/writablestream:1091:10),
+#   runId: '711068ad-fa5b-4f6e-9d1e-b91b972b8432',
+#   provider: 'zai.chat',
+#   modelId: 'glm-5.3-flash'
+# }
+# Error in LLM execution {
+#   error: Error: TORI_MEMORY_REPLY_UNCONFIRMED
+#       at Object.flush (file:///C:/Users/RZ1/Desktop/RZ/261114-TORI013-f302de9/server/provider-stream.mjs:46:65)
+#       at invokePromiseCallback (node:internal/webstreams/util:172:10)
+#       at Object.<anonymous> (node:internal/webstreams/util:177:23)
+#       at transformStreamDefaultSinkCloseAlgorithm (node:internal/webstreams/transformstream:621:43)
+#       at node:internal/webstreams/transformstream:379:11
+#       at writableStreamDefaultControllerProcessClose (node:internal/webstreams/writablestream:1162:28)
+#       at writableStreamDefaultControllerAdvanceQueueIfNeeded (node:internal/webstreams/writablestream:1242:5)
+#       at writableStreamDefaultControllerClose (node:internal/webstreams/writablestream:1209:3)
+#       at writableStreamClose (node:internal/webstreams/writablestream:722:3)
+#       at writableStreamDefaultWriterClose (node:internal/webstreams/writablestream:1091:10),
+#   runId: '0b45284c-1a8a-4afd-b487-94ddd20c691d',
+#   provider: 'zai.chat',
+#   modelId: 'glm-5.3-flash'
+# }
+# Error in agent stream {
+#   error: Error: TORI_MEMORY_REPLY_UNCONFIRMED
+#       at Object.flush (file:///C:/Users/RZ1/Desktop/RZ/261114-TORI013-f302de9/server/provider-stream.mjs:46:65)
+#       at invokePromiseCallback (node:internal/webstreams/util:172:10)
+#       at Object.<anonymous> (node:internal/webstreams/util:177:23)
+#       at transformStreamDefaultSinkCloseAlgorithm (node:internal/webstreams/transformstream:621:43)
+#       at node:internal/webstreams/transformstream:379:11
+#       at writableStreamDefaultControllerProcessClose (node:internal/webstreams/writablestream:1162:28)
+#       at writableStreamDefaultControllerAdvanceQueueIfNeeded (node:internal/webstreams/writablestream:1242:5)
+#       at writableStreamDefaultControllerClose (node:internal/webstreams/writablestream:1209:3)
+#       at writableStreamClose (node:internal/webstreams/writablestream:722:3)
+#       at writableStreamDefaultWriterClose (node:internal/webstreams/writablestream:1091:10),
+#   runId: '0b45284c-1a8a-4afd-b487-94ddd20c691d',
+#   provider: 'zai.chat',
+#   modelId: 'glm-5.3-flash'
+# }
+# Error in LLM execution {
+#   error: Error: TORI_MEMORY_REPLY_UNCONFIRMED
+#       at Object.flush (file:///C:/Users/RZ1/Desktop/RZ/261114-TORI013-f302de9/server/provider-stream.mjs:46:65)
+#       at invokePromiseCallback (node:internal/webstreams/util:172:10)
+#       at Object.<anonymous> (node:internal/webstreams/util:177:23)
+#       at transformStreamDefaultSinkCloseAlgorithm (node:internal/webstreams/transformstream:621:43)
+#       at node:internal/webstreams/transformstream:379:11
+#       at writableStreamDefaultControllerProcessClose (node:internal/webstreams/writablestream:1162:28)
+#       at writableStreamDefaultControllerAdvanceQueueIfNeeded (node:internal/webstreams/writablestream:1242:5)
+#       at writableStreamDefaultControllerClose (node:internal/webstreams/writablestream:1209:3)
+#       at writableStreamClose (node:internal/webstreams/writablestream:722:3)
+#       at writableStreamDefaultWriterClose (node:internal/webstreams/writablestream:1091:10),
+#   runId: 'cebd18af-34ec-4bdf-978f-47279a77d6b2',
+#   provider: 'zai.chat',
+#   modelId: 'glm-5.3-flash'
+# }
+# Error in agent stream {
+#   error: Error: TORI_MEMORY_REPLY_UNCONFIRMED
+#       at Object.flush (file:///C:/Users/RZ1/Desktop/RZ/261114-TORI013-f302de9/server/provider-stream.mjs:46:65)
+#       at invokePromiseCallback (node:internal/webstreams/util:172:10)
+#       at Object.<anonymous> (node:internal/webstreams/util:177:23)
+#       at transformStreamDefaultSinkCloseAlgorithm (node:internal/webstreams/transformstream:621:43)
+#       at node:internal/webstreams/transformstream:379:11
+#       at writableStreamDefaultControllerProcessClose (node:internal/webstreams/writablestream:1162:28)
+#       at writableStreamDefaultControllerAdvanceQueueIfNeeded (node:internal/webstreams/writablestream:1242:5)
+#       at writableStreamDefaultControllerClose (node:internal/webstreams/writablestream:1209:3)
+#       at writableStreamClose (node:internal/webstreams/writablestream:722:3)
+#       at writableStreamDefaultWriterClose (node:internal/webstreams/writablestream:1091:10),
+#   runId: 'cebd18af-34ec-4bdf-978f-47279a77d6b2',
+#   provider: 'zai.chat',
+#   modelId: 'glm-5.3-flash'
+# }
+# Error in LLM execution {
+#   error: Error: TORI_MEMORY_REPLY_UNCONFIRMED
+#       at Object.flush (file:///C:/Users/RZ1/Desktop/RZ/261114-TORI013-f302de9/server/provider-stream.mjs:46:65)
+#       at invokePromiseCallback (node:internal/webstreams/util:172:10)
+#       at Object.<anonymous> (node:internal/webstreams/util:177:23)
+#       at transformStreamDefaultSinkCloseAlgorithm (node:internal/webstreams/transformstream:621:43)
+#       at node:internal/webstreams/transformstream:379:11
+#       at writableStreamDefaultControllerProcessClose (node:internal/webstreams/writablestream:1162:28)
+#       at writableStreamDefaultControllerAdvanceQueueIfNeeded (node:internal/webstreams/writablestream:1242:5)
+#       at writableStreamDefaultControllerClose (node:internal/webstreams/writablestream:1209:3)
+#       at writableStreamClose (node:internal/webstreams/writablestream:722:3)
+#       at writableStreamDefaultWriterClose (node:internal/webstreams/writablestream:1091:10),
+#   runId: 'b116b455-a670-41b3-8020-94ed23075615',
+#   provider: 'zai.chat',
+#   modelId: 'glm-5.3-flash'
+# }
+# Error in agent stream {
+#   error: Error: TORI_MEMORY_REPLY_UNCONFIRMED
+#       at Object.flush (file:///C:/Users/RZ1/Desktop/RZ/261114-TORI013-f302de9/server/provider-stream.mjs:46:65)
+#       at invokePromiseCallback (node:internal/webstreams/util:172:10)
+#       at Object.<anonymous> (node:internal/webstreams/util:177:23)
+#       at transformStreamDefaultSinkCloseAlgorithm (node:internal/webstreams/transformstream:621:43)
+#       at node:internal/webstreams/transformstream:379:11
+#       at writableStreamDefaultControllerProcessClose (node:internal/webstreams/writablestream:1162:28)
+#       at writableStreamDefaultControllerAdvanceQueueIfNeeded (node:internal/webstreams/writablestream:1242:5)
+#       at writableStreamDefaultControllerClose (node:internal/webstreams/writablestream:1209:3)
+#       at writableStreamClose (node:internal/webstreams/writablestream:722:3)
+#       at writableStreamDefaultWriterClose (node:internal/webstreams/writablestream:1091:10),
+#   runId: 'b116b455-a670-41b3-8020-94ed23075615',
+#   provider: 'zai.chat',
+#   modelId: 'glm-5.3-flash'
+# }
+# Error in LLM execution {
+#   error: Error: TORI_MEMORY_REPLY_UNCONFIRMED
+#       at Object.flush (file:///C:/Users/RZ1/Desktop/RZ/261114-TORI013-f302de9/server/provider-stream.mjs:46:65)
+#       at invokePromiseCallback (node:internal/webstreams/util:172:10)
+#       at Object.<anonymous> (node:internal/webstreams/util:177:23)
+#       at transformStreamDefaultSinkCloseAlgorithm (node:internal/webstreams/transformstream:621:43)
+#       at node:internal/webstreams/transformstream:379:11
+#       at writableStreamDefaultControllerProcessClose (node:internal/webstreams/writablestream:1162:28)
+#       at writableStreamDefaultControllerAdvanceQueueIfNeeded (node:internal/webstreams/writablestream:1242:5)
+#       at writableStreamDefaultControllerClose (node:internal/webstreams/writablestream:1209:3)
+#       at writableStreamClose (node:internal/webstreams/writablestream:722:3)
+#       at writableStreamDefaultWriterClose (node:internal/webstreams/writablestream:1091:10),
+#   runId: '7fbfdd2d-1bc1-4131-b197-132a6e31741f',
+#   provider: 'zai.chat',
+#   modelId: 'glm-5.3-flash'
+# }
+# Error in agent stream {
+#   error: Error: TORI_MEMORY_REPLY_UNCONFIRMED
+#       at Object.flush (file:///C:/Users/RZ1/Desktop/RZ/261114-TORI013-f302de9/server/provider-stream.mjs:46:65)
+#       at invokePromiseCallback (node:internal/webstreams/util:172:10)
+#       at Object.<anonymous> (node:internal/webstreams/util:177:23)
+#       at transformStreamDefaultSinkCloseAlgorithm (node:internal/webstreams/transformstream:621:43)
+#       at node:internal/webstreams/transformstream:379:11
+#       at writableStreamDefaultControllerProcessClose (node:internal/webstreams/writablestream:1162:28)
+#       at writableStreamDefaultControllerAdvanceQueueIfNeeded (node:internal/webstreams/writablestream:1242:5)
+#       at writableStreamDefaultControllerClose (node:internal/webstreams/writablestream:1209:3)
+#       at writableStreamClose (node:internal/webstreams/writablestream:722:3)
+#       at writableStreamDefaultWriterClose (node:internal/webstreams/writablestream:1091:10),
+#   runId: '7fbfdd2d-1bc1-4131-b197-132a6e31741f',
+#   provider: 'zai.chat',
+#   modelId: 'glm-5.3-flash'
+# }
+# Error in LLM execution {
+#   error: Error: TORI_MEMORY_REPLY_UNCONFIRMED
+#       at Object.flush (file:///C:/Users/RZ1/Desktop/RZ/261114-TORI013-f302de9/server/provider-stream.mjs:46:65)
+#       at invokePromiseCallback (node:internal/webstreams/util:172:10)
+#       at Object.<anonymous> (node:internal/webstreams/util:177:23)
+#       at transformStreamDefaultSinkCloseAlgorithm (node:internal/webstreams/transformstream:621:43)
+#       at node:internal/webstreams/transformstream:379:11
+#       at writableStreamDefaultControllerProcessClose (node:internal/webstreams/writablestream:1162:28)
+#       at writableStreamDefaultControllerAdvanceQueueIfNeeded (node:internal/webstreams/writablestream:1242:5)
+#       at writableStreamDefaultControllerClose (node:internal/webstreams/writablestream:1209:3)
+#       at writableStreamClose (node:internal/webstreams/writablestream:722:3)
+#       at writableStreamDefaultWriterClose (node:internal/webstreams/writablestream:1091:10),
+#   runId: 'e3a4d570-e9eb-4f21-88b5-1bfa69a7e8c9',
+#   provider: 'zai.chat',
+#   modelId: 'glm-5.3-flash'
+# }
+# Error in agent stream {
+#   error: Error: TORI_MEMORY_REPLY_UNCONFIRMED
+#       at Object.flush (file:///C:/Users/RZ1/Desktop/RZ/261114-TORI013-f302de9/server/provider-stream.mjs:46:65)
+#       at invokePromiseCallback (node:internal/webstreams/util:172:10)
+#       at Object.<anonymous> (node:internal/webstreams/util:177:23)
+#       at transformStreamDefaultSinkCloseAlgorithm (node:internal/webstreams/transformstream:621:43)
+#       at node:internal/webstreams/transformstream:379:11
+#       at writableStreamDefaultControllerProcessClose (node:internal/webstreams/writablestream:1162:28)
+#       at writableStreamDefaultControllerAdvanceQueueIfNeeded (node:internal/webstreams/writablestream:1242:5)
+#       at writableStreamDefaultControllerClose (node:internal/webstreams/writablestream:1209:3)
+#       at writableStreamClose (node:internal/webstreams/writablestream:722:3)
+#       at writableStreamDefaultWriterClose (node:internal/webstreams/writablestream:1091:10),
+#   runId: 'e3a4d570-e9eb-4f21-88b5-1bfa69a7e8c9',
+#   provider: 'zai.chat',
+#   modelId: 'glm-5.3-flash'
+# }
+# Error in LLM execution {
+#   error: Error: TORI_MEMORY_REPLY_UNCONFIRMED
+#       at Object.flush (file:///C:/Users/RZ1/Desktop/RZ/261114-TORI013-f302de9/server/provider-stream.mjs:46:65)
+#       at invokePromiseCallback (node:internal/webstreams/util:172:10)
+#       at Object.<anonymous> (node:internal/webstreams/util:177:23)
+#       at transformStreamDefaultSinkCloseAlgorithm (node:internal/webstreams/transformstream:621:43)
+#       at node:internal/webstreams/transformstream:379:11
+#       at writableStreamDefaultControllerProcessClose (node:internal/webstreams/writablestream:1162:28)
+#       at writableStreamDefaultControllerAdvanceQueueIfNeeded (node:internal/webstreams/writablestream:1242:5)
+#       at writableStreamDefaultControllerClose (node:internal/webstreams/writablestream:1209:3)
+#       at writableStreamClose (node:internal/webstreams/writablestream:722:3)
+#       at writableStreamDefaultWriterClose (node:internal/webstreams/writablestream:1091:10),
+#   runId: 'bbc28597-fe70-41f1-aa6c-c9f96e3d65f2',
+#   provider: 'zai.chat',
+#   modelId: 'glm-5.3-flash'
+# }
+# Error in agent stream {
+#   error: Error: TORI_MEMORY_REPLY_UNCONFIRMED
+#       at Object.flush (file:///C:/Users/RZ1/Desktop/RZ/261114-TORI013-f302de9/server/provider-stream.mjs:46:65)
+#       at invokePromiseCallback (node:internal/webstreams/util:172:10)
+#       at Object.<anonymous> (node:internal/webstreams/util:177:23)
+#       at transformStreamDefaultSinkCloseAlgorithm (node:internal/webstreams/transformstream:621:43)
+#       at node:internal/webstreams/transformstream:379:11
+#       at writableStreamDefaultControllerProcessClose (node:internal/webstreams/writablestream:1162:28)
+#       at writableStreamDefaultControllerAdvanceQueueIfNeeded (node:internal/webstreams/writablestream:1242:5)
+#       at writableStreamDefaultControllerClose (node:internal/webstreams/writablestream:1209:3)
+#       at writableStreamClose (node:internal/webstreams/writablestream:722:3)
+#       at writableStreamDefaultWriterClose (node:internal/webstreams/writablestream:1091:10),
+#   runId: 'bbc28597-fe70-41f1-aa6c-c9f96e3d65f2',
+#   provider: 'zai.chat',
+#   modelId: 'glm-5.3-flash'
+# }
+# Error in LLM execution {
+#   error: Error: TORI_MEMORY_REPLY_UNCONFIRMED
+#       at Object.flush (file:///C:/Users/RZ1/Desktop/RZ/261114-TORI013-f302de9/server/provider-stream.mjs:46:65)
+#       at invokePromiseCallback (node:internal/webstreams/util:172:10)
+#       at Object.<anonymous> (node:internal/webstreams/util:177:23)
+#       at transformStreamDefaultSinkCloseAlgorithm (node:internal/webstreams/transformstream:621:43)
+#       at node:internal/webstreams/transformstream:379:11
+#       at writableStreamDefaultControllerProcessClose (node:internal/webstreams/writablestream:1162:28)
+#       at writableStreamDefaultControllerAdvanceQueueIfNeeded (node:internal/webstreams/writablestream:1242:5)
+#       at writableStreamDefaultControllerClose (node:internal/webstreams/writablestream:1209:3)
+#       at writableStreamClose (node:internal/webstreams/writablestream:722:3)
+#       at writableStreamDefaultWriterClose (node:internal/webstreams/writablestream:1091:10),
+#   runId: '4ff0b474-cf48-4aea-b653-af8d2c9660fd',
+#   provider: 'zai.chat',
+#   modelId: 'glm-5.3-flash'
+# }
+# Error in agent stream {
+#   error: Error: TORI_MEMORY_REPLY_UNCONFIRMED
+#       at Object.flush (file:///C:/Users/RZ1/Desktop/RZ/261114-TORI013-f302de9/server/provider-stream.mjs:46:65)
+#       at invokePromiseCallback (node:internal/webstreams/util:172:10)
+#       at Object.<anonymous> (node:internal/webstreams/util:177:23)
+#       at transformStreamDefaultSinkCloseAlgorithm (node:internal/webstreams/transformstream:621:43)
+#       at node:internal/webstreams/transformstream:379:11
+#       at writableStreamDefaultControllerProcessClose (node:internal/webstreams/writablestream:1162:28)
+#       at writableStreamDefaultControllerAdvanceQueueIfNeeded (node:internal/webstreams/writablestream:1242:5)
+#       at writableStreamDefaultControllerClose (node:internal/webstreams/writablestream:1209:3)
+#       at writableStreamClose (node:internal/webstreams/writablestream:722:3)
+#       at writableStreamDefaultWriterClose (node:internal/webstreams/writablestream:1091:10),
+#   runId: '4ff0b474-cf48-4aea-b653-af8d2c9660fd',
+#   provider: 'zai.chat',
+#   modelId: 'glm-5.3-flash'
+# }
+# Error in LLM execution {
+#   error: Error: TORI_MEMORY_REPLY_UNCONFIRMED
+#       at Object.flush (file:///C:/Users/RZ1/Desktop/RZ/261114-TORI013-f302de9/server/provider-stream.mjs:46:65)
+#       at invokePromiseCallback (node:internal/webstreams/util:172:10)
+#       at Object.<anonymous> (node:internal/webstreams/util:177:23)
+#       at transformStreamDefaultSinkCloseAlgorithm (node:internal/webstreams/transformstream:621:43)
+#       at node:internal/webstreams/transformstream:379:11
+#       at writableStreamDefaultControllerProcessClose (node:internal/webstreams/writablestream:1162:28)
+#       at writableStreamDefaultControllerAdvanceQueueIfNeeded (node:internal/webstreams/writablestream:1242:5)
+#       at writableStreamDefaultControllerClose (node:internal/webstreams/writablestream:1209:3)
+#       at writableStreamClose (node:internal/webstreams/writablestream:722:3)
+#       at writableStreamDefaultWriterClose (node:internal/webstreams/writablestream:1091:10),
+#   runId: '4cd891f9-13c7-4f52-8d88-727fa722bfec',
+#   provider: 'zai.chat',
+#   modelId: 'glm-5.3-flash'
+# }
+# Error in agent stream {
+#   error: Error: TORI_MEMORY_REPLY_UNCONFIRMED
+#       at Object.flush (file:///C:/Users/RZ1/Desktop/RZ/261114-TORI013-f302de9/server/provider-stream.mjs:46:65)
+#       at invokePromiseCallback (node:internal/webstreams/util:172:10)
+#       at Object.<anonymous> (node:internal/webstreams/util:177:23)
+#       at transformStreamDefaultSinkCloseAlgorithm (node:internal/webstreams/transformstream:621:43)
+#       at node:internal/webstreams/transformstream:379:11
+#       at writableStreamDefaultControllerProcessClose (node:internal/webstreams/writablestream:1162:28)
+#       at writableStreamDefaultControllerAdvanceQueueIfNeeded (node:internal/webstreams/writablestream:1242:5)
+#       at writableStreamDefaultControllerClose (node:internal/webstreams/writablestream:1209:3)
+#       at writableStreamClose (node:internal/webstreams/writablestream:722:3)
+#       at writableStreamDefaultWriterClose (node:internal/webstreams/writablestream:1091:10),
+#   runId: '4cd891f9-13c7-4f52-8d88-727fa722bfec',
+#   provider: 'zai.chat',
+#   modelId: 'glm-5.3-flash'
+# }
+# Error in LLM execution {
+#   error: Error: TORI_MEMORY_REPLY_UNCONFIRMED
+#       at Object.flush (file:///C:/Users/RZ1/Desktop/RZ/261114-TORI013-f302de9/server/provider-stream.mjs:46:65)
+#       at invokePromiseCallback (node:internal/webstreams/util:172:10)
+#       at Object.<anonymous> (node:internal/webstreams/util:177:23)
+#       at transformStreamDefaultSinkCloseAlgorithm (node:internal/webstreams/transformstream:621:43)
+#       at node:internal/webstreams/transformstream:379:11
+#       at writableStreamDefaultControllerProcessClose (node:internal/webstreams/writablestream:1162:28)
+#       at writableStreamDefaultControllerAdvanceQueueIfNeeded (node:internal/webstreams/writablestream:1242:5)
+#       at writableStreamDefaultControllerClose (node:internal/webstreams/writablestream:1209:3)
+#       at writableStreamClose (node:internal/webstreams/writablestream:722:3)
+#       at writableStreamDefaultWriterClose (node:internal/webstreams/writablestream:1091:10),
+#   runId: '46f13c2e-2fea-4a12-a86f-8df2bbb2be6b',
+#   provider: 'zai.chat',
+#   modelId: 'glm-5.3-flash'
+# }
+# Error in agent stream {
+#   error: Error: TORI_MEMORY_REPLY_UNCONFIRMED
+#       at Object.flush (file:///C:/Users/RZ1/Desktop/RZ/261114-TORI013-f302de9/server/provider-stream.mjs:46:65)
+#       at invokePromiseCallback (node:internal/webstreams/util:172:10)
+#       at Object.<anonymous> (node:internal/webstreams/util:177:23)
+#       at transformStreamDefaultSinkCloseAlgorithm (node:internal/webstreams/transformstream:621:43)
+#       at node:internal/webstreams/transformstream:379:11
+#       at writableStreamDefaultControllerProcessClose (node:internal/webstreams/writablestream:1162:28)
+#       at writableStreamDefaultControllerAdvanceQueueIfNeeded (node:internal/webstreams/writablestream:1242:5)
+#       at writableStreamDefaultControllerClose (node:internal/webstreams/writablestream:1209:3)
+#       at writableStreamClose (node:internal/webstreams/writablestream:722:3)
+#       at writableStreamDefaultWriterClose (node:internal/webstreams/writablestream:1091:10),
+#   runId: '46f13c2e-2fea-4a12-a86f-8df2bbb2be6b',
+#   provider: 'zai.chat',
+#   modelId: 'glm-5.3-flash'
+# }
+# Error in LLM execution {
+#   error: Error: TORI_MEMORY_REPLY_UNCONFIRMED
+#       at Object.flush (file:///C:/Users/RZ1/Desktop/RZ/261114-TORI013-f302de9/server/provider-stream.mjs:46:65)
+#       at invokePromiseCallback (node:internal/webstreams/util:172:10)
+#       at Object.<anonymous> (node:internal/webstreams/util:177:23)
+#       at transformStreamDefaultSinkCloseAlgorithm (node:internal/webstreams/transformstream:621:43)
+#       at node:internal/webstreams/transformstream:379:11
+#       at writableStreamDefaultControllerProcessClose (node:internal/webstreams/writablestream:1162:28)
+#       at writableStreamDefaultControllerAdvanceQueueIfNeeded (node:internal/webstreams/writablestream:1242:5)
+#       at writableStreamDefaultControllerClose (node:internal/webstreams/writablestream:1209:3)
+#       at writableStreamClose (node:internal/webstreams/writablestream:722:3)
+#       at writableStreamDefaultWriterClose (node:internal/webstreams/writablestream:1091:10),
+#   runId: '7628b871-f006-49f7-8f3c-0512ef3c01f6',
+#   provider: 'zai.chat',
+#   modelId: 'glm-5.3-flash'
+# }
+# Error in agent stream {
+#   error: Error: TORI_MEMORY_REPLY_UNCONFIRMED
+#       at Object.flush (file:///C:/Users/RZ1/Desktop/RZ/261114-TORI013-f302de9/server/provider-stream.mjs:46:65)
+#       at invokePromiseCallback (node:internal/webstreams/util:172:10)
+#       at Object.<anonymous> (node:internal/webstreams/util:177:23)
+#       at transformStreamDefaultSinkCloseAlgorithm (node:internal/webstreams/transformstream:621:43)
+#       at node:internal/webstreams/transformstream:379:11
+#       at writableStreamDefaultControllerProcessClose (node:internal/webstreams/writablestream:1162:28)
+#       at writableStreamDefaultControllerAdvanceQueueIfNeeded (node:internal/webstreams/writablestream:1242:5)
+#       at writableStreamDefaultControllerClose (node:internal/webstreams/writablestream:1209:3)
+#       at writableStreamClose (node:internal/webstreams/writablestream:722:3)
+#       at writableStreamDefaultWriterClose (node:internal/webstreams/writablestream:1091:10),
+#   runId: '7628b871-f006-49f7-8f3c-0512ef3c01f6',
+#   provider: 'zai.chat',
+#   modelId: 'glm-5.3-flash'
+# }
+# Error in LLM execution {
+#   error: Error: TORI_MEMORY_REPLY_UNCONFIRMED
+#       at Object.flush (file:///C:/Users/RZ1/Desktop/RZ/261114-TORI013-f302de9/server/provider-stream.mjs:46:65)
+#       at invokePromiseCallback (node:internal/webstreams/util:172:10)
+#       at Object.<anonymous> (node:internal/webstreams/util:177:23)
+#       at transformStreamDefaultSinkCloseAlgorithm (node:internal/webstreams/transformstream:621:43)
+#       at node:internal/webstreams/transformstream:379:11
+#       at writableStreamDefaultControllerProcessClose (node:internal/webstreams/writablestream:1162:28)
+#       at writableStreamDefaultControllerAdvanceQueueIfNeeded (node:internal/webstreams/writablestream:1242:5)
+#       at writableStreamDefaultControllerClose (node:internal/webstreams/writablestream:1209:3)
+#       at writableStreamClose (node:internal/webstreams/writablestream:722:3)
+#       at writableStreamDefaultWriterClose (node:internal/webstreams/writablestream:1091:10),
+#   runId: '6a335cc9-c077-4bb2-8340-af3a6206e4b1',
+#   provider: 'zai.chat',
+#   modelId: 'glm-5.3-flash'
+# }
+# Error in agent stream {
+#   error: Error: TORI_MEMORY_REPLY_UNCONFIRMED
+#       at Object.flush (file:///C:/Users/RZ1/Desktop/RZ/261114-TORI013-f302de9/server/provider-stream.mjs:46:65)
+#       at invokePromiseCallback (node:internal/webstreams/util:172:10)
+#       at Object.<anonymous> (node:internal/webstreams/util:177:23)
+#       at transformStreamDefaultSinkCloseAlgorithm (node:internal/webstreams/transformstream:621:43)
+#       at node:internal/webstreams/transformstream:379:11
+#       at writableStreamDefaultControllerProcessClose (node:internal/webstreams/writablestream:1162:28)
+#       at writableStreamDefaultControllerAdvanceQueueIfNeeded (node:internal/webstreams/writablestream:1242:5)
+#       at writableStreamDefaultControllerClose (node:internal/webstreams/writablestream:1209:3)
+#       at writableStreamClose (node:internal/webstreams/writablestream:722:3)
+#       at writableStreamDefaultWriterClose (node:internal/webstreams/writablestream:1091:10),
+#   runId: '6a335cc9-c077-4bb2-8340-af3a6206e4b1',
+#   provider: 'zai.chat',
+#   modelId: 'glm-5.3-flash'
+# }
+# Error in LLM execution {
+#   error: Error: TORI_MEMORY_REPLY_UNCONFIRMED
+#       at Object.flush (file:///C:/Users/RZ1/Desktop/RZ/261114-TORI013-f302de9/server/provider-stream.mjs:46:65)
+#       at invokePromiseCallback (node:internal/webstreams/util:172:10)
+#       at Object.<anonymous> (node:internal/webstreams/util:177:23)
+#       at transformStreamDefaultSinkCloseAlgorithm (node:internal/webstreams/transformstream:621:43)
+#       at node:internal/webstreams/transformstream:379:11
+#       at writableStreamDefaultControllerProcessClose (node:internal/webstreams/writablestream:1162:28)
+#       at writableStreamDefaultControllerAdvanceQueueIfNeeded (node:internal/webstreams/writablestream:1242:5)
+#       at writableStreamDefaultControllerClose (node:internal/webstreams/writablestream:1209:3)
+#       at writableStreamClose (node:internal/webstreams/writablestream:722:3)
+#       at writableStreamDefaultWriterClose (node:internal/webstreams/writablestream:1091:10),
+#   runId: '9d8a50bd-b4b3-439b-b671-23c6c61854ca',
+#   provider: 'zai.chat',
+#   modelId: 'glm-5.3-flash'
+# }
+# Error in agent stream {
+#   error: Error: TORI_MEMORY_REPLY_UNCONFIRMED
+#       at Object.flush (file:///C:/Users/RZ1/Desktop/RZ/261114-TORI013-f302de9/server/provider-stream.mjs:46:65)
+#       at invokePromiseCallback (node:internal/webstreams/util:172:10)
+#       at Object.<anonymous> (node:internal/webstreams/util:177:23)
+#       at transformStreamDefaultSinkCloseAlgorithm (node:internal/webstreams/transformstream:621:43)
+#       at node:internal/webstreams/transformstream:379:11
+#       at writableStreamDefaultControllerProcessClose (node:internal/webstreams/writablestream:1162:28)
+#       at writableStreamDefaultControllerAdvanceQueueIfNeeded (node:internal/webstreams/writablestream:1242:5)
+#       at writableStreamDefaultControllerClose (node:internal/webstreams/writablestream:1209:3)
+#       at writableStreamClose (node:internal/webstreams/writablestream:722:3)
+#       at writableStreamDefaultWriterClose (node:internal/webstreams/writablestream:1091:10),
+#   runId: '9d8a50bd-b4b3-439b-b671-23c6c61854ca',
+#   provider: 'zai.chat',
+#   modelId: 'glm-5.3-flash'
+# }
+# Error in LLM execution {
+#   error: Error: TORI_MEMORY_REPLY_UNCONFIRMED
+#       at Object.flush (file:///C:/Users/RZ1/Desktop/RZ/261114-TORI013-f302de9/server/provider-stream.mjs:46:65)
+#       at invokePromiseCallback (node:internal/webstreams/util:172:10)
+#       at Object.<anonymous> (node:internal/webstreams/util:177:23)
+#       at transformStreamDefaultSinkCloseAlgorithm (node:internal/webstreams/transformstream:621:43)
+#       at node:internal/webstreams/transformstream:379:11
+#       at writableStreamDefaultControllerProcessClose (node:internal/webstreams/writablestream:1162:28)
+#       at writableStreamDefaultControllerAdvanceQueueIfNeeded (node:internal/webstreams/writablestream:1242:5)
+#       at writableStreamDefaultControllerClose (node:internal/webstreams/writablestream:1209:3)
+#       at writableStreamClose (node:internal/webstreams/writablestream:722:3)
+#       at writableStreamDefaultWriterClose (node:internal/webstreams/writablestream:1091:10),
+#   runId: '3101495e-0c1c-4339-ac11-636b89fc4cf7',
+#   provider: 'zai.chat',
+#   modelId: 'glm-5.3-flash'
+# }
+# Error in agent stream {
+#   error: Error: TORI_MEMORY_REPLY_UNCONFIRMED
+#       at Object.flush (file:///C:/Users/RZ1/Desktop/RZ/261114-TORI013-f302de9/server/provider-stream.mjs:46:65)
+#       at invokePromiseCallback (node:internal/webstreams/util:172:10)
+#       at Object.<anonymous> (node:internal/webstreams/util:177:23)
+#       at transformStreamDefaultSinkCloseAlgorithm (node:internal/webstreams/transformstream:621:43)
+#       at node:internal/webstreams/transformstream:379:11
+#       at writableStreamDefaultControllerProcessClose (node:internal/webstreams/writablestream:1162:28)
+#       at writableStreamDefaultControllerAdvanceQueueIfNeeded (node:internal/webstreams/writablestream:1242:5)
+#       at writableStreamDefaultControllerClose (node:internal/webstreams/writablestream:1209:3)
+#       at writableStreamClose (node:internal/webstreams/writablestream:722:3)
+#       at writableStreamDefaultWriterClose (node:internal/webstreams/writablestream:1091:10),
+#   runId: '3101495e-0c1c-4339-ac11-636b89fc4cf7',
+#   provider: 'zai.chat',
+#   modelId: 'glm-5.3-flash'
+# }
+# Error in LLM execution {
+#   error: Error: TORI_MEMORY_REPLY_UNCONFIRMED
+#       at Object.flush (file:///C:/Users/RZ1/Desktop/RZ/261114-TORI013-f302de9/server/provider-stream.mjs:46:65)
+#       at invokePromiseCallback (node:internal/webstreams/util:172:10)
+#       at Object.<anonymous> (node:internal/webstreams/util:177:23)
+#       at transformStreamDefaultSinkCloseAlgorithm (node:internal/webstreams/transformstream:621:43)
+#       at node:internal/webstreams/transformstream:379:11
+#       at writableStreamDefaultControllerProcessClose (node:internal/webstreams/writablestream:1162:28)
+#       at writableStreamDefaultControllerAdvanceQueueIfNeeded (node:internal/webstreams/writablestream:1242:5)
+#       at writableStreamDefaultControllerClose (node:internal/webstreams/writablestream:1209:3)
+#       at writableStreamClose (node:internal/webstreams/writablestream:722:3)
+#       at writableStreamDefaultWriterClose (node:internal/webstreams/writablestream:1091:10),
+#   runId: '90d7a373-ad10-452b-bf07-4055470b6d04',
+#   provider: 'zai.chat',
+#   modelId: 'glm-5.3-flash'
+# }
+# Error in agent stream {
+#   error: Error: TORI_MEMORY_REPLY_UNCONFIRMED
+#       at Object.flush (file:///C:/Users/RZ1/Desktop/RZ/261114-TORI013-f302de9/server/provider-stream.mjs:46:65)
+#       at invokePromiseCallback (node:internal/webstreams/util:172:10)
+#       at Object.<anonymous> (node:internal/webstreams/util:177:23)
+#       at transformStreamDefaultSinkCloseAlgorithm (node:internal/webstreams/transformstream:621:43)
+#       at node:internal/webstreams/transformstream:379:11
+#       at writableStreamDefaultControllerProcessClose (node:internal/webstreams/writablestream:1162:28)
+#       at writableStreamDefaultControllerAdvanceQueueIfNeeded (node:internal/webstreams/writablestream:1242:5)
+#       at writableStreamDefaultControllerClose (node:internal/webstreams/writablestream:1209:3)
+#       at writableStreamClose (node:internal/webstreams/writablestream:722:3)
+#       at writableStreamDefaultWriterClose (node:internal/webstreams/writablestream:1091:10),
+#   runId: '90d7a373-ad10-452b-bf07-4055470b6d04',
+#   provider: 'zai.chat',
+#   modelId: 'glm-5.3-flash'
+# }
+# Upstream LLM API error {
+#   error: APICallError [AI_APICallError]: Z.AI rejected the request.
+#       at fetch (file:///C:/Users/RZ1/Desktop/RZ/261114-TORI013-f302de9/server/studio.mjs:201:15)
+#       at async postToApi (file:///C:/Users/RZ1/Desktop/RZ/261114-TORI013-f302de9/node_modules/@ai-sdk/provider-utils/dist/index.mjs:2167:22)
+#       at async OpenAICompatibleChatLanguageModel.doStream (file:///C:/Users/RZ1/Desktop/RZ/261114-TORI013-f302de9/node_modules/@ai-sdk/openai-compatible/dist/index.mjs:508:50)
+#       at async AISDKV6LanguageModel.doStream (file:///C:/Users/RZ1/Desktop/RZ/261114-TORI013-f302de9/node_modules/@mastra/core/dist/llm-DNEWp-X9.js:116:10) {
+#     cause: undefined,
+#     url: 'https://api.z.ai/api/coding/paas/v4/chat/completions',
+#     requestBodyValues: undefined,
+#     statusCode: 500,
+#     responseHeaders: undefined,
+#     responseBody: undefined,
+#     isRetryable: true,
+#     data: undefined,
+#     [Symbol(vercel.ai.error)]: true,
+#     [Symbol(vercel.ai.error.AI_APICallError)]: true
+#   },
+#   runId: '89896cbc-9288-4fed-a677-f2071fdd29a0',
+#   provider: 'zai.chat',
+#   modelId: 'glm-5.3-flash'
+# }
+# Subtest: pinned Studio Directive settles independently with exact review, recovery and scoped provenance
+ok 19 - pinned Studio Directive settles independently with exact review, recovery and scoped provenance
+  ---
+  duration_ms: 59735.4944
+  ...
+# {"replyGuard":[{"answer":"I will save you some time by summarizing the two planning notes.","rejected":false,"status":"completed","code":null,"publicReply":"I will save you some time by summarizing the two planning notes.","directive":"none","proposal":null,"receipt":null,"ledger":{"memories":0,"revisions":0,"operations":0,"save_attempts":0}},{"answer":"To personalize the browser dashboard, you can save your preferences under Settings.","rejected":false,"status":"completed","code":null,"publicReply":"To personalize the browser dashboard, you can save your preferences under Settings.","directive":"none","proposal":null,"receipt":null,"ledger":{"memories":0,"revisions":0,"operations":0,"save_attempts":0}},{"answer":"The documentation example says: “I saved your preferences.”","rejected":false,"status":"completed","code":null,"publicReply":"The documentation example says: “I saved your preferences.”","directive":"none","proposal":null,"receipt":null,"ledger":{"memories":0,"revisions":0,"operations":0,"save_attempts":0}},{"answer":"Example:\\n> I saved your preference.","rejected":false,"status":"completed","code":null,"publicReply":"Example:\\n> I saved your preference.","directive":"none","proposal":null,"receipt":null,"ledger":{"memories":0,"revisions":0,"operations":0,"save_attempts":0}},{"answer":"Example:\\n~~~text\\nSaved to memory.\\n~~~","rejected":false,"status":"completed","code":null,"publicReply":"Example:\\n~~~text\\nSaved to memory.\\n~~~","directive":"none","proposal":null,"receipt":null,"ledger":{"memories":0,"revisions":0,"operations":0,"save_attempts":0}},{"answer":"I haven't saved your preference.","rejected":false,"status":"completed","code":null,"publicReply":"I haven't saved your preference.","directive":"none","proposal":null,"receipt":null,"ledger":{"memories":0,"revisions":0,"operations":0,"save_attempts":0}},{"answer":"Saya belum simpan pilihan ini dalam memori.","rejected":false,"status":"completed","code":null,"publicReply":"Saya belum simpan pilihan ini dalam memori.","directive":"none","proposal":null,"receipt":null,"ledger":{"memories":0,"revisions":0,"operations":0,"save_attempts":0}},{"answer":"Saya sudah simpan ini sebagai fail PDF.","rejected":false,"status":"completed","code":null,"publicReply":"Saya sudah simpan ini sebagai fail PDF.","directive":"none","proposal":null,"receipt":null,"ledger":{"memories":0,"revisions":0,"operations":0,"save_attempts":0}},{"answer":"I saved your preferences in Chrome.","rejected":false,"status":"completed","code":null,"publicReply":"I saved your preferences in Chrome.","directive":"none","proposal":null,"receipt":null,"ledger":{"memories":0,"revisions":0,"operations":0,"save_attempts":0}},{"answer":"I saved your preference for dark mode in Chrome.","rejected":false,"status":"completed","code":null,"publicReply":"I saved your preference for dark mode in Chrome.","directive":"none","proposal":null,"receipt":null,"ledger":{"memories":0,"revisions":0,"operations":0,"save_attempts":0}},{"answer":"I updated your preference to dark mode in Chrome.","rejected":false,"status":"completed","code":null,"publicReply":"I updated your preference to dark mode in Chrome.","directive":"none","proposal":null,"receipt":null,"ledger":{"memories":0,"revisions":0,"operations":0,"save_attempts":0}},{"answer":"I never said I saved your preferences.","rejected":false,"status":"completed","code":null,"publicReply":"I never said I saved your preferences.","directive":"none","proposal":null,"receipt":null,"ledger":{"memories":0,"revisions":0,"operations":0,"save_attempts":0}},{"answer":"Your preference was saved?","rejected":false,"status":"completed","code":null,"publicReply":"Your preference was saved?","directive":"none","proposal":null,"receipt":null,"ledger":{"memories":0,"revisions":0,"operations":0,"save_attempts":0}},{"answer":"Saved — in the Chrome extension.","rejected":false,"status":"completed","code":null,"publicReply":"Saved — in the Chrome extension.","directive":"none","proposal":null,"receipt":null,"ledger":{"memories":0,"revisions":0,"operations":0,"save_attempts":0}},{"answer":"I’ve stored it in Chrome so I can use it next time.","rejected":false,"status":"completed","code":null,"publicReply":"I’ve stored it in Chrome so I can use it next time.","directive":"none","proposal":null,"receipt":null,"ledger":{"memories":0,"revisions":0,"operations":0,"save_attempts":0}},{"answer":"Pilihan itu sudah saya simpan dalam Chrome.","rejected":false,"status":"completed","code":null,"publicReply":"Pilihan itu sudah saya simpan dalam Chrome.","directive":"none","proposal":null,"receipt":null,"ledger":{"memories":0,"revisions":0,"operations":0,"save_attempts":0}},{"answer":"Your two-bullet preference has been saved in Chrome.","rejected":false,"status":"completed","code":null,"publicReply":"Your two-bullet preference has been saved in Chrome.","directive":"none","proposal":null,"receipt":null,"ledger":{"memories":0,"revisions":0,"operations":0,"save_attempts":0}},{"answer":"Your two-bullet preference has been saved?","rejected":false,"status":"completed","code":null,"publicReply":"Your two-bullet preference has been saved?","directive":"none","proposal":null,"receipt":null,"ledger":{"memories":0,"revisions":0,"operations":0,"save_attempts":0}},{"answer":"Saved.","rejected":true,"status":"failed","code":"TORI_MEMORY_REPLY_UNCONFIRMED","publicReply":null,"directive":"cancelled","proposal":null,"receipt":null,"ledger":{"memories":0,"revisions":0,"operations":0,"save_attempts":0}},{"answer":"Saved — I’ll use two bullets next time.","rejected":true,"status":"failed","code":"TORI_MEMORY_REPLY_UNCONFIRMED","publicReply":null,"directive":"cancelled","proposal":null,"receipt":null,"ledger":{"memories":0,"revisions":0,"operations":0,"save_attempts":0}},{"answer":"I've saved your preference.","rejected":true,"status":"failed","code":"TORI_MEMORY_REPLY_UNCONFIRMED","publicReply":null,"directive":"cancelled","proposal":null,"receipt":null,"ledger":{"memories":0,"revisions":0,"operations":0,"save_attempts":0}},{"answer":"I saved this in your long-term memory.","rejected":true,"status":"failed","code":"TORI_MEMORY_REPLY_UNCONFIRMED","publicReply":null,"directive":"cancelled","proposal":null,"receipt":null,"ledger":{"memories":0,"revisions":0,"operations":0,"save_attempts":0}},{"answer":"Saved to memory.","rejected":true,"status":"failed","code":"TORI_MEMORY_REPLY_UNCONFIRMED","publicReply":null,"directive":"cancelled","proposal":null,"receipt":null,"ledger":{"memories":0,"revisions":0,"operations":0,"save_attempts":0}},{"answer":"I've saved that.","rejected":true,"status":"failed","code":"TORI_MEMORY_REPLY_UNCONFIRMED","publicReply":null,"directive":"cancelled","proposal":null,"receipt":null,"ledger":{"memories":0,"revisions":0,"operations":0,"save_attempts":0}},{"answer":"Done — saved to memory.","rejected":true,"status":"failed","code":"TORI_MEMORY_REPLY_UNCONFIRMED","publicReply":null,"directive":"cancelled","proposal":null,"receipt":null,"ledger":{"memories":0,"revisions":0,"operations":0,"save_attempts":0}},{"answer":"I've saved that for later.","rejected":true,"status":"failed","code":"TORI_MEMORY_REPLY_UNCONFIRMED","publicReply":null,"directive":"cancelled","proposal":null,"receipt":null,"ledger":{"memories":0,"revisions":0,"operations":0,"save_attempts":0}},{"answer":"Done, saved to memory.","rejected":true,"status":"failed","code":"TORI_MEMORY_REPLY_UNCONFIRMED","publicReply":null,"directive":"cancelled","proposal":null,"receipt":null,"ledger":{"memories":0,"revisions":0,"operations":0,"save_attempts":0}},{"answer":"Saved in my memory for future chats.","rejected":true,"status":"failed","code":"TORI_MEMORY_REPLY_UNCONFIRMED","publicReply":null,"directive":"cancelled","proposal":null,"receipt":null,"ledger":{"memories":0,"revisions":0,"operations":0,"save_attempts":0}},{"answer":"I've saved that as your standing preference.","rejected":true,"status":"failed","code":"TORI_MEMORY_REPLY_UNCONFIRMED","publicReply":null,"directive":"cancelled","proposal":null,"receipt":null,"ledger":{"memories":0,"revisions":0,"operations":0,"save_attempts":0}},{"answer":"Your preference has been stored.","rejected":true,"status":"failed","code":"TORI_MEMORY_REPLY_UNCONFIRMED","publicReply":null,"directive":"cancelled","proposal":null,"receipt":null,"ledger":{"memories":0,"revisions":0,"operations":0,"save_attempts":0}},{"answer":"Your two-bullet preference has been saved.","rejected":true,"status":"failed","code":"TORI_MEMORY_REPLY_UNCONFIRMED","publicReply":null,"directive":"cancelled","proposal":null,"receipt":null,"ledger":{"memories":0,"revisions":0,"operations":0,"save_attempts":0}},{"answer":"Your preference has been added to memory.","rejected":true,"status":"failed","code":"TORI_MEMORY_REPLY_UNCONFIRMED","publicReply":null,"directive":"cancelled","proposal":null,"receipt":null,"ledger":{"memories":0,"revisions":0,"operations":0,"save_attempts":0}},{"answer":"Your preference is now in my memory.","rejected":true,"status":"failed","code":"TORI_MEMORY_REPLY_UNCONFIRMED","publicReply":null,"directive":"cancelled","proposal":null,"receipt":null,"ledger":{"memories":0,"revisions":0,"operations":0,"save_attempts":0}},{"answer":"I've saved your preference for two bullets.","rejected":true,"status":"failed","code":"TORI_MEMORY_REPLY_UNCONFIRMED","publicReply":null,"directive":"cancelled","proposal":null,"receipt":null,"ledger":{"memories":0,"revisions":0,"operations":0,"save_attempts":0}},{"answer":"I’ve recorded your formatting preference.","rejected":true,"status":"failed","code":"TORI_MEMORY_REPLY_UNCONFIRMED","publicReply":null,"directive":"cancelled","proposal":null,"receipt":null,"ledger":{"memories":0,"revisions":0,"operations":0,"save_attempts":0}},{"answer":"I’ve updated your saved preference to two bullets.","rejected":true,"status":"failed","code":"TORI_MEMORY_REPLY_UNCONFIRMED","publicReply":null,"directive":"cancelled","proposal":null,"receipt":null,"ledger":{"memories":0,"revisions":0,"operations":0,"save_attempts":0}},{"answer":"I saved your preference for dark mode in memory.","rejected":true,"status":"failed","code":"TORI_MEMORY_REPLY_UNCONFIRMED","publicReply":null,"directive":"cancelled","proposal":null,"receipt":null,"ledger":{"memories":0,"revisions":0,"operations":0,"save_attempts":0}},{"answer":"It’s already saved in memory.","rejected":true,"status":"failed","code":"TORI_MEMORY_REPLY_UNCONFIRMED","publicReply":null,"directive":"cancelled","proposal":null,"receipt":null,"ledger":{"memories":0,"revisions":0,"operations":0,"save_attempts":0}},{"answer":"I saved “use short bullets” in memory.","rejected":true,"status":"failed","code":"TORI_MEMORY_REPLY_UNCONFIRMED","publicReply":null,"directive":"cancelled","proposal":null,"receipt":null,"ledger":{"memories":0,"revisions":0,"operations":0,"save_attempts":0}},{"answer":"I’ve stored it in your memory so I can use it next time.","rejected":true,"status":"failed","code":"TORI_MEMORY_REPLY_UNCONFIRMED","publicReply":null,"directive":"cancelled","proposal":null,"receipt":null,"ledger":{"memories":0,"revisions":0,"operations":0,"save_attempts":0}},{"answer":"I’ve added the two-bullet format to memory for future use.","rejected":true,"status":"failed","code":"TORI_MEMORY_REPLY_UNCONFIRMED","publicReply":null,"directive":"cancelled","proposal":null,"receipt":null,"ledger":{"memories":0,"revisions":0,"operations":0,"save_attempts":0}},{"answer":"Saya dah simpan pilihan ini dalam memori.","rejected":true,"status":"failed","code":"TORI_MEMORY_REPLY_UNCONFIRMED","publicReply":null,"directive":"cancelled","proposal":null,"receipt":null,"ledger":{"memories":0,"revisions":0,"operations":0,"save_attempts":0}},{"answer":"Pilihan itu sudah saya simpan dalam memori.","rejected":true,"status":"failed","code":"TORI_MEMORY_REPLY_UNCONFIRMED","publicReply":null,"directive":"cancelled","proposal":null,"receipt":null,"ledger":{"memories":0,"revisions":0,"operations":0,"save_attempts":0}},{"answer":"Pilihan anda telah disimpan.","rejected":true,"status":"failed","code":"TORI_MEMORY_REPLY_UNCONFIRMED","publicReply":null,"directive":"cancelled","proposal":null,"receipt":null,"ledger":{"memories":0,"revisions":0,"operations":0,"save_attempts":0}},{"answer":"Baik, sudah disimpan dalam memori.","rejected":true,"status":"failed","code":"TORI_MEMORY_REPLY_UNCONFIRMED","publicReply":null,"directive":"cancelled","proposal":null,"receipt":null,"ledger":{"memories":0,"revisions":0,"operations":0,"save_attempts":0}},{"answer":"Pilihan anda telah disimpan dalam ingatan saya untuk perbualan akan datang.","rejected":true,"status":"failed","code":"TORI_MEMORY_REPLY_UNCONFIRMED","publicReply":null,"directive":"cancelled","proposal":null,"receipt":null,"ledger":{"memories":0,"revisions":0,"operations":0,"save_attempts":0}},{"answer":"Saya sudah catat format itu dalam memori.","rejected":true,"status":"failed","code":"TORI_MEMORY_REPLY_UNCONFIRMED","publicReply":null,"directive":"cancelled","proposal":null,"receipt":null,"ledger":{"memories":0,"revisions":0,"operations":0,"save_attempts":0}},{"answer":"Saya telah menyimpan bahawa Orchid perlu dua poin dalam memori.","rejected":true,"status":"failed","code":"TORI_MEMORY_REPLY_UNCONFIRMED","publicReply":null,"directive":"cancelled","proposal":null,"receipt":null,"ledger":{"memories":0,"revisions":0,"operations":0,"save_attempts":0}}]}
+# {"snapshot":{"activation":"v1_d3532c9ce0d914cd808bc967b210d982b25f013239ac377ed6f3955be6c1a13d","policy":"1a4eac7b8459aa3e7da89449da504ecd0d1413bb7f193bd0e6f4167514d9d5f6","proposalRevision":2},"past90Ms":100000,"deadlineMs":120000,"prereviewWrites":0,"afterWrites":{"memories":1,"revisions":1,"operations":1,"save_attempts":1},"lateStop":"no publication","repeatReceipt":"585e4c77-6b25-4304-ae5d-a2dabf821740"}
+# Subtest: pinned vocabulary, verb negation twins and trusted origins
+    # Subtest: Prefix 1 · operator · "Please remember that I prefer short project updates."
+    ok 1 - Prefix 1 · operator · "Please remember that I prefer short project updates."
+      ---
+      duration_ms: 2.3122
+      ...
+    # Subtest: Prefix 2 · operator · "Kindly remember that I prefer short project updates."
+    ok 2 - Prefix 2 · operator · "Kindly remember that I prefer short project updates."
+      ---
+      duration_ms: 0.3547
+      ...
+    # Subtest: Prefix 3 · operator · "Can you remember that I prefer short project updates?"
+    ok 3 - Prefix 3 · operator · "Can you remember that I prefer short project updates?"
+      ---
+      duration_ms: 0.3516
+      ...
+    # Subtest: Prefix 4 · operator · "Could you remember that I prefer short project updates?"
+    ok 4 - Prefix 4 · operator · "Could you remember that I prefer short project updates?"
+      ---
+      duration_ms: 0.5388
+      ...
+    # Subtest: Prefix 5 · operator · "Would you remember that I prefer short project updates?"
+    ok 5 - Prefix 5 · operator · "Would you remember that I prefer short project updates?"
+      ---
+      duration_ms: 0.3664
+      ...
+    # Subtest: Prefix 6 · operator · "Will you remember that I prefer short project updates?"
+    ok 6 - Prefix 6 · operator · "Will you remember that I prefer short project updates?"
+      ---
+      duration_ms: 0.4985
+      ...
+    # Subtest: Prefix 7 · operator · "Can you please remember that I prefer short project updates?"
+    ok 7 - Prefix 7 · operator · "Can you please remember that I prefer short project updates?"
+      ---
+      duration_ms: 0.3082
+      ...
+    # Subtest: Prefix 8 · operator · "Could you please remember that I prefer short project updates?"
+    ok 8 - Prefix 8 · operator · "Could you please remember that I prefer short project updates?"
+      ---
+      duration_ms: 0.6459
+      ...
+    # Subtest: Prefix 9 · operator · "Would you please remember that I prefer short project updates?"
+    ok 9 - Prefix 9 · operator · "Would you please remember that I prefer short project updates?"
+      ---
+      duration_ms: 0.7573
+      ...
+    # Subtest: Prefix 10 · operator · "Will you please remember that I prefer short project updates?"
+    ok 10 - Prefix 10 · operator · "Will you please remember that I prefer short project updates?"
+      ---
+      duration_ms: 0.7453
+      ...
+    # Subtest: Prefix 11 · operator · "I want you to remember that I prefer short project updates."
+    ok 11 - Prefix 11 · operator · "I want you to remember that I prefer short project updates."
+      ---
+      duration_ms: 0.2516
+      ...
+    # Subtest: Prefix 12 · operator · "I need you to remember that I prefer short project updates."
+    ok 12 - Prefix 12 · operator · "I need you to remember that I prefer short project updates."
+      ---
+      duration_ms: 0.2234
+      ...
+    # Subtest: Prefix 13 · operator · "I'd like you to remember that I prefer short project updates."
+    ok 13 - Prefix 13 · operator · "I'd like you to remember that I prefer short project updates."
+      ---
+      duration_ms: 0.1792
+      ...
+    # Subtest: Prefix 14 · operator · "Pls remember that I prefer short project updates."
+    ok 14 - Prefix 14 · operator · "Pls remember that I prefer short project updates."
+      ---
+      duration_ms: 0.1825
+      ...
+    # Subtest: Prefix 15 · operator · "Plz remember that I prefer short project updates."
+    ok 15 - Prefix 15 · operator · "Plz remember that I prefer short project updates."
+      ---
+      duration_ms: 0.1784
+      ...
+    # Subtest: Prefix 16 · operator · "Plss remember that I prefer short project updates."
+    ok 16 - Prefix 16 · operator · "Plss remember that I prefer short project updates."
+      ---
+      duration_ms: 0.1812
+      ...
+    # Subtest: Prefix 17 · operator · "Pls kindly remember that I prefer short project updates."
+    ok 17 - Prefix 17 · operator · "Pls kindly remember that I prefer short project updates."
+      ---
+      duration_ms: 0.1753
+      ...
+    # Subtest: Prefix 18 · operator · "Can u remember that I prefer short project updates?"
+    ok 18 - Prefix 18 · operator · "Can u remember that I prefer short project updates?"
+      ---
+      duration_ms: 0.1617
+      ...
+    # Subtest: Prefix 19 · operator · "Could u remember that I prefer short project updates?"
+    ok 19 - Prefix 19 · operator · "Could u remember that I prefer short project updates?"
+      ---
+      duration_ms: 0.1806
+      ...
+    # Subtest: Prefix 20 · operator · "Would u remember that I prefer short project updates?"
+    ok 20 - Prefix 20 · operator · "Would u remember that I prefer short project updates?"
+      ---
+      duration_ms: 0.1871
+      ...
+    # Subtest: Prefix 21 · operator · "Please do remember that I prefer short project updates."
+    ok 21 - Prefix 21 · operator · "Please do remember that I prefer short project updates."
+      ---
+      duration_ms: 0.165
+      ...
+    # Subtest: Prefix 22 · operator · "Would you mind remembering that I prefer short project updates?"
+    ok 22 - Prefix 22 · operator · "Would you mind remembering that I prefer short project updates?"
+      ---
+      duration_ms: 0.17
+      ...
+    # Subtest: Prefix 23 · operator · "Make sure you remember that I prefer short project updates."
+    ok 23 - Prefix 23 · operator · "Make sure you remember that I prefer short project updates."
+      ---
+      duration_ms: 0.1681
+      ...
+    # Subtest: Prefix 24 · operator · "Be sure to remember that I prefer short project updates."
+    ok 24 - Prefix 24 · operator · "Be sure to remember that I prefer short project updates."
+      ---
+      duration_ms: 0.1638
+      ...
+    # Subtest: Verb 1 affirmative · operator · "Remember that: I prefer short project updates."
+    ok 25 - Verb 1 affirmative · operator · "Remember that: I prefer short project updates."
+      ---
+      duration_ms: 0.2171
+      ...
+    # Subtest: Verb 1 negation twin · operator · "Don’t remember that: I prefer short project updates."
+    ok 26 - Verb 1 negation twin · operator · "Don’t remember that: I prefer short project updates."
+      ---
+      duration_ms: 0.2406
+      ...
+    # Subtest: Verb 1 negation twin · operator · "Don't remember that: I prefer short project updates."
+    ok 27 - Verb 1 negation twin · operator · "Don't remember that: I prefer short project updates."
+      ---
+      duration_ms: 0.1788
+      ...
+    # Subtest: Verb 2 affirmative · operator · "Memorize this preference: I prefer short project updates."
+    ok 28 - Verb 2 affirmative · operator · "Memorize this preference: I prefer short project updates."
+      ---
+      duration_ms: 0.3919
+      ...
+    # Subtest: Verb 2 negation twin · operator · "Don’t memorize this preference: I prefer short project updates."
+    ok 29 - Verb 2 negation twin · operator · "Don’t memorize this preference: I prefer short project updates."
+      ---
+      duration_ms: 0.1707
+      ...
+    # Subtest: Verb 2 negation twin · operator · "Don't memorize this preference: I prefer short project updates."
+    ok 30 - Verb 2 negation twin · operator · "Don't memorize this preference: I prefer short project updates."
+      ---
+      duration_ms: 0.1768
+      ...
+    # Subtest: Verb 3 affirmative · operator · "Save this as a memory: I prefer short project updates."
+    ok 31 - Verb 3 affirmative · operator · "Save this as a memory: I prefer short project updates."
+      ---
+      duration_ms: 0.195
+      ...
+    # Subtest: Verb 3 negation twin · operator · "Don’t save this as a memory: I prefer short project updates."
+    ok 32 - Verb 3 negation twin · operator · "Don’t save this as a memory: I prefer short project updates."
+      ---
+      duration_ms: 0.1682
+      ...
+    # Subtest: Verb 3 negation twin · operator · "Don't save this as a memory: I prefer short project updates."
+    ok 33 - Verb 3 negation twin · operator · "Don't save this as a memory: I prefer short project updates."
+      ---
+      duration_ms: 0.1679
+      ...
+    # Subtest: Verb 4 affirmative · operator · "Save that as a preference: I prefer short project updates."
+    ok 34 - Verb 4 affirmative · operator · "Save that as a preference: I prefer short project updates."
+      ---
+      duration_ms: 0.1705
+      ...
+    # Subtest: Verb 4 negation twin · operator · "Don’t save that as a preference: I prefer short project updates."
+    ok 35 - Verb 4 negation twin · operator · "Don’t save that as a preference: I prefer short project updates."
+      ---
+      duration_ms: 0.1677
+      ...
+    # Subtest: Verb 4 negation twin · operator · "Don't save that as a preference: I prefer short project updates."
+    ok 36 - Verb 4 negation twin · operator · "Don't save that as a preference: I prefer short project updates."
+      ---
+      duration_ms: 0.1689
+      ...
+    # Subtest: Verb 5 affirmative · operator · "Keep in mind that: I prefer short project updates."
+    ok 37 - Verb 5 affirmative · operator · "Keep in mind that: I prefer short project updates."
+      ---
+      duration_ms: 0.1668
+      ...
+    # Subtest: Verb 5 negation twin · operator · "Don’t keep in mind that: I prefer short project updates."
+    ok 38 - Verb 5 negation twin · operator · "Don’t keep in mind that: I prefer short project updates."
+      ---
+      duration_ms: 0.166
+      ...
+    # Subtest: Verb 5 negation twin · operator · "Don't keep in mind that: I prefer short project updates."
+    ok 39 - Verb 5 negation twin · operator · "Don't keep in mind that: I prefer short project updates."
+      ---
+      duration_ms: 0.1693
+      ...
+    # Subtest: Verb 6 affirmative · operator · "Bear in mind that: I prefer short project updates."
+    ok 40 - Verb 6 affirmative · operator · "Bear in mind that: I prefer short project updates."
+      ---
+      duration_ms: 0.1979
+      ...
+    # Subtest: Verb 6 negation twin · operator · "Don’t bear in mind that: I prefer short project updates."
+    ok 41 - Verb 6 negation twin · operator · "Don’t bear in mind that: I prefer short project updates."
+      ---
+      duration_ms: 0.1637
+      ...
+    # Subtest: Verb 6 negation twin · operator · "Don't bear in mind that: I prefer short project updates."
+    ok 42 - Verb 6 negation twin · operator · "Don't bear in mind that: I prefer short project updates."
+      ---
+      duration_ms: 0.1656
+      ...
+    # Subtest: Verb 7 affirmative · operator · "Take note that: I prefer short project updates."
+    ok 43 - Verb 7 affirmative · operator · "Take note that: I prefer short project updates."
+      ---
+      duration_ms: 0.1689
+      ...
+    # Subtest: Verb 7 negation twin · operator · "Don’t take note that: I prefer short project updates."
+    ok 44 - Verb 7 negation twin · operator · "Don’t take note that: I prefer short project updates."
+      ---
+      duration_ms: 0.1745
+      ...
+    # Subtest: Verb 7 negation twin · operator · "Don't take note that: I prefer short project updates."
+    ok 45 - Verb 7 negation twin · operator · "Don't take note that: I prefer short project updates."
+      ---
+      duration_ms: 0.2524
+      ...
+    # Subtest: Verb 8 affirmative · operator · "Take note: I prefer short project updates."
+    ok 46 - Verb 8 affirmative · operator · "Take note: I prefer short project updates."
+      ---
+      duration_ms: 0.1707
+      ...
+    # Subtest: Verb 8 negation twin · operator · "Don’t take note: I prefer short project updates."
+    ok 47 - Verb 8 negation twin · operator · "Don’t take note: I prefer short project updates."
+      ---
+      duration_ms: 0.1633
+      ...
+    # Subtest: Verb 8 negation twin · operator · "Don't take note: I prefer short project updates."
+    ok 48 - Verb 8 negation twin · operator · "Don't take note: I prefer short project updates."
+      ---
+      duration_ms: 0.2228
+      ...
+    # Subtest: Verb 9 affirmative · operator · "Note that: I prefer short project updates."
+    ok 49 - Verb 9 affirmative · operator · "Note that: I prefer short project updates."
+      ---
+      duration_ms: 0.2355
+      ...
+    # Subtest: Verb 9 negation twin · operator · "Don’t note that: I prefer short project updates."
+    ok 50 - Verb 9 negation twin · operator · "Don’t note that: I prefer short project updates."
+      ---
+      duration_ms: 0.2573
+      ...
+    # Subtest: Verb 9 negation twin · operator · "Don't note that: I prefer short project updates."
+    ok 51 - Verb 9 negation twin · operator · "Don't note that: I prefer short project updates."
+      ---
+      duration_ms: 0.4354
+      ...
+    # Subtest: Verb 10 affirmative · operator · "Make a note: I prefer short project updates."
+    ok 52 - Verb 10 affirmative · operator · "Make a note: I prefer short project updates."
+      ---
+      duration_ms: 0.2398
+      ...
+    # Subtest: Verb 10 negation twin · operator · "Don’t make a note: I prefer short project updates."
+    ok 53 - Verb 10 negation twin · operator · "Don’t make a note: I prefer short project updates."
+      ---
+      duration_ms: 0.2436
+      ...
+    # Subtest: Verb 10 negation twin · operator · "Don't make a note: I prefer short project updates."
+    ok 54 - Verb 10 negation twin · operator · "Don't make a note: I prefer short project updates."
+      ---
+      duration_ms: 0.2353
+      ...
+    # Subtest: Verb 11 affirmative · operator · "Jot this down: I prefer short project updates."
+    ok 55 - Verb 11 affirmative · operator · "Jot this down: I prefer short project updates."
+      ---
+      duration_ms: 0.228
+      ...
+    # Subtest: Verb 11 negation twin · operator · "Don’t jot this down: I prefer short project updates."
+    ok 56 - Verb 11 negation twin · operator · "Don’t jot this down: I prefer short project updates."
+      ---
+      duration_ms: 0.292
+      ...
+    # Subtest: Verb 11 negation twin · operator · "Don't jot this down: I prefer short project updates."
+    ok 57 - Verb 11 negation twin · operator · "Don't jot this down: I prefer short project updates."
+      ---
+      duration_ms: 0.2295
+      ...
+    # Subtest: Verb 12 affirmative · operator · "Write this down: I prefer short project updates."
+    ok 58 - Verb 12 affirmative · operator · "Write this down: I prefer short project updates."
+      ---
+      duration_ms: 0.2524
+      ...
+    # Subtest: Verb 12 negation twin · operator · "Don’t write this down: I prefer short project updates."
+    ok 59 - Verb 12 negation twin · operator · "Don’t write this down: I prefer short project updates."
+      ---
+      duration_ms: 0.2357
+      ...
+    # Subtest: Verb 12 negation twin · operator · "Don't write this down: I prefer short project updates."
+    ok 60 - Verb 12 negation twin · operator · "Don't write this down: I prefer short project updates."
+      ---
+      duration_ms: 0.2667
+      ...
+    # Subtest: Verb 13 affirmative · operator · "Keep a record of this: I prefer short project updates."
+    ok 61 - Verb 13 affirmative · operator · "Keep a record of this: I prefer short project updates."
+      ---
+      duration_ms: 0.2318
+      ...
+    # Subtest: Verb 13 negation twin · operator · "Don’t keep a record of this: I prefer short project updates."
+    ok 62 - Verb 13 negation twin · operator · "Don’t keep a record of this: I prefer short project updates."
+      ---
+      duration_ms: 0.2676
+      ...
+    # Subtest: Verb 13 negation twin · operator · "Don't keep a record of this: I prefer short project updates."
+    ok 63 - Verb 13 negation twin · operator · "Don't keep a record of this: I prefer short project updates."
+      ---
+      duration_ms: 0.2495
+      ...
+    # Subtest: Verb 14 affirmative · operator · "For future reference: I prefer short project updates."
+    ok 64 - Verb 14 affirmative · operator · "For future reference: I prefer short project updates."
+      ---
+      duration_ms: 0.2283
+      ...
+    # Subtest: Verb 14 negation twin · operator · "Not for future reference: I prefer short project updates."
+    ok 65 - Verb 14 negation twin · operator · "Not for future reference: I prefer short project updates."
+      ---
+      duration_ms: 0.3655
+      ...
+    # Subtest: Verb 15 affirmative · operator · "Always remember that: I prefer short project updates."
+    ok 66 - Verb 15 affirmative · operator · "Always remember that: I prefer short project updates."
+      ---
+      duration_ms: 0.2659
+      ...
+    # Subtest: Verb 15 negation twin · operator · "Never remember that: I prefer short project updates."
+    ok 67 - Verb 15 negation twin · operator · "Never remember that: I prefer short project updates."
+      ---
+      duration_ms: 0.293
+      ...
+    # Subtest: Verb 16 affirmative · operator · "Never forget that: I prefer short project updates."
+    ok 68 - Verb 16 affirmative · operator · "Never forget that: I prefer short project updates."
+      ---
+      duration_ms: 0.2965
+      ...
+    # Subtest: Verb 16 negation twin · operator · "Don’t remember that: I prefer short project updates."
+    ok 69 - Verb 16 negation twin · operator · "Don’t remember that: I prefer short project updates."
+      ---
+      duration_ms: 0.2108
+      ...
+    # Subtest: Verb 16 negation twin · operator · "Don't remember that: I prefer short project updates."
+    ok 70 - Verb 16 negation twin · operator · "Don't remember that: I prefer short project updates."
+      ---
+      duration_ms: 0.2096
+      ...
+    # Subtest: Verb 17 affirmative · operator · "Update your memory: I prefer short project updates."
+    ok 71 - Verb 17 affirmative · operator · "Update your memory: I prefer short project updates."
+      ---
+      duration_ms: 0.1912
+      ...
+    # Subtest: Verb 17 negation twin · operator · "Don’t update your memory: I prefer short project updates."
+    ok 72 - Verb 17 negation twin · operator · "Don’t update your memory: I prefer short project updates."
+      ---
+      duration_ms: 0.1739
+      ...
+    # Subtest: Verb 17 negation twin · operator · "Don't update your memory: I prefer short project updates."
+    ok 73 - Verb 17 negation twin · operator · "Don't update your memory: I prefer short project updates."
+      ---
+      duration_ms: 0.3029
+      ...
+    # Subtest: Verb 18 affirmative · operator · "Add to your memory: I prefer short project updates."
+    ok 74 - Verb 18 affirmative · operator · "Add to your memory: I prefer short project updates."
+      ---
+      duration_ms: 0.2406
+      ...
+    # Subtest: Verb 18 negation twin · operator · "Don’t add to your memory: I prefer short project updates."
+    ok 75 - Verb 18 negation twin · operator · "Don’t add to your memory: I prefer short project updates."
+      ---
+      duration_ms: 0.1671
+      ...
+    # Subtest: Verb 18 negation twin · operator · "Don't add to your memory: I prefer short project updates."
+    ok 76 - Verb 18 negation twin · operator · "Don't add to your memory: I prefer short project updates."
+      ---
+      duration_ms: 0.1804
+      ...
+    # Subtest: Verb 19 affirmative · operator · "Update your notes: I prefer short project updates."
+    ok 77 - Verb 19 affirmative · operator · "Update your notes: I prefer short project updates."
+      ---
+      duration_ms: 0.1736
+      ...
+    # Subtest: Verb 19 negation twin · operator · "Don’t update your notes: I prefer short project updates."
+    ok 78 - Verb 19 negation twin · operator · "Don’t update your notes: I prefer short project updates."
+      ---
+      duration_ms: 0.1294
+      ...
+    # Subtest: Verb 19 negation twin · operator · "Don't update your notes: I prefer short project updates."
+    ok 79 - Verb 19 negation twin · operator · "Don't update your notes: I prefer short project updates."
+      ---
+      duration_ms: 0.1498
+      ...
+    # Subtest: Verb 20 affirmative · operator · "Add to your notes: I prefer short project updates."
+    ok 80 - Verb 20 affirmative · operator · "Add to your notes: I prefer short project updates."
+      ---
+      duration_ms: 0.1404
+      ...
+    # Subtest: Verb 20 negation twin · operator · "Don’t add to your notes: I prefer short project updates."
+    ok 81 - Verb 20 negation twin · operator · "Don’t add to your notes: I prefer short project updates."
+      ---
+      duration_ms: 0.2871
+      ...
+    # Subtest: Verb 20 negation twin · operator · "Don't add to your notes: I prefer short project updates."
+    ok 82 - Verb 20 negation twin · operator · "Don't add to your notes: I prefer short project updates."
+      ---
+      duration_ms: 0.1996
+      ...
+    # Subtest: Verb 21 affirmative · operator · "Rmb that: I prefer short project updates."
+    ok 83 - Verb 21 affirmative · operator · "Rmb that: I prefer short project updates."
+      ---
+      duration_ms: 0.2264
+      ...
+    # Subtest: Verb 21 negation twin · operator · "Don’t rmb that: I prefer short project updates."
+    ok 84 - Verb 21 negation twin · operator · "Don’t rmb that: I prefer short project updates."
+      ---
+      duration_ms: 0.1996
+      ...
+    # Subtest: Verb 21 negation twin · operator · "Don't rmb that: I prefer short project updates."
+    ok 85 - Verb 21 negation twin · operator · "Don't rmb that: I prefer short project updates."
+      ---
+      duration_ms: 0.1766
+      ...
+    # Subtest: Verb 22 affirmative · operator · "Don’t forget that: I prefer short project updates."
+    ok 86 - Verb 22 affirmative · operator · "Don’t forget that: I prefer short project updates."
+      ---
+      duration_ms: 0.1792
+      ...
+    # Subtest: Verb 22 affirmative · operator · "Don't forget that: I prefer short project updates."
+    ok 87 - Verb 22 affirmative · operator · "Don't forget that: I prefer short project updates."
+      ---
+      duration_ms: 0.2405
+      ...
+    # Subtest: Verb 22 negation twin · operator · "Don’t remember that: I prefer short project updates."
+    ok 88 - Verb 22 negation twin · operator · "Don’t remember that: I prefer short project updates."
+      ---
+      duration_ms: 0.1681
+      ...
+    # Subtest: Verb 22 negation twin · operator · "Don't remember that: I prefer short project updates."
+    ok 89 - Verb 22 negation twin · operator · "Don't remember that: I prefer short project updates."
+      ---
+      duration_ms: 0.17
+      ...
+    # Subtest: Verb 23 affirmative · operator · "Do not forget that: I prefer short project updates."
+    ok 90 - Verb 23 affirmative · operator · "Do not forget that: I prefer short project updates."
+      ---
+      duration_ms: 0.1667
+      ...
+    # Subtest: Verb 23 negation twin · operator · "Do not remember that: I prefer short project updates."
+    ok 91 - Verb 23 negation twin · operator · "Do not remember that: I prefer short project updates."
+      ---
+      duration_ms: 0.1569
+      ...
+    # Subtest: Boundary 1 · operator · "A regular project update."
+    ok 92 - Boundary 1 · operator · "A regular project update."
+      ---
+      duration_ms: 0.1562
+      ...
+    # Subtest: Boundary 2 · operator · "Please remember: I prefer brief notes."
+    ok 93 - Boundary 2 · operator · "Please remember: I prefer brief notes."
+      ---
+      duration_ms: 0.1855
+      ...
+    # Subtest: Boundary 3 · operator · "Could you please remember my weekly review preference?"
+    ok 94 - Boundary 3 · operator · "Could you please remember my weekly review preference?"
+      ---
+      duration_ms: 0.1653
+      ...
+    # Subtest: Boundary 4 · operator · "I’d like you to remember that Mondays are for planning."
+    ok 95 - Boundary 4 · operator · "I’d like you to remember that Mondays are for planning."
+      ---
+      duration_ms: 0.1627
+      ...
+    # Subtest: Boundary 4 · operator · "I'd like you to remember that Mondays are for planning."
+    ok 96 - Boundary 4 · operator · "I'd like you to remember that Mondays are for planning."
+      ---
+      duration_ms: 0.1619
+      ...
+    # Subtest: Boundary 5 · operator · "Remember:\\nLine one.\\nLine two."
+    ok 97 - Boundary 5 · operator · "Remember:\\nLine one.\\nLine two."
+      ---
+      duration_ms: 0.1667
+      ...
+    # Subtest: Boundary 6 · operator · "Remember how we prepared the planning brief in this Session."
+    ok 98 - Boundary 6 · operator · "Remember how we prepared the planning brief in this Session."
+      ---
+      duration_ms: 0.2002
+      ...
+    # Subtest: Boundary 7 · operator · "Remember how we did this session for future planning updates."
+    ok 99 - Boundary 7 · operator · "Remember how we did this session for future planning updates."
+      ---
+      duration_ms: 0.1709
+      ...
+    # Subtest: Boundary 8 · operator · "Remember."
+    ok 100 - Boundary 8 · operator · "Remember."
+      ---
+      duration_ms: 0.1683
+      ...
+    # Subtest: Boundary 9 · operator · "Save this."
+    ok 101 - Boundary 9 · operator · "Save this."
+      ---
+      duration_ms: 0.1619
+      ...
+    # Subtest: Boundary 10 · operator · "Don't save it."
+    ok 102 - Boundary 10 · operator · "Don't save it."
+      ---
+      duration_ms: 0.3435
+      ...
+    # Subtest: Boundary 11 · operator · "Would you remember that if I asked you tomorrow?"
+    ok 103 - Boundary 11 · operator · "Would you remember that if I asked you tomorrow?"
+      ---
+      duration_ms: 0.1996
+      ...
+    # Subtest: Boundary 12 · operator · "Could you please remember the date I told you yesterday?"
+    ok 104 - Boundary 12 · operator · "Could you please remember the date I told you yesterday?"
+      ---
+      duration_ms: 0.1732
+      ...
+    # Subtest: Boundary 13 · operator · "Remember this."
+    ok 105 - Boundary 13 · operator · "Remember this."
+      ---
+      duration_ms: 0.38
+      ...
+    # Subtest: Boundary 14 · operator · "Remember this for me."
+    ok 106 - Boundary 14 · operator · "Remember this for me."
+      ---
+      duration_ms: 0.4286
+      ...
+    # Subtest: Boundary 15 · operator · "Remember to send the planning update."
+    ok 107 - Boundary 15 · operator · "Remember to send the planning update."
+      ---
+      duration_ms: 0.2966
+      ...
+    # Subtest: Boundary 16 · operator · "Don’t forget to send the planning update."
+    ok 108 - Boundary 16 · operator · "Don’t forget to send the planning update."
+      ---
+      duration_ms: 0.2223
+      ...
+    # Subtest: Boundary 16 · operator · "Don't forget to send the planning update."
+    ok 109 - Boundary 16 · operator · "Don't forget to send the planning update."
+      ---
+      duration_ms: 0.2138
+      ...
+    # Subtest: Boundary 17 · operator · "Remember that I prefer planning updates on Monday."
+    ok 110 - Boundary 17 · operator · "Remember that I prefer planning updates on Monday."
+      ---
+      duration_ms: 0.1988
+      ...
+    # Subtest: Boundary 18 · operator · "Do you remember what we talked about last week?"
+    ok 111 - Boundary 18 · operator · "Do you remember what we talked about last week?"
+      ---
+      duration_ms: 0.2262
+      ...
+    # Subtest: Boundary 19 · operator · "Can you remember the date I told you yesterday?"
+    ok 112 - Boundary 19 · operator · "Can you remember the date I told you yesterday?"
+      ---
+      duration_ms: 0.1996
+      ...
+    # Subtest: Boundary 20 · operator · "Remember when we changed it?"
+    ok 113 - Boundary 20 · operator · "Remember when we changed it?"
+      ---
+      duration_ms: 0.176
+      ...
+    # Subtest: Boundary 21 · operator · "Would you remember the marker if I asked you tomorrow?"
+    ok 114 - Boundary 21 · operator · "Would you remember the marker if I asked you tomorrow?"
+      ---
+      duration_ms: 0.2415
+      ...
+    # Subtest: Boundary 22 · operator · "Would you mind not remembering that I prefer short project updates?"
+    ok 115 - Boundary 22 · operator · "Would you mind not remembering that I prefer short project updates?"
+      ---
+      duration_ms: 0.1888
+      ...
+    # Subtest: Boundary 23 · operator · "Pls don’t remember this."
+    ok 116 - Boundary 23 · operator · "Pls don’t remember this."
+      ---
+      duration_ms: 0.3591
+      ...
+    # Subtest: Boundary 23 · operator · "Pls don't remember this."
+    ok 117 - Boundary 23 · operator · "Pls don't remember this."
+      ---
+      duration_ms: 0.1952
+      ...
+    # Subtest: Boundary 24 · operator · "Do not remember that preference."
+    ok 118 - Boundary 24 · operator · "Do not remember that preference."
+      ---
+      duration_ms: 0.3176
+      ...
+    # Subtest: Boundary 25 · operator · "Never save this as a memory."
+    ok 119 - Boundary 25 · operator · "Never save this as a memory."
+      ---
+      duration_ms: 0.1746
+      ...
+    # Subtest: Boundary 26 · operator · "Remember this. Actually, do not save it."
+    ok 120 - Boundary 26 · operator · "Remember this. Actually, do not save it."
+      ---
+      duration_ms: 0.182
+      ...
+    # Subtest: Boundary 27 · operator · "Remember: don't store this message."
+    ok 121 - Boundary 27 · operator · "Remember: don't store this message."
+      ---
+      duration_ms: 0.1884
+      ...
+    # Subtest: Boundary 28 · operator · "Remember that synthetic preference only for this reply; do not store it."
+    ok 122 - Boundary 28 · operator · "Remember that synthetic preference only for this reply; do not store it."
+      ---
+      duration_ms: 0.1583
+      ...
+    # Subtest: Boundary 29 · operator · "Remember that this is only for this reply."
+    ok 123 - Boundary 29 · operator · "Remember that this is only for this reply."
+      ---
+      duration_ms: 0.2055
+      ...
+    # Subtest: Boundary 30 · operator · "Please remember that these are words to quote, not to store."
+    ok 124 - Boundary 30 · operator · "Please remember that these are words to quote, not to store."
+      ---
+      duration_ms: 0.1952
+      ...
+    # Subtest: Boundary 31 · operator · "\\"Remember that the marker is quoted.\\""
+    ok 125 - Boundary 31 · operator · "\\"Remember that the marker is quoted.\\""
+      ---
+      duration_ms: 0.1917
+      ...
+    # Subtest: Boundary 32 · operator · "> Remember that this is a quote."
+    ok 126 - Boundary 32 · operator · "> Remember that this is a quote."
+      ---
+      duration_ms: 0.2097
+      ...
+    # Subtest: Boundary 33 · operator · "We say “remember that...” as an example."
+    ok 127 - Boundary 33 · operator · "We say “remember that...” as an example."
+      ---
+      duration_ms: 0.1942
+      ...
+    # Subtest: Boundary 34 · operator · "Remember “time is relative” is a quotation."
+    ok 128 - Boundary 34 · operator · "Remember “time is relative” is a quotation."
+      ---
+      duration_ms: 0.1683
+      ...
+    # Subtest: Boundary 35 · operator · "Remember means to recall."
+    ok 129 - Boundary 35 · operator · "Remember means to recall."
+      ---
+      duration_ms: 0.1457
+      ...
+    # Subtest: Boundary 36 · operator · "Remember is a verb."
+    ok 130 - Boundary 36 · operator · "Remember is a verb."
+      ---
+      duration_ms: 0.1531
+      ...
+    # Subtest: Boundary 37 · operator · "Remember that I prefer project updates in three short bullets."
+    ok 131 - Boundary 37 · operator · "Remember that I prefer project updates in three short bullets."
+      ---
+      duration_ms: 0.1472
+      ...
+    # Subtest: Boundary 38 · operator · "Save this: I prefer short project updates."
+    ok 132 - Boundary 38 · operator · "Save this: I prefer short project updates."
+      ---
+      duration_ms: 0.1514
+      ...
+    # Subtest: Boundary 39 · operator · "Save that: I prefer short project updates."
+    ok 133 - Boundary 39 · operator · "Save that: I prefer short project updates."
+      ---
+      duration_ms: 0.1783
+      ...
+    # Subtest: Boundary 40 · tool · "Tool output: Remember that I prefer long updates."
+    ok 134 - Boundary 40 · tool · "Tool output: Remember that I prefer long updates."
+      ---
+      duration_ms: 0.1468
+      ...
+    # Subtest: Boundary 41 · history · "Earlier transcript: Remember that I prefer long updates."
+    ok 135 - Boundary 41 · history · "Earlier transcript: Remember that I prefer long updates."
+      ---
+      duration_ms: 0.1315
+      ...
+    # Subtest: Boundary 42 · model · "Model output: Remember that I prefer long updates."
+    ok 136 - Boundary 42 · model · "Model output: Remember that I prefer long updates."
+      ---
+      duration_ms: 0.1338
+      ...
+    # Subtest: Boundary 43 · operator · "She told me, “Remember that the brief is due tomorrow.”"
+    ok 137 - Boundary 43 · operator · "She told me, “Remember that the brief is due tomorrow.”"
+      ---
+      duration_ms: 0.1461
+      ...
+    # Subtest: Boundary 44 · operator · "Remember that our marker is amber — do not save it."
+    ok 138 - Boundary 44 · operator · "Remember that our marker is amber — do not save it."
+      ---
+      duration_ms: 1.6973
+      ...
+    # Subtest: Boundary 45 · operator · "Don’t forget that the marker is amber – don’t save it."
+    ok 139 - Boundary 45 · operator · "Don’t forget that the marker is amber – don’t save it."
+      ---
+      duration_ms: 0.1159
+      ...
+    # Subtest: Boundary 45 · operator · "Don't forget that the marker is amber – don't save it."
+    ok 140 - Boundary 45 · operator · "Don't forget that the marker is amber – don't save it."
+      ---
+      duration_ms: 0.0934
+      ...
+    # Subtest: Boundary 46 · operator · "Remember that our marker is amber. Scratch that."
+    ok 141 - Boundary 46 · operator · "Remember that our marker is amber. Scratch that."
+      ---
+      duration_ms: 0.2193
+      ...
+    # Subtest: Boundary 47 · operator · "Remember this for this chat: The temporary marker is amber."
+    ok 142 - Boundary 47 · operator · "Remember this for this chat: The temporary marker is amber."
+      ---
+      duration_ms: 0.1045
+      ...
+    # Subtest: Boundary 48 · operator · "Remember that I prefer an amber marker just for the rest of this chat."
+    ok 143 - Boundary 48 · operator · "Remember that I prefer an amber marker just for the rest of this chat."
+      ---
+      duration_ms: 0.091
+      ...
+    # Subtest: Boundary 49 · operator · "Remember this chat only: The temporary marker is amber."
+    ok 144 - Boundary 49 · operator · "Remember this chat only: The temporary marker is amber."
+      ---
+      duration_ms: 0.0874
+      ...
+    # Subtest: Boundary 50 · operator · "Pls remember how we did this session for future planning updates."
+    ok 145 - Boundary 50 · operator · "Pls remember how we did this session for future planning updates."
+      ---
+      duration_ms: 0.0891
+      ...
+    # Subtest: Boundary 51 · operator · "Remember how we made the plan for this Session so we can reuse it."
+    ok 146 - Boundary 51 · operator · "Remember how we made the plan for this Session so we can reuse it."
+      ---
+      duration_ms: 0.0871
+      ...
+    # Subtest: Boundary 52 · operator · "Remember that for the rest of this chat I want short notes."
+    ok 147 - Boundary 52 · operator · "Remember that for the rest of this chat I want short notes."
+      ---
+      duration_ms: 0.0852
+      ...
+    # Subtest: Boundary 53 · operator · "Remember: for this conversation use short titles."
+    ok 148 - Boundary 53 · operator · "Remember: for this conversation use short titles."
+      ---
+      duration_ms: 0.0835
+      ...
+    # Subtest: Boundary 54 · operator · "Remember: use short titles in this chat."
+    ok 149 - Boundary 54 · operator · "Remember: use short titles in this chat."
+      ---
+      duration_ms: 0.1599
+      ...
+    # Subtest: Boundary 55 · operator · "Remember that I want short notes during this chat."
+    ok 150 - Boundary 55 · operator · "Remember that I want short notes during this chat."
+      ---
+      duration_ms: 0.0836
+      ...
+    # Subtest: Boundary 56 · operator · "Remember that I want short notes until this chat ends."
+    ok 151 - Boundary 56 · operator · "Remember that I want short notes until this chat ends."
+      ---
+      duration_ms: 0.0859
+      ...
+    # Subtest: Boundary 57 · operator · "Remember: use short titles for now."
+    ok 152 - Boundary 57 · operator · "Remember: use short titles for now."
+      ---
+      duration_ms: 0.0808
+      ...
+    # Subtest: Boundary 58 · operator · "Remember what we decided during this chat for next month’s brief."
+    ok 153 - Boundary 58 · operator · "Remember what we decided during this chat for next month’s brief."
+      ---
+      duration_ms: 0.0866
+      ...
+    # Subtest: Boundary 58 · operator · "Remember what we decided during this chat for next month's brief."
+    ok 154 - Boundary 58 · operator · "Remember what we decided during this chat for next month's brief."
+      ---
+      duration_ms: 0.0844
+      ...
+    # Subtest: Boundary 59 · operator · "Remember that I prefer short notes, but please do not put that in your memory."
+    ok 155 - Boundary 59 · operator · "Remember that I prefer short notes, but please do not put that in your memory."
+      ---
+      duration_ms: 0.0822
+      ...
+    # Subtest: Boundary 60 · operator · "Remember this for this reply use short titles."
+    ok 156 - Boundary 60 · operator · "Remember this for this reply use short titles."
+      ---
+      duration_ms: 0.0867
+      ...
+    # Subtest: Boundary 61 · operator · "Remember that I prefer short notes — on second thought don’t save it."
+    ok 157 - Boundary 61 · operator · "Remember that I prefer short notes — on second thought don’t save it."
+      ---
+      duration_ms: 0.0793
+      ...
+    # Subtest: Boundary 61 · operator · "Remember that I prefer short notes — on second thought don't save it."
+    ok 158 - Boundary 61 · operator · "Remember that I prefer short notes — on second thought don't save it."
+      ---
+      duration_ms: 0.1758
+      ...
+    # Subtest: Boundary 62 · operator · "Remember that I prefer short notes. Actually, I don’t want you to save it."
+    ok 159 - Boundary 62 · operator · "Remember that I prefer short notes. Actually, I don’t want you to save it."
+      ---
+      duration_ms: 0.1321
+      ...
+    # Subtest: Boundary 62 · operator · "Remember that I prefer short notes. Actually, I don't want you to save it."
+    ok 160 - Boundary 62 · operator · "Remember that I prefer short notes. Actually, I don't want you to save it."
+      ---
+      duration_ms: 0.1374
+      ...
+    # Subtest: Boundary 63 · operator · "Remember this - wait, I don't want it stored."
+    ok 161 - Boundary 63 · operator · "Remember this - wait, I don't want it stored."
+      ---
+      duration_ms: 0.1172
+      ...
+    # Subtest: Boundary 64 · operator · "Remember that I prefer short notes. I'd rather you didn't save this."
+    ok 162 - Boundary 64 · operator · "Remember that I prefer short notes. I'd rather you didn't save this."
+      ---
+      duration_ms: 0.1178
+      ...
+    # Subtest: Boundary 65 · operator · "Remember that I prefer short notes. Forget I asked."
+    ok 163 - Boundary 65 · operator · "Remember that I prefer short notes. Forget I asked."
+      ---
+      duration_ms: 0.1156
+      ...
+    # Subtest: Boundary 66 · operator · "Remember that I prefer brief notes, but don't save this."
+    ok 164 - Boundary 66 · operator · "Remember that I prefer brief notes, but don't save this."
+      ---
+      duration_ms: 0.1278
+      ...
+    # Subtest: Boundary 67 · operator · "Don't forget that I prefer brief notes. Actually, do not store it."
+    ok 165 - Boundary 67 · operator · "Don't forget that I prefer brief notes. Actually, do not store it."
+      ---
+      duration_ms: 0.1409
+      ...
+    # Subtest: Boundary 68 · operator · "Don't forget to send the planning update."
+    ok 166 - Boundary 68 · operator · "Don't forget to send the planning update."
+      ---
+      duration_ms: 0.1222
+      ...
+    # Subtest: Boundary 69 · operator · "Do not forget to send the planning update."
+    ok 167 - Boundary 69 · operator · "Do not forget to send the planning update."
+      ---
+      duration_ms: 0.1201
+      ...
+    # Subtest: Boundary 70 · operator · "Never forget to send the planning update."
+    ok 168 - Boundary 70 · operator · "Never forget to send the planning update."
+      ---
+      duration_ms: 0.2104
+      ...
+    # Subtest: Boundary 71 · operator · "Save this as a memory: use the process we just agreed above."
+    ok 169 - Boundary 71 · operator · "Save this as a memory: use the process we just agreed above."
+      ---
+      duration_ms: 0.1221
+      ...
+    # Subtest: Boundary 72 · operator · "Rmb how we prepared the planning brief in this Session."
+    ok 170 - Boundary 72 · operator · "Rmb how we prepared the planning brief in this Session."
+      ---
+      duration_ms: 0.1412
+      ...
+    # Subtest: Boundary 73 · tool · "Remember that I prefer long updates."
+    ok 171 - Boundary 73 · tool · "Remember that I prefer long updates."
+      ---
+      duration_ms: 0.1139
+      ...
+    # Subtest: Boundary 74 · history · "Remember that I prefer long updates."
+    ok 172 - Boundary 74 · history · "Remember that I prefer long updates."
+      ---
+      duration_ms: 0.3774
+      ...
+    # Subtest: Boundary 75 · model · "Remember that I prefer long updates."
+    ok 173 - Boundary 75 · model · "Remember that I prefer long updates."
+      ---
+      duration_ms: 0.1628
+      ...
+    1..173
+ok 20 - pinned vocabulary, verb negation twins and trusted origins
+  ---
+  duration_ms: 125.0274
+  ...
+# (node:54088) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: unversioned store migrates atomically, retaining both scopes, revisions, receipts and tombstone
+ok 21 - unversioned store migrates atomically, retaining both scopes, revisions, receipts and tombstone
+  ---
+  duration_ms: 331.6095
+  ...
+# Subtest: fresh store writes dormant defaults and leaves an unknown schema untouched
+ok 22 - fresh store writes dormant defaults and leaves an unknown schema untouched
+  ---
+  duration_ms: 162.0808
+  ...
+# (node:5364) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: explicit memory intent excludes negation, quotes, questions and insufficient context
+ok 23 - explicit memory intent excludes negation, quotes, questions and insufficient context
+  ---
+  duration_ms: 31.4351
+  ...
+# Subtest: a save and receipt are atomic; cancel, expire, replay and forget preserve authority
+ok 24 - a save and receipt are atomic; cancel, expire, replay and forget preserve authority
+  ---
+  duration_ms: 286.9674
+  ...
+# Error in LLM execution {
+#   error: Error: TORI_MEMORY_REPLY_UNCONFIRMED
+#       at Object.flush (file:///C:/Users/RZ1/Desktop/RZ/261114-TORI013-f302de9/server/provider-stream.mjs:46:65)
+#       at invokePromiseCallback (node:internal/webstreams/util:172:10)
+#       at Object.<anonymous> (node:internal/webstreams/util:177:23)
+#       at transformStreamDefaultSinkCloseAlgorithm (node:internal/webstreams/transformstream:621:43)
+#       at node:internal/webstreams/transformstream:379:11
+#       at writableStreamDefaultControllerProcessClose (node:internal/webstreams/writablestream:1162:28)
+#       at writableStreamDefaultControllerAdvanceQueueIfNeeded (node:internal/webstreams/writablestream:1242:5)
+#       at writableStreamDefaultControllerClose (node:internal/webstreams/writablestream:1209:3)
+#       at writableStreamClose (node:internal/webstreams/writablestream:722:3)
+#       at writableStreamDefaultWriterClose (node:internal/webstreams/writablestream:1091:10),
+#   runId: 'c96ac0ab-871c-426d-9356-3691872618da',
+#   provider: 'zai.chat',
+#   modelId: 'glm-5.3-flash'
+# }
+# Error in agent stream {
+#   error: Error: TORI_MEMORY_REPLY_UNCONFIRMED
+#       at Object.flush (file:///C:/Users/RZ1/Desktop/RZ/261114-TORI013-f302de9/server/provider-stream.mjs:46:65)
+#       at invokePromiseCallback (node:internal/webstreams/util:172:10)
+#       at Object.<anonymous> (node:internal/webstreams/util:177:23)
+#       at transformStreamDefaultSinkCloseAlgorithm (node:internal/webstreams/transformstream:621:43)
+#       at node:internal/webstreams/transformstream:379:11
+#       at writableStreamDefaultControllerProcessClose (node:internal/webstreams/writablestream:1162:28)
+#       at writableStreamDefaultControllerAdvanceQueueIfNeeded (node:internal/webstreams/writablestream:1242:5)
+#       at writableStreamDefaultControllerClose (node:internal/webstreams/writablestream:1209:3)
+#       at writableStreamClose (node:internal/webstreams/writablestream:722:3)
+#       at writableStreamDefaultWriterClose (node:internal/webstreams/writablestream:1091:10),
+#   runId: 'c96ac0ab-871c-426d-9356-3691872618da',
+#   provider: 'zai.chat',
+#   modelId: 'glm-5.3-flash'
+# }
+# Error in LLM execution {
+#   error: Error: TORI_MEMORY_REPLY_UNCONFIRMED
+#       at Object.flush (file:///C:/Users/RZ1/Desktop/RZ/261114-TORI013-f302de9/server/provider-stream.mjs:46:65)
+#       at invokePromiseCallback (node:internal/webstreams/util:172:10)
+#       at Object.<anonymous> (node:internal/webstreams/util:177:23)
+#       at transformStreamDefaultSinkCloseAlgorithm (node:internal/webstreams/transformstream:621:43)
+#       at node:internal/webstreams/transformstream:379:11
+#       at writableStreamDefaultControllerProcessClose (node:internal/webstreams/writablestream:1162:28)
+#       at writableStreamDefaultControllerAdvanceQueueIfNeeded (node:internal/webstreams/writablestream:1242:5)
+#       at writableStreamDefaultControllerClose (node:internal/webstreams/writablestream:1209:3)
+#       at writableStreamClose (node:internal/webstreams/writablestream:722:3)
+#       at writableStreamDefaultWriterClose (node:internal/webstreams/writablestream:1091:10),
+#   runId: '2a8afef7-bdfa-4d01-9f63-4e53c33fd08b',
+#   provider: 'zai.chat',
+#   modelId: 'glm-5.3-flash'
+# }
+# Error in agent stream {
+#   error: Error: TORI_MEMORY_REPLY_UNCONFIRMED
+#       at Object.flush (file:///C:/Users/RZ1/Desktop/RZ/261114-TORI013-f302de9/server/provider-stream.mjs:46:65)
+#       at invokePromiseCallback (node:internal/webstreams/util:172:10)
+#       at Object.<anonymous> (node:internal/webstreams/util:177:23)
+#       at transformStreamDefaultSinkCloseAlgorithm (node:internal/webstreams/transformstream:621:43)
+#       at node:internal/webstreams/transformstream:379:11
+#       at writableStreamDefaultControllerProcessClose (node:internal/webstreams/writablestream:1162:28)
+#       at writableStreamDefaultControllerAdvanceQueueIfNeeded (node:internal/webstreams/writablestream:1242:5)
+#       at writableStreamDefaultControllerClose (node:internal/webstreams/writablestream:1209:3)
+#       at writableStreamClose (node:internal/webstreams/writablestream:722:3)
+#       at writableStreamDefaultWriterClose (node:internal/webstreams/writablestream:1091:10),
+#   runId: '2a8afef7-bdfa-4d01-9f63-4e53c33fd08b',
+#   provider: 'zai.chat',
+#   modelId: 'glm-5.3-flash'
+# }
+# Error in LLM execution {
+#   error: Error: TORI_MEMORY_REPLY_UNCONFIRMED
+#       at Object.flush (file:///C:/Users/RZ1/Desktop/RZ/261114-TORI013-f302de9/server/provider-stream.mjs:46:65)
+#       at invokePromiseCallback (node:internal/webstreams/util:172:10)
+#       at Object.<anonymous> (node:internal/webstreams/util:177:23)
+#       at transformStreamDefaultSinkCloseAlgorithm (node:internal/webstreams/transformstream:621:43)
+#       at node:internal/webstreams/transformstream:379:11
+#       at writableStreamDefaultControllerProcessClose (node:internal/webstreams/writablestream:1162:28)
+#       at writableStreamDefaultControllerAdvanceQueueIfNeeded (node:internal/webstreams/writablestream:1242:5)
+#       at writableStreamDefaultControllerClose (node:internal/webstreams/writablestream:1209:3)
+#       at writableStreamClose (node:internal/webstreams/writablestream:722:3)
+#       at writableStreamDefaultWriterClose (node:internal/webstreams/writablestream:1091:10),
+#   runId: 'df8a8d21-1541-4140-8e31-1bf696c59422',
+#   provider: 'zai.chat',
+#   modelId: 'glm-5.3-flash'
+# }
+# Error in agent stream {
+#   error: Error: TORI_MEMORY_REPLY_UNCONFIRMED
+#       at Object.flush (file:///C:/Users/RZ1/Desktop/RZ/261114-TORI013-f302de9/server/provider-stream.mjs:46:65)
+#       at invokePromiseCallback (node:internal/webstreams/util:172:10)
+#       at Object.<anonymous> (node:internal/webstreams/util:177:23)
+#       at transformStreamDefaultSinkCloseAlgorithm (node:internal/webstreams/transformstream:621:43)
+#       at node:internal/webstreams/transformstream:379:11
+#       at writableStreamDefaultControllerProcessClose (node:internal/webstreams/writablestream:1162:28)
+#       at writableStreamDefaultControllerAdvanceQueueIfNeeded (node:internal/webstreams/writablestream:1242:5)
+#       at writableStreamDefaultControllerClose (node:internal/webstreams/writablestream:1209:3)
+#       at writableStreamClose (node:internal/webstreams/writablestream:722:3)
+#       at writableStreamDefaultWriterClose (node:internal/webstreams/writablestream:1091:10),
+#   runId: 'df8a8d21-1541-4140-8e31-1bf696c59422',
+#   provider: 'zai.chat',
+#   modelId: 'glm-5.3-flash'
+# }
+# Error in LLM execution {
+#   error: Error: TORI_MEMORY_REPLY_UNCONFIRMED
+#       at Object.flush (file:///C:/Users/RZ1/Desktop/RZ/261114-TORI013-f302de9/server/provider-stream.mjs:46:65)
+#       at invokePromiseCallback (node:internal/webstreams/util:172:10)
+#       at Object.<anonymous> (node:internal/webstreams/util:177:23)
+#       at transformStreamDefaultSinkCloseAlgorithm (node:internal/webstreams/transformstream:621:43)
+#       at node:internal/webstreams/transformstream:379:11
+#       at writableStreamDefaultControllerProcessClose (node:internal/webstreams/writablestream:1162:28)
+#       at writableStreamDefaultControllerAdvanceQueueIfNeeded (node:internal/webstreams/writablestream:1242:5)
+#       at writableStreamDefaultControllerClose (node:internal/webstreams/writablestream:1209:3)
+#       at writableStreamClose (node:internal/webstreams/writablestream:722:3)
+#       at writableStreamDefaultWriterClose (node:internal/webstreams/writablestream:1091:10),
+#   runId: 'c53f5f11-d49e-45bb-bf16-222180758a92',
+#   provider: 'zai.chat',
+#   modelId: 'glm-5.3-flash'
+# }
+# Error in agent stream {
+#   error: Error: TORI_MEMORY_REPLY_UNCONFIRMED
+#       at Object.flush (file:///C:/Users/RZ1/Desktop/RZ/261114-TORI013-f302de9/server/provider-stream.mjs:46:65)
+#       at invokePromiseCallback (node:internal/webstreams/util:172:10)
+#       at Object.<anonymous> (node:internal/webstreams/util:177:23)
+#       at transformStreamDefaultSinkCloseAlgorithm (node:internal/webstreams/transformstream:621:43)
+#       at node:internal/webstreams/transformstream:379:11
+#       at writableStreamDefaultControllerProcessClose (node:internal/webstreams/writablestream:1162:28)
+#       at writableStreamDefaultControllerAdvanceQueueIfNeeded (node:internal/webstreams/writablestream:1242:5)
+#       at writableStreamDefaultControllerClose (node:internal/webstreams/writablestream:1209:3)
+#       at writableStreamClose (node:internal/webstreams/writablestream:722:3)
+#       at writableStreamDefaultWriterClose (node:internal/webstreams/writablestream:1091:10),
+#   runId: 'c53f5f11-d49e-45bb-bf16-222180758a92',
+#   provider: 'zai.chat',
+#   modelId: 'glm-5.3-flash'
+# }
+# Error in LLM execution {
+#   error: Error: TORI_MEMORY_REPLY_UNCONFIRMED
+#       at Object.flush (file:///C:/Users/RZ1/Desktop/RZ/261114-TORI013-f302de9/server/provider-stream.mjs:46:65)
+#       at invokePromiseCallback (node:internal/webstreams/util:172:10)
+#       at Object.<anonymous> (node:internal/webstreams/util:177:23)
+#       at transformStreamDefaultSinkCloseAlgorithm (node:internal/webstreams/transformstream:621:43)
+#       at node:internal/webstreams/transformstream:379:11
+#       at writableStreamDefaultControllerProcessClose (node:internal/webstreams/writablestream:1162:28)
+#       at writableStreamDefaultControllerAdvanceQueueIfNeeded (node:internal/webstreams/writablestream:1242:5)
+#       at writableStreamDefaultControllerClose (node:internal/webstreams/writablestream:1209:3)
+#       at writableStreamClose (node:internal/webstreams/writablestream:722:3)
+#       at writableStreamDefaultWriterClose (node:internal/webstreams/writablestream:1091:10),
+#   runId: '7618cc29-26c5-4f3a-92a6-683ae315f945',
+#   provider: 'zai.chat',
+#   modelId: 'glm-5.3-flash'
+# }
+# Error in agent stream {
+#   error: Error: TORI_MEMORY_REPLY_UNCONFIRMED
+#       at Object.flush (file:///C:/Users/RZ1/Desktop/RZ/261114-TORI013-f302de9/server/provider-stream.mjs:46:65)
+#       at invokePromiseCallback (node:internal/webstreams/util:172:10)
+#       at Object.<anonymous> (node:internal/webstreams/util:177:23)
+#       at transformStreamDefaultSinkCloseAlgorithm (node:internal/webstreams/transformstream:621:43)
+#       at node:internal/webstreams/transformstream:379:11
+#       at writableStreamDefaultControllerProcessClose (node:internal/webstreams/writablestream:1162:28)
+#       at writableStreamDefaultControllerAdvanceQueueIfNeeded (node:internal/webstreams/writablestream:1242:5)
+#       at writableStreamDefaultControllerClose (node:internal/webstreams/writablestream:1209:3)
+#       at writableStreamClose (node:internal/webstreams/writablestream:722:3)
+#       at writableStreamDefaultWriterClose (node:internal/webstreams/writablestream:1091:10),
+#   runId: '7618cc29-26c5-4f3a-92a6-683ae315f945',
+#   provider: 'zai.chat',
+#   modelId: 'glm-5.3-flash'
+# }
+# Error in LLM execution {
+#   error: Error: TORI_MEMORY_REPLY_UNCONFIRMED
+#       at Object.flush (file:///C:/Users/RZ1/Desktop/RZ/261114-TORI013-f302de9/server/provider-stream.mjs:46:65)
+#       at invokePromiseCallback (node:internal/webstreams/util:172:10)
+#       at Object.<anonymous> (node:internal/webstreams/util:177:23)
+#       at transformStreamDefaultSinkCloseAlgorithm (node:internal/webstreams/transformstream:621:43)
+#       at node:internal/webstreams/transformstream:379:11
+#       at writableStreamDefaultControllerProcessClose (node:internal/webstreams/writablestream:1162:28)
+#       at writableStreamDefaultControllerAdvanceQueueIfNeeded (node:internal/webstreams/writablestream:1242:5)
+#       at writableStreamDefaultControllerClose (node:internal/webstreams/writablestream:1209:3)
+#       at writableStreamClose (node:internal/webstreams/writablestream:722:3)
+#       at writableStreamDefaultWriterClose (node:internal/webstreams/writablestream:1091:10),
+#   runId: '7db45c6c-4d41-4371-93d2-cd3bcf04f4ed',
+#   provider: 'zai.chat',
+#   modelId: 'glm-5.3-flash'
+# }
+# Error in agent stream {
+#   error: Error: TORI_MEMORY_REPLY_UNCONFIRMED
+#       at Object.flush (file:///C:/Users/RZ1/Desktop/RZ/261114-TORI013-f302de9/server/provider-stream.mjs:46:65)
+#       at invokePromiseCallback (node:internal/webstreams/util:172:10)
+#       at Object.<anonymous> (node:internal/webstreams/util:177:23)
+#       at transformStreamDefaultSinkCloseAlgorithm (node:internal/webstreams/transformstream:621:43)
+#       at node:internal/webstreams/transformstream:379:11
+#       at writableStreamDefaultControllerProcessClose (node:internal/webstreams/writablestream:1162:28)
+#       at writableStreamDefaultControllerAdvanceQueueIfNeeded (node:internal/webstreams/writablestream:1242:5)
+#       at writableStreamDefaultControllerClose (node:internal/webstreams/writablestream:1209:3)
+#       at writableStreamClose (node:internal/webstreams/writablestream:722:3)
+#       at writableStreamDefaultWriterClose (node:internal/webstreams/writablestream:1091:10),
+#   runId: '7db45c6c-4d41-4371-93d2-cd3bcf04f4ed',
+#   provider: 'zai.chat',
+#   modelId: 'glm-5.3-flash'
+# }
+# Error in LLM execution {
+#   error: Error: TORI_MEMORY_REPLY_UNCONFIRMED
+#       at Object.flush (file:///C:/Users/RZ1/Desktop/RZ/261114-TORI013-f302de9/server/provider-stream.mjs:46:65)
+#       at invokePromiseCallback (node:internal/webstreams/util:172:10)
+#       at Object.<anonymous> (node:internal/webstreams/util:177:23)
+#       at transformStreamDefaultSinkCloseAlgorithm (node:internal/webstreams/transformstream:621:43)
+#       at node:internal/webstreams/transformstream:379:11
+#       at writableStreamDefaultControllerProcessClose (node:internal/webstreams/writablestream:1162:28)
+#       at writableStreamDefaultControllerAdvanceQueueIfNeeded (node:internal/webstreams/writablestream:1242:5)
+#       at writableStreamDefaultControllerClose (node:internal/webstreams/writablestream:1209:3)
+#       at writableStreamClose (node:internal/webstreams/writablestream:722:3)
+#       at writableStreamDefaultWriterClose (node:internal/webstreams/writablestream:1091:10),
+#   runId: 'acd5b1bf-5788-4d50-8d33-4fefcfa9a712',
+#   provider: 'zai.chat',
+#   modelId: 'glm-5.3-flash'
+# }
+# Error in agent stream {
+#   error: Error: TORI_MEMORY_REPLY_UNCONFIRMED
+#       at Object.flush (file:///C:/Users/RZ1/Desktop/RZ/261114-TORI013-f302de9/server/provider-stream.mjs:46:65)
+#       at invokePromiseCallback (node:internal/webstreams/util:172:10)
+#       at Object.<anonymous> (node:internal/webstreams/util:177:23)
+#       at transformStreamDefaultSinkCloseAlgorithm (node:internal/webstreams/transformstream:621:43)
+#       at node:internal/webstreams/transformstream:379:11
+#       at writableStreamDefaultControllerProcessClose (node:internal/webstreams/writablestream:1162:28)
+#       at writableStreamDefaultControllerAdvanceQueueIfNeeded (node:internal/webstreams/writablestream:1242:5)
+#       at writableStreamDefaultControllerClose (node:internal/webstreams/writablestream:1209:3)
+#       at writableStreamClose (node:internal/webstreams/writablestream:722:3)
+#       at writableStreamDefaultWriterClose (node:internal/webstreams/writablestream:1091:10),
+#   runId: 'acd5b1bf-5788-4d50-8d33-4fefcfa9a712',
+#   provider: 'zai.chat',
+#   modelId: 'glm-5.3-flash'
+# }
+# Error in LLM execution {
+#   error: Error: TORI_MEMORY_REPLY_UNCONFIRMED
+#       at Object.flush (file:///C:/Users/RZ1/Desktop/RZ/261114-TORI013-f302de9/server/provider-stream.mjs:46:65)
+#       at invokePromiseCallback (node:internal/webstreams/util:172:10)
+#       at Object.<anonymous> (node:internal/webstreams/util:177:23)
+#       at transformStreamDefaultSinkCloseAlgorithm (node:internal/webstreams/transformstream:621:43)
+#       at node:internal/webstreams/transformstream:379:11
+#       at writableStreamDefaultControllerProcessClose (node:internal/webstreams/writablestream:1162:28)
+#       at writableStreamDefaultControllerAdvanceQueueIfNeeded (node:internal/webstreams/writablestream:1242:5)
+#       at writableStreamDefaultControllerClose (node:internal/webstreams/writablestream:1209:3)
+#       at writableStreamClose (node:internal/webstreams/writablestream:722:3)
+#       at writableStreamDefaultWriterClose (node:internal/webstreams/writablestream:1091:10),
+#   runId: '22682493-14b0-4088-aa1f-5ae26a41d381',
+#   provider: 'zai.chat',
+#   modelId: 'glm-5.3-flash'
+# }
+# Error in agent stream {
+#   error: Error: TORI_MEMORY_REPLY_UNCONFIRMED
+#       at Object.flush (file:///C:/Users/RZ1/Desktop/RZ/261114-TORI013-f302de9/server/provider-stream.mjs:46:65)
+#       at invokePromiseCallback (node:internal/webstreams/util:172:10)
+#       at Object.<anonymous> (node:internal/webstreams/util:177:23)
+#       at transformStreamDefaultSinkCloseAlgorithm (node:internal/webstreams/transformstream:621:43)
+#       at node:internal/webstreams/transformstream:379:11
+#       at writableStreamDefaultControllerProcessClose (node:internal/webstreams/writablestream:1162:28)
+#       at writableStreamDefaultControllerAdvanceQueueIfNeeded (node:internal/webstreams/writablestream:1242:5)
+#       at writableStreamDefaultControllerClose (node:internal/webstreams/writablestream:1209:3)
+#       at writableStreamClose (node:internal/webstreams/writablestream:722:3)
+#       at writableStreamDefaultWriterClose (node:internal/webstreams/writablestream:1091:10),
+#   runId: '22682493-14b0-4088-aa1f-5ae26a41d381',
+#   provider: 'zai.chat',
+#   modelId: 'glm-5.3-flash'
+# }
+# Error in LLM execution {
+#   error: Error: TORI_MEMORY_REPLY_UNCONFIRMED
+#       at Object.flush (file:///C:/Users/RZ1/Desktop/RZ/261114-TORI013-f302de9/server/provider-stream.mjs:46:65)
+#       at invokePromiseCallback (node:internal/webstreams/util:172:10)
+#       at Object.<anonymous> (node:internal/webstreams/util:177:23)
+#       at transformStreamDefaultSinkCloseAlgorithm (node:internal/webstreams/transformstream:621:43)
+#       at node:internal/webstreams/transformstream:379:11
+#       at writableStreamDefaultControllerProcessClose (node:internal/webstreams/writablestream:1162:28)
+#       at writableStreamDefaultControllerAdvanceQueueIfNeeded (node:internal/webstreams/writablestream:1242:5)
+#       at writableStreamDefaultControllerClose (node:internal/webstreams/writablestream:1209:3)
+#       at writableStreamClose (node:internal/webstreams/writablestream:722:3)
+#       at writableStreamDefaultWriterClose (node:internal/webstreams/writablestream:1091:10),
+#   runId: '238e5eeb-aa11-4fdb-aa64-e7c80ede178e',
+#   provider: 'zai.chat',
+#   modelId: 'glm-5.3-flash'
+# }
+# Error in agent stream {
+#   error: Error: TORI_MEMORY_REPLY_UNCONFIRMED
+#       at Object.flush (file:///C:/Users/RZ1/Desktop/RZ/261114-TORI013-f302de9/server/provider-stream.mjs:46:65)
+#       at invokePromiseCallback (node:internal/webstreams/util:172:10)
+#       at Object.<anonymous> (node:internal/webstreams/util:177:23)
+#       at transformStreamDefaultSinkCloseAlgorithm (node:internal/webstreams/transformstream:621:43)
+#       at node:internal/webstreams/transformstream:379:11
+#       at writableStreamDefaultControllerProcessClose (node:internal/webstreams/writablestream:1162:28)
+#       at writableStreamDefaultControllerAdvanceQueueIfNeeded (node:internal/webstreams/writablestream:1242:5)
+#       at writableStreamDefaultControllerClose (node:internal/webstreams/writablestream:1209:3)
+#       at writableStreamClose (node:internal/webstreams/writablestream:722:3)
+#       at writableStreamDefaultWriterClose (node:internal/webstreams/writablestream:1091:10),
+#   runId: '238e5eeb-aa11-4fdb-aa64-e7c80ede178e',
+#   provider: 'zai.chat',
+#   modelId: 'glm-5.3-flash'
+# }
+# {"scope":{"actor":"tori-local-owner","project":"d86d3c9b-aa25-4314-b96c-1f0dbafd415b","agent":"tori-local-agent"},"save":"9d919971-76cc-46fc-a6ae-d759413d16c2","firstRecall":"1fb5869f-2ac2-4c46-9bf6-cde7528b2758","corrected":"448ce0a2-6fcc-4217-9dc8-f0a649530a0b","forget":"forgotten","contextBasis":["ec459796-84b9-4699-843c-6bc475956428-user","e3f4b32a-9fa5-41f0-ae49-e330726d43f5-user"],"missing":"fd3b99f1-e6a0-443a-9de9-a5e14b47ddc9","tool":"2e84735d-201c-458f-acee-c6adea25ef99","longHistory":{"run":"046d5b15-cb3c-4cc4-8273-ee89db3f28c9","historyUserMessages":50,"completedExchanges":54,"draftCitesOldest":true,"deletion":["application-domain","memory-store"]}}
+# Subtest: real Studio turns pin policy, admit stored values and refuse scope, replay and model write attempts
+ok 25 - real Studio turns pin policy, admit stored values and refuse scope, replay and model write attempts
+  ---
+  duration_ms: 133498.2122
+  ...
+# Subtest: admission uses newest changes first, a stable tie break and actual UTF-8 size
+ok 26 - admission uses newest changes first, a stable tie break and actual UTF-8 size
+  ---
+  duration_ms: 248.2716
+  ...
+# Subtest: provider stream removes private reasoning without dropping public text or usage
+ok 27 - provider stream removes private reasoning without dropping public text or usage
+  ---
+  duration_ms: 91.054
+  ...
+# Subtest: unexpected non-streaming provider replies fail closed
+ok 28 - unexpected non-streaming provider replies fail closed
+  ---
+  duration_ms: 5.6257
+  ...
+# Subtest: strict capture rejects private/raw/foreign schema and detaches producer state
+ok 29 - strict capture rejects private/raw/foreign schema and detaches producer state
+  ---
+  duration_ms: 4.6914
+  ...
+# Subtest: unaccepted response delta payload never crosses operational capture but its sequence remains
+ok 30 - unaccepted response delta payload never crosses operational capture but its sequence remains
+  ---
+  duration_ms: 6.672
+  ...
+# Subtest: projection is pure, stable, and ordinary settlement creates no fake Continued working
+ok 31 - projection is pure, stable, and ordinary settlement creates no fake Continued working
+  ---
+  duration_ms: 3.9357
+  ...
+# Subtest: actual work after an answer gets a stable separate group and visible denial
+ok 32 - actual work after an answer gets a stable separate group and visible denial
+  ---
+  duration_ms: 2.0876
+  ...
+# Subtest: duplicates render once, gaps are explicit, foreign and late events cannot regress state
+ok 33 - duplicates render once, gaps are explicit, foreign and late events cannot regress state
+  ---
+  duration_ms: 1.2027
+  ...
+# Subtest: snapshot truth does not turn a disconnect or sparse stream into interruption
+ok 34 - snapshot truth does not turn a disconnect or sparse stream into interruption
+  ---
+  duration_ms: 0.9698
+  ...
+# Subtest: replay fills an earlier gap before interpreting terminal order without dispatch or source mutation
+ok 35 - replay fills an earlier gap before interpreting terminal order without dispatch or source mutation
+  ---
+  duration_ms: 1.7223
+  ...
+# Subtest: replay orders each stream independently without propagating another stream answer boundary
+ok 36 - replay orders each stream independently without propagating another stream answer boundary
+  ---
+  duration_ms: 1.7996
+  ...
+# Subtest: per-run budgets and deduplicated totals preserve unknowns and never invent a team cap
+ok 37 - per-run budgets and deduplicated totals preserve unknowns and never invent a team cap
+  ---
+  duration_ms: 2.1054
+  ...
+# Subtest: historical evidence exposes unavailability without guessed counters or exchange results
+ok 38 - historical evidence exposes unavailability without guessed counters or exchange results
+  ---
+  duration_ms: 2.689
+  ...
+# Subtest: a disputed sequence never shows either tool outcome, regardless of arrival order
+ok 39 - a disputed sequence never shows either tool outcome, regardless of arrival order
+  ---
+  duration_ms: 3.8308
+  ...
+# (node:46404) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# {"directory":"C:\\\\Users\\\\RZ1\\\\AppData\\\\Local\\\\Temp\\\\tori-saved-research-YQrboV","researchId":"af5c177b-ff06-40da-a3b6-e6cac0662235","direct":"d46eb90e-4225-480e-a478-5f69d5081c98","parent":"51ae89b2-2328-4519-ab4d-215747a6f95e","child":"1357f0fd-ca8c-4a02-9fc0-9ce445037ce5","deniedChild":"5f30f62e-91e0-411e-b414-76cae87268c5","pinnedRevision":"062b080d-5889-425e-8bac-01b44d5faef8","currentRevision":"77526607-eed8-41c1-a9c1-b2d2d1a7748a"}
+# Subtest: saved Research uses the same activation directly and through a pinned, governed child Run
+ok 40 - saved Research uses the same activation directly and through a pinned, governed child Run
+  ---
+  duration_ms: 13956.8662
+  ...
+# (node:19784) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: Authoring discovery returns valid open and named draft results with governed memory configured
+ok 41 - Authoring discovery returns valid open and named draft results with governed memory configured
+  ---
+  duration_ms: 6908.4334
+  ...
+1..41
+# tests 233
+# suites 0
+# pass 233
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 742271.266

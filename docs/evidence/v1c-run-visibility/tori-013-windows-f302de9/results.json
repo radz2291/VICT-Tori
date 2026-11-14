@@ -1,0 +1,148 @@
+{
+  "candidate": "f302de96b96ede5eb158f4ce779801e955a8f69f",
+  "node": "v22.13.1",
+  "origin": "deterministic and installed browser qualification; no live calls",
+  "steps": [
+    {
+      "name": "unit",
+      "started": "2026-11-14T16:29:32.717Z",
+      "ended": "2026-11-14T16:41:55.435Z",
+      "code": 0,
+      "signal": null,
+      "command": [
+        "node",
+        "--test",
+        "--test-concurrency=1",
+        "--test-timeout=480000",
+        "tests/*.test.mjs"
+      ],
+      "log": "unit.log"
+    },
+    {
+      "name": "build",
+      "started": "2026-11-14T16:41:55.438Z",
+      "ended": "2026-11-14T16:42:55.884Z",
+      "code": 0,
+      "signal": null,
+      "command": [
+        "node",
+        "C:\\Users\\RZ1\\Desktop\\RZ\\261114-verification-evidence\\toolchain\\node_modules\\npm\\bin\\npm-cli.js",
+        "run",
+        "build"
+      ],
+      "log": "build.log"
+    },
+    {
+      "name": "a1a4",
+      "started": "2026-11-14T16:42:55.886Z",
+      "ended": "2026-11-14T16:44:10.224Z",
+      "code": 0,
+      "signal": null,
+      "command": [
+        "node",
+        "tests/a1-browser.mjs"
+      ],
+      "log": "a1a4.log"
+    },
+    {
+      "name": "v1b",
+      "started": "2026-11-14T16:44:10.226Z",
+      "ended": "2026-11-14T16:44:48.265Z",
+      "code": 0,
+      "signal": null,
+      "command": [
+        "node",
+        "tests/v1b-browser.mjs"
+      ],
+      "log": "v1b.log"
+    },
+    {
+      "name": "memory",
+      "started": "2026-11-14T16:44:48.267Z",
+      "ended": "2026-11-14T16:46:43.308Z",
+      "code": 0,
+      "signal": null,
+      "command": [
+        "node",
+        "tests/memory-browser.mjs"
+      ],
+      "log": "memory.log"
+    },
+    {
+      "name": "authoring",
+      "started": "2026-11-14T16:46:43.310Z",
+      "ended": "2026-11-14T16:47:47.799Z",
+      "code": 0,
+      "signal": null,
+      "command": [
+        "node",
+        "docs/evidence/directive-foundation/browser/windows-warm-browser.mjs",
+        "authoring"
+      ],
+      "log": "authoring.log"
+    },
+    {
+      "name": "directive",
+      "started": "2026-11-14T16:47:47.800Z",
+      "ended": "2026-11-14T16:48:41.141Z",
+      "code": 0,
+      "signal": null,
+      "command": [
+        "node",
+        "tests/directive-browser.mjs"
+      ],
+      "log": "directive.log"
+    },
+    {
+      "name": "assembly",
+      "started": "2026-11-14T16:48:41.142Z",
+      "ended": "2026-11-14T16:49:12.110Z",
+      "code": 0,
+      "signal": null,
+      "command": [
+        "node",
+        "docs/evidence/directive-foundation/browser/windows-warm-browser.mjs",
+        "assembly"
+      ],
+      "log": "assembly.log"
+    },
+    {
+      "name": "background",
+      "started": "2026-11-14T16:49:12.111Z",
+      "ended": "2026-11-14T16:50:23.727Z",
+      "code": 0,
+      "signal": null,
+      "command": [
+        "pwsh",
+        "-NoProfile",
+        "-File",
+        "docs/evidence/directive-foundation/browser/windows-background.ps1"
+      ],
+      "log": "background.log"
+    },
+    {
+      "name": "visibility",
+      "started": "2026-11-14T16:50:23.729Z",
+      "ended": "2026-11-14T16:50:48.306Z",
+      "code": 0,
+      "signal": null,
+      "command": [
+        "node",
+        "tests/run-visibility-browser.mjs"
+      ],
+      "log": "visibility.log"
+    },
+    {
+      "name": "consumer",
+      "started": "2026-11-14T16:50:48.307Z",
+      "ended": "2026-11-14T16:50:51.318Z",
+      "code": 0,
+      "signal": null,
+      "command": [
+        "node",
+        "scripts/probe-run-visibility-consumer.mjs"
+      ],
+      "log": "consumer.log"
+    }
+  ]
+}

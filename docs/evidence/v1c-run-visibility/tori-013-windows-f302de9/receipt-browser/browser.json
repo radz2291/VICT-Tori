@@ -1,0 +1,13 @@
+{
+  "origin": "deterministic provider; actual governed runtime receipts",
+  "pass": true,
+  "browser": "153.0.8010.12",
+  "parent": "5d851d31-b03b-4693-99da-ddabb3efa607",
+  "child": "1889c95d-ba77-42ff-a357-223eb1a18a91",
+  "revision": "679a9711-a516-4c39-b43d-fbeb4efa4aff",
+  "providerCalls": 4,
+  "eventRows": 9,
+  "reportMatchesReceipt": true,
+  "zeroDispatchOnViews": true,
+  "unchangedRunReceipts": true
+}

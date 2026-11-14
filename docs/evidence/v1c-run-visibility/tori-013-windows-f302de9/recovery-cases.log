@@ -1,0 +1,16 @@
+ok 1 - tab-close / in-flight turn
+ok 2 - tab-close / background Run
+ok 3 - tab-close / memory save
+ok 4 - tab-close / pending child
+ok 5 - transport-drop / in-flight turn
+ok 6 - transport-drop / background Run
+ok 7 - transport-drop / memory save
+ok 8 - transport-drop / pending child
+ok 9 - process-exit / in-flight turn
+ok 10 - process-exit / background Run
+ok 11 - process-exit / memory save
+ok 12 - process-exit / pending child
+ok 13 - cold-reopen / in-flight turn
+ok 14 - cold-reopen / background Run
+ok 15 - cold-reopen / memory save
+ok 16 - cold-reopen / pending child

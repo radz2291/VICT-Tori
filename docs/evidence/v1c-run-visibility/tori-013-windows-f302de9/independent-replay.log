@@ -1,0 +1,2 @@
+{"order":["tool.completed","tool.failed"],"snapshotReload":true,"retainedRows":[1,3],"problem":"PUBLIC_EVENT_CONFLICT","state":"Finished","result":"PASS"}
+{"order":["tool.failed","tool.completed"],"snapshotReload":true,"retainedRows":[1,3],"problem":"PUBLIC_EVENT_CONFLICT","state":"Finished","result":"PASS"}

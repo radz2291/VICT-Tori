@@ -1,0 +1,18 @@
+[
+  {
+    "package": "@mastra/core",
+    "version": "1.64.0"
+  },
+  {
+    "package": "@mastra/memory",
+    "version": "1.28.2"
+  },
+  {
+    "package": "@mastra/libsql",
+    "version": "1.22.3"
+  },
+  {
+    "package": "@ai-sdk/openai-compatible",
+    "version": "2.0.0"
+  }
+]
