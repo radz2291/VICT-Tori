@@ -49,7 +49,10 @@ try{
   await page.goto(url,{waitUntil:'domcontentloaded',timeout:120000});await task('Runs').click();
   await page.getByRole('heading',{name:'Quellight fixture',exact:true}).waitFor();
   assert.equal(await activity().getByRole('button',{name:'Working',exact:true}).getAttribute('aria-expanded'),'false');
-  await activity().getByText('A read-only tool was denied in this synthetic fixture.',{exact:true}).waitFor();
+  const outcome=page.getByRole('region',{name:'Outcome',exact:true});
+  const denial='A read-only tool was denied in this synthetic fixture.';
+  await outcome.getByText(denial,{exact:true}).waitFor();
+  assert.equal(await page.getByText(denial,{exact:true}).count(),1,'Quiet shows the outcome message once');
   await page.getByRole('main',{name:'Run outcome and timeline'}).getByText(fixtureRuns[0].output,{exact:true}).waitFor();
   await page.screenshot({path:join(out,'desktop-quiet.png')});
   await choose('summary');await activity().getByRole('definition').first().waitFor();

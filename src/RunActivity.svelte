@@ -2,10 +2,11 @@
   import { Feedback, StatusBadge } from '@victframework/ui-svelte';
   import { Button } from '@victframework/ui-svelte/primitives';
   import { Accordion } from '@victframework/ui-svelte/catalog/accordion';
-  let {run,workspace,detail='quiet',inspect,compact=false}=$props();
+  let {run,workspace,detail='quiet',inspect,compact=false,outcomeMessage}=$props();
   let report=$derived(run.report);
   const diagnostics=$derived((report?.problems??[]).filter(problem=>problem.code==='PUBLIC_EVENT_METADATA_UNAVAILABLE'));
-  const operationalProblems=$derived((report?.problems??[]).filter(problem=>problem.code!=='PUBLIC_EVENT_METADATA_UNAVAILABLE'));
+  const operationalProblems=$derived((report?.problems??[]).filter(problem=>
+    problem.code!=='PUBLIC_EVENT_METADATA_UNAVAILABLE'&&problem.label!==outcomeMessage));
   const problems=$derived(detail==='full'?operationalProblems:
     operationalProblems.filter((problem,index,all)=>all.findIndex(item=>item.code===problem.code)===index));
   let expanded=$state<string[]>([]);

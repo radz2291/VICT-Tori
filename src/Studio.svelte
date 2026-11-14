@@ -2495,7 +2495,7 @@
                     {/key}
                   {/if}
                   <section class="run-timeline" aria-label="Timeline">
-                    <RunActivity {run} workspace={state.workspace} detail={activityDetail}/>
+                    <RunActivity {run} workspace={state.workspace} detail={activityDetail} outcomeMessage={run.message}/>
                     {#if !run.report&&activityDetail==='full'}
                     <div class="run-section-heading"><h2>Historical timeline</h2></div>
                     <ol class="timeline">{#each run.events as event, index}
