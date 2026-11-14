@@ -8,6 +8,7 @@ import {createRequire} from 'node:module';
 import {DatabaseSync} from 'node:sqlite';
 import {setTimeout as delay} from 'node:timers/promises';
 import {fixtureRuns,fixtureSession} from '../fixtures/run-visibility/preview.mjs';
+import {projectRunReport} from '../packages/run-visibility/index.mjs';
 
 const {chromium}=createRequire(import.meta.url)(process.env.TORI_PLAYWRIGHT_MODULE??'playwright');
 const port=process.env.TORI_RV_BROWSER_PORT??'48921',url='http://127.0.0.1:'+port;
@@ -16,7 +17,10 @@ const out=process.env.TORI_RV_EVIDENCE??'.local/run-visibility-browser';
 await mkdir(out,{recursive:true});
 const db=new DatabaseSync(join(directory,'studio.sqlite'));
 db.exec('CREATE TABLE project (id INTEGER PRIMARY KEY, value TEXT NOT NULL)');
-db.prepare('INSERT INTO project VALUES (1,?)').run(JSON.stringify({workspace:'rv-browser-fixture',drafts:[],activations:[],sessions:[fixtureSession],runs:fixtureRuns}));db.close();
+const historical={...fixtureRuns[0],id:'rv-fixture-historical',name:'Historical fixture',status:'completed',state:'Finished',errorCode:undefined,message:undefined,
+  publicEvents:[],events:[{at:fixtureRuns[0].started,label:'Historical fixture completed'}]};
+historical.report=projectRunReport({run:historical});
+db.prepare('INSERT INTO project VALUES (1,?)').run(JSON.stringify({workspace:'rv-browser-fixture',drafts:[],activations:[],sessions:[fixtureSession],runs:[...fixtureRuns,historical]}));db.close();
 let host,browser,hostLog='',record={origin:'synthetic presentation fixture',assertions:[]};
 const api=()=>fetch(url+'/api/studio').then(r=>r.json());
 try{
@@ -53,6 +57,7 @@ try{
   await choose('full');
   for(const name of ['Working','Continued working']){const control=activity().getByRole('button',{name,exact:true});await control.focus();await control.press('Space');assert.equal(await control.getAttribute('aria-expanded'),'true');}
   await activity().getByText('Receipt',{exact:true}).first().waitFor();
+  await activity().getByText('conversation:rv-fixture-parent-agent',{exact:true}).waitFor();
   await page.screenshot({path:join(out,'desktop-full.png')});
   await page.getByRole('button',{name:/^Open child Run · Research fixture/}).click();
   await openDetails();
@@ -77,9 +82,17 @@ try{
   await activity().getByRole('button',{name:'Continued working',exact:true}).click();
   await page.screenshot({path:join(out,'narrow-full.png')});
   assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);
+  await page.setViewportSize({width:1531,height:850});await choose('quiet');
+  await page.locator('[data-run-id="rv-fixture-historical"]').click();
+  const historicalActivity=page.locator('[data-run-activity="rv-fixture-historical"]');
+  assert.equal(await historicalActivity.getByRole('region',{name:'Run problems'}).count(),0);
+  assert.equal(await historicalActivity.locator('.run-activity-problems').count(),0);
+  await historicalActivity.getByRole('button',{name:'Working',exact:true}).click();
+  await historicalActivity.getByText('Historical Run: public sequence and correlation evidence is unavailable.',{exact:true}).waitFor();
+  await page.screenshot({path:join(out,'historical-diagnostic.png')});
   assert.equal(JSON.stringify((await api()).runs),unchanged);
   assert.deepEqual(writes,[]);assert.deepEqual(errors,[]);
-  record.assertions=['Same fixture Run at three levels','Quiet denial visible','Keyboard disclosure works','Groups persist by workspace and Run','Local preference persists after reload','Parent and child links','Budget unavailable vs no team cap','Session answer and separate continued work','390px no page overflow','Zero execution/mutation requests','Stored receipts unchanged'];
+  record.assertions=['Same fixture Run at three levels','Quiet denial visible','Keyboard disclosure works','Groups persist by workspace and Run','Local preference persists after reload','Parent and child links','Budget unavailable vs no team cap','Session answer and separate continued work','390px no page overflow','Zero execution/mutation requests','Stored receipts unchanged','Historical metadata is an inspectable diagnostic, not a danger badge','Full trace content reference'];
   record.pass=true;
 }catch(error){record.pass=false;record.error=error.stack;record.hostLog=hostLog;throw error;}
 finally{

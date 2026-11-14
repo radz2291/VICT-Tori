@@ -5,6 +5,11 @@
 </script>
 
 {#if report}
+  {#if report.problems?.some(problem=>problem.code==='PUBLIC_EVENT_METADATA_UNAVAILABLE')}
+    <section aria-label="Public evidence availability"><h3>Public evidence</h3>
+      <Detail fields={report.problems.filter(problem=>problem.code==='PUBLIC_EVENT_METADATA_UNAVAILABLE').map(problem=>({label:'Historical metadata',value:problem.label}))}/>
+    </section>
+  {/if}
   {#if report.specialist?.parentRunId||report.specialist?.children?.length}
     <section aria-label="Specialist report">
       <h3>Specialist report</h3>

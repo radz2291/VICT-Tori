@@ -4,8 +4,10 @@
   import { Accordion } from '@victframework/ui-svelte/catalog/accordion';
   let {run,workspace,detail='quiet',inspect,compact=false}=$props();
   let report=$derived(run.report);
-  const problems=$derived(detail==='full'?(report?.problems??[]):
-    (report?.problems??[]).filter((problem,index,all)=>all.findIndex(item=>item.code===problem.code)===index));
+  const diagnostics=$derived((report?.problems??[]).filter(problem=>problem.code==='PUBLIC_EVENT_METADATA_UNAVAILABLE'));
+  const operationalProblems=$derived((report?.problems??[]).filter(problem=>problem.code!=='PUBLIC_EVENT_METADATA_UNAVAILABLE'));
+  const problems=$derived(detail==='full'?operationalProblems:
+    operationalProblems.filter((problem,index,all)=>all.findIndex(item=>item.code===problem.code)===index));
   let expanded=$state<string[]>([]);
   const storageKey=$derived('tori-run-groups:'+workspace+':'+run.id);
   $effect(()=>{
@@ -22,7 +24,7 @@
 
 <section class="run-activity" class:compact aria-label="Run activity" data-run-activity={run.id}>
   {#if report}
-    {#if report.problems?.length}
+    {#if problems.length}
       <div class="run-activity-problems" aria-label="Run problems">
         {#each problems as problem, index (problem.code+':'+index)}
           <div><StatusBadge value={problem.label} tone="danger"/>{#if detail==='full'&&problem.code}<code>{problem.code}</code>{/if}</div>
@@ -47,6 +49,9 @@
               <span>{group.label}</span><span class="activity-count">{group.rows.length}</span>
             </Accordion.Trigger></Accordion.Header>
             <Accordion.Content>
+              {#if detail!=='full'&&group===report.groups[0]}
+                {#each diagnostics as diagnostic (diagnostic.code)}<p class="activity-unavailable">{diagnostic.label}</p>{/each}
+              {/if}
               <ol class="activity-rows">
                 {#each group.rows as row (row.id)}
                   <li id={'receipt-'+encodeURIComponent(row.id)}>
@@ -58,6 +63,7 @@
                         {#if row.invocationId}<dt>Invocation</dt><dd>{row.invocationId}</dd>{/if}
                         {#if row.attemptId}<dt>Attempt</dt><dd>{row.attemptId}</dd>{/if}
                         {#if row.code}<dt>Reason</dt><dd>{row.code}</dd>{/if}
+                        {#if row.contentRef}<dt>Content reference</dt><dd>{row.contentRef}</dd>{/if}
                       </dl>
                     {/if}
                   </li>
@@ -73,7 +79,10 @@
         {#each report.specialist?.children??[] as child (child.id)}<Button.Root class="vict-btn vict-btn--quiet" onclick={()=>inspect(child.id)}>{'Open '+child.name+' Run'}</Button.Root>{/each}
       </div>
     {/if}
-    {#if detail==='full'}<p class="activity-unavailable">{report.reasoning?.reason??'Public reasoning is unavailable.'}</p>{/if}
+    {#if detail==='full'}
+      {#each diagnostics as diagnostic (diagnostic.code)}<p class="activity-unavailable">{diagnostic.label}</p>{/each}
+      <p class="activity-unavailable">{report.reasoning?.reason??'Public reasoning is unavailable.'}</p>
+    {/if}
   {:else if detail!=='quiet'}
     <p class="activity-unavailable">Detailed activity is unavailable for this historical Run.</p>
   {/if}
