@@ -72,7 +72,7 @@ export function projectRunReport({run,relatedRuns=[]}){
   if(state==='Interrupted'||state==='Uncertain')addProblem(text(run.errorCode)??run.status??'UNAVAILABLE',text(run.message)??terminalReason??state);
   let group=null,afterAnswer=false,rows=0;
   function append(row){
-    if(!group){group={id:run.id+':group:'+row.id,label:afterAnswer?'Continued working':'Working',afterAnswer,rows:[]};groups.push(group);}
+    if(!group){group={id:run.id+':group:'+row.id,label:afterAnswer?'Continued working':'Working',afterAnswer,streamId:row.streamId,rows:[]};groups.push(group);}
     group.rows.push(row);rows++;
   }
   for(const capture of run.publicEvents??[]){
@@ -85,13 +85,21 @@ export function projectRunReport({run,relatedRuns=[]}){
       continue;
     }
     seen.set(id,signature);
-    let stream=streams.get(event.streamId);
-    if(!stream){stream={last:0,terminal:false};streams.set(event.streamId,stream);}
-    if(event.seq<=stream.last){addProblem('PUBLIC_EVENT_OUT_OF_ORDER','Out-of-order public evidence is unavailable.');continue;}
-    if(event.seq>stream.last+1)gaps.push({streamId:event.streamId,from:stream.last+1,to:event.seq-1});
-    stream.last=event.seq;
-    if(stream.terminal){addProblem('PUBLIC_EVENT_AFTER_TERMINAL','Late stream evidence cannot change the authoritative Run outcome.');continue;}
-    if(terminalKinds.has(event.kind))stream.terminal=true;
+    if(!streams.has(event.streamId))streams.set(event.streamId,[]);
+    streams.get(event.streamId).push(capture);
+  }
+  // Delivery/replay arrival order is not source order. Fill earlier gaps before
+  // interpreting answer or terminal boundaries. Each stream is independent;
+  // first-observed stream blocks deliberately claim no global time ordering.
+  for(const [streamId,captures] of streams){
+    group=null;afterAnswer=false;
+    let last=0,terminal=false;
+    for(const capture of captures.sort((a,b)=>a.event.seq-b.event.seq)){
+      const event=capture.event,id=event.streamId+':'+event.seq;
+      if(event.seq>last+1)gaps.push({streamId,from:last+1,to:event.seq-1});
+      last=event.seq;
+      if(terminal){addProblem('PUBLIC_EVENT_AFTER_TERMINAL','Late stream evidence cannot change the authoritative Run outcome.');continue;}
+      if(terminalKinds.has(event.kind))terminal=true;
     // Text deltas do not become separate activity rows or fake answers. The
     // authoritative accepted output remains the final answer source.
     if(event.kind==='text.delta')continue;
@@ -105,7 +113,8 @@ export function projectRunReport({run,relatedRuns=[]}){
     if(afterAnswer&&!group&&groups.length&&(terminalKinds.has(event.kind)||event.kind==='usage.updated'||event.kind==='memory.updated')){
       groups.at(-1).rows.push(row);rows++;
     }else append(row);
-    if(event.kind==='content.completed'){afterAnswer=true;group=null;}
+      if(event.kind==='content.completed'){afterAnswer=true;group=null;}
+    }
   }
   if(gaps.length)addProblem('PUBLIC_EVENT_GAP','Some stream evidence is unavailable; the saved Run remains authoritative.');
   if(!(run.publicEvents?.length)){
@@ -131,7 +140,7 @@ export function projectRunReport({run,relatedRuns=[]}){
   if(count(run.toolCalls??run.governance?.admittedCalls)!==null)summaries.push({label:'Admitted tool calls',value:run.toolCalls??run.governance.admittedCalls});
   if(children.length)summaries.push({label:'Specialists',value:children.length});
   return {schema:RUN_REPORT_SCHEMA,runId:run.id,origin:run.fixture?'fixture':'live',state,terminalReason,finalAnswer:text(run.output),
-    groups,problems,summaries,gaps,
+    groups,problems,summaries,gaps,eventOrder:'Per-stream sequence; streams listed in first-observed order, not a global timeline.',
     specialist:{task:text(run.input),expectedResult:text(run.expectedResult),revision:text(run.revision),activation:text(run.activation),
       parentRunId:text(run.parentRun),parentInvocation:text(run.parentInvocation),children,exchanges:[],exchangeAvailability:QUESTION_UNAVAILABLE},
     budget:{runs:budgetRuns,combined,teamLimit:'Not configured'},

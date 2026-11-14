@@ -64,6 +64,32 @@ test('snapshot truth does not turn a disconnect or sparse stream into interrupti
   assert.equal(report.state,'Running');assert.equal(report.finalAnswer,null);assert.equal(report.gaps.length,1);
 });
 
+test('replay fills an earlier gap before interpreting terminal order without dispatch or source mutation',()=>{
+  const source=run({publicEvents:[event(1,'response.started'),event(3,'response.completed')]});
+  const sparse=projectRunReport({run:source});
+  assert.deepEqual(sparse.gaps,[{streamId:'stream-one',from:2,to:2}]);
+  const filled=run({publicEvents:[...source.publicEvents,event(2,'tool.started',{toolCallId:'call-one',toolName:'read'}),source.publicEvents[1]]});
+  const before=structuredClone(filled);
+  const report=projectRunReport({run:filled});
+  assert.deepEqual(report.gaps,[]);
+  assert.deepEqual(report.groups.flatMap(group=>group.rows).map(row=>row.seq),[1,2,3]);
+  assert.equal(report.groups[0].id,sparse.groups[0].id);
+  assert.equal(report.state,'Finished');assert.deepEqual(filled,before);
+  assert.ok(!report.problems.some(problem=>problem.code==='PUBLIC_EVENT_AFTER_TERMINAL'||problem.code==='PUBLIC_EVENT_OUT_OF_ORDER'));
+});
+
+test('replay orders each stream independently without propagating another stream answer boundary',()=>{
+  const second=(seq,kind,extra={})=>capturePublicEvent({...base,streamId:'stream-two',seq,kind,...extra},'1900-01-01T00:00:00Z');
+  const source=run({publicEvents:[event(2,'content.completed',{contentRef:'conversation:answer'}),second(2,'tool.started',{toolCallId:'call-two',toolName:'read'}),event(1,'response.started'),second(1,'response.started'),event(3,'response.completed'),second(3,'response.completed'),event(4,'tool.started',{toolCallId:'late-call',toolName:'read'})]});
+  const report=projectRunReport({run:source});
+  assert.deepEqual(report.gaps,[]);
+  assert.deepEqual(report.groups.map(group=>[group.streamId,group.label]),[['stream-one','Working'],['stream-two','Working']]);
+  assert.deepEqual(report.groups.map(group=>group.rows.map(row=>row.seq)),[[1,2,3],[1,2,3]]);
+  assert.match(report.eventOrder,/not a global timeline/);
+  assert.ok(report.problems.some(problem=>problem.code==='PUBLIC_EVENT_AFTER_TERMINAL'));
+  assert.equal(report.state,'Finished');
+});
+
 test('per-run budgets and deduplicated totals preserve unknowns and never invent a team cap',()=>{
   const parent=run();
   const child={id:'child-one',parentRun:parent.id,session:parent.session,name:'Research',status:'completed',execution:{maxSteps:3,maxToolCalls:2,maxRetries:0},modelSteps:1,providerAttempts:1,toolCalls:1,usage:{inputTokens:3,outputTokens:4}};
