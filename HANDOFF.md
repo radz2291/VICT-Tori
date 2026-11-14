@@ -1,5 +1,17 @@
 # TORI handoff
 
+## Run Visibility orchestration
+
+Radzi directed continuation to the next slice, deferring the cumulative walkthrough, and requested one main orchestrator managing sub-agents with their own Work tickets. Read the exact pinned [Run Visibility contract](docs/implementation/RUN-VISIBILITY.md) and resolve the live assignment group in Work. Start from this spec commit on a new isolated `codex/tori-v1c-run-visibility` branch. Source evidence is `5b5b08266cd8150474909f67469d715888cbe6bf`, verified product `bffe61268523360ea2d238383fc838645ecdd772`, lock `746b69fbefb4a9123029f54ab4ca47a00aaa5310`; use Windows/Node 22.13.1 for acceptance. Existing TORI-007/009 owner reviews remain open; proceeding does not accept them.
+
+The existing Windows agent is the recommended orchestrator. It owns interface mapping, isolated worktrees/ports/stores, integration, routine repair loops, fresh independent verification and the final cumulative V1c review pack. Assign one runtime builder and one Studio builder in parallel. Runtime probes the installed public event/continuation boundaries before dependent code; Studio may use clearly labelled fixtures until source-backed parity is proven. Freeze a shared report shape before integration. Each agent reads its own handoff, claims its own Work run and maintains its own heartbeat.
+
+The independent verifier uses a fresh checkout/session and challenges an exact integrated candidate after both builder evidence sets exist. It does not repair the audited product. Return findings to the responsible builder; integrate a new SHA and recheck affected behavior. Builder Review is an engineering handoff, not owner acceptance. Do not create cyclic completion dependencies or mark a builder Done to unlock verification; artifact gates in the Work briefs govern this internal sequence.
+
+Deliver Quiet/Summary/Full trace, truthful groups and specialist reports, bounded synchronous questions, exact policy and budget evidence, plus inherited Memory/Directive/Background/Authoring regressions. The exchange default 1 and governed ceiling 2 are an initial implementation proposal for testing and Radzi's final review, not a previously accepted value. Public API gaps block the affected criterion; no second runtime, private import or dependency upgrade. No UI drift, async communication, reasoning implementation, memory-family expansion, main merge or publication.
+
+Submit the integrated preview, exact candidate/verifier/evidence pins and cumulative V1c walkthrough to Review. Creation of these assignments does not start a local process; the owner launches the orchestrator using the main ticket.
+
 ## Directive Foundation implementation
 
 The current Review candidate is `bffe61268523360ea2d238383fc838645ecdd772` on `codex/tori-directive-foundation`. Use the [isolated Quellight walkthrough](docs/evidence/directive-foundation/implementation/WALKTHROUGH.md) to confirm three to two bullets and check the original Session and a fresh Session after restart. Both English last-week questions and the Malay question should stay quiet and report the missing dated evidence. The [repair qualification](docs/evidence/directive-foundation/implementation/review-repair/REPORT.md) and [fresh independent verdict](docs/evidence/directive-foundation/implementation/review-repair/INDEPENDENT.md) cover the concurrent recall and reply-guard findings in Work. Radzi owns acceptance and wording review.

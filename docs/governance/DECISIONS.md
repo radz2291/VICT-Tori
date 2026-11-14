@@ -180,3 +180,18 @@ Transcript history is an editable per-agent pin of 1,024–65,536 UTF-8 bytes, d
 ## Amendment format
 
 Append: decision ID/date; concrete question; owner instruction or implementation evidence; prior rule; selected option and reason; affected contracts/tests/stages; migration; next proof. Preserve old evidence. Only the owner can accept a product-scope reduction or custom-UI exception; an agent may resolve routine implementation choices inside existing scope.
+
+
+## Run Visibility parallel delivery — 14 November 2026
+
+**Owner authority.** Radzi said to proceed to the next slice and review everything later, then requested one main orchestrator managing sub-agents, each with its own ticket. This authorizes bounded continuation while keeping TORI-007 and TORI-009 in Review. It does not establish their acceptance, merge main or complete all V1c.
+
+**Decision.** Deliver [Run Visibility and Specialist Communication](../implementation/RUN-VISIBILITY.md) as the next V1c slice. One orchestrator owns integration and repair; runtime/public-boundary and quiet-Studio work proceed in parallel; a fresh independent verifier challenges the integrated exact SHA. Work groups separate assignments, with artifact readiness gates rather than cyclic Done dependencies. Only Radzi accepts tickets.
+
+**Pins.** Verified product bffe61268523360ea2d238383fc838645ecdd772; evidence 5b5b08266cd8150474909f67469d715888cbe6bf; accepted memory d49bedf362d3521bcbf714bc6be7a04b34289bb7; background fe25266c098840d98cdfa70bd5e4dcbf8a8f7d1d; lock746b69fbefb4a9123029f54ab4ca47a00aaa5310; Windows/Node22.13.1 acceptance. No dependency upgrade.
+
+**Surface ownership.** Detail levels and group disclosure are local view preferences. Delegation availability is composition plus activation. The question-exchange allowance is a pinned how-much knob; its upper bound and enforcement are governed. Default1 / ceiling2 are proposed conservative candidate values to probe and present for Radzi's final review, not a prior owner decision. Existing agent budgets remain authoritative. All new values receive the standing constants-classification pass.
+
+**Recovery and reasoning.** Preserve TORI-007's evidenced O-05 limits: tab/transport detach can keep the original live host Run; restart does not silently resume/replay; uncertain effects require reconciliation. This slice does not declare unsupported durable mechanisms solved or infer physical-reboot proof. Request upstream priority for VICT#3 while keeping reasoning unavailable and outside this slice's criteria. No private chain-of-thought capture.
+
+**Review.** A cumulative same-candidate V1c walkthrough includes memory, Directive repairs, background recovery, specialist reports and new controls. Label deterministic/live proof separately, preserve red evidence and retain pending owner decisions. Missing synchronous continuation at the public pin is an explicit required-criterion blocker, not authority for a replacement runtime.

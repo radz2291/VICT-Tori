@@ -1,6 +1,6 @@
 # Implementation roadmap
 
-**Current direction, 12 November 2026.** TORI-004 is in owner Review. Radzi placed the [Studio authoring foundation](AUTHORING-FOUNDATION.md) after the reviewed V1b baseline and ahead of V1c. The approved V1a Studio remains the visual and interaction reference. The [handoff](../../HANDOFF.md) distinguishes the active review from the prepared follow-on.
+**Current direction, 14 November 2026.** Memory Foundation is accepted. Background and Directive Foundation remain in owner Review. Radzi authorizes the next [Run Visibility and Specialist Communication slice](RUN-VISIBILITY.md) while deferring the cumulative walkthrough: one orchestrator, parallel runtime/Studio builders and fresh independent verification. The verified product bffe612 is the technical baseline, not a claim of owner acceptance. The approved quiet Studio remains the UI/UX reference. [Current handoff](../../HANDOFF.md#run-visibility-orchestration).
 
 **Historical owner pivot, 7 November 2026.** [Issue #3](https://github.com/radz2291/VICT-Tori/issues/3) authorized the fresh [V1a slice](V1A.md) on a clean base, with U0 retained as reference. The stage table preserves the cumulative product objectives.
 
