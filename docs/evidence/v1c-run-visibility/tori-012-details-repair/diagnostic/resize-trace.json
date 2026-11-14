@@ -1,0 +1,90 @@
+[
+  {
+    "event": "resize",
+    "width": 390,
+    "mobile": true,
+    "expanded": "true",
+    "dock": true,
+    "details": [
+      {
+        "parent": "dock",
+        "shown": true,
+        "hiddenAncestor": false
+      }
+    ]
+  },
+  {
+    "event": "media",
+    "width": 390,
+    "mobile": true,
+    "expanded": "true",
+    "dock": true,
+    "details": [
+      {
+        "parent": "dock",
+        "shown": true,
+        "hiddenAncestor": false
+      }
+    ]
+  },
+  {
+    "event": "sidebar-click",
+    "width": 390,
+    "mobile": true,
+    "expanded": "false",
+    "dock": false,
+    "details": []
+  },
+  {
+    "event": "after-sidebar-click",
+    "width": 390,
+    "mobile": true,
+    "expanded": "true",
+    "dock": false,
+    "details": [
+      {
+        "parent": "sheet",
+        "shown": true,
+        "hiddenAncestor": false
+      }
+    ]
+  },
+  {
+    "event": "sidebar-click",
+    "width": 390,
+    "mobile": true,
+    "expanded": "false",
+    "dock": false,
+    "details": []
+  },
+  {
+    "event": "after-sidebar-click",
+    "width": 390,
+    "mobile": true,
+    "expanded": "true",
+    "dock": false,
+    "details": [
+      {
+        "parent": "sheet",
+        "shown": true,
+        "hiddenAncestor": false
+      }
+    ]
+  },
+  {
+    "event": "resize",
+    "width": 1531,
+    "mobile": false,
+    "expanded": "false",
+    "dock": false,
+    "details": []
+  },
+  {
+    "event": "media",
+    "width": 1531,
+    "mobile": false,
+    "expanded": "false",
+    "dock": false,
+    "details": []
+  }
+]

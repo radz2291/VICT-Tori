@@ -1,0 +1,12 @@
+# TORI-012 Windows evidence for the Runs Details resize
+
+The candidate is f302de96b96ede5eb158f4ce779801e955a8f69f on top of the integrated V1 branch at 50e52d1be21dd3686c2a830f526d4ded8ad9adaf. The lock blob is 746b69fbefb4a9123029f54ab4ca47a00aaa5310. The verifier's earlier uncontrolled failure on 3c983fd remains separate. Windows x64, Node 22.13.1, npm 11.19.1, Playwright Core 1.63.0 and Chromium 153.0.8010.12.
+
+The original scenario passed once on 50e52d1. An instrumented run showed the browser media query changing before Studio committed its responsive layout. The controlled reproduction deferred the desktop media callback until the old helper read the sidebar as closed. It released the callback before the click. The toggle was open by click time, and the click closed it. The original Details locator timed out. A normal second click reopened the dock and immediately exposed Details. The accessibility and diagnostic screenshots capture both states.
+
+The repaired test observes Studio's rendered layout before reading the toggle and waits for the narrow dialog to close after Escape. Studio exposes its existing layout state as a DOM attribute. The same browser scenario passed on the repaired commit with the normal runner and again with the controlled delayed callback. The held run observed stale expanded=false and then desktop expanded=true. The original historical diagnostic, unchanged Run records and zero-write assertions all executed and passed. The Windows production build also passed. No backend, dependency or exchange changes were included.
+
+Use npm.cmd ci with the 16 pinned tarballs in packs/. Set TORI_PLAYWRIGHT_MODULE to the installed Playwright Core 1.63.0 module, TORI_RV_BROWSER_PORT to an available isolated port and TORI_RV_EVIDENCE to a fresh evidence directory. Run node tests/run-visibility-browser.mjs and npm.cmd run build. The manifest contains the 16 installed archive hashes and 39 fixture, test and package hashes. To replay the diagnostics, copy the supplied .mjs diagnostics into tests/ and invoke them on their respective before or repaired candidate. The diagnostics control only browser timing and leave normal product interactions in place.
+
+TORI-010 takes the integrated candidate to TORI-013 for full independent Windows qualification, including all 16 recovery cases and both replay-conflict arrival orders. The targeted result does not replace that qualification.
+

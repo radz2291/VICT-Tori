@@ -1,0 +1,23 @@
+(node:54232) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+{"before":"false","atClick":"true"}
+{"afterClick":"false","dock":0}
+{"desktopDetailsAccessibleAfterReopen":true}
+node:internal/modules/run_main:122
+    triggerUncaughtException(
+    ^
+
+locator.getAttribute: Timeout 25000ms exceeded.
+Call log:
+  - waiting for getByRole('button', { name: 'Details', exact: true })
+
+    at openDetails (C:\Users\RZ1\Desktop\RZ\261114-TORI012-repair\tests\.tori012-resize-race.mjs:80:22)
+    at async choose (C:\Users\RZ1\Desktop\RZ\261114-TORI012-repair\tests\.tori012-resize-race.mjs:82:30)
+    at async file:///C:/Users/RZ1/Desktop/RZ/261114-TORI012-repair/tests/.tori012-resize-race.mjs:124:9 {
+  log: [
+    "  - waiting for getByRole('button', { name: 'Details', exact: true })"
+  ],
+  name: 'TimeoutError'
+}
+
+Node.js v22.13.1
