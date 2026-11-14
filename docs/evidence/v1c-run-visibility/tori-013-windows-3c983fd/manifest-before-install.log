@@ -1,0 +1,16 @@
+node:internal/fs/promises:638
+  return new FileHandle(await PromisePrototypeThen(
+                        ^
+
+Error: ENOENT: no such file or directory, open 'C:\Users\RZ1\Desktop\RZ\261114-TORI013-3c983fd\node_modules\@victframework\application\package.json'
+    at async open (node:internal/fs/promises:638:25)
+    at async readFile (node:internal/fs/promises:1242:14)
+    at async json (file:///C:/Users/RZ1/Desktop/RZ/261114-TORI013-3c983fd/scripts/run-visibility-manifest.mjs:8:35)
+    at async file:///C:/Users/RZ1/Desktop/RZ/261114-TORI013-3c983fd/scripts/run-visibility-manifest.mjs:21:19 {
+  errno: -4058,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: 'C:\\Users\\RZ1\\Desktop\\RZ\\261114-TORI013-3c983fd\\node_modules\\@victframework\\application\\package.json'
+}
+
+Node.js v22.13.1

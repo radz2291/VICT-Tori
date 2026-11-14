@@ -1,0 +1,20 @@
+(node:29828) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+node:internal/modules/run_main:122
+    triggerUncaughtException(
+    ^
+
+locator.getAttribute: Timeout 25000ms exceeded.
+Call log:
+[2m  - waiting for getByRole('button', { name: 'Details', exact: true })[22m
+
+    at openDetails (C:\Users\RZ1\Desktop\RZ\261114-TORI013-3c983fd\tests\run-visibility-browser.mjs:46:22)
+    at async choose (C:\Users\RZ1\Desktop\RZ\261114-TORI013-3c983fd\tests\run-visibility-browser.mjs:48:30)
+    at async file:///C:/Users/RZ1/Desktop/RZ/261114-TORI013-3c983fd/tests/run-visibility-browser.mjs:88:55 {
+  log: [
+    "  - waiting for getByRole('button', { name: 'Details', exact: true })"
+  ],
+  name: 'TimeoutError'
+}
+
+Node.js v22.13.1

@@ -1,0 +1,18 @@
+node:fs:1584
+  const result = binding.readdir(
+                         ^
+
+Error: ENOENT: no such file or directory, scandir 'C:\Users\RZ1\Desktop\RZ\261114-TORI013-3c983fd\packs'
+    at readdirSync (node:fs:1584:26)
+    at file:///C:/Users/RZ1/Desktop/RZ/261114-TORI013-3c983fd/[eval1]:1:332
+    at ModuleJob.run (node:internal/modules/esm/module_job:271:25)
+    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:217:26)
+    at async ModuleLoader.eval (node:internal/modules/esm/loader:213:20)
+    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:116:5) {
+  errno: -4058,
+  code: 'ENOENT',
+  syscall: 'scandir',
+  path: 'C:\\Users\\RZ1\\Desktop\\RZ\\261114-TORI013-3c983fd\\packs'
+}
+
+Node.js v22.13.1
