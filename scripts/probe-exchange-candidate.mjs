@@ -13,8 +13,10 @@ async function probe(mode) {
   const ledger={left:mode==='zero'?1:2,ordinary:0,answers:0,askerSteps:0,questions:0,receipts:0,blocked:0};
   const askerStop=new AbortController(),answererStop=new AbortController();
   const started=Date.now();
-  const deadlines={asker:started+12000,answerer:started+15000};
-  const signal=AbortSignal.any([askerStop.signal,answererStop.signal,AbortSignal.timeout(deadlines.asker-started),AbortSignal.timeout(deadlines.answerer-started)]);
+  const deadlines={asker:started+(mode==='expire-asker'?1000:12000),answerer:started+(mode==='expire-answerer'?1000:15000)};
+  const askerExpiry=new AbortController(),answererExpiry=new AbortController();
+  const signal=AbortSignal.any([askerStop.signal,answererStop.signal,askerExpiry.signal,answererExpiry.signal]);
+  const interrupted=mode.startsWith('stop-')||mode.startsWith('expire-');
   const valid=()=>!signal.aborted&&Date.now()<deadlines.asker&&Date.now()<deadlines.answerer;
   const permittedContext='Approved shared scope.';
   const privateContext='PRIVATE_ANSWERER_CONTEXT';
@@ -45,7 +47,7 @@ async function probe(mode) {
     assert.match(JSON.stringify(options.prompt),/Approved shared scope/);
     assert.equal(options.tools?.length??0,0);
     answerEntered.resolve();
-    if(mode.startsWith('stop-'))await answerRelease.promise;
+    if(interrupted)await answerRelease.promise;
   });
   const exchange=(handle,questionId,text)=>{
     if(handle!==binding || text!=='What is the approved scope?' || !valid())
@@ -74,12 +76,20 @@ async function probe(mode) {
       assert.equal((await exchange({},'wrong-binding',text)).status,'refused');
       const first=exchange(binding,'exchange-one',text);
       assert.equal(first,exchange(binding,'exchange-one',text));
-      if(mode.startsWith('stop-')){
+      if(interrupted){
         await answerEntered.promise;
-        (mode==='stop-asker'?askerStop:answererStop).abort();
+        if(mode.startsWith('expire-')){
+          const isAsker=mode==='expire-asker';
+          const expires=isAsker?deadlines.asker:deadlines.answerer;
+          await new Promise(resolve=>setTimeout(resolve,Math.max(0,expires-Date.now())));
+          (isAsker?askerExpiry:answererExpiry).abort();
+        }else{
+          (mode==='stop-asker'?askerStop:answererStop).abort();
+        }
         answerRelease.resolve();
       }
       question=await first;
+      if(!interrupted)assert.equal(await exchange(binding,'exchange-one',text),question);
       return question;
     }});
   const askerModel=createDeterministicOfflineModel({script:{
@@ -127,7 +137,7 @@ async function probe(mode) {
   assert.equal(ledger.questions,1);
   assert.equal(askerRunId,'original-asker-'+mode);
   assert.ok(runIds.every(id=>id===askerRunId));
-  if(mode.startsWith('stop-')){
+  if(interrupted){
     assert.equal(ledger.askerSteps,1);
     assert.equal(ledger.answers,1);
     assert.equal(ledger.receipts,0);
@@ -141,4 +151,4 @@ async function probe(mode) {
   }
   console.log(JSON.stringify({mode,ledger,askerRunId,askerEvents:events.length,question:question?.status??'cancelled'}));
 }
-for(const mode of ['one','zero','stop-asker','stop-answerer'])await probe(mode);
+for(const mode of ['one','zero','stop-asker','stop-answerer','expire-asker','expire-answerer'])await probe(mode);

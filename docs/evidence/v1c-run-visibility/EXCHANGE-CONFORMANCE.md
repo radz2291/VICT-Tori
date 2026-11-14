@@ -6,7 +6,7 @@ Phase 0 selected the pending tool result and public tool-free Mastra step in [th
 
 ## Reproduction and limits
 
-Run `node scripts/probe-exchange-phase-0.mjs` and `node scripts/probe-exchange-candidate.mjs` in the pinned install. Executed on Linux Node 24.22.1 with Mastra 1.64.0, VICT 0.4.0-rc.1 and lock blob `746b69fbefb4a9123029f54ab4ca47a00aaa5310`. Both scripts use installed public Mastra APIs and deterministic fixture models. The candidate keeps a synthetic ledger and receipts in-process, separate from the installed VICT adapter. No live provider, dependency upgrade, public endpoint, runtime feature or VICT repository edit was used.
+Run `node scripts/probe-exchange-phase-0.mjs` then `node scripts/probe-exchange-candidate.mjs` and `node scripts/probe-exchange-recovery.mjs` in the pinned install. Executed on Linux Node 24.22.1 with Mastra 1.64.0, VICT 0.4.0-rc.1 and lock blob `746b69fbefb4a9123029f54ab4ca47a00aaa5310`. Both scripts use installed public Mastra APIs and deterministic fixture models. The candidate keeps a synthetic ledger and receipts in-process, separate from the installed VICT adapter. No live provider, dependency upgrade, public endpoint, runtime feature or VICT repository edit was used.
 
 The first harness attempt instrumented only the streaming model hook while invoking `generate`. The assertion correctly found zero instrumented answer calls. The final harness invokes and drains the selected public `stream` path. The expected ordinary step-limit diagnostic is part of the one- and zero-budget scenarios.
 
@@ -14,10 +14,10 @@ The first harness attempt instrumented only the streaming model hook while invok
 | --- | --- |
 | One answerer step left | One ordinary dispatch and one charged answer. The original asker received the tool result and completed in its same stream with two steps. The next ordinary answerer dispatch was refused before fixture model invocation. |
 | Zero steps left | One initial ordinary dispatch, zero answer dispatches, a typed limit result to the original asker. No receipt claiming an answer and no subsequent ordinary dispatch. |
-| Duplicate | A repeated operation joined the same in-flight promise. One question reservation, one answer dispatch and one synthetic successful receipt in the one-step case. Durable duplicate lookup, conflicting-body reuse and post-settlement replay are adapter acceptance work. |
-| Stop and loss | Stop from either role while the answer was in flight produced zero successful answer receipts and no second asker model step. Existing TORI-007 process-loss reconciliation is referenced separately. A killed-process exchange-specific check of both original Run dispositions remains open. |
+| Duplicate | A repeated operation joined the same in-flight promise and returned the same settled result on a later read. One question reservation, one answer dispatch and one synthetic successful receipt in the one-step case. Durable duplicate lookup, conflicting-body reuse and post-settlement replay are adapter acceptance work. |
+| Stop and loss | Stop from either role while the answer was in flight produced zero successful answer receipts and no second asker model step. A separate synthetic owner process persisted both turn identities and pending operation records and was killed. Existing TORI recovery marked the read-only asker Interrupted and the answerer Uncertain for an unresolved pre-existing protected intent, with no replay. Future exchange receipt reconciliation still requires adapter proof. |
 | Authorized data | The answer step had zero tools, received the synthetic allowed context and excluded the private answerer instruction. Only the allowlisted answer reached the asker. Production bilateral projections, current scope/revocation and response validation must be proven through governed ports. |
-| Identity, deadlines and activation | The single original asker stream was consumed in-place and every observed run identity matched. The harness reuses paired absolute deadlines and refused a missing/wrong synthetic binding without dispatch. It did not force each deadline to expire, exercise real wiring/activation or allocate strict VICT sequences. Those are required end-to-end checks. |
+| Identity, deadlines and activation | The single original asker stream was consumed in-place and every observed run identity matched. The harness reuses paired absolute deadlines and refused a missing/wrong synthetic binding without dispatch. Each original deadline was forced to expire in a separate case and fenced the late answer. Real wiring/activation, end-to-end deadline enforcement and the unchanged VICT sequence allocator still require governed adapter proof. |
 
 Recorded counts, in order: ordinary calls / answer calls / asker steps / unique questions / successful synthetic receipts / refused later ordinary dispatches.
 
@@ -25,6 +25,9 @@ Recorded counts, in order: ordinary calls / answer calls / asker steps / unique 
 - Zero: 1 / 0 / 2 / 1 / 0 / 1.
 - Stop asker: 1 / 1 / 1 / 1 / 0 / 0.
 - Stop answerer: 1 / 1 / 1 / 1 / 0 / 0.
+- Expire asker and expire answerer, separately: 1 / 1 / 1 / 1 / 0 / 0 each.
+
+Re-executed the unchanged installed VICT boundary probe. Its strict validator still recognizes 13 kinds. Two calls with identical turn identity each start at sequence 1 and each get a fresh one-call tool gate. Neither the installed runner nor the adapter exposes an answer continuation port.
 
 ## Proposed adapter change for owner review
 
