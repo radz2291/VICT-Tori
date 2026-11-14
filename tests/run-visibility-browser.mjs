@@ -39,11 +39,19 @@ try{
   page.setDefaultTimeout(25000);
   const task=name=>page.getByRole('navigation',{name:'Studio tasks'}).getByRole('button',{name,exact:true});
   const activity=()=>page.locator('[data-run-activity="rv-fixture-parent"]');
+  const resizeRuns=async(width,height,layout)=>{
+    await page.setViewportSize({width,height});
+    await page.locator(`.execution-workspace[data-layout="${layout}"]`).waitFor();
+  };
   const openDetails=async()=>{
     const sidebar=page.getByRole('button',{name:'Runs sidebar',exact:true});
     if(await sidebar.getAttribute('aria-expanded')!=='true')await sidebar.click();
     const details=page.getByRole('button',{name:'Details',exact:true});
     if(await details.getAttribute('aria-expanded')!=='true')await details.click();
+  };
+  const closeNarrowSidebar=async()=>{
+    await page.keyboard.press('Escape');
+    await page.getByRole('dialog',{name:'Runs',exact:true}).waitFor({state:'hidden'});
   };
   const choose=async value=>{await openDetails();await page.getByLabel('Activity detail',{exact:true}).selectOption(value);};
   await page.goto(url,{waitUntil:'domcontentloaded',timeout:120000});await task('Runs').click();
@@ -77,15 +85,16 @@ try{
   await activity().getByRole('button',{name:'Continued working',exact:true}).waitFor();
   await task('Runs').click();await choose('quiet');
   for(const name of ['Working','Continued working']){const control=activity().getByRole('button',{name,exact:true});if(await control.getAttribute('aria-expanded')==='true')await control.click();}
-  await page.setViewportSize({width:390,height:844});
+  await resizeRuns(390,844,'narrow');
   await page.screenshot({path:join(out,'narrow-quiet.png')});
-  await choose('summary');await page.keyboard.press('Escape');
+  await choose('summary');await closeNarrowSidebar();
   await page.screenshot({path:join(out,'narrow-summary.png')});
-  await choose('full');await page.keyboard.press('Escape');
+  await choose('full');await closeNarrowSidebar();
   await activity().getByRole('button',{name:'Continued working',exact:true}).click();
   await page.screenshot({path:join(out,'narrow-full.png')});
   assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);
-  await page.setViewportSize({width:1531,height:850});await choose('quiet');
+  await resizeRuns(1531,850,'desktop');await choose('quiet');
+  await page.screenshot({path:join(out,'desktop-return.png')});
   await page.locator('[data-run-id="rv-fixture-historical"]').click();
   const historicalActivity=page.locator('[data-run-activity="rv-fixture-historical"]');
   assert.equal(await historicalActivity.getByRole('region',{name:'Run problems'}).count(),0);

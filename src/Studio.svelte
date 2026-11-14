@@ -2358,7 +2358,7 @@
         {/if}
       </div>
     {:else if executionPage}
-      <div class="agent-workspace execution-workspace" class:has-inspector-dock={!mobile&&inspectorVisible}>
+      <div class="agent-workspace execution-workspace" data-layout={mobile?'narrow':'desktop'} class:has-inspector-dock={!mobile&&inspectorVisible}>
         <div class="agent-detail">
           <div class="agent-dockbar execution-toolbar">
             {#if page==='Sessions'}
