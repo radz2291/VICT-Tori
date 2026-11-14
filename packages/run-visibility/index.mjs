@@ -80,12 +80,17 @@ export function projectRunReport({run,relatedRuns=[]}){
     // Text deltas do not become separate activity rows or fake answers. The
     // authoritative accepted output remains the final answer source.
     if(event.kind==='text.delta')continue;
-    if(event.kind==='content.completed'){afterAnswer=true;group=null;continue;}
     if(event.kind==='tool.failed'||event.kind==='response.failed')addProblem(event.code,labels[event.kind]+': '+event.code);
     if(event.kind==='response.cancelled')addProblem('RESPONSE_CANCELLED','Response cancelled');
-    append({id,kind:event.kind,label:labels[event.kind]+(event.toolName?' · '+event.toolName:''),at:text(capture.at),
+    const row={id,kind:event.kind,label:labels[event.kind]+(event.toolName?' · '+event.toolName:''),at:text(capture.at),
       streamId:event.streamId,seq:event.seq,invocationId:text(event.victInvocationId),attemptId:text(event.victAttemptId),
-      code:text(event.code),contentRef:text(event.contentRef)});
+      code:text(event.code),contentRef:text(event.contentRef)};
+    // Settlement bookkeeping after an answer is not new work. Only an actual
+    // subsequent response/tool activity begins a Continued working group.
+    if(afterAnswer&&!group&&groups.length&&(terminalKinds.has(event.kind)||event.kind==='usage.updated'||event.kind==='memory.updated')){
+      groups.at(-1).rows.push(row);rows++;
+    }else append(row);
+    if(event.kind==='content.completed'){afterAnswer=true;group=null;}
   }
   if(gaps.length)addProblem('PUBLIC_EVENT_GAP','Some stream evidence is unavailable; the saved Run remains authoritative.');
   if(!(run.publicEvents?.length)){
