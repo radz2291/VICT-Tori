@@ -1,0 +1,1 @@
+{"candidate":"78a410ffe5c26f0367b3dc51acf1dc359ec5b596","archives":16,"fixtures":39,"lockBlob":"746b69fbefb4a9123029f54ab4ca47a00aaa5310","out":".local/independent/manifest.json"}

@@ -4,8 +4,9 @@ import {createHash} from 'node:crypto';
 import {join,resolve,relative} from 'node:path';
 const destination=resolve('docs/evidence/v1c-run-visibility/independent/artifacts');
 const index=[];
-const normalize=value=>value.replaceAll(process.cwd(),'[verification-worktree]').replaceAll(process.cwd().replaceAll('\\','/'),'[verification-worktree]').replaceAll(process.cwd().replaceAll('\\','\\\\'),'[verification-worktree]');
+const normalize=value=>value.replaceAll(process.cwd(),'[verification-worktree]').replaceAll(process.cwd().replaceAll('\\','/'),'[verification-worktree]').replaceAll(process.cwd().replaceAll('\\','\\\\'),'[verification-worktree]').replaceAll('\r\n','\n').replace(/\x1b\[[0-9;]*m/g,'').replace(/[ \t]+$/gm,'');
 async function copy(source,target){
+  if(target.endsWith('.log'))target+='.txt'; // Public evidence survives the repository's generated-log ignore rule.
   const raw=await readFile(source);const textual=/\.(?:json|log|txt)$/.test(source);
   const content=textual?Buffer.from(normalize(raw.toString('utf8'))):raw;
   const path=join(destination,target);await mkdir(resolve(path,'..'),{recursive:true});await writeFile(path,content);
@@ -34,5 +35,5 @@ for(const name of ['install.log','install-02.log','install-03.log','install-04.l
   await writeFile(join(destination,name+'.txt'),normalize(excerpt));
   index.push({source,artifact:name+'.txt',kind:'installation excerpt',sourceBytes:raw.length,sourceSha256:createHash('sha256').update(raw).digest('hex')});
 }
-await writeFile(join(destination,'INDEX.json'),JSON.stringify({scope:'independent synthetic fixture evidence and read-only review of manager synthetic live captures',index},null,2)+'\n');
+await writeFile(join(destination,'INDEX.json'),JSON.stringify({scope:'independent synthetic fixture evidence and read-only review of manager synthetic live captures',normalization:'Public text normalizes verifier paths, CRLF/ANSI formatting and line-end spaces; source hashes identify unchanged local originals.',index},null,2)+'\n');
 console.log(JSON.stringify({artifacts:index.length,path:relative(process.cwd(),destination)}));

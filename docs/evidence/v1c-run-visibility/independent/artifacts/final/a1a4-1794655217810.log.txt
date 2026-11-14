@@ -1,0 +1,50 @@
+(node:32056) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+  VITE v6.4.3  ready in 11182 ms
+
+  ➜  Local:   http://127.0.0.1:48931/
+Sourcemap for "[verification-worktree]/node_modules/@victframework/control/dist/draft-authoring.js" points to missing source files
+Sourcemap for "[verification-worktree]/node_modules/@victframework/application/dist/renderer.js" points to missing source files
+Sourcemap for "[verification-worktree]/node_modules/@victframework/contracts/dist/sha256.js" points to missing source files
+Sourcemap for "[verification-worktree]/node_modules/@victframework/ui/dist/index.js" points to missing source files
+Sourcemap for "[verification-worktree]/node_modules/@victframework/ui/dist/feedback.js" points to missing source files
+Sourcemap for "[verification-worktree]/node_modules/@victframework/ui/dist/authoring.js" points to missing source files
+Sourcemap for "[verification-worktree]/node_modules/@victframework/ui/dist/authoring-semantics.js" points to missing source files
+Sourcemap for "[verification-worktree]/node_modules/@victframework/ui/dist/composition.js" points to missing source files
+Sourcemap for "[verification-worktree]/node_modules/@victframework/ui/dist/theme.js" points to missing source files
+Sourcemap for "[verification-worktree]/node_modules/@victframework/ui/dist/values.js" points to missing source files
+Sourcemap for "[verification-worktree]/node_modules/@victframework/ui/dist/canonical-error.js" points to missing source files
+Sourcemap for "[verification-worktree]/node_modules/@victframework/ui/dist/document.js" points to missing source files
+Sourcemap for "[verification-worktree]/node_modules/@victframework/ui/dist/diagnostics.js" points to missing source files
+Sourcemap for "[verification-worktree]/node_modules/@victframework/ui/dist/canonical.js" points to missing source files
+Sourcemap for "[verification-worktree]/node_modules/@victframework/ui/dist/semantic.js" points to missing source files
+Sourcemap for "[verification-worktree]/node_modules/@victframework/ui/dist/expressions.js" points to missing source files
+Sourcemap for "[verification-worktree]/node_modules/@victframework/ui/dist/validate.js" points to missing source files
+Sourcemap for "[verification-worktree]/node_modules/@victframework/ui/dist/session.js" points to missing source files
+Sourcemap for "[verification-worktree]/node_modules/@victframework/ui/dist/compile.js" points to missing source files
+Sourcemap for "[verification-worktree]/node_modules/@victframework/ui/dist/local-storage-store.js" points to missing source files
+Sourcemap for "[verification-worktree]/node_modules/@victframework/ui/dist/edit.js" points to missing source files
+Sourcemap for "[verification-worktree]/node_modules/@victframework/ui/dist/scenario.js" points to missing source files
+Sourcemap for "[verification-worktree]/node_modules/@victframework/ui/dist/occurrence.js" points to missing source files
+Sourcemap for "[verification-worktree]/node_modules/@victframework/ui/dist/slot-scope.js" points to missing source files
+Sourcemap for "[verification-worktree]/node_modules/@victframework/ui/dist/sha256.js" points to missing source files
+
+node:internal/modules/run_main:122
+    triggerUncaughtException(
+    ^
+
+locator.click: Error: strict mode violation: getByRole('button', { name: /^Open parent Run/ }) resolved to 2 elements:
+    1) <button tabindex="0" data-button-root="true" class="vict-btn vict-btn--quiet">…</button> aka getByRole('button', { name: 'Open parent Run · Quellight' })
+    2) <button type="button" class="vict-btn  vict-btn--secondary">Open parent Run</button> aka getByRole('button', { name: 'Open parent Run', exact: true })
+
+Call log:
+  - waiting for getByRole('button', { name: /^Open parent Run/ })
+
+    at [verification-worktree]\tests\a1-browser.mjs:494:40 {
+  log: [
+    "  - waiting for getByRole('button', { name: /^Open parent Run/ })"
+  ]
+}
+
+Node.js v22.13.1

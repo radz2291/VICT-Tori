@@ -1,0 +1,25 @@
+node:internal/modules/run_main:122
+    triggerUncaughtException(
+    ^
+
+AssertionError [ERR_ASSERTION]: Retained source sequences falsely missing for order 1,2,3,4,6,5
++ actual - expected
+
++ [
++   {
++     from: 5,
++     streamId: 'independent-stream',
++     to: 5
++   }
++ ]
+- []
+
+    at file:///[verification-worktree]/docs/evidence/v1c-run-visibility/independent/projection-challenge.mjs:19:10 {
+  generatedMessage: false,
+  code: 'ERR_ASSERTION',
+  actual: [ { streamId: 'independent-stream', from: 5, to: 5 } ],
+  expected: [],
+  operator: 'deepStrictEqual'
+}
+
+Node.js v22.13.1

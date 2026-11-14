@@ -1,0 +1,1 @@
+{"mode":"deterministic fixture only","requests":[4096,2048,4096,2048,4096,4096,4096,4096,4096],"invalidDrafts":["63","64.5","32769"],"restartIsolation":true,"sessionTitles":true,"activeAgentPicker":true,"evidenceDirectory":"C:\\Users\\RZ1\\AppData\\Local\\Temp\\tori-a1-fixture-O2jlRA"}

@@ -1,0 +1,1 @@
+{"candidate":"058e685acd00a97dfdf7b23e40585390c14c21e3","archives":16,"fixtures":39,"lockBlob":"746b69fbefb4a9123029f54ab4ca47a00aaa5310","out":"[verification-worktree]\\.local\\independent\\recheck058\\manifest.json"}

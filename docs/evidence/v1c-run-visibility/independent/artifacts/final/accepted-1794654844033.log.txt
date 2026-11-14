@@ -1,0 +1,1 @@
+{"checks":["exact Run assistant identity","same Session only","no source mutation","missing/foreign/user/prefix rejection","accepted answer retained after later interruption","durable child output preserved"],"pass":true}

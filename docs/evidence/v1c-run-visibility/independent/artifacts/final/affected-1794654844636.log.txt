@@ -1,0 +1,105 @@
+TAP version 13
+# (node:20948) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# {"valid":"accepted","invalid":"VICT_AGENT_STRUCTURED_OUTPUT_REJECTED","parent":"3a02a1f2-f86e-42e0-9d3c-b741259d41ad","child":"49580afd-efbd-481f-bcd8-642145f0e4e5","invocation":"03761031-6b9f-4dc0-9475-3b3edadcaa6d","denial":"TORI_CHILD_SCOPE_DENIED"}
+# Subtest: A4 pins the output parser and one governed child, with denial and trace
+ok 1 - A4 pins the output parser and one governed child, with denial and trace
+  ---
+  duration_ms: 12952.932
+  ...
+# Subtest: parent cancellation reaches the pinned child model and settles the child Run
+ok 2 - parent cancellation reaches the pinned child model and settles the child Run
+  ---
+  duration_ms: 733.6959
+  ...
+# (node:15948) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: authoring restores completed history and a prior test after a deadline and restart
+ok 3 - authoring restores completed history and a prior test after a deadline and restart
+  ---
+  duration_ms: 21202.6149
+  ...
+# Subtest: provider stream removes private reasoning without dropping public text or usage
+ok 4 - provider stream removes private reasoning without dropping public text or usage
+  ---
+  duration_ms: 116.6243
+  ...
+# Subtest: unexpected non-streaming provider replies fail closed
+ok 5 - unexpected non-streaming provider replies fail closed
+  ---
+  duration_ms: 5.0157
+  ...
+# Subtest: strict capture rejects private/raw/foreign schema and detaches producer state
+ok 6 - strict capture rejects private/raw/foreign schema and detaches producer state
+  ---
+  duration_ms: 7.7106
+  ...
+# Subtest: unaccepted response delta payload never crosses operational capture but its sequence remains
+ok 7 - unaccepted response delta payload never crosses operational capture but its sequence remains
+  ---
+  duration_ms: 7.0437
+  ...
+# Subtest: projection is pure, stable, and ordinary settlement creates no fake Continued working
+ok 8 - projection is pure, stable, and ordinary settlement creates no fake Continued working
+  ---
+  duration_ms: 5.029
+  ...
+# Subtest: actual work after an answer gets a stable separate group and visible denial
+ok 9 - actual work after an answer gets a stable separate group and visible denial
+  ---
+  duration_ms: 2.4844
+  ...
+# Subtest: duplicates render once, gaps are explicit, foreign and late events cannot regress state
+ok 10 - duplicates render once, gaps are explicit, foreign and late events cannot regress state
+  ---
+  duration_ms: 1.7107
+  ...
+# Subtest: snapshot truth does not turn a disconnect or sparse stream into interruption
+ok 11 - snapshot truth does not turn a disconnect or sparse stream into interruption
+  ---
+  duration_ms: 1.0781
+  ...
+# Subtest: replay fills an earlier gap before interpreting terminal order without dispatch or source mutation
+ok 12 - replay fills an earlier gap before interpreting terminal order without dispatch or source mutation
+  ---
+  duration_ms: 1.6668
+  ...
+# Subtest: replay orders each stream independently without propagating another stream answer boundary
+ok 13 - replay orders each stream independently without propagating another stream answer boundary
+  ---
+  duration_ms: 4.5556
+  ...
+# Subtest: per-run budgets and deduplicated totals preserve unknowns and never invent a team cap
+ok 14 - per-run budgets and deduplicated totals preserve unknowns and never invent a team cap
+  ---
+  duration_ms: 2.1776
+  ...
+# Subtest: historical evidence exposes unavailability without guessed counters or exchange results
+ok 15 - historical evidence exposes unavailability without guessed counters or exchange results
+  ---
+  duration_ms: 3.2599
+  ...
+# (node:40676) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# {"directory":"C:\\\\Users\\\\RZ1\\\\AppData\\\\Local\\\\Temp\\\\tori-saved-research-CE2xRQ","researchId":"ff76f3ea-79b9-4d2b-b0a9-9ca36366af2f","direct":"a27d9ddf-51b8-456d-a4c9-67fa3273e0e4","parent":"00d82d0f-1c91-4e6d-a1f2-0289faf33fbd","child":"42183c9f-2c2b-420d-bbba-283ed4e9c315","deniedChild":"ce7f468e-a194-45d6-8946-8dc0aef1e93b","pinnedRevision":"9d00d373-247c-49db-ba02-5f8dada233b2","currentRevision":"c1877f5b-fccf-46df-844c-3ea94930b351"}
+# Subtest: saved Research uses the same activation directly and through a pinned, governed child Run
+ok 16 - saved Research uses the same activation directly and through a pinned, governed child Run
+  ---
+  duration_ms: 21234.0498
+  ...
+# (node:54188) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: Authoring discovery returns valid open and named draft results with governed memory configured
+ok 17 - Authoring discovery returns valid open and named draft results with governed memory configured
+  ---
+  duration_ms: 12136.2087
+  ...
+1..17
+# tests 17
+# suites 0
+# pass 17
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 91681.5606
