@@ -16,6 +16,8 @@
   import FlowAccess from './FlowAccess.svelte';
   import Fields from './Fields.svelte';
   import RunDetails from './RunDetails.svelte';
+  import ActivityDetail from './ActivityDetail.svelte';
+  import RunActivity from './RunActivity.svelte';
   import MemoryControls from './MemoryControls.svelte';
   import SessionConversation from './SessionConversation.svelte';
   import { acceptRunPacket } from './run-observer.mjs';
@@ -94,6 +96,13 @@
   let observation=$state.raw<{run:string;gap:boolean;canStop:boolean;writing:boolean;disconnected:boolean}>();
   let stoppingRun=$state('');
   let runActionError=$state('');
+  let activityDetail=$state('quiet');
+  const activityDetailKey=(workspace:string)=>'tori-activity-detail:'+workspace;
+  function changeActivityDetail(value:string){
+    if(!['quiet','summary','full'].includes(value))return;
+    activityDetail=value;
+    try{localStorage.setItem(activityDetailKey(state.workspace),value);}catch{}
+  }
   const cursorKey=(workspace:string,run:string)=>'tori-run-cursor:'+workspace+':'+run;
   const pendingRunKey=(workspace:string)=>'tori-pending-run:'+workspace;
   const resumeRunKey=(workspace:string)=>'tori-background-run:'+workspace;
@@ -261,7 +270,8 @@
     return message?.role===role?message:undefined;
   }
   let selectedPrompt=$derived(run?runMessage(run,'user'):undefined);
-  let selectedReply=$derived(selectedPrompt&&run.status==='completed'?runMessage(run,'assistant'):undefined);
+  // A retained accepted answer remains visible if later work is interrupted.
+  let selectedReply=$derived(selectedPrompt?runMessage(run,'assistant'):undefined);
   const runActivity=(item:RunHistoryItem)=>item.ended??item.started;
   const runHistoryTime=(item:RunHistoryItem)=>new Date(runActivity(item)).toLocaleString(undefined,
     runGrouping==='date'?{timeStyle:'short'}:{month:'short',day:'numeric',hour:'numeric',minute:'2-digit'});
@@ -486,9 +496,12 @@
     const workspaceChanged=next.workspace!==state.workspace;
     if(workspaceChanged){
       authoringMode='inspect';
+      activityDetail='quiet';
       if(next.workspace){
         try{
           if(localStorage.getItem(authoringModeKey(next.workspace))==='change')authoringMode='change';
+          const detail=localStorage.getItem(activityDetailKey(next.workspace));
+          if(detail&&['quiet','summary','full'].includes(detail))activityDetail=detail;
         }catch{}
       }
     }
@@ -2012,6 +2025,7 @@
 
 {#snippet sessionDetails()}
   <div class="session-details">
+    <ActivityDetail id="session-activity-detail" value={activityDetail} change={changeActivityDetail}/>
     {#if sessionRuns.length}
       <ControlButton.Root class="vict-btn vict-btn--quiet session-inspect-runs" onclick={()=>inspectSessionRuns()}>
         {@render openViewIcon()} Inspect runs
@@ -2040,6 +2054,7 @@
 {/snippet}
 
 {#snippet runDetails()}
+  <ActivityDetail id="run-activity-detail" value={activityDetail} change={changeActivityDetail}/>
   <RunDetails {run} loadMemory={(id:string)=>request('/memory/run',{run:id})}
     checkMemory={(binding:any)=>request('/memory/check',binding)} inspectRun={async(id:string)=>{
     setRunScope('all');
@@ -2372,7 +2387,7 @@
               {#if session}
                 {#key session.id}
                   <div class="conversation" bind:this={conversationPane} use:rememberReadingPosition={session.id}>
-                    {#if session.authoring || session.archivedFixture}
+                    {#if session.authoring}
                       <Conversation messages={session.messages} busy={sessionBusy}
                         composer={sessionComposer} emptyMessage="Start a conversation."/>
                     {:else}
@@ -2380,6 +2395,12 @@
                         turns={memoryView?.turns??[]} composer={sessionComposer}>
                         {#snippet attachment(turn)}
                           <MemoryControls view={memoryView} mode="card" sessionId={session.id} {turn} act={changeMemory} busyTurn={sending||sessionBusy}/>
+                        {/snippet}
+                        {#snippet activity(messageId)}
+                          {@const activityRun=sessionRuns.find(item=>!item.parentRun&&(messageId===item.id+'-agent'||
+                            (messageId===item.id+'-user'&&!session.messages.some(message=>message.id===item.id+'-agent'))))}
+                          {#if activityRun}<RunActivity run={activityRun} workspace={state.workspace} detail={activityDetail} compact
+                            inspect={async(id:string)=>{setRunScope('all');await openRun(id,true);}}/>{/if}
                         {/snippet}
                       </SessionConversation>
                     {/if}
@@ -2474,7 +2495,9 @@
                     {/key}
                   {/if}
                   <section class="run-timeline" aria-label="Timeline">
-                    <div class="run-section-heading"><h2>Timeline</h2></div>
+                    <RunActivity {run} workspace={state.workspace} detail={activityDetail}/>
+                    {#if !run.report&&activityDetail==='full'}
+                    <div class="run-section-heading"><h2>Historical timeline</h2></div>
                     <ol class="timeline">{#each run.events as event, index}
                       {@const offset=elapsed(run.started,event.at,timelineSecondsFormat)}
                       {@const timestamp=new Date(event.at)}
@@ -2489,6 +2512,7 @@
                         {:else}<span class="timeline-clock">Time unavailable</span>{/if}
                       </li>
                     {/each}</ol>
+                    {/if}
                   </section>
                 </div>
               {:else}

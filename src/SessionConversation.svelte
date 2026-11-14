@@ -4,9 +4,9 @@
   import { Feedback } from '@victframework/ui-svelte';
   import type { MemoryTurn } from './memory-display';
 
-  let {messages,busy,turns,composer,attachment}: {
+  let {messages,busy,turns,composer,attachment,activity}: {
     messages: readonly ConversationMessage[]; busy: boolean; turns: readonly MemoryTurn[];
-    composer: Snippet; attachment: Snippet<[MemoryTurn]>;
+    composer: Snippet; attachment: Snippet<[MemoryTurn]>; activity?: Snippet<[string]>;
   }=$props();
   const placements=$derived.by(()=>{
     const ids=new Set(messages.map(message=>message.id));
@@ -49,6 +49,7 @@
                   copied={copiedMessage===message.id}/>
               </div>
               {#if turn}{@render attachment(turn)}{/if}
+              {#if activity}{@render activity(message.id)}{/if}
             </MessageScroller.Item>
           {/each}
         </MessageScroller.Content>

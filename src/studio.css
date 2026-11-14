@@ -775,3 +775,30 @@ dt{color:#a4adbb}dd{margin:0;overflow-wrap:anywhere}.hash{font:11px/1.5 ui-monos
 .memory-actions{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
 .memory-dialog .memory-actions{justify-content:flex-end;margin-top:8px}
 .memory-dialog textarea{width:100%}
+.activity-detail-setting { display: grid; gap: 6px; margin: 0 0 18px; }
+.activity-detail-setting label { color: var(--muted); font-size: 12px; }
+.run-activity { min-width: 0; }
+.run-activity.compact { margin: 8px 0 18px; }
+.activity-groups { border-top: 1px solid var(--border); }
+.activity-groups [data-accordion-trigger] { font-weight: 400; }
+.activity-count { margin-left: auto; color: var(--muted); font-size: 11px; padding-inline: 8px; }
+.activity-rows { list-style: none; margin: 0; padding: 0 12px 8px; }
+.activity-rows > li { padding: 8px 0; border-bottom: 1px solid var(--border); overflow-wrap: anywhere; }
+.activity-rows > li:last-child { border-bottom: 0; }
+.activity-rows > li > div { display: flex; gap: 14px; justify-content: space-between; align-items: baseline; }
+.activity-rows time { color: var(--muted); font-size: 11px; flex: 0 0 auto; }
+.activity-receipt { display: grid; grid-template-columns: max-content minmax(0, 1fr); gap: 3px 12px; margin: 7px 0 0; font-size: 11px; }
+.activity-receipt dt { color: var(--muted); }
+.activity-receipt dd { margin: 0; overflow-wrap: anywhere; }
+.activity-facts { display: flex; flex-wrap: wrap; gap: 5px 18px; margin: 8px 0 12px; font-size: 12px; }
+.activity-facts > div { display: flex; gap: 6px; }
+.activity-facts dt { color: var(--muted); }
+.activity-facts dd { margin: 0; }
+.run-activity-problems { display: grid; gap: 7px; margin-block: 10px; }
+.run-activity-problems > div { display: flex; flex-wrap: wrap; gap: 6px; }
+.run-activity-problems code { font-size: 11px; }
+.activity-unavailable { color: var(--muted); font-size: 12px; line-height: 1.5; overflow-wrap: anywhere; }
+.activity-links { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 7px; }
+.run-budget h4 { font-size: 12px; font-weight: 500; margin: 12px 0 8px; }
+.run-budget .vict-detail-row { display: grid; gap: 4px; padding-block: 7px; border-bottom: 1px solid var(--border); }
+.run-budget .vict-detail-row dd { margin: 0; font-size: 11px; }

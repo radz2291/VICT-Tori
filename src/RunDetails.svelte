@@ -1,10 +1,12 @@
 <script lang="ts">
   import { Button } from '@victframework/ui-svelte';
   import RunMemoryEvidence from './RunMemoryEvidence.svelte';
+  import SpecialistReport from './SpecialistReport.svelte';
   let {run,inspectRun,loadMemory,checkMemory}=$props();
 </script>
 
 <div class="run-details">
+  <SpecialistReport report={run.report} {inspectRun}/>
   <section aria-label="Execution">
     <h3>Execution</h3>
     <dl>

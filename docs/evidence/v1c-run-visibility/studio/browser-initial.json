@@ -1,0 +1,18 @@
+{
+  "origin": "synthetic presentation fixture",
+  "assertions": [
+    "Same fixture Run at three levels",
+    "Quiet denial visible",
+    "Keyboard disclosure works",
+    "Groups persist by workspace and Run",
+    "Local preference persists after reload",
+    "Parent and child links",
+    "Budget unavailable vs no team cap",
+    "Session answer and separate continued work",
+    "390px no page overflow",
+    "Zero execution/mutation requests",
+    "Stored receipts unchanged"
+  ],
+  "browser": "153.0.8010.12",
+  "pass": true
+}

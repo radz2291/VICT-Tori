@@ -143,6 +143,15 @@
         <dt>Expected fixture result</dt><dd>{childResult}</dd>
       {/if}
     </dl>
+    <section class="parent-question-policy" aria-label="Parent questions">
+      <label for={prefix+'-parent-questions'}>Parent questions</label>
+      <Select id={prefix+'-parent-questions'} name="parent-questions" value="unavailable" disabled
+        options={[{value:'unavailable',label:'Unavailable'}]} onChange={()=>{}}/>
+      <label for={prefix+'-parent-exchanges'}>Maximum exchanges</label>
+      <Input id={prefix+'-parent-exchanges'} class="tori-field" type="number" min={0} max={2} value={1} disabled
+        aria-describedby={prefix+'-parent-question-help'}/>
+      <p id={prefix+'-parent-question-help'} class="activity-unavailable">This connection cannot continue a specialist after a parent answer. The proposed limit is 1 exchange, within 0–2. It is not active.</p>
+    </section>
     <section class="delegation-technical" aria-label="Technical details">
       <h3>Technical details</h3>
       <dl class="delegation-facts">
