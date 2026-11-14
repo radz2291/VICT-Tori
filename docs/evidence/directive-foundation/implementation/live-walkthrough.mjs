@@ -12,7 +12,7 @@ const port=process.env.TORI_DIRECTIVE_LIVE_PORT??'48941';
 assert.match(port,/^\d+$/);
 const root=fileURLToPath(new URL('../../../..',import.meta.url));
 const url='http://127.0.0.1:'+port;
-const dataDir=await mkdtemp(join(tmpdir(),'tori-009-live-'));
+const dataDir=process.env.TORI_DIRECTIVE_LIVE_DATA??await mkdtemp(join(tmpdir(),'tori-009-live-'));
 const env={...process.env,TORI_DATA_DIR:dataDir,TORI_ZAI_ROUTE:'coding',TORI_ENABLE_PI_ZAI:'1',
   TORI_EXECUTION_FIXTURE:'',TORI_TEST_HISTORICAL_ACTIVATION:'0',TORI_ZAI_API_KEY:''};
 let host;
@@ -59,7 +59,7 @@ async function startHost(){
 }
 
 async function seed(){
-  const child=spawn(process.execPath,['scripts/seed-directive-preview.mjs',url],
+  const child=spawn(process.execPath,[process.env.TORI_DIRECTIVE_LIVE_SEED_SCRIPT??'scripts/seed-directive-preview.mjs',url],
     {cwd:root,env,windowsHide:true,stdio:['ignore','pipe','ignore']});
   const exit=once(child,'exit');
   let json='';

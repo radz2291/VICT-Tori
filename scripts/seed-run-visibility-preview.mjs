@@ -45,6 +45,6 @@ try{
   const authorDefinition=(await read('/definitions',{})).definition;
   const authoring=await save(author,authorDefinition);
   const {openedSession}=await read('/sessions',{activation:quellight.activation.version});
-  console.log(JSON.stringify({fixture:initial.fixture,workspace:initial.workspace,quellight:quellight.activation.version,
+  console.log(JSON.stringify({fixture:initial.fixture,workspace:initial.workspace,activation:quellight.activation.version,quellight:quellight.activation.version,
     research:child.activation.version,authoring:authoring.activation.version,session:openedSession}));
 }finally{await vite.close();}
