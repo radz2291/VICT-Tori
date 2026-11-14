@@ -45,6 +45,11 @@ export function lastAuthoringTest(state, sessions) {
   return tests.find(run => run.status === 'completed') ?? tests[0];
 }
 
+export function acceptedRunReply(run, session) {
+  if(session?.id!==run.session)return undefined;
+  return session.messages.find(message=>message.role==='assistant'&&message.id===run.id+'-agent')?.text;
+}
+
 export function runEvidence(state, run) {
   if (!run) return undefined;
   const session = state.sessions.find(item => item.id === run.session);
@@ -52,7 +57,7 @@ export function runEvidence(state, run) {
     id: run.id, name: run.name, session: run.session, revision: run.revision, activation: run.activation,
     status: run.status, fixture: !!run.fixture, errorCode: run.errorCode,
     input: run.input ?? session?.messages.find(item => item.id === run.id + '-user')?.text,
-    output: run.output ?? session?.messages.find(item => item.id === run.id + '-agent')?.text,
+    output: run.output ?? acceptedRunReply(run, session),
     context: run.context, scripts: run.scriptReceipts ?? [],
     children: state.runs.filter(child => child.parentRun === run.id).map(child => runEvidence(state, child)),
   });

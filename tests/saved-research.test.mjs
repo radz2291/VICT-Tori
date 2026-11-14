@@ -87,6 +87,10 @@ test('saved Research uses the same activation directly and through a pinned, gov
     assert.equal(child.parentInvocation,parentRun.governance.invocations[0].invocationId);
     assert.equal(parentRun.governance.calls,0);
     assert.equal(await countCalls(),2);
+    const acceptedReply=linked.sessions.find(item=>item.id===parentRun.session)?.messages.find(
+      message=>message.role==='assistant'&&message.id===parentRun.id+'-agent');
+    assert.ok(acceptedReply?.text);
+    assert.equal(parentRun.report.finalAnswer,acceptedReply.text);
     assert.equal(child.report.schema,'tori.run-report@1');
     assert.equal(child.report.specialist.parentRunId,parentRun.id);
     assert.equal(child.report.specialist.revision,researchR1.id);
@@ -105,6 +109,7 @@ test('saved Research uses the same activation directly and through a pinned, gov
     const beforeRead=requests.length;
     const replay=await dispatch('');
     assert.equal(replay.runs.length,linked.runs.length);
+    assert.equal(replay.runs.find(item=>item.id===parentRun.id).report.finalAnswer,acceptedReply.text);
     assert.deepEqual(replay.runs.find(item=>item.id===child.id).report,child.report);
     assert.equal(requests.length,beforeRead,'Opening reports must not dispatch a provider call');
     assert.equal(await countCalls(),2,'Opening reports must not invoke a tool');

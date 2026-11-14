@@ -4,7 +4,7 @@ import { createSqliteAgentControlStores, createSqliteAgentGovernanceStore } from
 import { authoringRefs, createAuthoringTransport, validAuthoringTarget } from './draft-authoring.mjs';
 import { workspaceBinding, workspaceReadOnly, workspaceRefs } from '../packages/authoring/index.mjs';
 import { registeredTool, registeredTools } from '../src/registered-tools.mjs';
-import { authoringChatSessions, knownOperation, lastAuthoringTest, operationDigest, rememberOperation, runEvidence, workspaceCapabilities } from './workspace-actions.mjs';
+import { acceptedRunReply, authoringChatSessions, knownOperation, lastAuthoringTest, operationDigest, rememberOperation, runEvidence, workspaceCapabilities } from './workspace-actions.mjs';
 import { publicProviderStream } from './provider-stream.mjs';
 import { isRunKey, matchesRunEvent, replayRun, runState } from './run-observation.mjs';
 import { capturePublicEvent, projectRunReport } from '../packages/run-visibility/index.mjs';
@@ -381,6 +381,7 @@ export function createStudio({getAssembly,dataDirectory,turnDeadlineMs=maxHostDe
       };
     };
     const sessionPins=new Map(state.activations.map(activation=>[activation.record.activationVersion,activation]));
+    const sessionsById=new Map(state.sessions.map(session=>[session.id,session]));
     const definitions=[defaultDefinition,...(state.definitions??[])].map(id=>{
       const latest=newest(state.drafts,id);
       const draft=latest?.graph??state.workingAssemblies?.[id]?.graph;
@@ -438,7 +439,8 @@ export function createStudio({getAssembly,dataDirectory,turnDeadlineMs=maxHostDe
         ...(run.scriptReceipts??[]).map(receipt=>({at:receipt.ended,label:'Script '+receipt.id+' · '+receipt.status})),
       ].sort((a,b)=>a.at.localeCompare(b.at))};
     }).map(run=>memories.visibleRun(run,state)).map((run,index,runs)=>({...run,
-      report:projectRunReport({run,relatedRuns:runs.filter(other=>other.parentRun===run.id||run.parentRun===other.id)})})),
+      report:projectRunReport({run:{...run,output:run.output??acceptedRunReply(run,sessionsById.get(run.session))},
+        relatedRuns:runs.filter(other=>other.parentRun===run.id||run.parentRun===other.id)})})),
       provider:!!credential(),route:selectedRoute()};
   };
   function createDefinition(state) {

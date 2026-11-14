@@ -37,6 +37,8 @@ try{
   const result=await post('turn',{session:session.id,input:'Delegate a review of the synthetic source.'});
   const run=result.runs.find(r=>r.session===session.id&&!r.parentRun),specialist=result.runs.find(r=>r.parentRun===run.id);
   assert.equal(run.status,'completed');assert.equal(specialist.status,'completed');
+  const parentReply=result.sessions.find(item=>item.id===run.session)?.messages.find(message=>message.role==='assistant'&&message.id===run.id+'-agent');
+  assert.ok(parentReply?.text);assert.equal(run.report.finalAnswer,parentReply.text);
   assert.equal(specialist.report.specialist.revision,revision.id);assert.ok(specialist.publicEvents.length);
   const before=await readFile(capture,'utf8'),stored=JSON.stringify((await api()).runs);
   browser=await chromium.launch();const page=await browser.newPage({viewport:{width:1531,height:850}});page.setDefaultTimeout(25000);
@@ -53,6 +55,7 @@ try{
   const work=page.locator('[data-run-activity="'+specialist.id+'"]').getByRole('button',{name:'Working',exact:true});await work.click();
   await page.screenshot({path:join(out,'actual-specialist.png')});
   await page.getByRole('button',{name:'Open parent Run',exact:true}).click();
+  await page.getByRole('region',{name:'Specialist report'}).getByText(parentReply.text,{exact:true}).waitFor();
   await page.screenshot({path:join(out,'actual-parent.png')});
   assert.equal(await readFile(capture,'utf8'),before,'Inspecting must not make new provider calls');
   assert.equal(JSON.stringify((await api()).runs),stored,'Inspecting must not mutate receipts');assert.deepEqual(errors,[]);

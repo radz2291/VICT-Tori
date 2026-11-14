@@ -60,6 +60,7 @@ test('A4 pins the output parser and one governed child, with denial and trace',a
     assert.equal(invalid.runs[0].status,'failed');
     assert.equal(invalid.runs[0].outputValidation,'rejected');
     assert.equal(invalid.runs[0].errorCode,'VICT_AGENT_STRUCTURED_OUTPUT_REJECTED');
+    assert.equal(invalid.runs[0].report.finalAnswer,null);
     assert.doesNotMatch(JSON.stringify(invalid),/UNACCEPTED-FIXTURE-CANARY/);
     await assert.rejects(turn(structured,'Continue from the rejected output'),/interrupted/);
     edit(add('child'),wire('child','child'),change('agent','maxSteps',2));
