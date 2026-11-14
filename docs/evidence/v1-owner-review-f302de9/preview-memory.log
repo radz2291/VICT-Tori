@@ -1,0 +1,25 @@
+{
+  "sessionStatus": "available",
+  "recordCount": 1,
+  "turns": [
+    {
+      "run": "8b2611b5-d337-4148-b27e-58f414fb3969",
+      "proposal": "saved",
+      "saved": true,
+      "receiptRevision": 1
+    }
+  ],
+  "runStatus": "available",
+  "admittedRecords": [
+    {
+      "revision": 1,
+      "status": "available"
+    }
+  ],
+  "runSummaryKeys": [
+    "status",
+    "evidence",
+    "directive",
+    "records"
+  ]
+}

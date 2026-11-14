@@ -1,0 +1,22 @@
+node:internal/modules/run_main:122
+    triggerUncaughtException(
+    ^
+
+AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
++ actual - expected
+
++ [
++   '/api/studio/memory/session'
++ ]
+- []
+
+    at file:///C:/Users/RZ1/Desktop/RZ/261114-verification-evidence/v1-review/check-preview.mjs:55:10
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5) {
+  generatedMessage: true,
+  code: 'ERR_ASSERTION',
+  actual: [ '/api/studio/memory/session' ],
+  expected: [],
+  operator: 'deepStrictEqual'
+}
+
+Node.js v22.13.1

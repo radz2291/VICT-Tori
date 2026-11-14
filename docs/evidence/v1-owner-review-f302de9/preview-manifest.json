@@ -1,0 +1,14 @@
+{
+  "candidate": "f302de96b96ede5eb158f4ce779801e955a8f69f",
+  "tree": "204a58f0b57d4cbed6ac659ffc0bb1b24fc4ecd7",
+  "lock": "746b69fbefb4a9123029f54ab4ca47a00aaa5310",
+  "branch": "codex/tori-v1c-run-visibility",
+  "localPreview": "http://127.0.0.1:48959/?run=4fa613bc-f0b5-4155-9dbe-0902a7eb9aea",
+  "launchCommand": "pwsh -NoProfile -File scripts/run-visibility-preview.ps1 -Port 48959",
+  "launchPid": 39056,
+  "loopbackBound": true,
+  "savedRuns": 14,
+  "sessions": 3,
+  "credentialAvailable": true,
+  "mode": "copied synthetic Coding review workspace"
+}
