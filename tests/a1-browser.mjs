@@ -486,12 +486,13 @@ try {
       await inspectRuns();
       await openRunDetails('Evidence');
       await page.getByText('tori.output.finding · r1 · accepted',{exact:true}).waitFor();
-      await button(/^Open child Run/).click();
+      const outcome=page.getByRole('region',{name:'Outcome',exact:true});
+      await outcome.getByRole('button',{name:/^Open child Run/}).click();
       assert.equal(await page.getByRole('region',{name:'Turn',exact:true}).count(),0);
       await openRunDetails('Provenance');
       await page.getByText(parent.id,{exact:true}).waitFor();
       await page.screenshot({path:join(directory,'a4-child.png'),animations:'disabled'});
-      await button(/^Open parent Run/).click();
+      await outcome.getByRole('button',{name:/^Open parent Run/}).click();
       await openRunDetails('Evidence');
       await page.getByText('tori.output.finding · r1 · accepted',{exact:true}).scrollIntoViewIfNeeded();
       await page.screenshot({path:join(directory,'a4-parent.png'),animations:'disabled'});
