@@ -1,0 +1,49 @@
+npm warn EBADENGINE Unsupported engine {
+npm warn EBADENGINE   package: 'posthog-node@5.63.1',
+npm warn EBADENGINE   required: { node: '^20.20.0 || >=22.22.0' },
+npm warn EBADENGINE   current: { node: 'v22.13.1', npm: '11.19.1' }
+npm warn EBADENGINE }
+npm warn cleanup Failed to remove some directories [
+npm warn cleanup   [
+npm warn cleanup     '\\\\?\\[verification-worktree]\\node_modules\\@victframework\\ui-editor',
+npm warn cleanup     [Error: EPERM: operation not permitted, rmdir '[verification-worktree]\node_modules\@victframework\ui-editor'] {
+npm warn cleanup       errno: -4048,
+npm warn cleanup       code: 'EPERM',
+npm warn cleanup       syscall: 'rmdir',
+npm warn cleanup       path: '[verification-worktree]\\node_modules\\@victframework\\ui-editor'
+npm warn cleanup     }
+npm warn cleanup   ],
+npm warn cleanup   [
+npm warn cleanup     '\\\\?\\[verification-worktree]\\node_modules\\@victframework',
+npm warn cleanup     [Error: EPERM: operation not permitted, rmdir '[verification-worktree]\node_modules\@victframework\ui-ai-svelte\src\upstream'] {
+npm warn cleanup       errno: -4048,
+npm warn cleanup       code: 'EPERM',
+[Repeated extraction diagnostics omitted from public excerpt; original local file hash is in INDEX.json.]
+npm warn EBADENGINE Unsupported engine {
+npm warn EBADENGINE   package: 'posthog-node@5.63.1',
+npm warn EBADENGINE   required: { node: '^20.20.0 || >=22.22.0' },
+npm warn EBADENGINE   current: { node: 'v22.13.1', npm: '11.19.1' }
+npm warn EBADENGINE }
+npm warn cleanup Failed to remove some directories [
+npm warn cleanup   [
+npm warn cleanup     '\\\\?\\[verification-worktree]\\node_modules\\@victframework\\ui-editor',
+npm warn cleanup     [Error: EPERM: operation not permitted, rmdir '[verification-worktree]\node_modules\@victframework\ui-editor'] {
+npm warn cleanup       errno: -4048,
+npm warn cleanup       code: 'EPERM',
+npm warn cleanup       syscall: 'rmdir',
+npm warn cleanup       path: '[verification-worktree]\\node_modules\\@victframework\\ui-editor'
+npm warn cleanup     }
+npm warn cleanup   ],
+npm warn cleanup   [
+npm warn cleanup     '\\\\?\\[verification-worktree]\\node_modules\\@victframework',
+npm warn cleanup     [Error: EPERM: operation not permitted, rmdir '[verification-worktree]\node_modules\@victframework\ui-ai-svelte\src\upstream'] {
+npm warn cleanup       errno: -4048,
+npm warn cleanup       code: 'EPERM',
+npm warn cleanup       syscall: 'rmdir',
+npm warn cleanup       path: '[verification-worktree]\\node_modules\\@victframework\\ui-ai-svelte\\src\\upstream'
+npm warn cleanup     }
+npm warn cleanup   ]
+npm warn cleanup ]
+npm error code ENOTCACHED
+npm error request to https://registry.npmjs.org/zwitch/-/zwitch-2.0.4.tgz failed: cache mode is 'only-if-cached' but no cached response is available.
+npm error A complete log of this run can be found in: C:\Users\RZ1\AppData\Local\npm-cache\_logs\2026-11-14T03_53_26_831Z-debug-0.log

@@ -1,0 +1,20 @@
+npm warn EBADENGINE Unsupported engine {
+npm warn EBADENGINE   package: 'posthog-node@5.63.1',
+npm warn EBADENGINE   required: { node: '^20.20.0 || >=22.22.0' },
+npm warn EBADENGINE   current: { node: 'v22.13.1', npm: '11.19.1' }
+npm warn EBADENGINE }
+npm warn tar TAR_ENTRY_ERROR ENOSPC: no space left on device, write
+npm warn tar TAR_ENTRY_ERROR ENOSPC: no space left on device, write
+npm warn tar TAR_ENTRY_ERROR ENOSPC: no space left on device, write
+npm error A complete log of this run can be found in: C:\Users\RZ1\AppData\Local\npm-cache\_logs\2026-11-14T03_43_43_089Z-debug-0.log
+
+[Repeated extraction diagnostics omitted from public excerpt; original local file hash is in INDEX.json.]
+npm warn EBADENGINE Unsupported engine {
+npm warn EBADENGINE   package: 'posthog-node@5.63.1',
+npm warn EBADENGINE   required: { node: '^20.20.0 || >=22.22.0' },
+npm warn EBADENGINE   current: { node: 'v22.13.1', npm: '11.19.1' }
+npm warn EBADENGINE }
+npm warn tar TAR_ENTRY_ERROR ENOSPC: no space left on device, write
+npm warn tar TAR_ENTRY_ERROR ENOSPC: no space left on device, write
+npm warn tar TAR_ENTRY_ERROR ENOSPC: no space left on device, write
+npm error A complete log of this run can be found in: C:\Users\RZ1\AppData\Local\npm-cache\_logs\2026-11-14T03_43_43_089Z-debug-0.log

@@ -1,0 +1,17 @@
+import assert from 'node:assert/strict';
+import {acceptedRunReply,runEvidence} from '../../../../server/workspace-actions.mjs';
+const run={id:'synthetic-parent',session:'synthetic-session',status:'interrupted'};
+const session={id:run.session,messages:[{id:run.id+'-agent',role:'user',text:'UNACCEPTED_USER_CANARY'},{id:'other-agent',role:'assistant',text:'OTHER_RUN_CANARY'},{id:run.id+'-agent',role:'assistant',text:'Exact accepted answer.'}]};
+const before=JSON.stringify({run,session});
+assert.equal(acceptedRunReply(run,session),'Exact accepted answer.');
+assert.equal(acceptedRunReply(run,{...session,id:'foreign-session'}),undefined);
+assert.equal(acceptedRunReply(run,undefined),undefined);
+assert.equal(acceptedRunReply({...run,id:'other-prefix'},session),undefined);
+assert.equal(acceptedRunReply(run,{id:run.session,messages:[session.messages[0]]}),undefined);
+assert.equal(acceptedRunReply({...run,status:'completed'},session),'Exact accepted answer.');
+assert.equal(JSON.stringify({run,session}),before);
+const nested={id:'synthetic-child',session:run.session,parentRun:run.id,status:'completed',output:'Accepted child result.'};
+const report=runEvidence({sessions:[session],runs:[run,nested]},run);
+assert.equal(report.output,'Exact accepted answer.');assert.equal(report.children[0].output,nested.output);
+assert.doesNotMatch(JSON.stringify(report),/UNACCEPTED_USER_CANARY|OTHER_RUN_CANARY/);
+console.log(JSON.stringify({checks:['exact Run assistant identity','same Session only','no source mutation','missing/foreign/user/prefix rejection','accepted answer retained after later interruption','durable child output preserved'],pass:true}));

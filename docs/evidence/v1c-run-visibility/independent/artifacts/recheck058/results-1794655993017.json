@@ -1,0 +1,44 @@
+{
+  "candidate": "058e685acd00a97dfdf7b23e40585390c14c21e3",
+  "node": "v22.13.1",
+  "origin": "independent fixture and installed verification; no live calls",
+  "steps": [
+    {
+      "name": "manifest",
+      "started": "2026-11-14T11:33:13.017Z",
+      "ended": "2026-11-14T11:33:14.177Z",
+      "code": 0,
+      "signal": null,
+      "command": [
+        "node",
+        "scripts/run-visibility-manifest.mjs",
+        "[verification-worktree]\\.local\\independent\\recheck058\\manifest.json"
+      ],
+      "log": "[verification-worktree]\\.local\\independent\\recheck058\\manifest-1794655993018.log"
+    },
+    {
+      "name": "a1a4",
+      "started": "2026-11-14T11:33:14.179Z",
+      "ended": "2026-11-14T11:34:20.707Z",
+      "code": 0,
+      "signal": null,
+      "command": [
+        "node",
+        "tests/a1-browser.mjs"
+      ],
+      "log": "[verification-worktree]\\.local\\independent\\recheck058\\a1a4-1794655994179.log"
+    },
+    {
+      "name": "controls",
+      "started": "2026-11-14T11:34:20.709Z",
+      "ended": "2026-11-14T11:34:54.851Z",
+      "code": 0,
+      "signal": null,
+      "command": [
+        "node",
+        "docs/evidence/v1c-run-visibility/independent/control-audit.mjs"
+      ],
+      "log": "[verification-worktree]\\.local\\independent\\recheck058\\controls-1794656060709.log"
+    }
+  ]
+}

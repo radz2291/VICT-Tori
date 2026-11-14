@@ -1,0 +1,24 @@
+{
+  "origin": "deterministic provider; actual governed runtime receipts",
+  "controlRoles": {
+    "activityDetail": "public VICT Select",
+    "parentQuestions": "public VICT Select disabled",
+    "exchangeCount": "public VICT AI Input disabled",
+    "surfaces": [
+      "Configure",
+      "Canvas Selection",
+      "390px Configure"
+    ],
+    "proposedOnly": true
+  },
+  "pass": true,
+  "browser": "153.0.8010.12",
+  "parent": "2b97a393-e75b-43cf-b6b4-4f4fd7b643cf",
+  "child": "815801ef-29a0-4adf-a5fe-67978a9d728b",
+  "revision": "2e158640-c6d0-4d29-96ba-f2b5a8b61e04",
+  "providerCalls": 4,
+  "eventRows": 9,
+  "reportMatchesReceipt": true,
+  "zeroDispatchOnViews": true,
+  "unchangedRunReceipts": true
+}

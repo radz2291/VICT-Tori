@@ -1,0 +1,250 @@
+{
+  "attribution": "manager executed live; verifier read existing capture and GET snapshot only",
+  "sourceCaptureSha256": "563097129ca27378e65b1d31df226b0c6e01e0dcac27de2740f3825e559c285b",
+  "phases": [
+    {
+      "name": "sameSession",
+      "session": "b0ae7e21-61fc-44ec-a1e6-f3b2fb381a57",
+      "cases": [
+        {
+          "run": "72c3d148-463f-4924-b30a-f9b318d78600",
+          "input": "Which standing preference applies to Orchid updates?",
+          "reply": "- **Standing preference:** Orchid updates are delivered in two short bullets.\n- **Note:** This supersedes the three-bullet format mentioned earlier in this session, since the latest confirmed revision specifies two.",
+          "directive": "none",
+          "proposal": null,
+          "request": null,
+          "admitted": [
+            {
+              "id": "b34a5618-fb8c-41f0-a218-3d8e2422f161",
+              "revision": 1,
+              "updatedAt": "2026-11-14T03:52:58.395Z"
+            }
+          ]
+        },
+        {
+          "run": "ef97bae8-65ee-45c4-a8ff-7b2d3e2ed3fb",
+          "input": "Give me an Orchid project update.",
+          "reply": "- **Status:** Design approved; implementation in progress.\n- **Milestone:** Demo is Friday.",
+          "directive": "none",
+          "proposal": null,
+          "request": null,
+          "admitted": [
+            {
+              "id": "b34a5618-fb8c-41f0-a218-3d8e2422f161",
+              "revision": 1,
+              "updatedAt": "2026-11-14T03:52:58.395Z"
+            }
+          ]
+        },
+        {
+          "run": "52746ee2-4f5e-4425-9b9f-2c818c487de3",
+          "input": "Do you remember what we talked about last week?",
+          "reply": "No — I don't have any record of conversations from last week. My available history covers only this session, which started today (2026-11-14). The one saved item I have is a preference about formatting Orchid updates in two short bullets, but a saved fact like that can't tell us what was discussed or when — so there's no evidence covering last week.",
+          "directive": "none",
+          "proposal": null,
+          "request": null,
+          "admitted": [
+            {
+              "id": "b34a5618-fb8c-41f0-a218-3d8e2422f161",
+              "revision": 1,
+              "updatedAt": "2026-11-14T03:52:58.395Z"
+            }
+          ]
+        },
+        {
+          "run": "ebe31f04-83db-4f13-a341-b7d85aba386c",
+          "input": "Do you remember what we discussed last week?",
+          "reply": "No — I don't have any evidence covering last week. My history is limited to this session, which began today (2026-11-14).\n\nThe only saved item I hold is a standing preference about formatting Orchid updates in two short bullets, but that doesn't tell us what was discussed or when — so I can't confirm anything about last week's conversations.",
+          "directive": "none",
+          "proposal": null,
+          "request": null,
+          "admitted": [
+            {
+              "id": "b34a5618-fb8c-41f0-a218-3d8e2422f161",
+              "revision": 1,
+              "updatedAt": "2026-11-14T03:52:58.395Z"
+            }
+          ]
+        },
+        {
+          "run": "32514890-c920-4b59-bd18-2bf8ca568e4f",
+          "input": "Ingat lagi apa kita bincang minggu lepas?",
+          "reply": "Tidak — saya tiada sebarang bukti tentang perbualan minggu lepas. Sejarah saya terhad kepada sesi ini sahaja, yang bermula hari ini (2026-11-14).\n\nItem tersimpan yang saya ada hanyalah satu keutamaan tentang format kemas kini Orchid (dua poin ringkas), tetapi fakta tersimpan seperti itu tidak boleh membuktikan apa yang dibincangkan atau bila ia berlaku. Jadi, saya tidak boleh sahkan apa-apa tentang minggu lepas.",
+          "directive": "none",
+          "proposal": null,
+          "request": null,
+          "admitted": [
+            {
+              "id": "b34a5618-fb8c-41f0-a218-3d8e2422f161",
+              "revision": 1,
+              "updatedAt": "2026-11-14T03:52:58.395Z"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "afterRestart",
+      "session": "65de2ff5-0297-4a65-8141-3be3e472dcc1",
+      "cases": [
+        {
+          "run": "e2e7a87f-53e2-466f-8ea7-ae69b238f70f",
+          "input": "Which standing preference applies to Orchid updates?",
+          "reply": "The standing preference for Orchid updates: **use two short bullets**.",
+          "directive": "none",
+          "proposal": null,
+          "request": null,
+          "admitted": [
+            {
+              "id": "b34a5618-fb8c-41f0-a218-3d8e2422f161",
+              "revision": 1,
+              "updatedAt": "2026-11-14T03:52:58.395Z"
+            }
+          ]
+        },
+        {
+          "run": "9b61d27e-bde1-4e55-aa22-8ecc679c23bd",
+          "input": "Give me an Orchid project update.",
+          "reply": "- Design is approved and implementation is underway.\n- Demo is scheduled for Friday.",
+          "directive": "none",
+          "proposal": null,
+          "request": null,
+          "admitted": [
+            {
+              "id": "b34a5618-fb8c-41f0-a218-3d8e2422f161",
+              "revision": 1,
+              "updatedAt": "2026-11-14T03:52:58.395Z"
+            }
+          ]
+        },
+        {
+          "run": "c441bf85-befd-4cbe-a254-1163e3123b9a",
+          "input": "Do you remember what we talked about last week?",
+          "reply": "I don't have a record of what we discussed last week — my conversation history covers only this session, and I have no evidence dated to that period. The only related item is a saved preference for Orchid updates (two short bullets), but that note alone doesn't tell us when or how it came up in conversation.",
+          "directive": "none",
+          "proposal": null,
+          "request": null,
+          "admitted": [
+            {
+              "id": "b34a5618-fb8c-41f0-a218-3d8e2422f161",
+              "revision": 1,
+              "updatedAt": "2026-11-14T03:52:58.395Z"
+            }
+          ]
+        },
+        {
+          "run": "1ed1f496-eb54-4428-bfab-9cf80d9b1331",
+          "input": "Do you remember what we discussed last week?",
+          "reply": "No — I don't have any record of last week's discussions. The only saved item is today's preference for Orchid updates (two short bullets, committed 2026-11-14), and it doesn't date or describe any past conversation. If it's important, feel free to recap and I can help from there.",
+          "directive": "none",
+          "proposal": null,
+          "request": null,
+          "admitted": [
+            {
+              "id": "b34a5618-fb8c-41f0-a218-3d8e2422f161",
+              "revision": 1,
+              "updatedAt": "2026-11-14T03:52:58.395Z"
+            }
+          ]
+        },
+        {
+          "run": "c598b1a2-390b-4534-90e6-f21943e05306",
+          "input": "Ingat lagi apa kita bincang minggu lepas?",
+          "reply": "Tidak — saya tidak mempunyai sebarang rekod perbincangan minggu lepas. Satu-satunya item tersimpan adalah keutamaan untuk kemas kini Orchid (dua poin pendek, disimpan hari ini, 2026-11-14), dan nota itu tidak menyatakan bila atau apa yang pernah dibincangkan. Jika ia penting, sila kongsikan semula dan saya boleh bantu dari situ.",
+          "directive": "none",
+          "proposal": null,
+          "request": null,
+          "admitted": [
+            {
+              "id": "b34a5618-fb8c-41f0-a218-3d8e2422f161",
+              "revision": 1,
+              "updatedAt": "2026-11-14T03:52:58.395Z"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "receipt": {
+    "operation": "1a4caddd-c71f-4981-ba53-3b4d65055031",
+    "memoryId": "b34a5618-fb8c-41f0-a218-3d8e2422f161",
+    "revision": 1,
+    "at": "2026-11-14T03:52:58.395Z"
+  },
+  "parent": {
+    "id": "4fa613bc-f0b5-4155-9dbe-0902a7eb9aea",
+    "status": "completed",
+    "revision": "75818733-e535-4319-9218-9a1c07fe6a79",
+    "activation": "v1_23ec18f245935258d90cbf800fc28f15edbe591d2e43c7ca85bf29ff724819a6",
+    "acceptedReply": "- **Code:** `TOPIC-104`\n- **Finding:** Anchor a new habit to an existing daily routine and record the cue that triggers it.",
+    "reportFinalAnswer": null,
+    "matchesAccepted": false,
+    "modelSteps": 2,
+    "providerAttempts": 2,
+    "toolCalls": 1
+  },
+  "child": {
+    "id": "af5bb3fa-8de2-4572-a6e4-178dc031eded",
+    "parentRun": "4fa613bc-f0b5-4155-9dbe-0902a7eb9aea",
+    "parentInvocation": "55fcb99c-4a13-4234-b31d-1aec186a2b34",
+    "status": "completed",
+    "revision": "2fefd30b-4975-40e7-b8d6-66fffba09ad7",
+    "activation": "v1_3da5827b5da3688031333bd633f3e1e91b6c72b609c1babb7602062661ce3348",
+    "result": "I'll perform the read-only lookup using the approved Research Topics script.Read-only lookup complete — no writes or mutations performed.\n\n**Synthetic habits project code:** `TOPIC-104`\n\n**Short finding:** Pair a small habit with an existing routine and record the cue — i.e., anchor a new habit to something already in your daily routine, and keep track of the trigger that prompts it.\n\nThis came directly from the approved project knowledge via the Research Topics script. Let me know if you'd like any other approved topic lookups.",
+    "modelSteps": 2,
+    "providerAttempts": 2,
+    "toolCalls": 1,
+    "expectedResult": null
+  },
+  "combined": [
+    {
+      "key": "modelSteps",
+      "label": "Model steps",
+      "limit": null,
+      "consumed": 4,
+      "remaining": null,
+      "stopReason": null
+    },
+    {
+      "key": "providerAttempts",
+      "label": "Provider attempts",
+      "limit": null,
+      "consumed": 4,
+      "remaining": null,
+      "stopReason": null
+    },
+    {
+      "key": "retries",
+      "label": "Model retries",
+      "limit": null,
+      "consumed": null,
+      "remaining": null,
+      "stopReason": null
+    },
+    {
+      "key": "toolCalls",
+      "label": "Admitted tool calls",
+      "limit": null,
+      "consumed": 2,
+      "remaining": null,
+      "stopReason": null
+    },
+    {
+      "key": "inputTokens",
+      "label": "Input tokens",
+      "limit": null,
+      "consumed": 2020,
+      "remaining": null,
+      "stopReason": null
+    },
+    {
+      "key": "outputTokens",
+      "label": "Output tokens",
+      "limit": null,
+      "consumed": 620,
+      "remaining": null,
+      "stopReason": null
+    }
+  ],
+  "teamLimit": "Not configured"
+}

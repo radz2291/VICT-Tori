@@ -1,0 +1,80 @@
+{
+  "candidate": "78a410ffe5c26f0367b3dc51acf1dc359ec5b596",
+  "node": "v22.13.1",
+  "origin": "independent fixture and installed verification; no live calls",
+  "steps": [
+    {
+      "name": "manifest",
+      "started": "2026-11-14T10:49:42.757Z",
+      "ended": "2026-11-14T10:49:45.612Z",
+      "code": 0,
+      "signal": null,
+      "command": [
+        "node",
+        "scripts/run-visibility-manifest.mjs",
+        ".local/independent/manifest.json"
+      ],
+      "log": "[verification-worktree]\\.local\\independent\\qualification\\manifest-1794653382758.log"
+    },
+    {
+      "name": "projection",
+      "started": "2026-11-14T10:49:45.616Z",
+      "ended": "2026-11-14T10:49:46.661Z",
+      "code": 0,
+      "signal": null,
+      "command": [
+        "node",
+        "docs/evidence/v1c-run-visibility/independent/projection-challenge.mjs"
+      ],
+      "log": "[verification-worktree]\\.local\\independent\\qualification\\projection-1794653385616.log"
+    },
+    {
+      "name": "boundary",
+      "started": "2026-11-14T10:49:46.663Z",
+      "ended": "2026-11-14T10:49:53.365Z",
+      "code": 0,
+      "signal": null,
+      "command": [
+        "node",
+        "scripts/probe-run-visibility.mjs"
+      ],
+      "log": "[verification-worktree]\\.local\\independent\\qualification\\boundary-1794653386663.log"
+    },
+    {
+      "name": "consumer",
+      "started": "2026-11-14T10:49:53.367Z",
+      "ended": "2026-11-14T10:50:17.182Z",
+      "code": 0,
+      "signal": null,
+      "command": [
+        "node",
+        "scripts/probe-run-visibility-consumer.mjs"
+      ],
+      "log": "[verification-worktree]\\.local\\independent\\qualification\\consumer-1794653393367.log"
+    },
+    {
+      "name": "receipt",
+      "started": "2026-11-14T10:50:17.184Z",
+      "ended": "2026-11-14T10:51:42.645Z",
+      "code": 0,
+      "signal": null,
+      "command": [
+        "node",
+        "tests/run-visibility-receipt-browser.mjs"
+      ],
+      "log": "[verification-worktree]\\.local\\independent\\qualification\\receipt-1794653417184.log"
+    },
+    {
+      "name": "visibility",
+      "started": "2026-11-14T10:51:42.656Z",
+      "ended": "2026-11-14T10:52:38.950Z",
+      "code": 0,
+      "signal": null,
+      "command": [
+        "node",
+        "tests/run-visibility-browser.mjs"
+      ],
+      "log": "[verification-worktree]\\.local\\independent\\qualification\\visibility-1794653502656.log"
+    }
+  ]
+}

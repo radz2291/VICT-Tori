@@ -1,0 +1,178 @@
+{
+  "candidate": "cd415e07f2592d36d7ebb32317d7111fc01f7e76",
+  "node": "v22.13.1",
+  "origin": "independent fixture and installed verification; no live calls",
+  "steps": [
+    {
+      "name": "manifest",
+      "started": "2026-11-14T11:14:01.067Z",
+      "ended": "2026-11-14T11:14:04.030Z",
+      "code": 0,
+      "signal": null,
+      "command": [
+        "node",
+        "scripts/run-visibility-manifest.mjs",
+        "[verification-worktree]\\.local\\independent\\final\\manifest.json"
+      ],
+      "log": "[verification-worktree]\\.local\\independent\\final\\manifest-1794654841068.log"
+    },
+    {
+      "name": "accepted",
+      "started": "2026-11-14T11:14:04.033Z",
+      "ended": "2026-11-14T11:14:04.634Z",
+      "code": 0,
+      "signal": null,
+      "command": [
+        "node",
+        "docs/evidence/v1c-run-visibility/independent/accepted-reply-challenge.mjs"
+      ],
+      "log": "[verification-worktree]\\.local\\independent\\final\\accepted-1794654844033.log"
+    },
+    {
+      "name": "affected",
+      "started": "2026-11-14T11:14:04.636Z",
+      "ended": "2026-11-14T11:15:36.536Z",
+      "code": 0,
+      "signal": null,
+      "command": [
+        "node",
+        "--test",
+        "--test-concurrency=1",
+        "--test-timeout=480000",
+        "tests/a4.test.mjs",
+        "tests/saved-research.test.mjs",
+        "tests/run-visibility.test.mjs",
+        "tests/workspace-discovery.test.mjs",
+        "tests/authoring-continuity.test.mjs",
+        "tests/provider-stream.test.mjs"
+      ],
+      "log": "[verification-worktree]\\.local\\independent\\final\\affected-1794654844636.log"
+    },
+    {
+      "name": "build",
+      "started": "2026-11-14T11:15:36.537Z",
+      "ended": "2026-11-14T11:16:59.479Z",
+      "code": 0,
+      "signal": null,
+      "command": [
+        "node",
+        "C:\\Program Files\\nodejs\\node_modules\\npm\\bin\\npm-cli.js",
+        "run",
+        "build"
+      ],
+      "log": "[verification-worktree]\\.local\\independent\\final\\build-1794654936538.log"
+    },
+    {
+      "name": "receipt",
+      "started": "2026-11-14T11:16:59.480Z",
+      "ended": "2026-11-14T11:18:46.050Z",
+      "code": 0,
+      "signal": null,
+      "command": [
+        "node",
+        "tests/run-visibility-receipt-browser.mjs"
+      ],
+      "log": "[verification-worktree]\\.local\\independent\\final\\receipt-1794655019480.log"
+    },
+    {
+      "name": "visibility",
+      "started": "2026-11-14T11:18:46.052Z",
+      "ended": "2026-11-14T11:20:17.806Z",
+      "code": 0,
+      "signal": null,
+      "command": [
+        "node",
+        "tests/run-visibility-browser.mjs"
+      ],
+      "log": "[verification-worktree]\\.local\\independent\\final\\visibility-1794655126052.log"
+    },
+    {
+      "name": "a1a4",
+      "started": "2026-11-14T11:20:17.810Z",
+      "ended": "2026-11-14T11:23:09.542Z",
+      "code": 1,
+      "signal": null,
+      "command": [
+        "node",
+        "tests/a1-browser.mjs"
+      ],
+      "log": "[verification-worktree]\\.local\\independent\\final\\a1a4-1794655217810.log"
+    },
+    {
+      "name": "v1b",
+      "started": "2026-11-14T11:23:09.544Z",
+      "ended": "2026-11-14T11:24:07.838Z",
+      "code": 0,
+      "signal": null,
+      "command": [
+        "node",
+        "tests/v1b-browser.mjs"
+      ],
+      "log": "[verification-worktree]\\.local\\independent\\final\\v1b-1794655389544.log"
+    },
+    {
+      "name": "memory",
+      "started": "2026-11-14T11:24:07.839Z",
+      "ended": "2026-11-14T11:28:03.164Z",
+      "code": 0,
+      "signal": null,
+      "command": [
+        "node",
+        "tests/memory-browser.mjs"
+      ],
+      "log": "[verification-worktree]\\.local\\independent\\final\\memory-1794655447839.log"
+    },
+    {
+      "name": "directive",
+      "started": "2026-11-14T11:28:03.165Z",
+      "ended": "2026-11-14T11:29:40.077Z",
+      "code": 0,
+      "signal": null,
+      "command": [
+        "node",
+        "tests/directive-browser.mjs"
+      ],
+      "log": "[verification-worktree]\\.local\\independent\\final\\directive-1794655683166.log"
+    },
+    {
+      "name": "authoring",
+      "started": "2026-11-14T11:29:40.078Z",
+      "ended": "2026-11-14T11:31:10.571Z",
+      "code": 0,
+      "signal": null,
+      "command": [
+        "node",
+        "docs/evidence/v1c-run-visibility/independent/windows-warm-isolated.mjs",
+        "authoring"
+      ],
+      "log": "[verification-worktree]\\.local\\independent\\final\\authoring-1794655780078.log"
+    },
+    {
+      "name": "assembly",
+      "started": "2026-11-14T11:31:10.573Z",
+      "ended": "2026-11-14T11:31:43.906Z",
+      "code": 0,
+      "signal": null,
+      "command": [
+        "node",
+        "docs/evidence/v1c-run-visibility/independent/windows-warm-isolated.mjs",
+        "assembly"
+      ],
+      "log": "[verification-worktree]\\.local\\independent\\final\\assembly-1794655870573.log"
+    },
+    {
+      "name": "background",
+      "started": "2026-11-14T11:31:43.908Z",
+      "ended": "2026-11-14T11:32:59.155Z",
+      "code": 0,
+      "signal": null,
+      "command": [
+        "pwsh",
+        "-NoProfile",
+        "-File",
+        "docs/evidence/v1c-run-visibility/independent/windows-background-isolated.ps1"
+      ],
+      "log": "[verification-worktree]\\.local\\independent\\final\\background-1794655903908.log"
+    }
+  ]
+}

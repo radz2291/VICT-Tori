@@ -1,0 +1,11 @@
+import assert from 'node:assert/strict';
+import {execFileSync,spawnSync} from 'node:child_process';
+import {writeFile,mkdir} from 'node:fs/promises';
+const prior='024afe5d7a9d72814d9aa12b7fe73fec71de6108';
+await mkdir('.local/independent',{recursive:true});
+const source=execFileSync('git',['show',prior+':packages/run-visibility/index.mjs']);
+await writeFile('.local/independent/prior-index.mjs',source);
+const result=spawnSync(process.execPath,['docs/evidence/v1c-run-visibility/independent/projection-challenge.mjs'],{encoding:'utf8',env:{...process.env,TORI_RV_PROJECTION:'.local/independent/prior-index.mjs'},windowsHide:true});
+await writeFile('.local/independent/prior-projection-red.log',result.stdout+result.stderr);
+assert.equal(result.status,1);assert.match(result.stderr,/Retained source sequences falsely missing/);
+console.log(JSON.stringify({prior,exit:result.status,expectedFailure:'retained out-of-order source falsely reported missing',log:'.local/independent/prior-projection-red.log'}));
