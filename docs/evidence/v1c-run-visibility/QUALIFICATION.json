@@ -1,0 +1,106 @@
+{
+  "schema": "tori.windows-qualification@1",
+  "candidate": "058e685acd00a97dfdf7b23e40585390c14c21e3",
+  "fullOriginalPassed": 232,
+  "finalFullPassedBeforeCancelledFile": 226,
+  "finalFullCancelled": "tests/background-recovery.test.mjs (480000ms test-runner file timeout)",
+  "finalIsolatedRecovery": {
+    "cells": 16,
+    "exitCode": 0,
+    "runnerTimeoutMs": 900000,
+    "tests": 23,
+    "passed": 23
+  },
+  "runs": [
+    {
+      "candidate": "4b6ba9e3ee7c659cd8fb06b6de5e1be648ff86ad",
+      "node": "v22.13.1",
+      "steps": [
+        {
+          "suite": "unit",
+          "code": 0
+        },
+        {
+          "suite": "build",
+          "code": 0
+        },
+        {
+          "suite": "a1a4",
+          "code": 1
+        },
+        {
+          "suite": "v1b",
+          "code": 1
+        },
+        {
+          "suite": "memory",
+          "code": 0
+        },
+        {
+          "suite": "authoring",
+          "code": 0
+        },
+        {
+          "suite": "directive",
+          "code": 0
+        },
+        {
+          "suite": "assembly",
+          "code": 0
+        },
+        {
+          "suite": "background",
+          "code": 1
+        },
+        {
+          "suite": "visibility",
+          "code": 0
+        },
+        {
+          "suite": "consumer",
+          "code": 0
+        }
+      ]
+    },
+    {
+      "candidate": "cd415e07f2592d36d7ebb32317d7111fc01f7e76",
+      "node": "v22.13.1",
+      "steps": [
+        {
+          "suite": "unit",
+          "code": 1
+        },
+        {
+          "suite": "build",
+          "code": 0
+        }
+      ]
+    },
+    {
+      "candidate": "058e685acd00a97dfdf7b23e40585390c14c21e3",
+      "node": "v22.13.1",
+      "steps": [
+        {
+          "suite": "a1a4",
+          "code": 0
+        },
+        {
+          "suite": "v1b",
+          "code": 0
+        },
+        {
+          "suite": "background",
+          "code": 0
+        },
+        {
+          "suite": "visibility",
+          "code": 0
+        },
+        {
+          "suite": "consumer",
+          "code": 0
+        }
+      ]
+    }
+  ]
+}
