@@ -33,7 +33,7 @@ function validCapture(capture){
   // without emitting or retaining a fabricated upstream text event.
   return capture.schema==='tori.public-event-receipt@1'&&
     capture.payloadStatus==='not-retained; accepted Run output is authoritative'&&
-    !Object.hasOwn(event,'delta')&&validateAgentStreamEvent({...event,delta:''}).ok;
+    !Object.hasOwn(event,'delta')&&validateAgentStreamEvent({...event,delta:'metadata-validation-only'}).ok;
 }
 
 function matches(event,run){
