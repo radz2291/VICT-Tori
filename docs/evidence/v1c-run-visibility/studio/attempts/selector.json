@@ -1,0 +1,6 @@
+{
+  "origin": "synthetic presentation fixture",
+  "pass": false,
+  "error": "locator.waitFor: Error: strict mode violation: getByText('Synthetic review: the Orchid example needs a source check before publication.', { exact: true }) resolved to 2 elements:\n    1) <p data-streamdown-paragraph=\"c73\">…</p> aka getByTestId('conversation-feed').getByText('Synthetic review: the Orchid')\n    2) <dd>Synthetic review: the Orchid example needs a sour…</dd> aka getByRole('complementary', { name: 'Run history' }).getByText('Synthetic review: the Orchid')\n\nCall log:\n\u001b[2m  - waiting for getByText('Synthetic review: the Orchid example needs a source check before publication.', { exact: true }) to be visible\u001b[22m\n\n    at <isolated-worktree>\\tests\\run-visibility-browser.mjs:49:60",
+  "resolution": "Scope accepted-answer assertion to the main Run or Conversation region; both transcript and Details correctly contain the answer."
+}

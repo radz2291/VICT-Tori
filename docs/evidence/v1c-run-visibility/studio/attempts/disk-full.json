@@ -1,0 +1,5 @@
+{
+  "origin": "deterministic provider; actual governed runtime receipts",
+  "pass": false,
+  "error": "Studio could not complete this action. Check local setup."
+}

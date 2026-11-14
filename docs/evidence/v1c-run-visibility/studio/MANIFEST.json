@@ -1,0 +1,65 @@
+{
+  "candidate": "109223276cf8a84b9998950e7fc4baf2ad3facba",
+  "builder": "Codex TORI Studio / TORI-012",
+  "node": "22.13.1",
+  "npm": "11.19.1",
+  "chromium": "153.0.8010.12",
+  "files": [
+    {
+      "file": "browser-final.json",
+      "sha256": "5e2690b8f1d83a0e22e0c7e6538bcb59c6a4343979eb1a4e6601d32ba9e79d2c"
+    },
+    {
+      "file": "browser-initial.json",
+      "sha256": "9066f64ee6b5d2cad8065f3bbf1398638aabb74418cd9e6667ef495343652db4"
+    },
+    {
+      "file": "desktop-full.png",
+      "sha256": "555dfe7d1ce1e589a79d37a3a619378ebe1af5d56cc86554777bf948a0286510"
+    },
+    {
+      "file": "desktop-quiet.png",
+      "sha256": "6cf9c373b44f50d24ed2a5036dce7a1526234589d8f25081b626a48902d1cd34"
+    },
+    {
+      "file": "desktop-summary.png",
+      "sha256": "d192d7a1490b4b184d7b999759a3389e9c51fd0e1054258bb84ae5f608920cb1"
+    },
+    {
+      "file": "historical-diagnostic.png",
+      "sha256": "45b832858aa7da8b78bdcadb5c16d468d44d8d6b325a158fe1b3aeadb5485010"
+    },
+    {
+      "file": "narrow-full.png",
+      "sha256": "afe6d722447a74aadb6d94bb9581ea87a29f62620a5f40467e2ebd7db85798a6"
+    },
+    {
+      "file": "narrow-quiet.png",
+      "sha256": "eddd3074911c3451cfa3c6f6e0f25a4566d6681a7f2913bb44513f7e900d4781"
+    },
+    {
+      "file": "narrow-summary.png",
+      "sha256": "124a284e38807b831216fc6fa15257e5d8a09ad8ba79f3a52861b684ad4c003e"
+    },
+    {
+      "file": "attempts/disk-full.json",
+      "sha256": "476da6c79d9b9c5bf97405257b3025daa567579112279d3e134fd37140d8234c"
+    },
+    {
+      "file": "attempts/selector.json",
+      "sha256": "ce330b0984de476fbf4e26f54101e2ba13b9e62834938c729dcf69bf511831a6"
+    },
+    {
+      "file": "receipts/actual-parent.png",
+      "sha256": "5b325fe9f94db624229e8840124fa42dda87526212c2ff347dffb9fa65edc46d"
+    },
+    {
+      "file": "receipts/actual-specialist.png",
+      "sha256": "f62d17319895d46a7262a440ad59632dede19ba9575e9f1fb6af17772eba5bcd"
+    },
+    {
+      "file": "receipts/browser.json",
+      "sha256": "d2ae98edb9d359d5958463c0e94907e22e500e8da2b0474951b985575b821472"
+    }
+  ]
+}
