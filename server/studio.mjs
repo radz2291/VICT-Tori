@@ -7,6 +7,7 @@ import { registeredTool, registeredTools } from '../src/registered-tools.mjs';
 import { authoringChatSessions, knownOperation, lastAuthoringTest, operationDigest, rememberOperation, runEvidence, workspaceCapabilities } from './workspace-actions.mjs';
 import { publicProviderStream } from './provider-stream.mjs';
 import { isRunKey, matchesRunEvent, replayRun, runState } from './run-observation.mjs';
+import { capturePublicEvent, projectRunReport } from '../packages/run-visibility/index.mjs';
 import { recoverRunRecords } from './run-recovery.mjs';
 import { reportsMemoryEffect } from './memory-reply.mjs';
 import { withCompleteScopedThreadReads } from './mastra-session-store.mjs';
@@ -436,7 +437,9 @@ export function createStudio({getAssembly,dataDirectory,turnDeadlineMs=maxHostDe
         ...(run.authoringActions??[]).map(item=>({at:item.at,label:'Studio '+item.action+' · '+item.result.status})),
         ...(run.scriptReceipts??[]).map(receipt=>({at:receipt.ended,label:'Script '+receipt.id+' · '+receipt.status})),
       ].sort((a,b)=>a.at.localeCompare(b.at))};
-    }).map(run=>memories.visibleRun(run,state)),provider:!!credential(),route:selectedRoute()};
+    }).map(run=>memories.visibleRun(run,state)).map((run,index,runs)=>({...run,
+      report:projectRunReport({run,relatedRuns:runs.filter(other=>other.parentRun===run.id||run.parentRun===other.id)})})),
+      provider:!!credential(),route:selectedRoute()};
   };
   function createDefinition(state) {
     const id=randomUUID();
@@ -875,6 +878,7 @@ export function createStudio({getAssembly,dataDirectory,turnDeadlineMs=maxHostDe
       temperature:value.temperature,topP:value.topP};
     const acceptedAt=directiveClock();
     const run={id:randomUUID(),session:session.id,activation:session.activation,revision:revision.id,number:revision.number,name:session.name,
+      definition:definitionOf(pin),input:text,publicEvents:[],
       memory:pin.memory??'recent-100@1',
       provider,model,route:pin.route??'general',tokens:value.tokens,outputContract:pin.output,execution,ownerId:hostOwner,started:now(),status:'running',events:[],...(fixture?{fixture}:{})};
     if(background)run.startRequest={id:background.id,fingerprint:background.fingerprint};
@@ -993,7 +997,15 @@ export function createStudio({getAssembly,dataDirectory,turnDeadlineMs=maxHostDe
       }),threadCoordinator:threads,tracing:{sampling:{type:'never'}}};
       const onEvent=event=>{
         if(!validateAgentStreamEvent(event).ok)return;
-        eventTimes.set(event.seq,now());
+        const at=now();
+        eventTimes.set(event.seq,at);
+        const captured=capturePublicEvent(event,at);
+        if(captured&&!run.publicEvents.some(item=>item.event.streamId===event.streamId&&item.event.seq===event.seq)){
+          run.publicEvents.push(captured);
+          // The existing public hub retains the stream. Persist activity at
+          // operational boundaries; text remains accepted output only.
+          if(event.kind!=='text.delta')persistRun(run);
+        }
         if(event.kind==='text.delta'&&event.delta.length)owner.publicTextStarted=true;
       };
       const threadId=mastraThreadIdForConversation(session.id);
@@ -1019,13 +1031,21 @@ export function createStudio({getAssembly,dataDirectory,turnDeadlineMs=maxHostDe
             childRun.context=context.receipt;
             const childEvidence={providerAttempts:0,modelSteps:0};
             const result=await governedReadTurn({activation:child,stores:controlStores,actorId:actor,
-              threadId:childThread,input:task,deadline:signal,fixture,onEvent:()=>{},runId:childRun.id,
+              threadId:childThread,input:task,deadline:signal,fixture,onEvent:event=>{
+                const captured=capturePublicEvent(event,now());
+                if(captured&&!childRun.publicEvents.some(item=>item.event.streamId===event.streamId&&item.event.seq===event.seq)){
+                  childRun.publicEvents.push(captured);
+                  if(event.kind!=='text.delta')persistRun(childRun);
+                }
+              },runId:childRun.id,
               scriptBinding:settings.tool,recordScript:receipt=>scriptEvidence(childRun,receipt),
               allowRead:settings.tool!=='local-reference@1'||process.env.TORI_CHILD_MCP_REVOKED!=='1',
               agentConfig:{...agentConfig,modelFactory:()=>providerModel(key,run.route,childEvidence,{...settings,context:context.content})}});
             childRun.governance={...result.governance,scope:profileRef(delegated.revision)};
             childRun.sentMaxOutputTokens=childEvidence.sentMaxOutputTokens;
             childRun.modelSteps=childEvidence.modelSteps;
+            childRun.providerAttempts=childEvidence.providerAttempts;
+            childRun.toolCalls=result.governance.admittedCalls;
             if(result.governance.disposition==='denied'){
               childRun.message='Research’s pinned MCP read was denied before contacting the tool.';
               return {...result,status:'failed',errorCode:'TORI_MCP_SCOPE_DENIED'};
@@ -1159,7 +1179,7 @@ export function createStudio({getAssembly,dataDirectory,turnDeadlineMs=maxHostDe
     }
     if(memoryDraft&&run.status!=='completed')run.savedMemoryRequest={status:'not-saved',feedback:true,reason:deadline.aborted?'cancelled':'draft-failed'};
     run.providerAttempts=evidence.providerAttempts;
-    if(pin.tool||pin.child||draftTurn)run.modelSteps=evidence.modelSteps;
+    run.modelSteps=evidence.modelSteps;
     run.sentTemperature=evidence.sentTemperature;
     run.sentTopP=evidence.sentTopP;
     run.sentMaxOutputTokens=evidence.sentMaxOutputTokens;

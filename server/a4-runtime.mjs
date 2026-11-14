@@ -1,6 +1,7 @@
 import { randomUUID } from 'node:crypto';
 import { pinAgentTurnRunner } from '@victframework/runtime';
 import { createDeterministicOfflineModel, createGovernedMemoryDeletionPort, MastraProductAgent, mastraThreadIdForConversation } from '@victframework/mastra';
+import { capturePublicEvent } from '../packages/run-visibility/index.mjs';
 
 export const outputRef={id:'tori.output.finding',revision:'1'};
 import { childRef, childName, delegateGrant, childTask, childResult, taskLengthLimit, resultLengthLimit } from '../src/delegation-fixture.mjs';
@@ -67,7 +68,9 @@ export function createChildCapability({activation,child,parentRun,agentConfig,pe
       definition:delegated?reference.id:undefined,
       provider:delegated?parentRun.provider:'offline-fixture',route:delegated?parentRun.route:undefined,
       input:task,model:delegated?'glm-5.3-flash':'deterministic-1',tokens:delegated?.value.tokens??256,status:'running',started:at(),
-      fixture:parentRun.fixture,events:[]};
+      execution:{maxSteps:child.profile.profile.turnPolicy.maxSteps,maxToolCalls:child.profile.profile.turnPolicy.maxToolCalls,
+        maxRetries:child.profile.profile.generation.maxRetries,deadlineMs:parentRun.execution?.deadlineMs},
+      fixture:parentRun.fixture,events:[],publicEvents:[]};
     persist(run);
     try{
       await beforeChild?.(run,context.signal);
@@ -80,7 +83,10 @@ export function createChildCapability({activation,child,parentRun,agentConfig,pe
         const adapter=MastraProductAgent.create(child,{...agentConfig,modelFactory:()=>modelForTask(task)});
         result=await pinAgentTurnRunner(adapter,child).runTurn({
           turnId:id,threadId,actorId:context.victActorId,input:task,
-        },{abortSignal:context.signal,victRunId:id});
+        },{abortSignal:context.signal,victRunId:id,onEvent:event=>{
+          const captured=capturePublicEvent(event,at());
+          if(captured)run.publicEvents.push(captured);
+        }});
         await adapter.flush();
       }
       const {deletionPort}=createGovernedMemoryDeletionPort({store:agentConfig.store,
