@@ -1,5 +1,13 @@
 # V1c — Run Visibility and Specialist Communication
 
+## Owner amendment — 14 November 2026
+
+**TORI-010:** The independently verified visibility subset is accepted as the delivered scope, contingent on Radzi's cumulative walkthrough. RV-06 and the exchange-dependent portions of RV-04, RV-05, RV-07 and RV-08 are blocked on VICT upstream. RV-04's authored specialist expected-result metadata and distinct terminal reason remain tracked separately. The original table and independent verdict preserve the baseline evidence. Verify the approved conflict repair in both arrival orders, then run the full Windows suite against the final lineage with a fresh pinned install. The walkthrough is still required. TORI-007 and TORI-009 remain in Review.
+
+**Exchange vocabulary and scope:** One typed request/response binds an authorized **asker** occurrence and **answerer** occurrence, their activation pins and wiring. The first authorized composition is a live delegation. A future topology is a composition of individually wired one-to-one exchanges. Runtime API, receipts, budget counters and authorization must use asker/answerer identities. Reserve the answerer's shared model budget before dispatch; charge the ask once; both original deadlines apply; duplicate requests join one reservation/receipt; Stop on either side aborts/fences the linked exchange; refusal is typed. The answer is data under both parties' disclosure policies. Use a separate typed receipt and preserve `vict.agent-stream@1`. The exchange cap stays an open owner policy decision.
+
+**Authorization sequence:** [Phase 0](../evidence/v1c-run-visibility/EXCHANGE-PHASE-0.md) inventories installed Mastra 1.64.0. Wrap its mechanisms with VICT governance and extend only the demonstrated residual gap. Then probe the selected path for last/zero step, duplicate identity, both Stops and process-loss disposition, bidirectional context scope, same occurrence/deadlines, monotonic sequence and no activation without wiring. Submit the probe and proposed adapter change for separate owner authorization. The scope amendment authorizes probes and the TORI conflict repair. See the [consolidated VICT backlog](../governance/DECISIONS.md#consolidated-vict-upstream-extension-backlog).
+
 **Status:** Prepared implementation contract for owner review, 14 November 2026. Radzi authorized continuing to the next slice while deferring the cumulative product walkthrough, and requested one main orchestrator with separately ticketed sub-agents. That authorization permits the bounded work below; it does not accept TORI-007, TORI-009 or a future delivery. The initial exchange-budget proposal below remains explicit for owner review.
 
 ## Baseline and authority

@@ -7,7 +7,7 @@ import { registeredTool, registeredTools } from '../src/registered-tools.mjs';
 import { acceptedRunReply, authoringChatSessions, knownOperation, lastAuthoringTest, operationDigest, rememberOperation, runEvidence, workspaceCapabilities } from './workspace-actions.mjs';
 import { publicProviderStream } from './provider-stream.mjs';
 import { isRunKey, matchesRunEvent, replayRun, runState } from './run-observation.mjs';
-import { capturePublicEvent, projectRunReport } from '../packages/run-visibility/index.mjs';
+import { appendPublicEventCapture, capturePublicEvent, projectRunReport } from '../packages/run-visibility/index.mjs';
 import { recoverRunRecords } from './run-recovery.mjs';
 import { reportsMemoryEffect } from './memory-reply.mjs';
 import { withCompleteScopedThreadReads } from './mastra-session-store.mjs';
@@ -1002,11 +1002,11 @@ export function createStudio({getAssembly,dataDirectory,turnDeadlineMs=maxHostDe
         const at=now();
         eventTimes.set(event.seq,at);
         const captured=capturePublicEvent(event,at);
-        if(captured&&!run.publicEvents.some(item=>item.event.streamId===event.streamId&&item.event.seq===event.seq)){
-          run.publicEvents.push(captured);
+        const captureStatus=appendPublicEventCapture(run.publicEvents,captured);
+        if(captureStatus){
           // The existing public hub retains the stream. Persist activity at
           // operational boundaries; text remains accepted output only.
-          if(event.kind!=='text.delta')persistRun(run);
+          if(event.kind!=='text.delta'||captureStatus==='conflict')persistRun(run);
         }
         if(event.kind==='text.delta'&&event.delta.length)owner.publicTextStarted=true;
       };
@@ -1035,10 +1035,8 @@ export function createStudio({getAssembly,dataDirectory,turnDeadlineMs=maxHostDe
             const result=await governedReadTurn({activation:child,stores:controlStores,actorId:actor,
               threadId:childThread,input:task,deadline:signal,fixture,onEvent:event=>{
                 const captured=capturePublicEvent(event,now());
-                if(captured&&!childRun.publicEvents.some(item=>item.event.streamId===event.streamId&&item.event.seq===event.seq)){
-                  childRun.publicEvents.push(captured);
-                  if(event.kind!=='text.delta')persistRun(childRun);
-                }
+                const captureStatus=appendPublicEventCapture(childRun.publicEvents,captured);
+                if(captureStatus&&(event.kind!=='text.delta'||captureStatus==='conflict'))persistRun(childRun);
               },runId:childRun.id,
               scriptBinding:settings.tool,recordScript:receipt=>scriptEvidence(childRun,receipt),
               allowRead:settings.tool!=='local-reference@1'||process.env.TORI_CHILD_MCP_REVOKED!=='1',

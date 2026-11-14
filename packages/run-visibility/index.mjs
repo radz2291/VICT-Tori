@@ -26,6 +26,27 @@ export function capturePublicEvent(event,at=null){
   return {schema:'tori.public-event-receipt@1',event:structuredClone(event),at:text(at)};
 }
 
+
+// Compare the validated event payload, ignoring property order and capture time.
+function eventKey(value) {
+  if (Array.isArray(value)) return value.map(eventKey);
+  if (value && typeof value==='object') {
+    return Object.fromEntries(Object.keys(value).sort().map(key=>[key,eventKey(value[key])]));
+  }
+  return value;
+}
+const eventSignature=event=>JSON.stringify(eventKey(event));
+
+/** Keep one observation and, if disputed, one conflicting copy for this sequence. */
+export function appendPublicEventCapture(captures,capture) {
+  if (!capture) return null;
+  const {streamId,seq}=capture.event;
+  const matches=captures.filter(item=>item.event.streamId===streamId&&item.event.seq===seq);
+  if (matches.length>=2 || (matches.length===1 && eventSignature(matches[0].event)===eventSignature(capture.event))) return null;
+  captures.push(capture);
+  return matches.length ? 'conflict' : 'new';
+}
+
 function validCapture(capture){
   const event=capture?.event;
   if(event?.kind!=='text.delta')return validateAgentStreamEvent(event).ok;
@@ -65,7 +86,7 @@ function budgetRow(run){
 /** Pure view over host-authorized public records. Does not fetch or dispatch. */
 export function projectRunReport({run,relatedRuns=[]}){
   if(!run||typeof run.id!=='string')throw new TypeError('A Run identity is required.');
-  const problems=[],gaps=[],groups=[],seen=new Map(),streams=new Map();
+  const problems=[],gaps=[],groups=[],seen=new Map(),disputed=new Set(),streams=new Map();
   const addProblem=(code,label)=>{if(!problems.some(x=>x.code===code&&x.label===label))problems.push({code,label});};
   const state=states[run.status]??'Uncertain';
   const terminalReason=text(run.errorCode)??text(run.terminalReason)??text(run.message);
@@ -79,15 +100,16 @@ export function projectRunReport({run,relatedRuns=[]}){
     const event=capture?.event;
     if(!validCapture(capture)||!matches(event,run)){addProblem('PUBLIC_EVENT_REJECTED','An invalid or unrelated public event was omitted.');continue;}
     const id=event.streamId+':'+event.seq;
-    const signature=JSON.stringify(event);
+    const signature=eventSignature(event);
     if(seen.has(id)){
-      if(seen.get(id)!==signature)addProblem('PUBLIC_EVENT_CONFLICT','Conflicting copies of a public event are unavailable.');
+      if(seen.get(id)!==signature)disputed.add(id);
       continue;
     }
     seen.set(id,signature);
     if(!streams.has(event.streamId))streams.set(event.streamId,[]);
     streams.get(event.streamId).push(capture);
   }
+  if(disputed.size)addProblem('PUBLIC_EVENT_CONFLICT','Conflicting copies of a public event are unavailable.');
   // Delivery/replay arrival order is not source order. Fill earlier gaps before
   // interpreting answer or terminal boundaries. Each stream is independent;
   // first-observed stream blocks deliberately claim no global time ordering.
@@ -98,6 +120,7 @@ export function projectRunReport({run,relatedRuns=[]}){
       const event=capture.event,id=event.streamId+':'+event.seq;
       if(event.seq>last+1)gaps.push({streamId,from:last+1,to:event.seq-1});
       last=event.seq;
+      if(disputed.has(id))continue;
       if(terminal){addProblem('PUBLIC_EVENT_AFTER_TERMINAL','Late stream evidence cannot change the authoritative Run outcome.');continue;}
       if(terminalKinds.has(event.kind))terminal=true;
     // Text deltas do not become separate activity rows or fake answers. The

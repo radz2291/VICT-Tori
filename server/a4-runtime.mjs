@@ -1,7 +1,7 @@
 import { randomUUID } from 'node:crypto';
 import { pinAgentTurnRunner } from '@victframework/runtime';
 import { createDeterministicOfflineModel, createGovernedMemoryDeletionPort, MastraProductAgent, mastraThreadIdForConversation } from '@victframework/mastra';
-import { capturePublicEvent } from '../packages/run-visibility/index.mjs';
+import { appendPublicEventCapture, capturePublicEvent } from '../packages/run-visibility/index.mjs';
 
 export const outputRef={id:'tori.output.finding',revision:'1'};
 import { childRef, childName, delegateGrant, childTask, childResult, taskLengthLimit, resultLengthLimit } from '../src/delegation-fixture.mjs';
@@ -85,7 +85,7 @@ export function createChildCapability({activation,child,parentRun,agentConfig,pe
           turnId:id,threadId,actorId:context.victActorId,input:task,
         },{abortSignal:context.signal,victRunId:id,onEvent:event=>{
           const captured=capturePublicEvent(event,at());
-          if(captured)run.publicEvents.push(captured);
+          appendPublicEventCapture(run.publicEvents,captured);
         }});
         await adapter.flush();
       }

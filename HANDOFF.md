@@ -1,5 +1,9 @@
 # TORI handoff
 
+## TORI-010 owner disposition and follow-up
+
+Use the [amended contract](docs/implementation/RUN-VISIBILITY.md#owner-amendment--14-november-2026). Recheck the replay conflict repair against both orders on the final branch head and run a fresh full Windows Node 22.13.1 qualification before the cumulative owner walkthrough. Keep the same isolated review workspace. Phase 0 selects the installed Mastra tool-result and one-step stream mechanism for an asker/answerer exchange probe. Present its evidence and residual adapter proposal to Radzi before VICT changes. The cap and acceptance of the other Review tickets are separate owner decisions.
+
 ## Run Visibility orchestration
 
 Review product `058e685acd00a97dfdf7b23e40585390c14c21e3` on port 48919 with the same isolated store and 14 saved Runs. TORI-013 evidence `856fa70c74d98836042fc2449b562bc256cef4e9` verifies the supported display and report repairs. Whole-slice verdict **HELD**. RV-06 requires a separately authorized public runtime capability. TORI-007 and TORI-009 remain in owner Review. [Walkthrough](docs/evidence/v1c-run-visibility/WALKTHROUGH.md) · [Results](docs/evidence/v1c-run-visibility/REPORT.md) · [Signed verdict](docs/evidence/v1c-run-visibility/INDEPENDENT.md)

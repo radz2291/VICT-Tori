@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { capturePublicEvent,projectRunReport } from '../packages/run-visibility/index.mjs';
+import { appendPublicEventCapture,capturePublicEvent,projectRunReport } from '../packages/run-visibility/index.mjs';
 
 const base={streamId:'stream-one',turnId:'run-one',threadId:'thread-one',actorId:'actor-one',agentProfileVersion:'profile-one',victRunId:'run-one',activationVersion:'activation-one'};
 const event=(seq,kind,extra={})=>{
@@ -109,4 +109,25 @@ test('historical evidence exposes unavailability without guessed counters or exc
   assert.ok(report.budget.runs[0].dimensions.every(d=>d.consumed===null));
   assert.equal(report.specialist.expectedResult,null);assert.equal(report.specialist.task,null);
   assert.deepEqual(report.specialist.exchanges,[]);assert.match(report.specialist.exchangeAvailability,/Unavailable/);
+});
+
+test('a disputed sequence never shows either tool outcome, regardless of arrival order',()=>{
+  const completed=event(2,'tool.completed',{toolCallId:'call-one',toolName:'read'});
+  const failed=event(2,'tool.failed',{toolCallId:'call-one',toolName:'read',code:'VICT_SCOPE_DENIED'});
+  const outputs=[];
+  for(const outcomes of [[completed,failed],[failed,completed]]){
+    const captures=[event(1,'response.started')];
+    for(const outcome of outcomes){
+      assert.ok(appendPublicEventCapture(captures,outcome));
+      assert.equal(appendPublicEventCapture(captures,structuredClone(outcome)),null);
+    }
+    captures.push(event(3,'response.completed'));
+    const report=projectRunReport({run:run({publicEvents:captures})});
+    assert.deepEqual(report.groups.flatMap(group=>group.rows).map(row=>row.kind),['response.started','response.completed']);
+    assert.deepEqual(report.problems.map(problem=>problem.code),['PUBLIC_EVENT_CONFLICT']);
+    assert.deepEqual(report.gaps,[]);
+    assert.equal(report.state,'Finished');
+    outputs.push(report);
+  }
+  assert.deepEqual(outputs[0],outputs[1]);
 });
