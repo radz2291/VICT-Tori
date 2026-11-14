@@ -4,7 +4,7 @@ $root=Split-Path -Parent $PSScriptRoot
 $data=Join-Path $root ".data/run-visibility-fixture-$Port"
 $local=Join-Path $root '.local'
 $vite=Join-Path $root 'node_modules/vite/bin/vite.js'
-$fixture=Join-Path $root 'tests/a1-provider-fixture.mjs'
+$fixture='./tests/a1-provider-fixture.mjs'
 New-Item -ItemType Directory -Force -Path $local | Out-Null
 $pidFile=Join-Path $local "run-visibility-fixture-$Port.pid"
 $url="http://127.0.0.1:$Port"
