@@ -13,12 +13,27 @@ const labels={
   'usage.updated':'Usage recorded','response.completed':'Response completed','response.failed':'Response failed','response.cancelled':'Response cancelled',
 };
 
-// Only the installed closed public schema passes. The returned value is detached
-// from producer objects. Public text.delta is already sanitized at the provider
-// boundary and is retained as public response text, never private reasoning.
+// This is a TORI operational receipt, NOT a new VICT event. A text.delta may
+// precede structured-output acceptance; its payload must never enter this
+// report. Retain sequence/correlation only and point to authoritative accepted
+// Run output for content. The strict upstream event/hub stays unchanged.
 export function capturePublicEvent(event,at=null){
   if(!validateAgentStreamEvent(event).ok)return null;
-  return {event:structuredClone(event),at:text(at)};
+  if(event.kind==='text.delta'){
+    const {delta,...identity}=event;
+    return {schema:'tori.public-event-receipt@1',event:structuredClone(identity),at:text(at),payloadStatus:'not-retained; accepted Run output is authoritative'};
+  }
+  return {schema:'tori.public-event-receipt@1',event:structuredClone(event),at:text(at)};
+}
+
+function validCapture(capture){
+  const event=capture?.event;
+  if(event?.kind!=='text.delta')return validateAgentStreamEvent(event).ok;
+  // Validate the closed delta metadata shape against the installed validator,
+  // without emitting or retaining a fabricated upstream text event.
+  return capture.schema==='tori.public-event-receipt@1'&&
+    capture.payloadStatus==='not-retained; accepted Run output is authoritative'&&
+    !Object.hasOwn(event,'delta')&&validateAgentStreamEvent({...event,delta:''}).ok;
 }
 
 function matches(event,run){
@@ -62,7 +77,7 @@ export function projectRunReport({run,relatedRuns=[]}){
   }
   for(const capture of run.publicEvents??[]){
     const event=capture?.event;
-    if(!validateAgentStreamEvent(event).ok||!matches(event,run)){addProblem('PUBLIC_EVENT_REJECTED','An invalid or unrelated public event was omitted.');continue;}
+    if(!validCapture(capture)||!matches(event,run)){addProblem('PUBLIC_EVENT_REJECTED','An invalid or unrelated public event was omitted.');continue;}
     const id=event.streamId+':'+event.seq;
     const signature=JSON.stringify(event);
     if(seen.has(id)){

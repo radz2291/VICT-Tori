@@ -14,6 +14,16 @@ test('strict capture rejects private/raw/foreign schema and detaches producer st
   assert.equal(captured.event.usage.totalTokens,3);
 });
 
+test('unaccepted response delta payload never crosses operational capture but its sequence remains',()=>{
+  const capture=event(2,'text.delta',{delta:'UNACCEPTED-FIXTURE-CANARY'});
+  assert.doesNotMatch(JSON.stringify(capture),/UNACCEPTED-FIXTURE-CANARY/);
+  assert.equal(capture.event.seq,2);assert.equal(capture.event.kind,'text.delta');
+  assert.equal(capture.event.delta,undefined);assert.match(capture.payloadStatus,/not-retained/);
+  const report=projectRunReport({run:run({status:'failed',output:undefined,errorCode:'VICT_AGENT_STRUCTURED_OUTPUT_REJECTED',publicEvents:[event(1,'response.started'),capture,event(3,'response.failed',{code:'VICT_AGENT_STRUCTURED_OUTPUT_REJECTED'})]})});
+  assert.doesNotMatch(JSON.stringify(report),/UNACCEPTED-FIXTURE-CANARY/);
+  assert.equal(report.finalAnswer,null);assert.deepEqual(report.gaps,[]);
+});
+
 test('projection is pure, stable, and ordinary settlement creates no fake Continued working',()=>{
   const source=run();const before=structuredClone(source);
   const report=projectRunReport({run:source});
