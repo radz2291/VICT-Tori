@@ -87,6 +87,13 @@ try {
     await page.getByRole('menuitem', { name: 'Edit', exact: true }).click();
     await page.getByRole('menuitem', { name: command, exact: true }).click();
   }
+  async function expectAppliedDraftReceipt() {
+    const sidebar=button('Runs sidebar');
+    if(await sidebar.getAttribute('aria-expanded')!=='true')await sidebar.click();
+    const details=button('Details');
+    if(await details.getAttribute('aria-expanded')!=='true')await details.click();
+    await page.getByRole('region',{name:'Draft authoring',exact:true}).getByText('applied',{exact:true}).waitFor();
+  }
   async function interceptProposal() {
     let arrived;
     const proposal = new Promise(resolve => { arrived = resolve; });
@@ -158,7 +165,7 @@ try {
   assert.equal((await api()).activation.version, researchPin.version);
   if (live) await authoring.getByRole('button', { name: 'Inspect authoring Run', exact: true }).click();
   else await tab('Runs').click();
-  await page.getByText('Draft edit · applied', { exact: true }).waitFor();
+  await expectAppliedDraftReceipt();
   await page.reload();
   assert.equal((await api()).runs[0].draftReceipts[0].operationId, success.draftReceipts[0].operationId);
   await field('settings-agent-text').waitFor();
@@ -219,7 +226,7 @@ try {
     releaseAck();
     assert.equal((await ack).status(), 200);
     await authoring.getByRole('button', { name: 'Inspect authoring Run', exact: true }).click();
-    await page.getByText('Draft edit · applied', { exact: true }).waitFor();
+    await expectAppliedDraftReceipt();
     await page.unroute('**/api/studio/authoring-ack');
     await page.reload();
     await page.waitForFunction(() => /source link/.test(document.getElementById('settings-agent-text')?.value));
