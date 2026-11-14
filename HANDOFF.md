@@ -1,5 +1,9 @@
 # TORI handoff
 
+## Consolidated V1 review handoff
+
+Use [Radzi's consolidated review decision](docs/governance/DECISIONS.md#one-consolidated-v1-owner-review--14-november-2026) for owner walkthrough timing. Finish independent verification and scoped repairs first. Then assemble a single integrated V1a–V1c candidate, launch instructions, walkthrough and requirement/evidence map. Include the outstanding TORI-007, TORI-009 and TORI-010 walkthroughs and each remaining upstream limitation or owner-approved deferral. Preserve exact qualification pins and prior verdicts. VICT-005 remains the upstream Windows gate before any TORI exchange binding. The exchange cap is a separate owner policy decision.
+
 ## TORI-010 owner disposition and follow-up
 
 Use the [amended contract](docs/implementation/RUN-VISIBILITY.md#owner-amendment--14-november-2026). Recheck the replay conflict repair against both orders on the final branch head and run a fresh full Windows Node 22.13.1 qualification before the cumulative owner walkthrough. Keep the same isolated review workspace. Phase 0 selects the installed Mastra tool-result and one-step stream mechanism for an asker/answerer exchange probe. Present its evidence and residual adapter proposal to Radzi before VICT changes. The cap and acceptance of the other Review tickets are separate owner decisions.
