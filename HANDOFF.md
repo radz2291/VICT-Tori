@@ -5,7 +5,7 @@
 Radzi completed the walkthrough of `f302de96b96ede5eb158f4ce779801e955a8f69f` (preview 48959). TORI-007 and TORI-009 are accepted; TORI-010 capture and projection are accepted. Consolidated V1 stays open for the presentation remake. Read the [owner disposition](docs/governance/DECISIONS.md#v1-owner-review-disposition--15-november-2026) before the historical handoffs below.
 
 - **TORI-014:** split Agents, Runs and Sessions, execute the namespace rename and document VICT pins. Prove equivalence on Windows. Own the page extraction; transfer the navigation surface to TORI-015 after extraction to avoid overlapping Studio edits.
-- **TORI-015:** get approval of the response spec and host deadline maximum before implementation. Preserve accepted projection, receipts and capture. A fresh Windows verifier signs the exact integrated candidate after full regression and browser checks, including all three navigation paths. Return one preview, one signed verdict and one short walkthrough.
+- **TORI-015:** get approval of the [response spec](docs/implementation/V1-OWNER-RESPONSE.md) and host deadline maximum before implementation. Preserve accepted projection, receipts and capture. A fresh Windows verifier signs the exact integrated candidate after full regression and browser checks, including all three navigation paths. Return one preview, one signed verdict and one short walkthrough.
 - **TORI-016:** continue separately on the VICT-005 PASS at `2ebac8f0e20c19c5731766d0021b0f33ff1ec249`. Put the per-task limit on the delegation wiring and pin it at activation; Radzi approves the default and bounds. Live specialist exchange is outside this V1 acceptance gate.
 
 ## TORI-010 owner disposition and follow-up
