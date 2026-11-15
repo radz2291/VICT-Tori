@@ -1,0 +1,23 @@
+{
+  "candidate": "4e452fd71cf832de11754dbdbbc670e07accbf37",
+  "node": "v22.13.1",
+  "checks": [
+    {
+      "name": "missing deadline in current graph can save but cannot activate",
+      "pass": true,
+      "saved": true,
+      "error": "Enter a host deadline from 1 to 120 seconds (whole milliseconds)."
+    },
+    {
+      "name": "child authored at 1 s expires under a 120 s parent",
+      "pass": true,
+      "childActivation": "v1_bbda77d5137831fe29eb58245d858d53eb1a4c21ba48843158f567c08863a0e1",
+      "parentActivation": "v1_4d1e310f386eb6557b964853403b245cf3ddc579ad7b0aac1bea2f5ead445dfc",
+      "initialRecordedDeadlineMs": 1000,
+      "childSignalAbortedAtOneSecond": true,
+      "childStateAtOneSecond": "Running",
+      "childTerminalState": "cancelled",
+      "terminalCode": "TORI_CHILD_DEADLINE"
+    }
+  ]
+}

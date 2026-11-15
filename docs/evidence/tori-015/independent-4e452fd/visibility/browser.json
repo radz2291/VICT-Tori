@@ -1,0 +1,22 @@
+{
+  "origin": "synthetic presentation fixture",
+  "assertions": [
+    "Same fixture Run at three levels",
+    "Quiet denial and unanswered interruption visible",
+    "Keyboard disclosure works",
+    "Local preference persists after reload",
+    "Session-to-child and back",
+    "Session Details-to-Runs",
+    "Runs-to-child and back with source focus",
+    "Budget unavailable vs no team cap",
+    "Session answer and separate continued work",
+    "390px no page overflow",
+    "390px to desktop historical Details",
+    "Zero execution/mutation requests",
+    "Stored receipts unchanged",
+    "Historical metadata is an inspectable diagnostic, not a danger badge",
+    "Full trace content reference"
+  ],
+  "browser": "153.0.8010.12",
+  "pass": true
+}

@@ -1,0 +1,1 @@
+{"verdict":"PASS","node":"v22.13.1","browser":"153.0.8010.12","checks":["packed exports","per-turn Memory and Float","payloads, ordered attempts and Run action in one disclosure","keyboard open/Tab/activation","same focused row through settlement","Summary hides raw evidence","legacy Conversation"]}

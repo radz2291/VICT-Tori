@@ -1,0 +1,17 @@
+{
+  "origin": "deterministic provider; actual governed runtime receipts",
+  "pass": true,
+  "browser": "153.0.8010.12",
+  "parent": "44c4029d-78ff-43c5-b049-d39eec9a8dc4",
+  "child": "873448e0-a599-4d00-9fe7-7d7b7e9592ea",
+  "revision": "1ea23581-0875-45fd-932c-ac2c693cf595",
+  "providerCalls": 4,
+  "eventRows": 9,
+  "reportMatchesReceipt": true,
+  "zeroDispatchOnViews": true,
+  "unchangedRunReceipts": true,
+  "foregroundSameRow": true,
+  "runningBeforeAnswer": true,
+  "focusPreserved": true,
+  "sessionToChildAndBack": true
+}

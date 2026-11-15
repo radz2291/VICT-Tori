@@ -1,0 +1,72 @@
+{
+  "candidate": "4e452fd71cf832de11754dbdbbc670e07accbf37",
+  "lock": "0e797590275f560025a010a7b41a38e25832b8f6",
+  "checks": [
+    {
+      "name": "deadline-challenge",
+      "args": [
+        "<Windows profile>/Desktop/RZ/261114-verification-evidence/tori015-independent-232d115/deadline-challenge.mjs",
+        "<Windows profile>\\Desktop\\RZ\\261114-verification-evidence\\tori015-independent-4e452fd\\deadline-challenge.json"
+      ],
+      "started": "2026-11-15T17:49:25.2523690+08:00",
+      "ended": "2026-11-15T17:49:32.3666531+08:00",
+      "exit": 0
+    },
+    {
+      "name": "driver",
+      "args": [
+        "scripts/qualify-run-visibility.mjs",
+        "memory",
+        "visibility",
+        "directive",
+        "a1a4",
+        "v1b",
+        "authoring",
+        "assembly",
+        "background",
+        "unit",
+        "build",
+        "consumer"
+      ],
+      "started": "2026-11-15T17:49:32.4544409+08:00",
+      "ended": "2026-11-15T18:06:06.9140293+08:00",
+      "exit": 0
+    },
+    {
+      "name": "independent-replay",
+      "args": [
+        "<Windows profile>/Desktop/RZ/261114-verification-evidence/tori013-f302de9/independent-replay.mjs"
+      ],
+      "started": "2026-11-15T18:06:06.9754741+08:00",
+      "ended": "2026-11-15T18:06:07.1581659+08:00",
+      "exit": 0
+    },
+    {
+      "name": "receipt-browser",
+      "args": [
+        "tests/run-visibility-receipt-browser.mjs"
+      ],
+      "started": "2026-11-15T18:06:07.2120823+08:00",
+      "ended": "2026-11-15T18:06:40.4244227+08:00",
+      "exit": 0
+    },
+    {
+      "name": "foundation-consumers",
+      "args": [
+        "scripts/probe-foundation-consumers.mjs"
+      ],
+      "started": "2026-11-15T18:06:40.4949388+08:00",
+      "ended": "2026-11-15T18:08:33.1128399+08:00",
+      "exit": 0
+    },
+    {
+      "name": "packed-vict-browser",
+      "args": [
+        "browser.mjs"
+      ],
+      "started": "2026-11-15T18:08:33.3725933+08:00",
+      "ended": "2026-11-15T18:08:51.0372172+08:00",
+      "exit": 0
+    }
+  ]
+}

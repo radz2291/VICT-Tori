@@ -1,0 +1,90 @@
+{
+  "node": "v22.13.1",
+  "output": "<Windows profile>\\Desktop\\RZ\\261114-verification-evidence\\tori015-independent-4e452fd\\tori-foundation-consumers-9mbWT3",
+  "artifacts": {
+    "@tori/authoring": {
+      "file": "tori-authoring-0.1.0.tgz",
+      "version": "0.1.0",
+      "sha256": "c34531938d5344e59671c96e0180d72c2cceaaeed4356682f08a9157e310a927",
+      "integrity": "sha512-8b/Y5/60LTQdtDiXpRL0cqCbiv6J2iYEyKlPysJMNL+OUQ7cptQbqWqleyGJRL/HDKBvyp+qm/W/0xq5/xvIhA=="
+    },
+    "@tori/memory": {
+      "file": "tori-memory-0.1.0.tgz",
+      "version": "0.1.0",
+      "sha256": "9bfe1ae261ce1c9ed1b28a1b0e911667222103c1e44b4b289cbdf014263964bf",
+      "integrity": "sha512-BLqeqoExZ7KOga8+YNFHKffSU6tMeN8mGLSSaAIfMn0cy0pYAeE1Lg32RpTy9nScls1QBoc5KsBbKxOkRZP7CQ=="
+    },
+    "@tori/directive": {
+      "file": "tori-directive-0.1.0.tgz",
+      "version": "0.1.0",
+      "sha256": "686675f79be320138b13611cd80400fc8deff767cc0dfc00f8632c1fca9f4d5f",
+      "integrity": "sha512-cTUXynjVa0VOfjpeXINGwOo/zCDB6lvep1QxfFXEKPSCviDS/ZPn5hapY3HNDXVio0OW7555spaFWDjKKf6gxA=="
+    }
+  },
+  "consumers": [
+    {
+      "name": "authoring",
+      "lockSha256": "34ba15cdff13965098bc4761505e1f6c34f0bcca79cfe8352598f5a732a58046",
+      "proof": {
+        "package": "@tori/authoring",
+        "references": [
+          {
+            "id": "tori.workspace.inspect",
+            "revision": "1"
+          },
+          {
+            "id": "tori.workspace.assemble",
+            "revision": "1"
+          },
+          {
+            "id": "tori.workspace.edit",
+            "revision": "1"
+          },
+          {
+            "id": "tori.workspace.test",
+            "revision": "1"
+          }
+        ],
+        "commits": 1,
+        "receipt": {
+          "actorId": "consumer-owner",
+          "turnId": "consumer-turn",
+          "operationId": "once",
+          "draftId": "df1d2c0e-ed4e-4b69-8034-b22613828771",
+          "occurrenceId": "agent.assembly",
+          "expectedRevision": 7,
+          "editDigest": "9a65c7cf1da461ca0d0b3c115e4d69ee01c761056c706100df4da6934b5e8f16",
+          "status": "applied",
+          "revision": 8
+        }
+      }
+    },
+    {
+      "name": "memory",
+      "lockSha256": "ab63924e55b2f2e9a1574f3befab5f8209c8d7de262b1d490786f7191f72ccfc",
+      "proof": {
+        "consumer": "installed @tori/memory with public VICT runtime",
+        "save": "saved",
+        "replay": "original receipt",
+        "crossAgentAdmissions": 0,
+        "forget": "forgotten"
+      }
+    },
+    {
+      "name": "directive",
+      "lockSha256": "aa43d7bc9cd90092701d9c5f8b9f1102d96dbcbf9c0f3c42c8f3512303b43535",
+      "proof": {
+        "activation": "v1_5c4ab547cfb8a795a419553ac147e45ce7e45e180011cd86dc65423e9aeb007b",
+        "binding": "99c55bc25a9a6d35b1047dcbdb5559cf79ca9e9406d248359e9a470c08b0cfe1",
+        "historyBytes": 4096,
+        "deadlineMs": 120000,
+        "confirmedRevision": 2,
+        "confirmedAt": "2026-11-15T10:08:33.053Z",
+        "plainBytes": 204,
+        "timedBytes": 243,
+        "once": true
+      }
+    }
+  ],
+  "npm": "11.19.1"
+}
