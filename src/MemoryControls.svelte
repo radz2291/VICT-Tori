@@ -85,7 +85,6 @@
         await tick();
         const focused=document.activeElement;
         if(card?.isConnected&&(card.contains(focused)||focused===document.body)){
-          // Return to the edit and bring its adjacent error into the feed.
           if(correcting)card.querySelector('textarea')?.focus();
           card.querySelector('[role="alert"]')?.scrollIntoView({block:'nearest'});
         }
@@ -145,13 +144,16 @@
         {/if}
         {#if correcting}
           <Label.Root for={inputId}>Memory to save</Label.Root>
+          {#if !actionOpen&&problem}
+            <div id={inputId+'-problem'}><Feedback kind="error" message={problem}/></div>
+          {/if}
           <Textarea id={inputId} class="tori-field" rows={3} bind:value={content} disabled={busy||busyTurn}
             aria-describedby={problem?inputId+'-problem':undefined}/>
         {:else}
           <p class="memory-value" data-testid="memory-proposal-text">{proposal.text}</p>
-        {/if}
-        {#if !actionOpen&&problem}
-          <div id={inputId+'-problem'}><Feedback kind="error" message={problem}/></div>
+          {#if !actionOpen&&problem}
+            <div id={inputId+'-problem'}><Feedback kind="error" message={problem}/></div>
+          {/if}
         {/if}
         {#if !correcting}<p class="memory-card-note">Review before saving for future Sessions.</p>{/if}
       </div>

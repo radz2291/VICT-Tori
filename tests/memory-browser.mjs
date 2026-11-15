@@ -532,7 +532,19 @@ try {
         const feed=card?.closest('[data-testid="conversation-feed"]')?.getBoundingClientRect();
         return card?.querySelector('textarea')===document.activeElement&&alert&&feed&&
           alert.top>=feed.top-1&&alert.bottom<=feed.bottom+1;
-      },narrowRun.id);
+      },narrowRun.id).catch(async error=>{
+        observed.narrowFocusFailure=await page.evaluate(id=>{
+          const card=document.querySelector('[data-memory-turn="'+id+'"]');
+          const feed=card?.closest('[data-testid="conversation-feed"]');
+          const edit=card?.querySelector('textarea');
+          const alert=card?.querySelector('[role="alert"]');
+          return {focusRestored:edit===document.activeElement,activeTag:document.activeElement?.tagName,
+            alert:alert?.getBoundingClientRect(),feed:feed?.getBoundingClientRect(),scrollTop:feed?.scrollTop};
+        },narrowRun.id);
+        await writeFile(join(evidence,'memory-narrow-focus-failure.json'),JSON.stringify(observed.narrowFocusFailure,null,2)+'\n');
+        await capture('memory-narrow-focus-failure');
+        throw error;
+      });
       const rejectedMemory=await post('memory/run',{run:narrowRun.id});
       assert.equal(rejectedMemory.proposal,'pending');
       assert.equal(rejectedMemory.receipt,undefined);
