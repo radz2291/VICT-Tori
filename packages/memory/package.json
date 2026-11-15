@@ -1,5 +1,5 @@
 {
-  "name": "@tori-studio/memory",
+  "name": "@tori/memory",
   "version": "0.1.0",
   "private": true,
   "type": "module",

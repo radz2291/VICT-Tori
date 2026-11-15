@@ -1,5 +1,5 @@
 {
-  "name": "@tori-studio/authoring",
+  "name": "@tori/authoring",
   "version": "0.1.0",
   "private": true,
   "type": "module",

@@ -1,7 +1,9 @@
 import assert from 'node:assert/strict';
-import { createWorkspaceCapabilities, workspaceOccurrence, workspaceRefs } from '@tori-studio/authoring';
+import { createWorkspaceCapabilities, workspaceOccurrence, workspaceRefs } from '@tori/authoring';
 import { commitDraftEdit, createDraftAuthoring } from '@victframework/control/draft-authoring';
 import { gateCapabilityInvoke } from '@victframework/runtime';
+
+assert.match(import.meta.resolve('@tori/authoring'), /\/node_modules\/@tori\//);
 
 const actorId = 'consumer-owner';
 const turnId = 'consumer-turn';
@@ -65,4 +67,4 @@ const stopped = AbortSignal.abort();
 assert.equal((await permitted({ ...valid.value, expectedRevision: 8 }, operation('stop', stopped))).status, 'cancelled');
 assert.deepEqual(document, { name: 'Field Notes', revision: 8, ...budget });
 assert.equal(commits, 1);
-console.log(JSON.stringify({ package: '@tori-studio/authoring', references: workspaceRefs, commits, receipt: exact.receipt }));
+console.log(JSON.stringify({ package: '@tori/authoring', references: workspaceRefs, commits, receipt: exact.receipt }));

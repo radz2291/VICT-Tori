@@ -2,14 +2,14 @@
   import { onMount, tick, untrack, type Snippet } from 'svelte';
   import { patchInput, workspaceOccurrence } from '../packages/authoring/index.mjs';
   import { commitDraftEdit, type DraftEditProposal, type DraftEditReceipt } from '@victframework/control/draft-authoring';
-  import { Button, ControlScope, Feedback, Select, StatusBadge } from '@victframework/ui-svelte';
-  import { Button as ControlButton, Dialog, Menubar, Tooltip } from '@victframework/ui-svelte/primitives';
+  import { Button, Feedback, Select, StatusBadge } from '@victframework/ui-svelte';
+  import { Button as ControlButton, Dialog, Tooltip } from '@victframework/ui-svelte/primitives';
   import { DropdownMenu } from '@victframework/ui-svelte/catalog/dropdown-menu';
   import { Accordion } from '@victframework/ui-svelte/catalog/accordion';
   import { Tabs } from '@victframework/ui-svelte/catalog/tabs';
   import { Toggle } from '@victframework/ui-svelte/catalog/toggle';
   import { Badge, Conversation, Input, Patterns, type ConversationMessage } from '@victframework/ui-ai-svelte';
-  import { SvelteFlow, SvelteFlowProvider, Background, connectionIssueForTopology, type Connection, type Edge, type IsValidConnection } from '@victframework/ui-flow-svelte';
+  import { SvelteFlow, Background, connectionIssueForTopology, type Connection, type Edge, type IsValidConnection } from '@victframework/ui-flow-svelte';
   import AssemblyNode, { promptWidths, promptHeights } from './AssemblyNode.svelte';
   import AssemblyWire, { type AssemblyWireEdge } from './AssemblyWire.svelte';
   import AssemblyGlyph from './AssemblyGlyph.svelte';
@@ -17,9 +17,11 @@
   import Fields from './Fields.svelte';
   import RunDetails from './RunDetails.svelte';
   import ActivityDetail from './ActivityDetail.svelte';
-  import RunActivity from './RunActivity.svelte';
   import MemoryControls from './MemoryControls.svelte';
-  import SessionConversation from './SessionConversation.svelte';
+  import StudioShell from './StudioShell.svelte';
+  import AgentsPage from './pages/AgentsPage.svelte';
+  import SessionsPage from './pages/SessionsPage.svelte';
+  import RunsPage from './pages/RunsPage.svelte';
   import { acceptRunPacket } from './run-observer.mjs';
   import {add,binding,canWire,change,emptyAssembly,field,history,instructions,modelName,readiness,resolved,wire,outputTokens,tokenSourceId,agentResources,resourceChoices,optionalBindings,isOptionalBinding,nodeVisibilityLabel,assemblyPatchOperations,configureOperations} from './assembly';
 
@@ -188,8 +190,6 @@
   const recordMode=(record:any)=>record.archivedFixture?'Fixture history':record.fixture?'Fixture':'Live';
   const runStatus=(status?:string)=>status==='running'?'Running':status==='completed'?'Finished':status==='uncertain'?'Uncertain':'Interrupted';
   const secondsFormat=new Intl.NumberFormat(undefined,{minimumFractionDigits:1,maximumFractionDigits:3});
-  const timelineSecondsFormat=new Intl.NumberFormat(undefined,{minimumFractionDigits:3,maximumFractionDigits:3});
-  const timelineClockFormat=new Intl.DateTimeFormat(undefined,{hour:'numeric',minute:'2-digit',second:'2-digit',fractionalSecondDigits:3});
   function elapsed(start:string,end?:string,format=secondsFormat){
     if(!end)return undefined;
     const milliseconds=Date.parse(end)-Date.parse(start);
@@ -203,20 +203,6 @@
     const output=tokenCount(run.usage?.outputTokens);
     return [input!==undefined?input+' input':undefined,output!==undefined?output+' output':undefined].filter(Boolean).join(' / ');
   });
-  const eventNames:Record<string,string>={
-    'response.started':'Model response started',
-    'response.completed':'Model response completed',
-    'response.failed':'Model response failed',
-    'response.cancelled':'Model response cancelled',
-    'usage.updated':'Token usage reported',
-    'tool.requested':'Tool requested',
-    'tool.started':'Tool started',
-    'tool.completed':'Tool completed',
-    'tool.failed':'Tool failed',
-  };
-  function eventLabel(event:{kind?:string;label:string}){
-    return event.kind&&event.label==='VICT · '+event.kind?eventNames[event.kind]??event.label:event.label;
-  }
   const historyDate=(timestamp:string)=>new Date(timestamp).toLocaleString(undefined,{dateStyle:'medium',timeStyle:'medium'});
   const matchesSearch=(name:string,subtitle:string,query:string)=>(name+' '+subtitle).toLowerCase().includes(query.trim().toLowerCase());
   const activityDate=(timestamp:string)=>new Date(timestamp).toLocaleString(undefined,{dateStyle:'medium',timeStyle:'short'});
@@ -318,6 +304,12 @@
   let layoutWidth=$state('Standard');
   let layerQuery=$state('');
   let agentView=$state<'Settings'|'Canvas'>('Settings');
+  function selectAgentView(next: typeof agentView){
+    if(agentView===next)return;
+    cancelWire();
+    if(wireDrag)wireDrag.cancelled=true;
+    agentView=next;
+  }
   const assemblyVisible=$derived(page==='Agents'&&assemblyDock);
   const activationMatchesSaved=$derived(!!state.revision&&state.activation?.revision===state.revision.id&&state.activation?.route===state.route);
   const activateDisabled=$derived(!loaded||!!ready||dirty||!state.revision||pending||sending||activationMatchesSaved);
@@ -2146,7 +2138,7 @@
   </div>
 {/snippet}
 
-{#snippet readOnlyTurn()}{/snippet}
+{#snippet inspectorToggle()}{@render dockToggle('Inspector')}{/snippet}
 
 {#snippet sessionComposer()}
   {#if session?.authoring}
@@ -2217,379 +2209,84 @@
   {/if}
 {/snippet}
 
-<ControlScope class="tori-scope vict-app">
-  <div class="studio" class:wide={layoutWidth==='Wide'}>
-    <header class="shell">
-      <div class="menuline"><span class="brand" role="img" aria-label="TORI Studio" title="TORI Studio">T</span>
-      <Menubar.Root class="app-menu">
-        {#each menu as family}
-          <Menubar.Menu><Menubar.Trigger class="menu-trigger" id={family.name==='Window'?'window-menu-trigger':undefined}>{family.name}</Menubar.Trigger>
-          <Menubar.Portal><Menubar.Content class="menu-content" align="start">
-            {#each family.items as item}
-              {#if 'checked' in item && item.checked!==undefined}
-                <Menubar.CheckboxItem class="menu-item panel-check" checked={item.checked} disabled={item.disabled} onSelect={item.fn}>
-                  {item.label}
-                </Menubar.CheckboxItem>
-              {:else}
-                <Menubar.Item class="menu-item" disabled={item.disabled} onSelect={item.fn}>{item.label}</Menubar.Item>
-              {/if}
-            {/each}
-          </Menubar.Content></Menubar.Portal></Menubar.Menu>
-        {/each}
-      </Menubar.Root><span class="local">LOCAL STUDIO</span></div>
-    </header>
-    {#if error}<div class="banner"><Feedback kind="error" message={error}/></div>{/if}
-    {#if page==='Agents'}
-      <div class="agent-workspace" class:has-agent-dock={!mobile&&authoringVisible} class:has-inspector-dock={!mobile&&assemblyVisible}>
-        {#if !mobile&&authoringVisible}
-          <aside class="agent-left-dock" aria-label="Authoring Agent">
-            <div class="library-tabbar"><h2>Authoring Agent</h2>{@render authoringOptions()}</div>
-            {@render authoringBody()}
-          </aside>
-        {/if}
-        <div class="agent-detail">
-      <div class="agent-dockbar">
-        <div class="agent-dock-actions">{@render dockToggle('Authoring Agent')}</div>
-      <div class="agent-views" role="group" aria-label="Agent view">
-        {#each ['Settings','Canvas'] as viewName}
-          <ControlButton.Root class="vict-btn vict-btn--secondary" aria-pressed={agentView===viewName}
-            onclick={()=>{if(agentView===viewName)return;cancelWire();if(wireDrag)wireDrag.cancelled=true;agentView=viewName==='Canvas'?'Canvas':'Settings';}}>{viewName==='Settings'?'Configure':'Canvas'}</ControlButton.Root>
-        {/each}
+<StudioShell wide={layoutWidth==='Wide'} {menu} {error} {page} {pages}
+  openPage={item=>item==='Runs'?openRuns():changePage(item)}>
+  {#if page==='Agents'}
+    <AgentsPage {mobile} {authoringVisible} {assemblyVisible} {agentView} {loaded} nodes={graph.nodes}
+      {graphError} {selection} zoom={view.zoom} {agentRevisionStatus} {ready} {dirty} {pending}
+      draftTurnOpen={!!draftTurn} {activationMatchesSaved} {sending}
+      savedRevision={state.revision} {activateDisabled}
+      {authoringOptions} {authoringBody} {dockToggle} {agentFields} {canvas} {assemblyBody}
+      {selectAgentView} {create} backToAgent={()=>selection='agent'} {objectTitle} {inspectDelegationWire}
+      zoomIn={()=>flow?.zoomIn()} zoomOut={()=>flow?.zoomOut()} actualSize={()=>flow?.setZoom(1)} {fit}
+      discardRevision={async()=>{await reload();if(!dirty)await focusAgentRevision();}}
+      saveRevision={async()=>{await save();if(!dirty)await focusAgentRevision();}}
+      startSession={()=>start(state.activation,true)}
+      activateRevision={async()=>{await activate();if(activationMatchesSaved)await focusAgentRevision();}}/>
+  {:else if page==='Sessions'}
+    <SessionsPage {mobile} {inspectorVisible} {inspectorToggle} sidebarActions={executionHeaderActions} sidebarBody={executionSidebarBody}
+      bind:sessionTitle bind:conversationPane {session} {sessionBusy} workspace={state.workspace} {activityDetail}
+      {memoryView} {sending} {sessionRuns} {sessionComposer} {changeMemory}
+      inspectRun={async(id)=>{setRunScope('all');await openRun(id,true);}}
+      {recordIdentity} {recordMode} {rememberReadingPosition}/>
+  {:else if page==='Runs'}
+    <RunsPage {mobile} {inspectorVisible} {inspectorToggle} sidebarActions={executionHeaderActions} sidebarBody={executionSidebarBody}
+      bind:runTitle bind:runPane {run} {runOwner} {runSession} {runReturnTarget} runs={state.runs}
+      {session} {runScope} workspace={state.workspace} {selectedPrompt} {selectedReply} {activityDetail}
+      {runActionError} {observation} {runDuration} {runTokenUsage} {stoppingRun}
+      {openRun} {openSession} {stopWatchedRun} {openViewIcon} {elapsed} {historyDate} {recordIdentity} {recordMode} {runStatus}/>
+  {/if}
+  {#snippet dialogs()}
+    <Dialog.Root open={!!renameTarget} onOpenChange={open=>{if(!open&&!pending)renameTarget='';}}>
+      <Dialog.Portal><Dialog.Overlay class="sheet-shade studio-dialog-shade"/><Dialog.Content class="mobile-sheet studio-dialog"
+        onCloseAutoFocus={restoreSessionActionFocus}>
+        <Dialog.Title>Rename Session</Dialog.Title>
+        <Dialog.Description class="visually-hidden">Give this conversation a title.</Dialog.Description>
+        <form class="session-rename-form" onsubmit={renameSession}>
+          <label for="session-title-input">Session title</label>
+          <Input id="session-title-input" class="tori-field" bind:value={renameTitle} maxlength={80} disabled={pending}/>
+          {#if renameError}<Feedback kind="error" message={renameError}/>{/if}
+          <div class="launch-actions">
+            <Dialog.Close class="vict-btn vict-btn--quiet" type="button" disabled={pending}>Cancel</Dialog.Close>
+            <Button label="Save title" type="submit" variant="secondary" disabled={pending||!renameTitle.trim()}/>
+          </div>
+        </form>
+      </Dialog.Content></Dialog.Portal>
+    </Dialog.Root>
+    <Dialog.Root open={!!deleteTarget} onOpenChange={open=>{if(!open&&!pending)deleteTarget=null;}}>
+      <Dialog.Portal><Dialog.Overlay class="sheet-shade studio-dialog-shade"/><Dialog.Content class="mobile-sheet studio-dialog"
+        onCloseAutoFocus={restoreSessionActionFocus}>
+      <Dialog.Title>Delete this Session?</Dialog.Title>
+      <Dialog.Description>“{deleteTarget?.title}” and its conversation memory will be deleted. Run receipts are retained.</Dialog.Description>
+      {#if deleteError}<Feedback kind="error" message={deleteError}/>{/if}
+      <div class="launch-actions">
+        <Dialog.Close class="vict-btn vict-btn--quiet" disabled={pending}>Cancel</Dialog.Close>
+        <Button label="Confirm delete Session" variant="danger" disabled={pending} onclick={deleteSession}/>
       </div>
-        <div class="agent-dock-actions right">{@render dockToggle('Assembly / Selection')}</div>
+    </Dialog.Content></Dialog.Portal></Dialog.Root>
+    <Dialog.Root bind:open={mobileOpen} onOpenChange={open=>{if(!open&&page==='Sessions')launchOpen=false;}}><Dialog.Portal><Dialog.Overlay class="sheet-shade"/><Dialog.Content class={'mobile-sheet'+(executionPage?' execution-sidebar-sheet':'')}
+      onEscapeKeydown={event=>{if(page==='Sessions'&&launchOpen){event.preventDefault();void closeSessionLauncher();}}}
+      onCloseAutoFocus={(event)=>{if(sheetInvoker?.isConnected){event.preventDefault();sheetInvoker.focus({preventScroll:true});}
+      else if(executionPage)event.preventDefault();}}>
+      <div class="sheet-top">
+        <Dialog.Title class={executionPage?'execution-sidebar-title':undefined}>{executionPage?page:sheet}</Dialog.Title>
+        <div class="sheet-top-actions">
+          {#if executionPage}{@render executionHeaderActions()}{/if}
+          {#if !executionPage&&sheet==='Authoring Agent'}{@render authoringOptions()}{/if}
+          <Dialog.Close class="menu-trigger">Close</Dialog.Close>
+        </div>
       </div>
-      {#if !graph.nodes.length}
-        <main class="agent-empty" aria-labelledby="agent-empty-title">
-          <div class="agent-empty-content">
-            <h1 id="agent-empty-title">No agent yet</h1>
-            <p>Add an agent, then give it instructions and a model.</p>
-            <Button label="Add Agent" variant="secondary" disabled={!loaded} onclick={()=>create('agent')}/>
-            {#if graphError}<Feedback kind="error" message={graphError}/>{/if}
-          </div>
-        </main>
-      {:else if agentView==='Settings'}
-        {@const current=graph.nodes.some(node=>node.id===selection)?selection:'agent'}
-        {#if selection&&selection!=='agent'&&graph.nodes.some(node=>node.id===selection)}
-          <div class="configure-detail-nav">
-                <ControlButton.Root class="vict-btn vict-btn--quiet configure-back" aria-label="Back to agent"
-                  onclick={()=>selection='agent'}>
-                  <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6">
-                    <path d="m11 5-7 7 7 7M4 12h16"/>
-                  </svg>
-                  Back
-                </ControlButton.Root>
-          </div>
-        {/if}
-        <main class="agent-settings" aria-label="Configure agent">
-          <div class="agent-settings-content">
-            {#if current!=='agent'}
-              <header class="configure-detail-heading">
-                <h1 class="configure-heading">{objectTitle(current)}</h1>
-                {#if current==='context'}<p>Choose the source revision this agent can load on demand.</p>{/if}
-              </header>
-            {/if}
-            {#if current!=='agent'}
-              <section class="configure-group configure-detail-panel" aria-label={objectTitle(current)+' settings'}>
-                {@render agentFields(current)}
-              </section>
-            {:else}
-              {@render agentFields(current)}
-            {/if}
-            {#if graphError}<Feedback kind="error" message={graphError}/>{/if}
-          </div>
-        </main>
-      {:else}
-      <main class="assembly">
-        <section class="stage" aria-label="Agent assembly canvas">
-          <div class="flow" ondblclickcapture={inspectDelegationWire}>
-            <div class="canvas-view-menu">
-              <DropdownMenu.Root>
-                <DropdownMenu.Trigger class="vict-btn vict-btn--secondary" aria-label="Canvas view">
-                  {Math.round(view.zoom*100)}% <span aria-hidden="true">⌃</span>
-                </DropdownMenu.Trigger>
-                <DropdownMenu.Portal>
-                  <DropdownMenu.Content class="menu-content" align="end" side="top" sideOffset={4}>
-                    <DropdownMenu.Item class="menu-item" disabled={view.zoom>=1.7} onSelect={()=>flow?.zoomIn()}>Zoom in</DropdownMenu.Item>
-                    <DropdownMenu.Item class="menu-item" disabled={view.zoom<=0.2} onSelect={()=>flow?.zoomOut()}>Zoom out</DropdownMenu.Item>
-                    <DropdownMenu.Item class="menu-item" onSelect={()=>flow?.setZoom(1)}>Actual size</DropdownMenu.Item>
-                    <DropdownMenu.Item class="menu-item" onSelect={fit}>Fit to view</DropdownMenu.Item>
-                    {#if !graph.nodes.some(n=>n.id==='model')}
-                      <DropdownMenu.Separator/>
-                      <DropdownMenu.Item class="menu-item" onSelect={()=>create('model')}>Add model</DropdownMenu.Item>
-                    {/if}
-                  </DropdownMenu.Content>
-                </DropdownMenu.Portal>
-              </DropdownMenu.Root>
-            </div>
-            <SvelteFlowProvider>
-              {@render canvas()}
-            </SvelteFlowProvider>
-          </div>
-          {#if graphError}
-            <div class="canvas-status"><Feedback kind="error" message={graphError}/></div>
-          {/if}
-        </section>
-      </main>
+      <Dialog.Description class="visually-hidden">{executionPage?'Browse or inspect the current workspace.':sheet==='Authoring Agent'?'Authoring for the current draft.':'Browse or inspect the current agent.'}</Dialog.Description>
+      {#if executionPage}
+        {@render executionSidebarBody()}
+      {:else if sheet==='Assembly / Selection'}
+        {@render assemblyBody('sheet')}
+      {:else if sheet==='Authoring Agent'}
+        {@render authoringBody()}
       {/if}
-        {#if loaded&&graph.nodes.length}
-          <footer class="agent-editor-footer" aria-label="Agent revision and actions">
-            <div id="agent-revision-status" class="agent-revision-status" tabindex="-1">
-              <Feedback message={agentRevisionStatus}/>
-              {#if ready}<Feedback message={ready}/>{/if}
-            </div>
-            <div class="agent-revision-actions">
-              {#if dirty}
-                <Button label="Discard" variant="secondary" disabled={pending} onclick={async()=>{await reload();if(!dirty)await focusAgentRevision();}}/>
-                <Button label="Save" disabled={pending||!!draftTurn} onclick={async()=>{await save();if(!dirty)await focusAgentRevision();}}/>
-              {:else if activationMatchesSaved}
-                <Button label="Start Session" disabled={pending||sending} onclick={()=>start(state.activation,true)}/>
-              {:else if state.revision}
-                <Button label={'Activate r'+state.revision.number} disabled={activateDisabled}
-                  onclick={async()=>{await activate();if(activationMatchesSaved)await focusAgentRevision();}}/>
-              {/if}
-            </div>
-          </footer>
-        {/if}
-        </div>
-        {#if !mobile&&assemblyVisible}
-          <aside class="inspector agent-layers-dock" aria-label="Assembly / Selection">
-            {@render assemblyBody('sidebar')}
-          </aside>
-        {/if}
-      </div>
-    {:else if executionPage}
-      <div class="agent-workspace execution-workspace" data-layout={mobile?'narrow':'desktop'} class:has-inspector-dock={!mobile&&inspectorVisible}>
-        <div class="agent-detail">
-          <div class="agent-dockbar execution-toolbar">
-            {#if page==='Sessions'}
-              <div class="execution-identity">
-                <h1 bind:this={sessionTitle} tabindex="-1"
-                  aria-describedby={session?'selected-session-identity':undefined}>Sessions</h1>
-                {#if session}
-                  <span id="selected-session-identity" class="visually-hidden">{session.title} · {recordIdentity(session)}{session.fixture?' · '+recordMode(session):''}</span>
-                {/if}
-              </div>
-            {:else}
-              {#if runReturnTarget}
-                <ControlButton.Root class="vict-btn vict-btn--quiet panel-shortcut" aria-label="Back to Session" title="Back to Session"
-                  onclick={()=>openSession(runReturnTarget.id,true)}>
-                  <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M19 12H5m7-7-7 7 7 7"/>
-                  </svg>
-                </ControlButton.Root>
-              {/if}
-              <div class="execution-identity"><strong>Runs</strong></div>
-            {/if}
-            <div class="execution-actions">{@render dockToggle('Inspector')}</div>
-          </div>
-          {#if page==='Sessions'}
-            <main class="session-view" aria-label="Conversation">
-              {#if session}
-                {#key session.id}
-                  <div class="conversation" bind:this={conversationPane} use:rememberReadingPosition={session.id}>
-                    {#if session.authoring}
-                      <Conversation messages={session.messages} busy={sessionBusy}
-                        composer={sessionComposer} emptyMessage="Start a conversation."/>
-                    {:else}
-                      <SessionConversation messages={session.messages} busy={sessionBusy}
-                        turns={memoryView?.turns??[]} composer={sessionComposer}>
-                        {#snippet attachment(turn)}
-                          <MemoryControls view={memoryView} mode="card" sessionId={session.id} {turn} act={changeMemory} busyTurn={sending||sessionBusy}/>
-                        {/snippet}
-                        {#snippet activity(messageId)}
-                          {@const activityRun=sessionRuns.find(item=>!item.parentRun&&(messageId===item.id+'-agent'||
-                            (messageId===item.id+'-user'&&!session.messages.some(message=>message.id===item.id+'-agent'))))}
-                          {#if activityRun}<RunActivity run={activityRun} workspace={state.workspace} detail={activityDetail} compact
-                            inspect={async(id:string)=>{setRunScope('all');await openRun(id,true);}}/>{/if}
-                        {/snippet}
-                      </SessionConversation>
-                    {/if}
-                  </div>
-                {/key}
-              {:else}
-                <div class="empty"><h1>No conversation yet</h1><p>Use New Session in the right sidebar to choose an active agent.</p></div>
-              {/if}
-            </main>
-          {:else}
-            <main class="runs-view" aria-label="Run outcome and timeline" bind:this={runPane}>
-              {#if run}
-                {@const parent=run.parentRun?state.runs.find(item=>item.id===run.parentRun):undefined}
-                {@const children=state.runs.filter(child=>child.parentRun===run.id)}
-                {@const revision=run.number??run.revision}
-                <div class="runs-content">
-                  <section class="run-summary" aria-labelledby="run-outcome-heading">
-                    <header class="run-section-heading">
-                      <span class="run-section-label" id="run-outcome-heading">Outcome</span>
-                    </header>
-                    <div class="run-section-card">
-                      {#if run.message}<Feedback kind={run.state==='Uncertain'||run.status==='failed'?'error':'status'} message={run.message}/>{/if}
-                      {#if runActionError}<Feedback kind="error" message={runActionError}/>{/if}
-                      {#if observation?.run===runOwner?.id}
-                        {#if observation.disconnected}
-                          <Feedback message="Connection lost. Showing the last confirmed Run state."/>
-                        {:else if observation.gap}
-                          <Feedback message="Some stream events could not be replayed. The saved Run result is shown below."/>
-                        {/if}
-                      {/if}
-                      <dl class="run-summary-meta">
-                        <div>
-                          <dt>Agent</dt>
-                          <dd><h1 bind:this={runTitle} tabindex="-1">{run.name}</h1></dd>
-                        </div>
-                        <div><dt>Version</dt><dd>{revision==null?'Not recorded':'r'+revision}</dd></div>
-                        <div>
-                          <dt>Status</dt>
-                          <dd>
-                            {#if run.awaitingObservation}<Feedback message="Checking the accepted Run…"/>
-                            {:else}<StatusBadge value={runStatus(run.status)} tone={run.state==='Uncertain'||run.status==='failed'?'danger':'neutral'}/>{/if}
-                          </dd>
-                        </div>
-                        <div><dt>Execution</dt><dd>{recordMode(run)}{run.background?' · Background':''}</dd></div>
-                      </dl>
-                      <dl class="run-summary-meta run-summary-timing">
-                        <div><dt>Started</dt><dd><time datetime={run.started}>{historyDate(run.started)}</time></dd></div>
-                        {#if runDuration}<div><dt>Duration</dt><dd>{runDuration}</dd></div>{/if}
-                        {#if runTokenUsage}<div><dt>Token usage</dt><dd>{runTokenUsage}</dd></div>{/if}
-                      </dl>
-                      {#if !selectedPrompt || parent || children.length || (run.state==='Running'&&runOwner?.streamId)}
-                        <div class="run-links">
-                          {#if run.state==='Running'&&runOwner&&observation?.run===runOwner.id&&observation.canStop}
-                            <Button label={run.parentRun?'Stop parent Run':'Stop Run'} variant="secondary"
-                              disabled={stoppingRun===runOwner.id} onclick={()=>stopWatchedRun(runOwner)}/>
-                          {/if}
-                          {#if !selectedPrompt}
-                            {#if runSession}
-                              <ControlButton.Root class="vict-btn vict-btn--quiet" onclick={()=>openSession(runSession.id,true)}>Open Session</ControlButton.Root>
-                            {:else}<span class="muted">Session unavailable</span>{/if}
-                          {/if}
-                          {#if parent}
-                            <ControlButton.Root class="vict-btn vict-btn--quiet" onclick={()=>openRun(parent.id,true)}>
-                              Open parent Run · {recordIdentity(parent)}
-                            </ControlButton.Root>
-                          {/if}
-                          {#each children as child (child.id)}
-                            <ControlButton.Root class="vict-btn vict-btn--quiet" onclick={()=>openRun(child.id,true)}>
-                              Open child Run · {recordIdentity(child)}
-                            </ControlButton.Root>
-                          {/each}
-                        </div>
-                      {/if}
-                    </div>
-                  </section>
-                  {#if selectedPrompt}
-                    {#key run.id}
-                      <section class="run-turn" aria-labelledby="run-turn-heading">
-                        <header class="run-section-heading">
-                          <h2 id="run-turn-heading">Turn</h2>
-                          {#if runSession&&!run.parentRun}
-                            <ControlButton.Root class="vict-btn vict-btn--quiet run-open-turn" aria-label="Open turn" title="Open turn in Sessions"
-                              onclick={()=>openSession(runSession.id,true,selectedPrompt.id)}>
-                              {@render openViewIcon()}
-                            </ControlButton.Root>
-                          {/if}
-                        </header>
-                        <div class="run-section-card">
-                          <Conversation messages={selectedReply?[selectedPrompt,selectedReply]:[selectedPrompt]} composer={readOnlyTurn} inputLabel="Run turn"/>
-                        </div>
-                      </section>
-                    {/key}
-                  {/if}
-                  <section class="run-timeline" aria-label="Timeline">
-                    <RunActivity {run} workspace={state.workspace} detail={activityDetail} outcomeMessage={run.message}/>
-                    {#if !run.report&&activityDetail==='full'}
-                    <div class="run-section-heading"><h2>Historical timeline</h2></div>
-                    <ol class="timeline">{#each run.events as event, index}
-                      {@const offset=elapsed(run.started,event.at,timelineSecondsFormat)}
-                      {@const timestamp=new Date(event.at)}
-                      <li>
-                        <span class="timeline-event">
-                          <span class="timeline-number" aria-hidden="true">{index+1}</span>
-                          <span class="timeline-label">{eventLabel(event)}</span>
-                        </span>
-                        <span class="timeline-offset">{offset?'+'+offset:'—'}</span>
-                        {#if Number.isFinite(timestamp.getTime())}
-                          <time class="timeline-clock" datetime={event.at} title={historyDate(event.at)}>{timelineClockFormat.format(timestamp)}</time>
-                        {:else}<span class="timeline-clock">Time unavailable</span>{/if}
-                      </li>
-                    {/each}</ol>
-                    {/if}
-                  </section>
-                </div>
-              {:else}
-                <div class="empty">
-                  {#if runActionError}<Feedback kind="error" message={runActionError}/>
-                  {:else}<h1>No Runs yet</h1><p>{runScope==='session'&&session?'This Session has no recorded Runs yet.':'Recorded turns will appear here.'}</p>{/if}
-                </div>
-              {/if}
-            </main>
-          {/if}
-        </div>
-        {#if !mobile&&inspectorVisible}
-          <aside class="inspector execution-right-dock" aria-label={page==='Sessions'?'Session history':'Run history'}>
-            <div class="library-tabbar">
-              <h2>{page}</h2>
-              {@render executionHeaderActions()}
-            </div>
-            {@render executionSidebarBody()}
-          </aside>
-        {/if}
-      </div>
-    {/if}
-    <nav class="tasks" aria-label="Studio tasks">
-      {#each pages as item}
-        <ControlButton.Root class={'vict-btn vict-btn--secondary '+(page===item?'current-task':'')} aria-current={page===item?'page':undefined} disabled={['Workflows','Creative'].includes(item)} onclick={()=>item==='Runs'?openRuns():changePage(item)}>{item}</ControlButton.Root>
-      {/each}
-    </nav>
-  </div>
-  <Dialog.Root open={!!renameTarget} onOpenChange={open=>{if(!open&&!pending)renameTarget='';}}>
-    <Dialog.Portal><Dialog.Overlay class="sheet-shade studio-dialog-shade"/><Dialog.Content class="mobile-sheet studio-dialog"
-      onCloseAutoFocus={restoreSessionActionFocus}>
-      <Dialog.Title>Rename Session</Dialog.Title>
-      <Dialog.Description class="visually-hidden">Give this conversation a title.</Dialog.Description>
-      <form class="session-rename-form" onsubmit={renameSession}>
-        <label for="session-title-input">Session title</label>
-        <Input id="session-title-input" class="tori-field" bind:value={renameTitle} maxlength={80} disabled={pending}/>
-        {#if renameError}<Feedback kind="error" message={renameError}/>{/if}
-        <div class="launch-actions">
-          <Dialog.Close class="vict-btn vict-btn--quiet" type="button" disabled={pending}>Cancel</Dialog.Close>
-          <Button label="Save title" type="submit" variant="secondary" disabled={pending||!renameTitle.trim()}/>
-        </div>
-      </form>
-    </Dialog.Content></Dialog.Portal>
-  </Dialog.Root>
-  <Dialog.Root open={!!deleteTarget} onOpenChange={open=>{if(!open&&!pending)deleteTarget=null;}}>
-    <Dialog.Portal><Dialog.Overlay class="sheet-shade studio-dialog-shade"/><Dialog.Content class="mobile-sheet studio-dialog"
-      onCloseAutoFocus={restoreSessionActionFocus}>
-    <Dialog.Title>Delete this Session?</Dialog.Title>
-    <Dialog.Description>“{deleteTarget?.title}” and its conversation memory will be deleted. Run receipts are retained.</Dialog.Description>
-    {#if deleteError}<Feedback kind="error" message={deleteError}/>{/if}
-    <div class="launch-actions">
-      <Dialog.Close class="vict-btn vict-btn--quiet" disabled={pending}>Cancel</Dialog.Close>
-      <Button label="Confirm delete Session" variant="danger" disabled={pending} onclick={deleteSession}/>
-    </div>
-  </Dialog.Content></Dialog.Portal></Dialog.Root>
-  <Dialog.Root bind:open={mobileOpen} onOpenChange={open=>{if(!open&&page==='Sessions')launchOpen=false;}}><Dialog.Portal><Dialog.Overlay class="sheet-shade"/><Dialog.Content class={'mobile-sheet'+(executionPage?' execution-sidebar-sheet':'')}
-    onEscapeKeydown={event=>{if(page==='Sessions'&&launchOpen){event.preventDefault();void closeSessionLauncher();}}}
-    onCloseAutoFocus={(event)=>{if(sheetInvoker?.isConnected){event.preventDefault();sheetInvoker.focus({preventScroll:true});}
-    else if(executionPage)event.preventDefault();}}>
-    <div class="sheet-top">
-      <Dialog.Title class={executionPage?'execution-sidebar-title':undefined}>{executionPage?page:sheet}</Dialog.Title>
-      <div class="sheet-top-actions">
-        {#if executionPage}{@render executionHeaderActions()}{/if}
-        {#if !executionPage&&sheet==='Authoring Agent'}{@render authoringOptions()}{/if}
-        <Dialog.Close class="menu-trigger">Close</Dialog.Close>
-      </div>
-    </div>
-    <Dialog.Description class="visually-hidden">{executionPage?'Browse or inspect the current workspace.':sheet==='Authoring Agent'?'Authoring for the current draft.':'Browse or inspect the current agent.'}</Dialog.Description>
-    {#if executionPage}
-      {@render executionSidebarBody()}
-    {:else if sheet==='Assembly / Selection'}
-      {@render assemblyBody('sheet')}
-    {:else if sheet==='Authoring Agent'}
-      {@render authoringBody()}
-    {/if}
-  </Dialog.Content></Dialog.Portal></Dialog.Root>
-</ControlScope>
+    </Dialog.Content></Dialog.Portal></Dialog.Root>
+  {/snippet}
+</StudioShell>
 
 {#snippet canvas()}
   <SvelteFlow bind:nodes {edges} nodeTypes={types} {edgeTypes} bind:viewport={view}

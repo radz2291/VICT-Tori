@@ -2,8 +2,11 @@ import assert from 'node:assert/strict';
 import { mkdtemp } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { gatedMemorySave, memoryIntent, memoryScope, memoryStoreSchemaVersion, openMemoryStore } from '@tori-studio/memory';
-import { effectiveMemoryPolicy, memoryArtifact } from '@tori-studio/memory/policy';
+import { gatedMemorySave, memoryIntent, memoryScope, memoryStoreSchemaVersion, openMemoryStore } from '@tori/memory';
+import { effectiveMemoryPolicy, memoryArtifact } from '@tori/memory/policy';
+
+assert.match(import.meta.resolve('@tori/memory'), /\/node_modules\/@tori\//);
+assert.match(import.meta.resolve('@tori/memory/policy'), /\/node_modules\/@tori\//);
 
 const scope=memoryScope('synthetic-actor','synthetic-project','synthetic-agent');
 const other=memoryScope(scope.actor,scope.project,'different-agent');
@@ -38,6 +41,6 @@ try {
   assert.equal(forgot.status,'forgotten');
   assert.equal(store.inspect(scope,result.receipt.memoryId,1).status,'forgotten');
   assert.equal(store.admit(scope).evidence.admitted.length,0);
-  console.log(JSON.stringify({consumer:'installed @tori-studio/memory with public VICT runtime',save:result.status,
+  console.log(JSON.stringify({consumer:'installed @tori/memory with public VICT runtime',save:result.status,
     replay:'original receipt',crossAgentAdmissions:0,forget:forgot.status}));
 }finally{store.close();}

@@ -15,7 +15,7 @@ The standalone V1a Studio supports real Agent editing, pinned activations, Sessi
 | --- | --- |
 | Owner / product reviewer | [Foundation](docs/specs/FOUNDATION.md), [UI experience](docs/specs/UI-FOUNDATION.md), [acceptance scenarios](docs/specs/ACCEPTANCE.md) |
 | Implementing Codex agent | [AGENTS.md](AGENTS.md), [STATE.md](STATE.md), [HANDOFF.md](HANDOFF.md), [V1b slice](docs/implementation/V1B.md) |
-| Architecture / integration | [Architecture](docs/specs/ARCHITECTURE.md), [contracts](docs/specs/CONTRACTS.md), [capability catalog](docs/specs/CAPABILITY-CATALOG.md), [VICT baseline](docs/reference/BASELINE.md) |
+| Architecture / integration | [Architecture](docs/specs/ARCHITECTURE.md), [contracts](docs/specs/CONTRACTS.md), [capability catalog](docs/specs/CAPABILITY-CATALOG.md), [VICT baseline](docs/reference/BASELINE.md), [dependency pins and upgrade policy](docs/reference/VICT-PINS.md) |
 | Delivery / verification | [Roadmap](docs/implementation/ROADMAP.md), [verification runbook](docs/governance/VERIFICATION.md), [decisions](docs/governance/DECISIONS.md) |
 | Starting a new Codex session | [Copyable start instruction](CODEX_START.md) |
 

@@ -1,9 +1,13 @@
 import assert from 'node:assert/strict';
 import { AgentProfileRegistry } from '@victframework/runtime';
 import { MASTRA_ADAPTER_COMPATIBILITY } from '@victframework/mastra';
-import { openMemoryStore, memoryScope, gatedMemorySave, proposalLifetimeMs } from '@tori-studio/memory';
-import { directiveDefaults, directiveInput } from '@tori-studio/directive';
-import { directivePolicy, directiveRevision, resolveDirective, withDirectiveReference } from '@tori-studio/directive/activation';
+import { openMemoryStore, memoryScope, gatedMemorySave, proposalLifetimeMs } from '@tori/memory';
+import { directiveDefaults, directiveInput } from '@tori/directive';
+import { directivePolicy, directiveRevision, resolveDirective, withDirectiveReference } from '@tori/directive/activation';
+
+assert.match(import.meta.resolve('@tori/memory'), /\/node_modules\/@tori\//);
+assert.match(import.meta.resolve('@tori/directive'), /\/node_modules\/@tori\//);
+assert.match(import.meta.resolve('@tori/directive/activation'), /\/node_modules\/@tori\//);
 
 const scope=memoryScope('consumer-actor','consumer-project','consumer-agent');
 const options={...directiveDefaults,historyBytes:4096,deadlineMs:120000};

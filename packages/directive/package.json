@@ -1,5 +1,5 @@
 {
-  "name": "@tori-studio/directive",
+  "name": "@tori/directive",
   "version": "0.1.0",
   "private": true,
   "type": "module",
