@@ -1,0 +1,24 @@
+{
+  "candidate": "08d7dc24b53cdf10c9edab125fd699874c031fba",
+  "hygiene": "ab5771cad9795be9287b90994341506afd1df9e0",
+  "comparison": [
+    {
+      "path": "packages/run-visibility/index.mjs",
+      "hygieneBlob": "52136568a2a359e22ed1ef843e94a0db84e43876",
+      "candidateBlob": "52136568a2a359e22ed1ef843e94a0db84e43876",
+      "identical": true
+    },
+    {
+      "path": "packages/run-visibility/package.json",
+      "hygieneBlob": "22aec92dd88b3555f41608000b403fc9ff364b42",
+      "candidateBlob": "22aec92dd88b3555f41608000b403fc9ff364b42",
+      "identical": true
+    },
+    {
+      "path": "packages/run-visibility/README.md",
+      "hygieneBlob": "be86460bfdc161965b1e95927ad4959a0ff4d2ac",
+      "candidateBlob": "be86460bfdc161965b1e95927ad4959a0ff4d2ac",
+      "identical": true
+    }
+  ]
+}
