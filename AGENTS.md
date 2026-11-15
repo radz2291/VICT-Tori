@@ -8,6 +8,12 @@ Read [STATE.md](STATE.md), [HANDOFF.md](HANDOFF.md), and the referenced stage be
 
 Canvas is the code. Traditional agent building fixes behavior in source: triggers in grammars, thresholds in constants, limits as literals. In TORI, that power belongs on the authoring surface. Wiring and editing on canvas is how agent behavior is programmed; source code implements the machinery but must not own decisions that belong to composition. Every hardcoded value is a decision made without the owner — a literal in a source file is a defect against this doctrine unless it is deliberately classified.
 
+**Node-first authoring (R-2).** Every authored value lives on its node's parameter surface on the canvas. Selection/Configure shows the node and never provides a second home for values. Any slice adding or changing authoring must prove this criterion. Standing Directive fields in `Fields.svelte` are the first known migration; execution limits and other inspector-only values are inventoried in the response spec. Values on delegation wiring are authored on its canvas parameter surface.
+
+**Activation policy (R-5, R-7).** The per-task specialist question cap belongs to the TORI delegation wiring, with an owner-approved default and bounds. The VICT adapter supplies no default. The ordinary host deadline is authored and pinned at activation under an owner-approved maximum. Invalid values block activation; runtime honors the pin without clamping. Standing Directive retains its independent 5–120 s Option C pin.
+
+**Public capability names (R-4).** Use `@tori/*`. Studio is the host application; it is not the package namespace. The hygiene slice renames the three legacy packages and verifies their public installed consumers.
+
 Every value, trigger, limit and behavior must belong to one of three layers:
 
 1. **Knobs** — canvas-authorable, per-agent policy answering how much, how long or which, bounded by governed ranges. Examples: interpretation transcript budget and deadline, memory admission budget, record cap, proposal lifetime, sensitivity and memory window.
