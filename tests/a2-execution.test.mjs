@@ -16,7 +16,8 @@ test(live?'A2 permitted Coding route sampling':'A2 sampling, retry limit, and de
   const capture=[];
   const originalFetch=globalThis.fetch;
   let service, mode='ok', retrySuccessAttempts=0;
-  const start=(deadline)=>createStudio({getAssembly:()=>assembly,dataDirectory:directory,turnDeadlineMs:deadline});
+  const start=(deadline)=>createStudio({getAssembly:()=>assembly,dataDirectory:directory,
+    ...(deadline?{hostDeadlineFixture:{timeout:()=>AbortSignal.timeout(deadline)}}:{})});
   process.env.TORI_ZAI_ROUTE='coding';
   if(!live){
     process.env.TORI_ZAI_API_KEY='synthetic-a1-fixture';
@@ -104,10 +105,10 @@ test(live?'A2 permitted Coding route sampling':'A2 sampling, retry limit, and de
     assert.deepEqual(capture.at(-1),{temperature:0.4,topP:0.8});
     await service.close();
     service=start(1500);
-    assert.equal((await service.dispatch('',{})).hostDeadlineMs,1500);
+    assert.equal((await service.dispatch('',{})).hostDeadlineMs,90000);
     const restored=await send(original);
     assert.equal(restored.activation,original.activation);
-    assert.equal(restored.execution.deadlineMs,1500);
+    assert.equal(restored.execution.deadlineMs,90000);
     assert.deepEqual(capture.at(-1),{temperature:undefined,topP:undefined});
     mode='deadline';
     const cancelled=await send(updated);

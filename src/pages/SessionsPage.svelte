@@ -1,9 +1,9 @@
 <script lang="ts">
   import type { Snippet } from 'svelte';
   import { Conversation, type ConversationMessage } from '@victframework/ui-ai-svelte';
+  import { Button } from '@victframework/ui-svelte';
   import MemoryControls from '../MemoryControls.svelte';
-  import RunActivity from '../RunActivity.svelte';
-  import SessionConversation from '../SessionConversation.svelte';
+  import { presentConversation, type Density, type RunView } from '../run-presentation';
   import type { MemoryTurn } from '../memory-display';
 
   type SelectedSession = {
@@ -24,13 +24,22 @@
     activityDetail: string;
     memoryView?: {turns?: readonly MemoryTurn[]};
     sending: boolean;
-    sessionRuns: readonly {id: string; parentRun?: string}[];
+    sessionRuns: readonly RunView[];
     sessionComposer: Snippet;
     changeMemory: (path: string, payload: unknown, id: string) => Promise<unknown>;
-    inspectRun: (id: string) => Promise<void>;
+    inspectRun: (id: string, sourceId?:string) => Promise<void>;
     rememberReadingPosition: (node: HTMLElement, id: string) => {destroy(): void};
     conversationPane?: HTMLDivElement;
   } = $props();
+  const display=$derived(presentConversation(session?.messages??[],sessionRuns,activityDetail as Density));
+  const attachmentMessages=$derived.by(()=>{
+    const ids=new Set(display.messages.map(message=>message.id));
+    return new Map((memoryView?.turns??[]).filter(turn=>ids.has(turn.source)).map(turn=>{
+      const reply=turn.run+'-agent';
+      const answer=session?.messages.find(message=>message.id===reply);
+      return [answer?reply:turn.source,turn] as const;
+    }));
+  });
 </script>
 
 <main class="session-view" aria-label="Conversation">
@@ -41,18 +50,27 @@
           <Conversation messages={session.messages} busy={sessionBusy}
             composer={sessionComposer} emptyMessage="Start a conversation."/>
         {:else}
-          <SessionConversation messages={session.messages} busy={sessionBusy}
-            turns={memoryView?.turns??[]} composer={sessionComposer}>
-            {#snippet attachment(turn)}
-              <MemoryControls view={memoryView} mode="card" sessionId={session.id} {turn} act={changeMemory} busyTurn={sending||sessionBusy}/>
+          <Conversation messages={display.messages} busy={sessionBusy} composer={sessionComposer}
+            activityDensity={activityDetail==='summary'?'summary':'full'} emptyMessage="Start a conversation.">
+            {#snippet turnAttachment(message)}
+              {@const turn=attachmentMessages.get(message.id)}
+              {@const binding=display.scopes.get(message.id)}
+              {#if turn}<MemoryControls view={memoryView} mode="card" sessionId={session.id} {turn} act={changeMemory} busyTurn={sending||sessionBusy}/>{/if}
+              {#if binding&&(activityDetail!=='quiet'||binding.warnings.length)}
+                <div class="run-turn-actions">
+                  <Button label="Inspect Run" variant="secondary" onclick={()=>inspectRun(binding.run.id,binding.run.id)}/>
+                  {#each binding.run.report?.specialist?.children??[] as child (child.id)}
+                    <Button label={'Open '+child.name+' Run'} variant="secondary" onclick={()=>inspectRun(child.id,binding.run.id)}/>
+                  {/each}
+                </div>
+              {/if}
             {/snippet}
-            {#snippet activity(messageId)}
-              {@const activityRun=sessionRuns.find(item=>!item.parentRun&&(messageId===item.id+'-agent'||
-                (messageId===item.id+'-user'&&!session.messages.some(message=>message.id===item.id+'-agent'))))}
-              {#if activityRun}<RunActivity run={activityRun} {workspace} detail={activityDetail} compact
-                inspect={inspectRun}/>{/if}
+            {#snippet activityAction(message,activity)}
+              {@const binding=display.scopes.get(message.id)}
+              {@const action=binding?.destinations.get(activity.id)}
+              {#if action}<Button label={'Open '+action.name+' Run'} variant="secondary" onclick={()=>inspectRun(action.id,binding?.run.id)}/>{/if}
             {/snippet}
-          </SessionConversation>
+          </Conversation>
         {/if}
       </div>
     {/key}

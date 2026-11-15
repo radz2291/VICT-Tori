@@ -10,10 +10,11 @@
   import { Button, Dialog } from '@victframework/ui-svelte/primitives';
   import { DropdownMenu } from '@victframework/ui-svelte/catalog/dropdown-menu';
   import { Input, Textarea } from '@victframework/ui-ai-svelte';
-  import { agentResources, binding, canWire, executionSettings, field, instructions, modelId, modelName, outputTokens, resourceChoices, tokenSourceId, optionalBindings, inlineAgentSettings, nodeVisibilityLabel, governedMemoryValue } from './assembly';
+  import { agentResources, binding, canWire, executionSettings, field, instructions, modelId, modelName, outputTokens, resourceChoices, tokenSourceId, optionalBindings, inlineAgentSettings, nodeVisibilityLabel } from './assembly';
   import SavedMemoryPolicy from './SavedMemoryPolicy.svelte';
   import ModelSampling from './ModelSampling.svelte';
   import ExecutionLimits from './ExecutionLimits.svelte';
+  import DirectiveFields from './DirectiveFields.svelte';
   import AssemblyGlyph from './AssemblyGlyph.svelte';
   let {id,data,selected}=$props();
   let root=$derived(id==='agent');
@@ -38,15 +39,12 @@
   let resource=$derived(agentResources.find(item=>item.id===id));
   const updateHandles=useUpdateNodeInternals();
   let resourcePorts=$derived(root?agentResources.filter(item=>!['memory','output'].includes(item.id)&&data.canvasIds.has(item.id)):[]);
-  let shownPrompt=$derived(textWire&&data.canvasIds.has('instructions'));
-  let shownModel=$derived(modelWire&&data.canvasIds.has('model'));
   let tokenWire=$derived(binding(data.graph,'tokens'));
-  let shownInteger=$derived(tokenWire&&data.canvasIds.has(tokenSourceId));
   let samplingOpen=$state(false);
   let executionOpen=$state(false);
+  let directiveOpen=$state(false);
   let execution=$derived(executionSettings(data.graph));
   const modelChoices=[{value:modelId,label:modelName}];
-  let modelWire=$derived(binding(data.graph,'model'));
   let textWire=$derived(binding(data.graph,'instructions'));
   let choices=$derived(resource?.id==='child'
     ? [...(data.fixture||field(data.graph,id,'reference')==='reference-reviewer@1'?resourceChoices.child:[]),...(data.fields.childRevisions??[]).map((revision:{id:string;name:string;number:number})=>({
@@ -132,59 +130,39 @@
   </header>
   {#if root}
     {#snippet promptField()}
-      {#if shownPrompt}
-        {@render sourceLink(textWire.source,'System prompt')}
+      {#if textWire}
+        <Button.Root class="vict-btn vict-btn--quiet nodrag nopan" onclick={event=>{event.stopPropagation();void data.fields.showAndFocus(textWire.source);}}>Show System prompt</Button.Root>
       {/if}
     {/snippet}
     {@render inputPort('instructions','Instructions','Text',promptField)}
-    {#if !shownPrompt}
+    {#if !textWire}
       <div class="node-prompt nodrag nopan nowheel">
         <label class="visually-hidden" for="canvas-agent-instructions">System instructions</label>
         <Textarea id="canvas-agent-instructions" class="tori-field" rows={2} value={instructions(data.graph)}
-          oninput={event=>textWire?data.fields.edit(textWire.source,'text',event.currentTarget.value):data.fields.edit(id,'instructions',event.currentTarget.value)}/>
+          oninput={event=>data.fields.edit(id,'instructions',event.currentTarget.value)}/>
       </div>
     {/if}
     {#snippet modelField()}
-      {#if shownModel}
-        {@render sourceLink(modelWire.source,field(data.graph,modelWire.source,'model')?modelName:'Model reference')}
+      {#if data.graph.nodes.some(node=>node.id==='model')}
+        <Button.Root class="vict-btn vict-btn--quiet nodrag nopan" onclick={event=>{event.stopPropagation();void data.fields.showAndFocus('model');}}>Show Model Reference</Button.Root>
       {:else}
-        <div class="node-port-control nodrag nopan">{@render modelPicker('canvas-agent-model',true)}</div>
+        <Button.Root class="vict-btn vict-btn--quiet nodrag nopan" onclick={event=>{event.stopPropagation();data.fields.createSetting('model');}}>Add Model Reference</Button.Root>
       {/if}
     {/snippet}
     {@render inputPort('model','Model','Model reference',modelField)}
-    {#if modelWire&&!shownModel}
-      <div class="node-inline-fields nodrag nopan">
-        <div class="node-inline-setting">
-          <label for="canvas-agent-output-limit">Max output tokens</label>
-          <Input id="canvas-agent-output-limit" class="tori-field" type="number" min={64} max={32768} step={1}
-            value={outputTokens(data.graph)} oninput={event=>data.fields.edit(tokenWire?.source??'model','tokens',Number(event.currentTarget.value))}/>
-        </div>
-        {@render sampling()}
-      </div>
-    {/if}
     {#each inlineAgentSettings as setting (setting.id)}
-      {@const linked=binding(data.graph,setting.id)}
       {#snippet settingField()}
-        {#if linked&&data.canvasIds.has(setting.id)}
-          {@render sourceLink(linked.source,setting.id==='memory'?'Memory Policy':'Output Contract')}
+        {#if data.graph.nodes.some(node=>node.id===setting.id)}
+          <Button.Root class="vict-btn vict-btn--quiet nodrag nopan" onclick={event=>{event.stopPropagation();void data.fields.showAndFocus(setting.id);}}>
+            Show {setting.id==='memory'?'Memory Policy':'Output Contract'}
+          </Button.Root>
         {:else}
-          <div class="node-port-control nodrag nopan">
-            <label class="visually-hidden" for={'canvas-agent-'+setting.id}>{setting.label}</label>
-            <Select id={'canvas-agent-'+setting.id} name={setting.id} value={linked?String(field(data.graph,setting.id,'reference')??''):'default'}
-              options={setting.options}
-              onChange={value=>value&&value!=='default'?data.fields.configure(setting.id,'reference',value):
-                setting.id==='memory'&&field(data.graph,'memory','savedMemory')===governedMemoryValue
-                  ?data.fields.configure('memory','reference','recent-100@1'):data.fields.disconnect(setting.id)}/>
-          </div>
+          <Button.Root class="vict-btn vict-btn--quiet nodrag nopan" onclick={event=>{event.stopPropagation();data.fields.createSetting(setting.id);}}>
+            Add {setting.id==='memory'?'Memory Policy':'Output Contract'}
+          </Button.Root>
         {/if}
       {/snippet}
       {@render inputPort(setting.id,setting.label,'Reference',settingField)}
-      {#if setting.id==='memory'&&(!linked||!data.canvasIds.has('memory'))}
-        <div class="node-inline-fields nodrag nopan">
-          <SavedMemoryPolicy id="canvas-agent-saved-memory" value={linked?String(field(data.graph,'memory','savedMemory')??'off'):'off'}
-            set={value=>data.fields.configure('memory','savedMemory',value)}/>
-        </div>
-      {/if}
     {/each}
     {#each resourcePorts as item (item.id)}
       {@render inputPort(item.id,item.label,item.label+' reference')}
@@ -202,16 +180,20 @@
   {:else if id==='model'}
     <div class="node-editor">
       <div class="node-model-choice">
-        <div class="nodrag nopan">{@render modelPicker('canvas-model',false)}</div>
+        <div class="nodrag nopan">
+          <label class="visually-hidden" for="canvas-model">Cloud model</label>
+          <Select id="canvas-model" name="model" value={String(field(data.graph,id,'model')??'')} options={modelChoices}
+            onChange={value=>data.fields.edit(id,'model',value)}/>
+        </div>
         <Handle class={data.wireSource===id?'node-handle wire-start':'node-handle'} type="source" position={Position.Right} id="value" title="Model reference output"/>
       </div>
       <div class="node-limit-field" class:linked={!!tokenWire}>
         <Handle class={acceptsOutput('tokens')?'node-handle wire-target':'node-handle'} data-port="tokens" type="target" position={Position.Left} id="tokens" title="Output limit · Integer input" isConnectableStart={false}/>
         <label for="canvas-model-output-limit">Max output tokens</label>
         <Input id="canvas-model-output-limit" class="tori-field nodrag nopan" type="number" min={64} max={32768} step={1}
-          value={outputTokens(data.graph)} readonly={!!shownInteger}
-          oninput={event=>{if(!shownInteger)data.fields.edit(tokenWire?.source??id,'tokens',Number(event.currentTarget.value));}}/>
-        {#if shownInteger}{@render sourceLink(tokenWire.source,'Integer')}{/if}
+          value={outputTokens(data.graph)} readonly={!!tokenWire}
+          oninput={event=>{if(!tokenWire)data.fields.edit(id,'tokens',Number(event.currentTarget.value));}}/>
+        {#if tokenWire}<Button.Root class="vict-btn vict-btn--quiet nodrag nopan" onclick={event=>{event.stopPropagation();void data.fields.showAndFocus(tokenWire.source);}}>Show Integer</Button.Root>{/if}
       </div>
       <div class="node-inline-fields nodrag nopan">{@render sampling()}</div>
     </div>
@@ -245,7 +227,15 @@
       <Handle class={data.wireSource===id?'node-handle wire-start':'node-handle'} type="source" position={Position.Right} id="value" title={data.title+' output'}/>
     </div>
     {#if id==='directive'}
-      <div class="node-detail">{binding(data.graph,'directive')?'Connected':'Unconnected'}</div>
+      <div class="node-inline-fields nodrag nopan nowheel">
+        <Button.Root class="vict-btn vict-btn--quiet" aria-expanded={directiveOpen} onclick={()=>directiveOpen=!directiveOpen}>Directive parameters</Button.Root>
+        {#if directiveOpen}
+          <section class="node-directive-parameters" aria-label="Directive parameters">
+            <DirectiveFields graph={data.graph} prefix="canvas-directive" edit={data.fields.edit} configure={data.fields.configure}
+              disconnect={data.fields.disconnect} active={data.pinnedDirective}/>
+          </section>
+        {/if}
+      </div>
     {:else if id==='memory'}
       <div class="node-inline-fields nodrag nopan">
         <SavedMemoryPolicy id="canvas-memory-saved-memory" value={String(field(data.graph,'memory','savedMemory')??'off')}
@@ -284,30 +274,12 @@
   </Dialog.Portal>
 </Dialog.Root>
 
-{#snippet modelPicker(controlId:string,attach:boolean)}
-  <label class="visually-hidden" for={controlId}>Cloud model</label>
-  <Select id={controlId} name="model" value={attach&&!modelWire?'':String(field(data.graph,'model','model')??'')} options={modelChoices}
-    onChange={value=>{
-      if(attach){if(value)data.fields.configure('model','model',value);else data.fields.disconnect('model');}
-      else data.fields.edit(id,'model',value);
-    }}/>
-{/snippet}
-
 {#snippet sampling()}
   <Button.Root class="vict-btn vict-btn--quiet node-sampling" aria-expanded={samplingOpen}
     onclick={()=>samplingOpen=!samplingOpen}>Sampling <span aria-hidden="true">{samplingOpen?'⌄':'›'}</span></Button.Root>
   {#if samplingOpen}
     <ModelSampling graph={data.graph} route={data.route} edit={data.fields.edit} prefix={'canvas-'+id} compact/>
   {/if}
-{/snippet}
-
-{#snippet sourceLink(source:string,label:string)}
-  <Button.Root class="vict-btn vict-btn--quiet node-source nodrag nopan" title={'Open '+label+' node'}
-    onclick={event=>{
-      // Keep the containing node's click handler from reselecting it.
-      event.stopPropagation();
-      void data.fields.focus(source);
-    }}>{label} ↗</Button.Root>
 {/snippet}
 
 {#snippet inputPort(port:string,label:string,type:string,control?:Snippet)}

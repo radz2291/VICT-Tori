@@ -1,5 +1,6 @@
 <script lang="ts">
   import { Button } from '@victframework/ui-svelte';
+  import { Trace } from '@victframework/ui-ai-svelte';
   import RunMemoryEvidence from './RunMemoryEvidence.svelte';
   import SpecialistReport from './SpecialistReport.svelte';
   let {run,inspectRun,loadMemory,checkMemory}=$props();
@@ -20,6 +21,11 @@
         <dt>Execution limits</dt>
         <dd>{run.execution.maxSteps} steps · {run.execution.maxRetries} model retries · {run.execution.maxToolCalls} tool calls · {run.execution.deadlineMs/1000}s host deadline</dd>
         <dt>Provider attempts</dt><dd>{run.providerAttempts??'Not reported'}</dd>
+      {/if}
+      {#if run.hostDeadline}
+        <dt>Host deadline pin</dt><dd>{run.hostDeadline.source==='activation'?'Pinned at activation':'Historical 90-second policy'}</dd>
+        <dt>Accepted at</dt><dd><time datetime={new Date(run.hostDeadline.acceptedAt).toISOString()}>{new Date(run.hostDeadline.acceptedAt).toLocaleString()}</time></dd>
+        <dt>Deadline at</dt><dd><time datetime={new Date(run.hostDeadline.deadlineAt).toISOString()}>{new Date(run.hostDeadline.deadlineAt).toLocaleString()}</time></dd>
       {/if}
       {#if run.modelSteps!==undefined}<dt>Observed model steps</dt><dd>{run.modelSteps}</dd>{/if}
       {#if run.toolCalls!==undefined}<dt>Admitted tool calls</dt><dd>{run.toolCalls}</dd>{/if}
@@ -133,5 +139,35 @@
         {#if run.recovery.invocation}<dt>Parent invocation</dt><dd class="hash">{run.recovery.invocation}</dd>{/if}
       </dl>
     </section>
+  {/if}
+  {#if run.report}
+    {#key run.id}
+    <section aria-label="Technical evidence">
+      <h3>Technical evidence</h3>
+      <Trace.Root><Trace.Collapsible>
+        <Trace.CollapsibleTrigger><Trace.Line><Trace.Title>Public receipts and diagnostics</Trace.Title></Trace.Line></Trace.CollapsibleTrigger>
+        <Trace.CollapsibleContent>
+          {#each run.report.problems??[] as problem (problem.code+problem.label)}
+            <p>{problem.label}{#if problem.code!=='PUBLIC_EVENT_METADATA_UNAVAILABLE'} · <code>{problem.code}</code>{/if}</p>
+          {/each}
+          <p>{run.report.eventOrder}</p>
+          {#each run.report.groups??[] as group (group.id)}
+            <h4>{group.label}</h4>
+            {#each group.rows as row (row.id)}
+              <dl>
+                <dt>Receipt</dt><dd>{row.label}</dd>
+                <dt>Event</dt><dd><code>{row.kind}</code></dd>
+                {#if row.streamId}<dt>Stream</dt><dd class="hash">{row.streamId} · sequence {row.seq}</dd>{/if}
+                {#if row.invocationId}<dt>Invocation</dt><dd class="hash">{row.invocationId}</dd>{/if}
+                {#if row.attemptId}<dt>Attempt</dt><dd class="hash">{row.attemptId}</dd>{/if}
+                {#if row.contentRef}<dt>Content reference</dt><dd class="hash">{row.contentRef}</dd>{/if}
+                {#if row.code}<dt>Reason</dt><dd><code>{row.code}</code></dd>{/if}
+              </dl>
+            {/each}
+          {/each}
+        </Trace.CollapsibleContent>
+      </Trace.Collapsible></Trace.Root>
+    </section>
+    {/key}
   {/if}
 </div>

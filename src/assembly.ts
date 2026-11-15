@@ -1,6 +1,7 @@
 import { GraphSessionV3, validateGraphV3, type GraphDocumentV3, type GraphOperationV3 } from '@victframework/ui-flow-svelte/model';
 
 import { executionBounds, workspaceBinding } from '../packages/authoring/index.mjs';
+import { initialHostDeadlineMs, validHostDeadline } from '../packages/authoring/host-deadline.mjs';
 import { registeredTool, registeredTools } from './registered-tools.mjs';
 import { organizerOff } from '../packages/memory/policy.mjs';
 import { proposalLifetimeMs } from '../packages/memory/intent.mjs';
@@ -105,14 +106,16 @@ const memoryDefinitions=authoringBudgets.map(node=>node.id==='memory'?{...node,p
 const historicDefinitions=memoryDefinitions.map(node=>node.id==='memory'?{...node,parameters:{...node.parameters,
   organizer:{type:'string' as const,default:organizerOff}}}:node);
 const directivePort={id:directiveId,label:directiveLabel,type:'directive-policy-reference',direction:'input' as const,maxConnections:1};
-const definitions:GraphDocumentV3['nodeTypes']=historicDefinitions.map(node=>node.id===rootId
+const directiveDefinitions:GraphDocumentV3['nodeTypes']=historicDefinitions.map(node=>node.id===rootId
   ? {...node,ports:[...node.ports,directivePort]} : node);
-definitions.push({id:directiveId,label:directiveLabel,ports:[{id:'value',label:directiveLabel,type:directivePort.type,direction:'output'}],
+directiveDefinitions.push({id:directiveId,label:directiveLabel,ports:[{id:'value',label:directiveLabel,type:directivePort.type,direction:'output'}],
   parameters:Object.fromEntries(Object.entries(directiveDefaults).map(([key,value])=>
     [key,{type:typeof value==='number'?'number':'string',default:value}]))});
+const definitions:GraphDocumentV3['nodeTypes']=directiveDefinitions.map(node=>node.id===rootId
+  ? {...node,parameters:{...node.parameters,hostDeadlineMs:{type:'number',default:initialHostDeadlineMs}}} : node);
 
 function upgrade(graph:GraphDocumentV3):GraphDocumentV3 {
-  return [legacyDefinitions,a1Definitions,a2Definitions,a3Definitions,resourceCatalog(a4Resources),authoringDefinitions,authoringBudgets,memoryDefinitions,historicDefinitions].some(catalog=>JSON.stringify(graph.nodeTypes)===JSON.stringify(catalog))
+  return [legacyDefinitions,a1Definitions,a2Definitions,a3Definitions,resourceCatalog(a4Resources),authoringDefinitions,authoringBudgets,memoryDefinitions,historicDefinitions,directiveDefinitions].some(catalog=>JSON.stringify(graph.nodeTypes)===JSON.stringify(catalog))
     ? {...graph,nodeTypes:structuredClone(definitions)} : graph;
 }
 
@@ -167,6 +170,7 @@ export function executionSettings(graph:GraphDocumentV3) {
     maxSteps:Number(field(graph,rootId,'maxSteps')??executionBounds.maxSteps.min),
     maxRetries:Number(field(graph,rootId,'maxRetries')??executionBounds.maxRetries.min),
     maxToolCalls:authoredToolCalls??defaultToolCalls,
+    hostDeadlineMs:Number(field(upgrade(graph),rootId,'hostDeadlineMs')),
     authoredToolCalls,defaultToolCalls,
   };
 }
@@ -176,16 +180,17 @@ export function resolved(graph:GraphDocumentV3) {
   const temperature=modelValues?.temperature as number|undefined;
   const topP=modelValues?.topP as number|undefined;
   const resource=(id:string)=>binding(graph,id)?field(graph,id,'reference'):undefined;
-  const {maxSteps,maxRetries,maxToolCalls}=executionSettings(graph);
+  const {maxSteps,maxRetries,maxToolCalls,hostDeadlineMs}=executionSettings(graph);
   return {directive:binding(graph,directiveId)?directiveValues(graph):null,
     organizer:(binding(graph,'memory')?field(graph,'memory','organizer'):undefined)??organizerOff,
     authoring:resource('authoring'),output:resource('output'),child:resource('child'),context:resource('context'),memory:resource('memory'),savedMemory:binding(graph,'memory')?field(graph,'memory','savedMemory'):undefined,tool:resource('tool'),name:String(field(graph,rootId,'name')??''),instructions:instructions(graph),
     model:binding(graph,'model') ? String(field(graph,modelNodeId,'model')??'') : '',
     tokens:outputTokens(graph),temperature,topP,
-    maxSteps,maxRetries,maxToolCalls};
+    maxSteps,maxRetries,maxToolCalls,hostDeadlineMs};
 }
 
 function executionIssue(value:ReturnType<typeof resolved>) {
+  if(!validHostDeadline(value.hostDeadlineMs))return 'Enter a host deadline from 1 to 120 seconds (whole milliseconds).';
   const labels={maxSteps:'step limit',maxRetries:'retry limit',maxToolCalls:'tool call limit'} as const;
   for(const key of Object.keys(labels) as (keyof typeof labels)[]){
     const {min,max}=executionBounds[key];

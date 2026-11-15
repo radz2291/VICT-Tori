@@ -44,6 +44,7 @@ test('output limit upgrades older graphs, rejects wrong wires and checks numeric
   delete graph.nodeTypes.find(node=>node.id==='agent').parameters.maxSteps;
   delete graph.nodeTypes.find(node=>node.id==='agent').parameters.maxRetries;
   delete graph.nodeTypes.find(node=>node.id==='agent').parameters.maxToolCalls;
+  delete graph.nodeTypes.find(node=>node.id==='agent').parameters.hostDeadlineMs;
   delete graph.nodeTypes.find(node=>node.id==='model').parameters.temperature;
   delete graph.nodeTypes.find(node=>node.id==='model').parameters.topP;
   graph.nodeTypes.find(node=>node.id==='model').ports=
@@ -74,6 +75,7 @@ test('a legacy workspace authoring graph keeps its budget and can activate with 
   const legacyAgent=legacy.nodeTypes.find(node=>node.id==='agent');
   legacyAgent.ports=legacyAgent.ports.filter(port=>port.id!=='directive');
   delete legacy.nodeTypes.find(node=>node.id==='agent').parameters.maxToolCalls;
+  delete legacy.nodeTypes.find(node=>node.id==='agent').parameters.hostDeadlineMs;
   delete legacy.nodeTypes.find(node=>node.id==='memory').parameters.savedMemory;
   delete legacy.nodeTypes.find(node=>node.id==='memory').parameters.organizer;
   const upgraded=history(checkedAssembly(legacy));

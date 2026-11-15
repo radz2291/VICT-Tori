@@ -3,7 +3,7 @@
   import { Button, Feedback, StatusBadge } from '@victframework/ui-svelte';
   import { Button as ControlButton } from '@victframework/ui-svelte/primitives';
   import { Conversation, type ConversationMessage } from '@victframework/ui-ai-svelte';
-  import RunActivity from '../RunActivity.svelte';
+  import { presentTurn, type Density, type RunView } from '../run-presentation';
 
   type RunEvent = {at: string; kind?: string; label: string};
   type RunRecord = {
@@ -20,7 +20,7 @@
     awaitingObservation?: boolean;
     background?: boolean;
     events: readonly RunEvent[];
-    report?: unknown;
+    report?: RunView['report'];
   };
   type SessionLink = {id: string};
 
@@ -46,7 +46,7 @@
     runDuration?: string;
     runTokenUsage: string;
     stoppingRun: string;
-    openRun: (id: string, focus?: boolean) => Promise<void>;
+    openRun: (id: string) => Promise<void>;
     openSession: (id: string, focus?: boolean, messageId?: string) => Promise<void>;
     stopWatchedRun: (run: RunRecord) => Promise<void>;
     openViewIcon: Snippet;
@@ -58,6 +58,11 @@
     runTitle?: HTMLHeadingElement;
     runPane?: HTMLElement;
   } = $props();
+  const display=$derived(run?presentTurn(run,selectedReply?.text??'',activityDetail as Density,runs):undefined);
+  const displayedMessages=$derived<ConversationMessage[]>(run&&display?[
+    ...(selectedPrompt?[selectedPrompt]:[]),
+    {id:run.id+'-agent',role:'assistant',text:selectedReply?.text??run.report?.finalAnswer??'',events:display.events},
+  ]:[]);
 
   const timelineSecondsFormat=new Intl.NumberFormat(undefined,{minimumFractionDigits:3,maximumFractionDigits:3});
   const timelineClockFormat=new Intl.DateTimeFormat(undefined,{hour:'numeric',minute:'2-digit',second:'2-digit',fractionalSecondDigits:3});
@@ -90,7 +95,6 @@
           <span class="run-section-label" id="run-outcome-heading">Outcome</span>
         </header>
         <div class="run-section-card">
-          {#if run.message}<Feedback kind={run.state==='Uncertain'||run.status==='failed'?'error':'status'} message={run.message}/>{/if}
           {#if runActionError}<Feedback kind="error" message={runActionError}/>{/if}
           {#if observation?.run===runOwner?.id}
             {#if observation.disconnected}
@@ -131,12 +135,12 @@
                 {:else}<span class="muted">Session unavailable</span>{/if}
               {/if}
               {#if parent}
-                <ControlButton.Root class="vict-btn vict-btn--quiet" onclick={()=>openRun(parent.id,true)}>
+                <ControlButton.Root class="vict-btn vict-btn--quiet" onclick={()=>openRun(parent.id)}>
                   Open parent Run · {recordIdentity(parent)}
                 </ControlButton.Root>
               {/if}
               {#each children as child (child.id)}
-                <ControlButton.Root class="vict-btn vict-btn--quiet" onclick={()=>openRun(child.id,true)}>
+                <ControlButton.Root class="vict-btn vict-btn--quiet" data-open-related-run={child.id} onclick={()=>openRun(child.id)}>
                   Open child Run · {recordIdentity(child)}
                 </ControlButton.Root>
               {/each}
@@ -144,12 +148,12 @@
           {/if}
         </div>
       </section>
-      {#if selectedPrompt}
+      {#if display}
         {#key run.id}
           <section class="run-turn" aria-labelledby="run-turn-heading">
             <header class="run-section-heading">
               <h2 id="run-turn-heading">Turn</h2>
-              {#if runSession&&!run.parentRun}
+              {#if selectedPrompt&&runSession&&!run.parentRun}
                 <ControlButton.Root class="vict-btn vict-btn--quiet run-open-turn" aria-label="Open turn" title="Open turn in Sessions"
                   onclick={()=>openSession(runSession.id,true,selectedPrompt.id)}>
                   {@render openViewIcon()}
@@ -157,13 +161,18 @@
               {/if}
             </header>
             <div class="run-section-card">
-              <Conversation messages={selectedReply?[selectedPrompt,selectedReply]:[selectedPrompt]} composer={readOnlyTurn} inputLabel="Run turn"/>
+              <Conversation messages={displayedMessages} composer={readOnlyTurn} inputLabel="Run turn"
+                activityDensity={activityDetail==='summary'?'summary':'full'}>
+                {#snippet activityAction(_message,activity)}
+                  {@const action=display?.destinations.get(activity.id)}
+                  {#if action}<Button label={'Open '+action.name+' Run'} variant="secondary" onclick={()=>openRun(action.id)}/>{/if}
+                {/snippet}
+              </Conversation>
             </div>
           </section>
         {/key}
       {/if}
       <section class="run-timeline" aria-label="Timeline">
-        <RunActivity {run} {workspace} detail={activityDetail} outcomeMessage={run.message}/>
         {#if !run.report&&activityDetail==='full'}
         <div class="run-section-heading"><h2>Historical timeline</h2></div>
         <ol class="timeline">{#each run.events as event, index}
@@ -186,7 +195,7 @@
   {:else}
     <div class="empty">
       {#if runActionError}<Feedback kind="error" message={runActionError}/>
-      {:else}<h1>No Runs yet</h1><p>{runScope==='session'&&session?'This Session has no recorded Runs yet.':'Recorded turns will appear here.'}</p>{/if}
+      {:else}<h1 id="scoped-runs-empty" tabindex="-1">No Runs yet</h1><p>{runScope==='session'&&session?'This Session has no recorded Runs yet.':'Recorded turns will appear here.'}</p>{/if}
     </div>
   {/if}
 </main>

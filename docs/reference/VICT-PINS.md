@@ -1,5 +1,7 @@
 # TORI’s VICT dependency pins
 
+**TORI-015 response branch:** the only archive replacement is the additive `ui-ai-svelte` turn composition build. See [the packed consumer, source SHA, archive hashes and upgrade scope](../evidence/tori-015/PACKED-VICT.md). The table below remains the exact historical TORI-014 archive set.
+
 The reviewed TORI candidate `f302de96b96ede5eb158f4ce779801e955a8f69f` uses the `file:packs/…` references in [package.json](../../package.json) and the SHA-512 integrity entries in [package-lock.json](../../package-lock.json). Its lockfile Git blob is `746b69fbefb4a9123029f54ab4ca47a00aaa5310`. TORI-013 qualified those bytes with Windows x64, Node `22.13.1`, npm `11.19.1`, Playwright `1.63.0` and Chromium `153.0.8010.12`. [Independent Windows evidence and archive manifest](https://github.com/radz2291/VICT-Tori/blob/fbb1bdcc4aa09f05a3753ed6eea8a1fea3eac642/docs/evidence/v1c-run-visibility/tori-013-windows-f302de9/INDEPENDENT.md)
 
 Every archive is `0.4.0-rc.1` at `packs/victframework-<name>-0.4.0-rc.1.tgz`. The source baseline is VICT `6b420a3e9eada6f694cc2550debda7753316b5b3`. `contracts` and `control` were replaced with the VICT-003 archives from `02c63c31f8f4dc42840fc8975927c98b21f30058`, with the same version text. The hash identifies each exact archive. [V1b integration and archive lineage](../evidence/v1b/INTEGRATION.md)

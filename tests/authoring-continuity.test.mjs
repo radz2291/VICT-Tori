@@ -27,7 +27,8 @@ test('authoring restores completed history and a prior test after a deadline and
     const assembly = await vite.ssrLoadModule('/src/assembly.ts');
     const { add, change, emptyAssembly, history, modelId, wire } = assembly;
     const start = turnDeadlineMs => createStudio({
-      getAssembly: () => assembly, dataDirectory: directory, turnDeadlineMs,
+      getAssembly: () => assembly, dataDirectory: directory,
+      ...(turnDeadlineMs?{hostDeadlineFixture:{timeout:()=>AbortSignal.timeout(turnDeadlineMs)}}:{}),
     });
     studio = start();
     const draft = history(emptyAssembly());

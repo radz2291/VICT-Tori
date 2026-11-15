@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
-import { appendFileSync } from 'node:fs';
+import { appendFileSync, existsSync } from 'node:fs';
+import { setTimeout as delay } from 'node:timers/promises';
 
 process.env.TORI_EXECUTION_FIXTURE = 'a1-request-capture';
 globalThis.fetch = async (url, init) => {
@@ -9,6 +10,10 @@ globalThis.fetch = async (url, init) => {
   assert.equal(body.stream, true);
   appendFileSync(process.env.TORI_A1_CAPTURE, JSON.stringify({maxOutputTokens:body.max_tokens})+'\n');
   const lastUser=body.messages.findLastIndex(message=>message.role==='user');
+  const childGate=process.env.TORI_TEST_CHILD_GATE;
+  if(childGate&&body.messages[lastUser]?.content==='Review the project knowledge and observatory tool.'){
+    while(!existsSync(childGate))await delay(100,undefined,{signal:init.signal});
+  }
   const childTool=body.tools?.find(tool=>tool.function.name.includes('delegate'));
   const savedChild=childTool?.function.parameters?.properties?.includeContext;
   const requestTool=(process.env.TORI_BROWSER_A3==='1'||process.env.TORI_BROWSER_A4==='1')&&body.tools?.length&&

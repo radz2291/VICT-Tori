@@ -47,8 +47,9 @@ try {
   await page.locator('.svelte-flow__node[data-id="agent"]').click({position:{x:55,y:22}});
   assert.equal(await page.locator('.svelte-flow__node.selected[data-id="agent"]').count(),1);
   await chooseView('Configure');
-  assert.equal(await field('settings-agent-name').inputValue(),'Research Assistant');
-  assert.equal(await field('settings-agent-text').inputValue(),sourceText);
+  assert.equal(await page.locator('main [data-node-value="name"]').innerText(),'Research Assistant');
+  assert.equal(await page.locator('main [data-node-value="instructions"]').innerText(),sourceText);
+  assert.equal(await page.locator('.configure-readonly textarea').count(),0);
   await chooseView('Canvas');
   await page.locator('.svelte-flow__pane').click({position:{x:10,y:10}});
   assert.equal(await page.locator('.svelte-flow__node.selected').count(),0);

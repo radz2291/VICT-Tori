@@ -11,13 +11,14 @@ import {createServer} from 'vite';
 const {chromium}=createRequire(import.meta.url)(process.env.TORI_PLAYWRIGHT_MODULE??'playwright');
 const port=process.env.TORI_RV_RECEIPT_PORT??'48922',url='http://127.0.0.1:'+port;
 const directory=await mkdtemp(join(tmpdir(),'tori-rv-receipts-')),capture=join(directory,'calls.jsonl');
+const childGate=join(directory,'release-child');
 const out=process.env.TORI_RV_RECEIPT_EVIDENCE??'.local/run-visibility-receipts';await mkdir(out,{recursive:true});
 let host,vite,browser,log='',record={origin:'deterministic provider; actual governed runtime receipts'};
 const api=()=>fetch(url+'/api/studio').then(r=>r.json());
 const post=async(path,body)=>{const r=await fetch(url+'/api/studio/'+path,{method:'POST',headers:{Origin:url,'Content-Type':'application/json'},body:JSON.stringify(body)});const value=await r.json();assert.ok(r.ok,value.message);return value;};
 try{
   host=spawn(process.execPath,['--import','./tests/a1-provider-fixture.mjs','./node_modules/vite/bin/vite.js','--host','127.0.0.1','--port',port,'--strictPort'],{
-    env:{...process.env,TORI_DATA_DIR:directory,TORI_ZAI_ROUTE:'coding',TORI_ZAI_API_KEY:'synthetic-a1-fixture',TORI_ENABLE_PI_ZAI:'0',TORI_A1_CAPTURE:capture,TORI_BROWSER_A4:'1'},windowsHide:true});
+    env:{...process.env,TORI_DATA_DIR:directory,TORI_ZAI_ROUTE:'coding',TORI_ZAI_API_KEY:'synthetic-a1-fixture',TORI_ENABLE_PI_ZAI:'0',TORI_A1_CAPTURE:capture,TORI_BROWSER_A4:'1',TORI_TEST_CHILD_GATE:childGate},windowsHide:true});
   for(const s of [host.stdout,host.stderr])s.on('data',b=>log=(log+b).slice(-5000));
   let initial;for(let i=0;i<400;i++){initial=await api().catch(()=>null);if(initial?.workspace)break;if(host.exitCode!==null)throw Error(log);await delay(150);}
   assert.ok(initial?.fixture);
@@ -34,25 +35,58 @@ try{
   const parentRevision=(await post('save',{definition:initial.definition,graph:parent.graph})).revision;
   const activation=(await post('activate',{definition:initial.definition,revision:parentRevision})).activation;
   const session=(await post('sessions',{activation:activation.version})).sessions[0];
-  const result=await post('turn',{session:session.id,input:'Delegate a review of the synthetic source.'});
+  browser=await chromium.launch();const page=await browser.newPage({viewport:{width:1531,height:850}});page.setDefaultTimeout(25000);
+  const errors=[];page.on('pageerror',e=>errors.push(e.message));
+  const task=name=>page.getByRole('navigation',{name:'Studio tasks'}).getByRole('button',{name,exact:true});
+  await page.goto(url,{waitUntil:'domcontentloaded',timeout:120000});
+  await task('Sessions').click();
+  await page.getByRole('button',{name:'Details',exact:true}).click();
+  await page.getByLabel('Activity detail',{exact:true}).selectOption('summary');
+  const composer=page.getByRole('textbox',{name:'Message',exact:true});
+  await composer.fill('Delegate a review of the synthetic source.');
+  const terminal=page.waitForResponse(response=>response.url().endsWith('/api/studio/turn'),{timeout:80000});
+  void terminal.catch(()=>{});
+  await composer.press('Enter');
+  const feed=page.getByRole('main',{name:'Conversation'});
+  const runningRow=feed.locator('[data-activity-state=running]').filter({hasText:'Research receipt fixture'});
+  await runningRow.waitFor({timeout:40000});
+  assert.equal(await feed.getByText('{"finding":"Synthetic child review accepted."}',{exact:true}).count(),0);
+  const identity=await runningRow.getAttribute('data-activity-id');
+  const row=feed.locator('[data-activity-id]').filter({hasText:'Research receipt fixture'});
+  assert.equal(await row.count(),1);
+  await row.evaluate(element=>element.dataset.testIdentity='original');
+  await page.getByLabel('Activity detail',{exact:true}).selectOption('full');
+  const trigger=row.getByRole('button',{name:/Running Research receipt fixture/});
+  await trigger.focus();await trigger.press('Space');
+  await row.getByText('Waiting for result.',{exact:true}).waitFor();
+  await writeFile(childGate,'release');
+  const result=await (await terminal).json();
+  await row.getByText('Ran Research receipt fixture',{exact:true}).waitFor();
+  assert.equal(await row.getAttribute('data-activity-id'),identity);
+  assert.equal(await row.getAttribute('data-test-identity'),'original');
+  assert.equal(await row.getAttribute('data-activity-state'),'completed');
+  assert.equal(await row.getByRole('button',{name:/Ran Research receipt fixture/}).evaluate(el=>el===document.activeElement),true);
   const run=result.runs.find(r=>r.session===session.id&&!r.parentRun),specialist=result.runs.find(r=>r.parentRun===run.id);
   assert.equal(run.status,'completed');assert.equal(specialist.status,'completed');
   const parentReply=result.sessions.find(item=>item.id===run.session)?.messages.find(message=>message.role==='assistant'&&message.id===run.id+'-agent');
   assert.ok(parentReply?.text);assert.equal(run.report.finalAnswer,parentReply.text);
   assert.equal(specialist.report.specialist.revision,revision.id);assert.ok(specialist.publicEvents.length);
   const before=await readFile(capture,'utf8'),stored=JSON.stringify((await api()).runs);
-  browser=await chromium.launch();const page=await browser.newPage({viewport:{width:1531,height:850}});page.setDefaultTimeout(25000);
-  const errors=[];page.on('pageerror',e=>errors.push(e.message));
-  await page.goto(url,{waitUntil:'domcontentloaded',timeout:120000});
-  await page.getByRole('navigation',{name:'Studio tasks'}).getByRole('button',{name:'Runs',exact:true}).click();
-  await page.getByRole('button',{name:'Details',exact:true}).click();
+  await row.getByRole('button',{name:'Open Research receipt fixture Run',exact:true}).click();
+  await page.getByRole('heading',{name:'Research receipt fixture',exact:true}).waitFor();
+  await page.getByRole('button',{name:'Back to Session',exact:true}).click();
+  await page.getByText(parentReply.text,{exact:true}).waitFor();
+  await task('Runs').click();
+  const details=page.getByRole('button',{name:'Details',exact:true});
+  if(await details.getAttribute('aria-expanded')!=='true')await details.click();
   for(const value of ['summary','full','quiet'])await page.getByLabel('Activity detail',{exact:true}).selectOption(value);
-  await page.getByRole('button',{name:/^Open child Run · Research receipt fixture/}).click();
+  const childLink=page.getByRole('button',{name:/^Open child Run · Research receipt fixture/});
+  if(await childLink.count())await childLink.click();
   await page.getByText(revision.id,{exact:true}).waitFor();
   await page.getByRole('heading',{name:'Specialist report',exact:true}).waitFor();
   await page.getByText('Not configured',{exact:true}).waitFor();
   await page.getByLabel('Activity detail',{exact:true}).selectOption('full');
-  const work=page.locator('[data-run-activity="'+specialist.id+'"]').getByRole('button',{name:'Working',exact:true});await work.click();
+  await page.getByRole('button',{name:'Public receipts and diagnostics',exact:true}).click();
   await page.screenshot({path:join(out,'actual-specialist.png')});
   await page.getByRole('button',{name:'Open parent Run',exact:true}).click();
   await page.getByRole('region',{name:'Specialist report'}).getByText(parentReply.text,{exact:true}).waitFor();
@@ -60,6 +94,7 @@ try{
   assert.equal(await readFile(capture,'utf8'),before,'Inspecting must not make new provider calls');
   assert.equal(JSON.stringify((await api()).runs),stored,'Inspecting must not mutate receipts');assert.deepEqual(errors,[]);
   record={...record,pass:true,browser:browser.version(),parent:run.id,child:specialist.id,revision:revision.id,providerCalls:before.trim().split('\n').length,
-    eventRows:specialist.publicEvents.length,reportMatchesReceipt:true,zeroDispatchOnViews:true,unchangedRunReceipts:true};
+    eventRows:specialist.publicEvents.length,reportMatchesReceipt:true,zeroDispatchOnViews:true,unchangedRunReceipts:true,
+    foregroundSameRow:true,runningBeforeAnswer:true,focusPreserved:true,sessionToChildAndBack:true};
 }catch(error){record={...record,pass:false,error:error.message};throw error;}
 finally{await writeFile(join(out,'browser.json'),JSON.stringify(record,null,2));await browser?.close();await vite?.close();if(host&&host.exitCode===null){const end=once(host,'exit');host.kill();await end;}}

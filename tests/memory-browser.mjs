@@ -164,25 +164,23 @@ try {
   browser=await chromium.launch();
   observed.chromium=browser.version();
   page=await browser.newPage({viewport:observed.desktop});
+  const canvas=canvasAuthoring(page);
   page.setDefaultTimeout(25000);
   await page.context().grantPermissions(['clipboard-read','clipboard-write']);
   await newPage();
   await button('Canvas').click();
   await button('Add Agent').click({timeout:65000});
-  await button('Configure').click();
-  await field('settings-agent-name').fill('Quellight');
-  await field('settings-agent-text').fill('You are Quellight, a concise project assistant. For Orchid project updates, design is approved, implementation is in progress, and the demo is Friday. Follow any saved preferences supplied by Studio for response format. In the absence of a saved format preference, reply with one short sentence. Use simple hyphen bullets when the user prefers bullets.');
-  await field('settings-model').selectOption('glm-5.3-flash');
-  await field('settings-memory').selectOption('recent-10@1');
-  const policy=field('settings-saved-memory');
+  await canvas.rename('Quellight');
+  await canvas.rootInstructions().fill('You are Quellight, a concise project assistant. For Orchid project updates, design is approved, implementation is in progress, and the demo is Friday. Follow any saved preferences supplied by Studio for response format. In the absence of a saved format preference, reply with one short sentence. Use simple hyphen bullets when the user prefers bullets.');
+  await canvas.model();
+  await canvas.memory();
+  await field('canvas-memory-reference').selectOption('recent-10@1');
+  const policy=field('canvas-memory-saved-memory');
   assert.equal(await policy.inputValue(),'off');
   await policy.selectOption('governed@1');
   await policy.selectOption('');
   assert.equal(await policy.inputValue(),'governed@1');
   assert.equal(await policy.evaluate(node=>node===document.activeElement),true);
-  await button('Canvas').click();
-  await button('Actions for Quellight').click();
-  await page.getByRole('menuitem',{name:'Show binding as a separate node: Memory Policy'}).click();
   const onNode=field('canvas-memory-saved-memory');
   assert.equal(await onNode.inputValue(),'governed@1');
   await onNode.selectOption('off');
@@ -195,8 +193,9 @@ try {
   await onNode.selectOption('governed@1');
   await capture('memory-policy-canvas');
   await button('Configure').click();
-  assert.equal(await policy.inputValue(),'governed@1');
-  assert.equal(await field('settings-memory').inputValue(),'recent-10@1');
+  assert.equal(await canvas.value('memory','saved-memory').innerText(),'Governed');
+  assert.equal(await canvas.value('memory','reference').innerText(),'Last 10 messages');
+  assert.equal(await page.locator('.configure-readonly select').count(),0);
   await capture('memory-policy-configure');
   await route('save',()=>button('Save').click());
   const active=await route('activate',()=>button(/^Activate r1$/).click());
@@ -299,7 +298,7 @@ try {
   await capture('memory-run-recall',memoryRegion().getByRole('heading',{name:'Saved memory'}));
   if(!early){
     await task('Agents').click();
-    await button('Configure').click();
+    await canvas.memory();
     await policy.selectOption('off');
     await route('save',()=>button('Save').click());
     const historyOnly=await route('activate',()=>button(/^Activate r2$/).click());
@@ -609,3 +608,4 @@ try {
   await browser?.close();
   await stop();
 }
+import {canvasAuthoring} from './browser-node-authoring.mjs';

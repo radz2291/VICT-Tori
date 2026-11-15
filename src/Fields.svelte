@@ -1,131 +1,81 @@
 <script lang="ts">
   import { Button, Select, StatusBadge } from '@victframework/ui-svelte';
-  import { Button as ControlButton } from '@victframework/ui-svelte/primitives';
-  import { DropdownMenu } from '@victframework/ui-svelte/catalog/dropdown-menu';
-  import { Input, Textarea } from '@victframework/ui-ai-svelte';
-  import { binding, field, instructions, modelId, modelName, rootId, instructionId, modelNodeId, tokenSourceId, agentResources, resourceChoices as choices, inlineAgentSettings, governedMemoryValue } from './assembly';
-  import SavedMemoryPolicy from './SavedMemoryPolicy.svelte';
-  import ModelSampling from './ModelSampling.svelte';
-  import ExecutionLimits from './ExecutionLimits.svelte';
-  import DirectiveFields from './DirectiveFields.svelte';
+  import { Input } from '@victframework/ui-ai-svelte';
+  import { binding, executionSettings, field, instructions, modelName, rootId, instructionId, modelNodeId, tokenSourceId, agentResources, resourceChoices, outputTokens, directiveValues } from './assembly';
   import { childRef, childName, delegateGrant, childTask, childResult, taskLengthLimit } from './delegation-fixture.mjs';
-  let {graph,route,id,location='',childRevisions=[],pinnedChild,edit,disconnect,reveal,
-    openDefinition,canOpenDefinition,fixture,configure,section,hostDeadlineMs,pinnedDirective}=$props();
-  let base=$derived(location?location+'-settings':'settings');
-  let prefix=$derived(base+'-'+id);
-  let name=$derived(String(field(graph,rootId,'name')??''));
-  let textWire=$derived(binding(graph,'instructions'));
-  let tokenWire=$derived(binding(graph,'tokens'));
-  let resource=$derived(agentResources.find(item=>item.id===id));
-  let selectedChild=$derived(childRevisions.find(item=>'saved:'+item.id===field(graph,id,'reference')));
-  let activeChild=$derived(childRevisions.find(item=>item.id===pinnedChild));
-  let toolChoices=$derived(choices.tool.filter(option=>fixture||option.value!=='local-reference@1'||field(graph,'tool','reference')===option.value));
-  const capabilityLabel=(capability:{id:string;label:string})=>capability.id==='tool'&&(!fixture||(field(graph,'tool','reference')??'local-reference@1')!=='local-reference@1')?'Read-only Tool':capability.label;
-  let childChoices=$derived([...(fixture||field(graph,'child','reference')==='reference-reviewer@1'?choices.child:[]),...childRevisions.map(item=>({value:'saved:'+item.id,label:item.name+' · r'+item.number}))]);
-  let modelWire=$derived(binding(graph,'model'));
-  let existingCapabilities=$derived(agentResources.filter(item=>['context','tool','child','authoring','directive'].includes(item.id)&&
-    (binding(graph,item.id)||(item.id==='directive'&&graph.nodes.some(node=>node.id===item.id)))));
-  let availableCapabilities=$derived(agentResources
-    .filter(item=>['context','tool','child','authoring'].includes(item.id)&&!existingCapabilities.includes(item)&&(item.id!=='child'||fixture||childRevisions.length>0))
-    .map(item=>({value:item.id,label:capabilityLabel(item)})));
+  let {graph,id,location='',childRevisions=[],pinnedChild,reveal,
+    openDefinition,canOpenDefinition,fixture,section,pinnedDirective,pinnedHostDeadline}=$props();
+  const prefix=$derived((location||'selection')+'-settings-'+id);
+  const resource=$derived(agentResources.find(item=>item.id===id));
+  const selectedChild=$derived(childRevisions.find(item=>'saved:'+item.id===field(graph,id,'reference')));
+  const activeChild=$derived(childRevisions.find(item=>item.id===pinnedChild));
+  const hostExecution=$derived(executionSettings(graph));
+  const directive=$derived(directiveValues(graph));
+  const scope=$derived(id==='tool'?'Read-only Tool':resource?.label??'Node');
 </script>
 
-{#if section==='configure' && id===rootId}
-  <h2 class="configure-heading">Definition</h2>
-  <div class="configure-group">
-    <div class="configure-identity">
-      <div>
-        <label for={prefix+'-name'}>Agent name</label>
-        <Input id={prefix+'-name'} class="tori-field" value={name} oninput={(e)=>edit(rootId,'name',e.currentTarget.value)}/>
+{#if section==='configure'}
+  <div class="configure-group configure-readonly" data-selected-node={id}>
+    {#if id===rootId}
+      <h2 class="configure-heading">Definition</h2>
+      <dl class="delegation-facts">
+        <dt>Agent name</dt><dd data-node-value="name">{field(graph,id,'name')}</dd>
+        <dt>Model</dt><dd>{binding(graph,'model')&&field(graph,modelNodeId,'model')?modelName:'Not connected'}</dd>
+        <dt>System instructions</dt><dd class="configure-instructions" data-node-value="instructions">{instructions(graph)||'Not written'}</dd>
+        <dt>Execution</dt><dd data-node-value="execution">{hostExecution.maxSteps} steps · {hostExecution.maxToolCalls} calls · {hostExecution.maxRetries} retries · {hostExecution.hostDeadlineMs/1000} s</dd>
+        {#if pinnedHostDeadline!==undefined}<dt>Active host deadline</dt><dd>{pinnedHostDeadline/1000} s</dd>{/if}
+      </dl>
+      <Button label="Show Agent on canvas" variant="secondary" onclick={()=>reveal(rootId)}/>
+      <div class="configure-capability-grid" aria-label="Configured nodes">
+        {#each graph.nodes.filter(node=>node.id!==rootId) as node (node.id)}
+          {@const label=node.id===modelNodeId?'Model Reference':node.id===instructionId?'System prompt':node.id===tokenSourceId?'Output limit Integer':
+            agentResources.find(resource=>resource.id===node.id)?.label??node.label}
+          <Button label={'Show '+label+' on canvas'} variant="secondary" onclick={()=>reveal(node.id)}/>
+        {/each}
       </div>
-      <div>
-        <label for={base+'-model'}>Model</label>
-        <Select id={base+'-model'} name="model" value={modelWire?String(field(graph,modelNodeId,'model')??''):''}
-          options={[{value:modelId,label:modelName}]} onChange={value=>value?configure(modelNodeId,'model',value):disconnect('model')}/>
-      </div>
-    </div>
-    <label for={prefix+'-text'}>System instructions</label>
-    <Textarea id={prefix+'-text'} class="tori-field" rows={4} value={instructions(graph)} oninput={(e)=>textWire?edit(instructionId,'text',e.currentTarget.value):edit(rootId,'instructions',e.currentTarget.value)}/>
+    {:else if id==='directive'}
+      <h2 class="configure-heading">Standing Directive</h2>
+      <dl class="delegation-facts">
+        <dt>Display name</dt><dd>{directive.name}</dd>
+        <dt>Recognition context</dt><dd class="configure-instructions">{directive.recognition}</dd>
+        <dt>Transcript budget</dt><dd data-node-value="transcript-budget">{directive.historyBytes} bytes</dd>
+        <dt>Interpretation deadline</dt><dd>{Number(directive.deadlineMs)/1000} seconds</dd>
+        <dt>Interpretation output tokens</dt><dd>{directive.outputTokens}</dd>
+        <dt>Sensitivity tuning</dt><dd>{directive.tuning==='on'?String(directive.sensitivity):'Off'}</dd>
+        <dt>Active policy</dt><dd>{pinnedDirective?.status==='bound'?pinnedDirective.revision:'Not active'}</dd>
+      </dl>
+      <Button label="Show Standing Directive on canvas" variant="secondary" onclick={()=>reveal(id)}/>
+    {:else if id===modelNodeId || id===tokenSourceId}
+      <h2 class="configure-heading">{id===modelNodeId?'Model Reference':'Output limit Integer'}</h2>
+      <dl class="delegation-facts">
+        {#if id===modelNodeId}
+          <dt>Model</dt><dd>{field(graph,id,'model')?modelName:'Not selected'}</dd>
+          <dt>Temperature</dt><dd>{field(graph,id,'temperature')??'Provider default'}</dd>
+          <dt>Top-p</dt><dd>{field(graph,id,'topP')??'Provider default'}</dd>
+        {/if}
+        <dt>Max output tokens</dt><dd>{outputTokens(graph)}</dd>
+      </dl>
+      <Button label="Show node on canvas" variant="secondary" onclick={()=>reveal(id)}/>
+    {:else if id===instructionId}
+      <h2 class="configure-heading">Instruction source</h2>
+      <p class="configure-instructions">{field(graph,id,'text')??''}</p>
+      <Button label="Show System prompt on canvas" variant="secondary" onclick={()=>reveal(id)}/>
+    {:else if resource}
+      {@const reference=field(graph,id,'reference')}
+      {@const options=resourceChoices[resource.id]}
+      <h2 class="configure-heading">{scope}</h2>
+      <dl class="delegation-facts">
+        <dt>Reference</dt><dd data-node-value="reference">{id==='child'&&selectedChild?selectedChild.name+' · r'+selectedChild.number:options.find(option=>option.value===reference)?.label??'Not selected'}</dd>
+        {#if id==='memory'}<dt>Saved Memory</dt><dd data-node-value="saved-memory">{field(graph,id,'savedMemory')==='governed@1'?'Governed':'Off'}</dd>{/if}
+        <dt>Connection</dt><dd>{binding(graph,id)?'Connected':'Unconnected'}</dd>
+      </dl>
+      <Button label="Show node on canvas" variant="secondary" onclick={()=>reveal(id)}/>
+      {#if id==='child'}{@render delegationDetails()}{/if}
+    {/if}
   </div>
-  <section class="agent-capabilities" aria-label="Capabilities">
-    <h2 class="configure-heading">Capabilities</h2>
-    <div class="configure-group configure-capability-grid">
-      {#each existingCapabilities as capability}
-        {@const reference=field(graph,capability.id,'reference')}
-        {@const label=(capability.id==='child'?childChoices:capability.id==='tool'?toolChoices:choices[capability.id]).find(option=>option.value===reference)?.label}
-        <div class="configure-capability">
-          <div><span>{capabilityLabel(capability)}</span>{#if label}<small>{label}</small>{/if}</div>
-          <ControlButton.Root class="vict-btn vict-btn--quiet" aria-label={'Edit '+capabilityLabel(capability)}
-            onclick={()=>reveal(capability.id)}>Edit</ControlButton.Root>
-        </div>
-      {/each}
-      {#if availableCapabilities.length}
-        <DropdownMenu.Root>
-          <DropdownMenu.Trigger class="vict-btn vict-btn--secondary configure-capability configure-add-tile" aria-label="Add capability" title="Add capability">
-            <span aria-hidden="true">+</span>
-          </DropdownMenu.Trigger>
-          <DropdownMenu.Portal>
-            <DropdownMenu.Content class="menu-content" align="start">
-              {#each availableCapabilities as option (option.value)}
-                <DropdownMenu.Item class="menu-item" onSelect={()=>{if(configure(option.value,'',''))void reveal(option.value);}}>
-                  {option.label}
-                </DropdownMenu.Item>
-              {/each}
-            </DropdownMenu.Content>
-          </DropdownMenu.Portal>
-        </DropdownMenu.Root>
-      {:else}
-        <ControlButton.Root class="vict-btn vict-btn--secondary configure-capability configure-add-tile" aria-label="Add capability · Coming soon" disabled>
-          <span aria-hidden="true">+</span>
-          <small>Coming soon</small>
-        </ControlButton.Root>
-      {/if}
-    </div>
-  </section>
-  {#if !graph.nodes.some(node=>node.id==='directive')}
-    <div class="configure-remove"><Button label="Add Directive" variant="secondary"
-      onclick={()=>{if(configure('directive','','',false))void reveal('directive');}}/></div>
-  {/if}
-  <section aria-label="Advanced settings">
-    <h2 class="configure-heading">Advanced</h2>
-    <div class="configure-group configure-advanced-fields">
-      {@render generationFields()}
-      <ExecutionLimits {graph} {edit} {prefix} {hostDeadlineMs}/>
-    </div>
-  </section>
-{:else if section==='configure' && id===instructionId}
-  <label for={prefix+'-text'}>Instruction source</label>
-  <Textarea id={prefix+'-text'} class="tori-field" rows={4} value={String(field(graph,id,'text')??'')}
-    oninput={event=>edit(id,'text',event.currentTarget.value)}/>
-{:else if section==='configure' && id===modelNodeId}
-  <label for={prefix+'-reference'}>Model</label>
-  <Select id={prefix+'-reference'} name="model" value={String(field(graph,id,'model')??'')}
-    options={[{value:modelId,label:modelName}]} onChange={value=>edit(id,'model',value||undefined)}/>
-  {@render outputLimit(tokenWire?tokenSourceId:modelNodeId)}
-  <ModelSampling {graph} {route} {edit} {prefix}/>
-{:else if section==='configure' && id===tokenSourceId}
-  {@render outputLimit(tokenSourceId)}
-{:else if section==='configure' && id==='directive'}
-  <DirectiveFields {graph} {prefix} {edit} {configure} {disconnect} active={pinnedDirective}/>
-{:else if section==='configure' && resource}
-  <div class="configure-setting">
-    <label for={prefix+'-reference'}>{id==='context'?'Source revision':capabilityLabel(resource)}</label>
-    <Select id={prefix+'-reference'} name="reference" value={String(field(graph,id,'reference'))} options={id==='child'?childChoices:id==='tool'?toolChoices:choices[resource.id]} onChange={v=>edit(id,'reference',v)}/>
-  </div>
-  {#if id==='memory'}
-    <SavedMemoryPolicy id={prefix+'-saved-memory'} value={String(field(graph,'memory','savedMemory')??'off')} set={v=>edit('memory','savedMemory',v)}/>
-  {/if}
-  {#if id==='child'}{@render delegationDetails()}{/if}
-  {#if binding(graph,id)}
-    <div class="configure-remove">
-      <Button label={id==='context'?'Remove source':'Remove capability'} variant="secondary"
-        onclick={()=>{disconnect(id);void reveal(rootId);}}/>
-    </div>
-  {/if}
 {:else if section==='delegation'}
   {@render delegationDetails()}
 {/if}
-
 {#snippet delegationDetails()}
   <div class="delegation-details">
     <StatusBadge value={(binding(graph,'child')?'Connected':'Unconnected')+(fixture||!selectedChild?' · deterministic fixture':' · saved revision')}/>
@@ -167,31 +117,5 @@
           onclick={()=>openDefinition(selectedChild.definition)}/>
       </div>
     {/if}
-  </div>
-{/snippet}
-
-{#snippet generationFields()}
-  {#if modelWire}
-    {@render outputLimit(tokenWire?tokenSourceId:modelNodeId)}
-    <ModelSampling {graph} {route} {edit} prefix={base+'-model'}/>
-  {/if}
-  {#each inlineAgentSettings as setting}
-    <div class="configure-setting">
-      <label for={base+'-'+setting.id}>{setting.label}</label>
-      <Select id={base+'-'+setting.id} name={setting.id}
-        value={binding(graph,setting.id)?String(field(graph,setting.id,'reference')):'default'}
-        options={setting.options} onChange={value=>value&&value!=='default'?configure(setting.id,'reference',value):
-          setting.id==='memory'&&field(graph,'memory','savedMemory')===governedMemoryValue?configure('memory','reference','recent-100@1'):disconnect(setting.id)}/>
-    </div>
-  {/each}
-  <SavedMemoryPolicy id={base+'-saved-memory'} value={binding(graph,'memory')?String(field(graph,'memory','savedMemory')??'off'):'off'}
-    set={value=>configure('memory','savedMemory',value)}/>
-{/snippet}
-
-{#snippet outputLimit(nodeId:string)}
-  <div class="configure-setting">
-    <label for={base+'-output-limit'}>Max output tokens</label>
-    <Input id={base+'-output-limit'} class="tori-field" type="number" min={64} max={32768}
-      value={Number(field(graph,nodeId,'tokens')??4096)} oninput={event=>edit(nodeId,'tokens',Number(event.currentTarget.value))}/>
   </div>
 {/snippet}

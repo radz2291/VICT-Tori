@@ -46,6 +46,8 @@ try {
   assert.ok(initial.definitions.every(item => !['Quellight', 'Research'].includes(item.name)), 'Start with the target agents absent.');
   browser = await chromium.launch();
   page = await browser.newPage({ viewport: { width: 1531, height: 850 } });
+  const canvas=canvasAuthoring(page);
+  const nodePrompt=async()=>{await canvas.ensureCanvas();return canvas.rootInstructions();};
   page.setDefaultTimeout(20000);
   const button = name => page.getByRole('button', { name, exact: true });
   const field = id => page.locator('#' + id);
@@ -64,7 +66,7 @@ try {
   async function openDefinition(name) {
     const library = page.getByRole('complementary', { name: 'Assembly / Selection' });
     await library.getByRole('button').filter({ has: page.getByText(name, { exact: true }) }).click();
-    await page.waitForFunction(name => document.getElementById('settings-agent-name')?.value === name, name);
+    await library.locator('.definition-row[aria-pressed=true] .definition-name').getByText(name,{exact:true}).waitFor();
   }
   async function openAuthoring(version) {
     const toggle = page.locator('.agent-dock-actions').getByRole('button', { name: 'Authoring Agent', exact: true });
@@ -232,13 +234,14 @@ try {
 
   await page.goto(url);
   await button('Add Agent').click();
-  await field('settings-agent-name').fill('Authoring Agent');
-  await field('settings-agent-text').fill('Help the operator author Studio agents. Discover real definitions, resources and Runs. Apply only requested changes. Use exact returned IDs and report observed outcomes.');
-  await field('settings-model').selectOption('glm-5.3-flash');
-  await field('settings-agent-steps').fill('4');
-  await button('Add capability').click();
-  await page.getByRole('menuitem', { name: 'Draft Authoring', exact: true }).click();
-  await field('settings-authoring-reference').selectOption('workspace@1');
+  await canvas.rename('Authoring Agent');
+  await canvas.rootInstructions().fill('Help the operator author Studio agents. Discover real definitions, resources and Runs. Apply only requested changes. Use exact returned IDs and report observed outcomes.');
+  await canvas.model();
+  await canvas.execution();
+  await field('canvas-agent-steps').fill('4');
+  await canvas.insert('Draft Authoring');
+  await field('canvas-authoring-reference').selectOption('workspace@1');
+  await canvas.nodeAction('authoring','Connect to Draft Authoring');
   await clickRequest(button('Save'), 'save');
   const pinned = (await clickRequest(page.getByRole('button', { name: /^Activate r\d+$/ }), 'activate')).activation;
   assert.equal(pinned.workspaceAuthoring, true);
@@ -338,20 +341,20 @@ try {
   await page.screenshot({ path: join(evidence, 'desktop-canvas.png') });
   await button('Configure').click();
   await openDefinition('Research');
-  const original = await field('settings-agent-text').inputValue();
+  const original = await (await nodePrompt()).inputValue();
   const edited = await result(await send('Apply the improvement to the open Research draft by keeping the existing instructions and appending this exact sentence: Include a source label in every finding. Leave the draft open so I can check the edit.'));
   assert.equal(edited.run.session, built.run.session);
   assert.equal(edited.run.draftReceipts?.[0]?.status, 'applied', JSON.stringify(edited.run));
-  const improved = await field('settings-agent-text').inputValue();
+  const improved = await (await nodePrompt()).inputValue();
   assert.match(improved, /Include a source label in every finding/i);
   await history('Undo');
-  assert.equal(await field('settings-agent-text').inputValue(), original);
+  assert.equal(await (await nodePrompt()).inputValue(), original);
   await history('Redo');
-  assert.equal(await field('settings-agent-text').inputValue(), improved);
+  assert.equal(await (await nodePrompt()).inputValue(), improved);
   const manualSaved = await clickRequest(button('Save'), 'save');
   await page.reload();
   await openDefinition('Research');
-  assert.equal(await field('settings-agent-text').inputValue(), improved);
+  assert.equal(await (await nodePrompt()).inputValue(), improved);
   await openAuthoring(pinned.version);
   assert.equal(await dock().locator('#authoring-mode').inputValue(), 'change');
 
@@ -422,11 +425,11 @@ try {
     const stale = await holdProposal();
     const pending = await send('Please revise the instructions to include a source label.');
     await stale.seen;
-    await field('settings-agent-text').fill('Manual edit during the authoring turn.');
+    await (await nodePrompt()).fill('Manual edit during the authoring turn.');
     stale.release();
     const staleRun = await result(pending);
     assert.equal(staleRun.run.draftReceipts[0].status, 'stale');
-    assert.equal(await field('settings-agent-text').inputValue(), 'Manual edit during the authoring turn.');
+    assert.equal(await (await nodePrompt()).inputValue(), 'Manual edit during the authoring turn.');
     probes.stale = staleRun.run.draftReceipts[0];
     await page.unroute('**/api/studio/authoring-poll');
 
@@ -438,7 +441,7 @@ try {
     const stopped = await result(stopping);
     assert.equal(stopped.run.status, 'cancelled');
     assert.ok(!stopped.run.draftReceipts?.some(item => item.status === 'applied'));
-    assert.equal(await field('settings-agent-text').inputValue(), 'Manual edit during the authoring turn.');
+    assert.equal(await (await nodePrompt()).inputValue(), 'Manual edit during the authoring turn.');
     assert.equal((await api(specialist.definitionId)).revision.id, finalResearch.revision.id);
     probes.stopped = stopped.run.id;
     await page.unroute('**/api/studio/authoring-poll');
@@ -462,7 +465,7 @@ try {
     const variant = await result(await send('Could you draft a new weekly reviewer and leave it unsaved?'));
     assert.equal(actions(variant.run, 'assemble').status, 'created');
     await openDefinition('Weekly Reviewer');
-    assert.match(await field('settings-agent-text').inputValue(), /weekly commitments/);
+    assert.match(await (await nodePrompt()).inputValue(), /weekly commitments/);
     const separateSave = await result(await send('Please save this draft as it is.'));
     assert.equal(actions(separateSave.run, 'edit').status, 'applied');
     const reopened = await api(actions(variant.run, 'assemble').definitions[0].definitionId);
@@ -480,9 +483,8 @@ try {
     await field('canvas-agent-retries').fill('2');
     await page.screenshot({ path: join(evidence, 'desktop-node-execution.png') });
     await button('Configure').click();
-    assert.equal(await field('settings-agent-steps').inputValue(), '7');
-    assert.equal(await field('settings-agent-tool-calls').inputValue(), '5');
-    assert.equal(await field('settings-agent-retries').inputValue(), '2');
+    assert.match(await canvas.value('agent','execution').innerText(), /7 steps · 5 calls · 2 retries/);
+    assert.equal(await page.locator('main .configure-readonly input').count(),0);
     await clickRequest(button('Save'), 'save');
     const configured = (await clickRequest(page.getByRole('button', { name: /^Activate r\d+$/ }), 'activate')).activation;
     assert.notEqual(configured.version, pinned.version);
@@ -564,3 +566,4 @@ try {
     await once(server, 'exit');
   }
 }
+import {canvasAuthoring} from './browser-node-authoring.mjs';

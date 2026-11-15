@@ -162,6 +162,8 @@
   let inspectSessionScope=$state(false);
   let runScope=$derived(inspectSessionScope?'session':runScopePreference);
   let runReturnSession=$state('');
+  let runReturnMessage=$state('');
+  let runChildReturn=$state<{parent:string;child:string;top:number}>();
   let runSearchOpen=$state(false),runGrouping=$state('session');
   let runGroupChoice=$state<string>();
   let runPane:HTMLElement|undefined=$state();
@@ -179,7 +181,7 @@
   let sessionRun=$derived(sessionRuns.find(item=>item.id===activeRun)??sessionRuns.find(item=>!item.parentRun)??sessionRuns[0]);
   const currentSessionRun=$derived(sessionRuns.find(item=>!item.parentRun));
   const runOwner=$derived(run?.parentRun?state.runs.find(item=>item.id===run.parentRun):run);
-  const watchedRun=$derived(page==='Runs'?runOwner:page==='Sessions'?currentSessionRun:undefined);
+  const watchedRun=$derived(page==='Runs'?runOwner:page==='Sessions'&&sendActivity?.session!==activeSession?currentSessionRun:undefined);
   const liveSessionRun=$derived(currentSessionRun?.state==='Running'?currentSessionRun:undefined);
   const awaitingStart=$derived(!!session&&pendingStart?.session===session.id&&!startNotFound);
   const sessionBusy=$derived((!!session&&sendActivity?.session===session.id)||!!liveSessionRun||
@@ -642,10 +644,11 @@
         ...(n.id==='instructions'?promptSize:{}),
         data:{graph:g,preview,activePin:n.id==='child'?state.childRevisions?.find(item=>item.id===state.activation?.childRevision):undefined,
           title:objectTitle(n.id),customTitle:customNodeTitle(n.id),defaultTitle:defaultNodeTitle(n.id),mobile,promptSize,canvasIds,route:state.route,hostDeadlineMs:state.hostDeadlineMs,
+          pinnedDirective:state.activation?.directive,
           wireSource,fixture:state.fixture,
           fields:{childRevisions:state.childRevisions,edit,configure,connect,disconnect,remove,inspectDelegation,
             focus:focusCanvasNode,rename:renameNode,resizePrompt,
-            showOptionalNode,hideOptionalNode,createAndConnectSettingNode}}};
+            showOptionalNode,hideOptionalNode,createAndConnectSettingNode,showAndFocus:showAuthoredNode,createSetting:createAuthoredNode}}};
     });
   });
   $effect(()=>{
@@ -818,6 +821,18 @@
   }
   function hideOptionalNode(id:string){
     setBindingVisible(id,false);
+  }
+  async function showAuthoredNode(id:string){
+    selectAgentView('Canvas');
+    if(mobileOpen)sheetInvoker=null;
+    mobileOpen=false;
+    if(!graph.nodes.some(node=>node.id===id)){await fit();return;}
+    setBindingVisible(id,true);
+    await focusCanvasNode(id);
+  }
+  function createAuthoredNode(id:string){
+    if(graph.nodes.some(node=>node.id===id)){void showAuthoredNode(id);return;}
+    if(configure(id,'','',id==='model'||id==='memory'||id==='output'))void showAuthoredNode(id);
   }
   async function createAndConnectSettingNode(id:'instructions'|typeof tokenSourceId){
     if(graph.nodes.some(node=>node.id===id))return;
@@ -1018,6 +1033,31 @@
       if(focus)runTitle?.focus({preventScroll:true});
     }
   }
+  async function inspectActivityRun(id:string,sourceId?:string){
+    const target=state.runs.find(item=>item.id===id);
+    if(!target||(page==='Sessions'&&target.session!==activeSession)){
+      runActionError='This Run is unavailable.';
+      if(page==='Sessions')turnErrors[activeSession]=runActionError;
+      return;
+    }
+    if(page==='Sessions'){
+      runReturnSession=activeSession;
+      runReturnMessage=(sourceId??target.parentRun??target.id)+'-user';
+      inspectSessionScope=true;
+      runQuery='';
+      changePage('Runs');
+    }else if(target.parentRun&&target.parentRun===activeRun){
+      runChildReturn={parent:activeRun,child:id,top:runPane?.scrollTop??0};
+    }
+    const history=runChildReturn;
+    const returnToParent=history?.parent===id&&history.child===activeRun;
+    await openRun(id,true);
+    if(returnToParent&&history&&runPane&&activeRun===id){
+      runPane.scrollTop=history.top;
+      runPane.querySelector<HTMLElement>('[data-open-related-run="'+CSS.escape(history.child)+'"]')?.focus({preventScroll:true});
+      runChildReturn=undefined;
+    }
+  }
   function syncRunSelection(){
     const selected=runScope==='session'?sessionRun:run??state.runs[0];
     const id=selected?.id??'';
@@ -1034,6 +1074,7 @@
   function closeRunInspection(){
     if(!runReturnSession)return;
     runReturnSession='';
+    runReturnMessage='';
     inspectSessionScope=false;
     runQuery='';
     runGroupChoice=undefined;
@@ -1049,15 +1090,20 @@
     await tick();
     document.getElementById('run-history-search')?.focus({preventScroll:true});
   }
-  function inspectSessionRuns(runId=sessionRun?.id){
-    if(!runId)return;
+  async function inspectSessionRuns(runId=sessionRun?.id){
+    if(!activeSession)return;
     inspectSessionScope=true;
     runReturnSession=activeSession;
+    runReturnMessage=runId?runId+'-user':'';
     runQuery='';
     runGroupChoice=undefined;
     if(mobileOpen)sheetInvoker=null;
     changePage('Runs');
-    void openRun(runId,true);
+    if(runId){await openRun(runId,true);return;}
+    activeRun='';
+    mobileOpen=false;
+    await tick();
+    document.getElementById('scoped-runs-empty')?.focus({preventScroll:true});
   }
   function rememberReadingPosition(node:HTMLElement,id:string){
     const offset=readingPositions.get(id);
@@ -1244,6 +1290,9 @@
     }
     delete turnErrors[id];
     sendActivity={session:id,phase:'waiting'};
+    const activation=session.activation;
+    const foreground=!session.authoring;
+    let seen:any;
     const activityAbort=new AbortController();
     const poll=async()=>{
       try {
@@ -1251,6 +1300,17 @@
         if(response.ok){
           const {phase,turn,canStop}=await response.json();
           if(phase&&!activityAbort.signal.aborted)sendActivity={session:id,phase,turn,canStop};
+          if(foreground&&turn&&!activityAbort.signal.aborted){
+            const target={session:id,run:turn,activation};
+            const packet=await request('/run-observe',{...target,cursor:seen?.run?.id===turn?seen.cursor:undefined},undefined,activityAbort.signal);
+            if(!activityAbort.signal.aborted){
+              const next=acceptRunPacket(seen?.run?.id===turn?seen:undefined,packet,target);
+              if(next&&next!==seen){
+                seen=next;
+                mergeObserved({...packet,run:next.run});
+              }
+            }
+          }
         }
       }catch{/* The turn request still owns success and failure. */}
       if(!activityAbort.signal.aborted)setTimeout(poll,350);
@@ -1794,9 +1854,9 @@
   {/each}
 {/snippet}
 {#snippet agentFields(id:string,section:'configure'|'delegation'='configure',location='')}
-  <Fields {graph} {location} childRevisions={state.childRevisions} pinnedChild={state.activation?.childRevision} route={state.route} {id} {section} {edit} {disconnect}
-    reveal={focusCanvasNode} openDefinition={async id=>{mobileOpen=false;await openDefinition(id);}} canOpenDefinition={!dirty&&!pending&&!sending}
-    fixture={state.fixture} {configure} hostDeadlineMs={state.hostDeadlineMs} pinnedDirective={state.activation?.directive}/>
+  <Fields {graph} {location} childRevisions={state.childRevisions} pinnedChild={state.activation?.childRevision} {id} {section}
+    reveal={showAuthoredNode} openDefinition={async id=>{mobileOpen=false;await openDefinition(id);}} canOpenDefinition={!dirty&&!pending&&!sending}
+    fixture={state.fixture} pinnedDirective={state.activation?.directive} pinnedHostDeadline={state.activation?.hostDeadlineMs}/>
 {/snippet}
 
 {#snippet dockToggle(panel:DockPanel,disabled=false)}
@@ -2019,7 +2079,7 @@
 {#snippet sessionDetails()}
   <div class="session-details">
     <ActivityDetail id="session-activity-detail" value={activityDetail} change={changeActivityDetail}/>
-    {#if sessionRuns.length}
+    {#if session}
       <ControlButton.Root class="vict-btn vict-btn--quiet session-inspect-runs" onclick={()=>inspectSessionRuns()}>
         {@render openViewIcon()} Inspect runs
       </ControlButton.Root>
@@ -2049,11 +2109,7 @@
 {#snippet runDetails()}
   <ActivityDetail id="run-activity-detail" value={activityDetail} change={changeActivityDetail}/>
   <RunDetails {run} loadMemory={(id:string)=>request('/memory/run',{run:id})}
-    checkMemory={(binding:any)=>request('/memory/check',binding)} inspectRun={async(id:string)=>{
-    setRunScope('all');
-    runReturnSession='';
-    await openRun(id,true);
-  }}/>
+    checkMemory={(binding:any)=>request('/memory/check',binding)} inspectRun={inspectActivityRun}/>
 {/snippet}
 
 {#snippet historyHeaderActions(searchLabel:string,searchOpen:boolean,toggleSearch:()=>void,optionsLabel:string,choices:Snippet)}
@@ -2239,7 +2295,7 @@
         {:else}
           {#if runReturnTarget}
             <ControlButton.Root class="vict-btn vict-btn--quiet panel-shortcut" aria-label="Back to Session" title="Back to Session"
-              onclick={()=>openSession(runReturnTarget.id,true)}>
+              onclick={()=>openSession(runReturnTarget.id,true,runReturnMessage||undefined)}>
               <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M19 12H5m7-7-7 7 7 7"/>
               </svg>
@@ -2251,13 +2307,13 @@
       {#if page==='Sessions'}
         <SessionsPage bind:conversationPane {session} {sessionBusy} workspace={state.workspace} {activityDetail}
           {memoryView} {sending} {sessionRuns} {sessionComposer} {changeMemory}
-          inspectRun={async(id)=>{setRunScope('all');await openRun(id,true);}}
+          inspectRun={inspectActivityRun}
           {rememberReadingPosition}/>
       {:else}
         <RunsPage bind:runTitle bind:runPane {run} {runOwner} {runSession} runs={state.runs}
           {session} {runScope} workspace={state.workspace} {selectedPrompt} {selectedReply} {activityDetail}
           {runActionError} {observation} {runDuration} {runTokenUsage} {stoppingRun}
-          {openRun} {openSession} {stopWatchedRun} {openViewIcon} {elapsed} {historyDate} {recordIdentity} {recordMode} {runStatus}/>
+          openRun={inspectActivityRun} {openSession} {stopWatchedRun} {openViewIcon} {elapsed} {historyDate} {recordIdentity} {recordMode} {runStatus}/>
       {/if}
     </ExecutionPage>
   {/if}

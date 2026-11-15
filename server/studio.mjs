@@ -3,6 +3,7 @@ import { contextPolicy, discoverReadTool, governedReadTurn, loadContext, toolRef
 import { createSqliteAgentControlStores, createSqliteAgentGovernanceStore } from '@victframework/store-sqlite';
 import { authoringRefs, createAuthoringTransport, validAuthoringTarget } from './draft-authoring.mjs';
 import { workspaceBinding, workspaceReadOnly, workspaceRefs } from '../packages/authoring/index.mjs';
+import { hostDeadlineInstructionRevision, initialHostDeadlineMs, validHostDeadline } from '../packages/authoring/host-deadline.mjs';
 import { registeredTool, registeredTools } from '../src/registered-tools.mjs';
 import { acceptedRunReply, authoringChatSessions, knownOperation, lastAuthoringTest, operationDigest, rememberOperation, runEvidence, workspaceCapabilities } from './workspace-actions.mjs';
 import { publicProviderStream } from './provider-stream.mjs';
@@ -76,8 +77,10 @@ const directiveSummary=pin=>{
   const binding=directiveOf(pin);
   return binding.status==='bound'?{status:binding.status,revision:binding.revision,policy:binding.policy}:{status:binding.status};
 };
-function registerProfile(registry,artifacts,revision,value,route,subagent,delegate=delegationRef,directivePin) {
-  const instructionRef={id:'tori-instructions',revision:revision.id};
+function registerProfile(registry,artifacts,revision,value,route,subagent,delegate=delegationRef,directivePin,hostDeadlineMs) {
+  // The exact TORI host policy is committed by the VICT activation's
+  // instructions artifact revision alongside the saved definition revision.
+  const instructionRef={id:'tori-instructions',revision:hostDeadlineInstructionRevision(revision.id,hostDeadlineMs)};
   const memoryBase=memoryArtifact(value.memory,value.savedMemory);
   const memoryRef=directivePin===undefined?memoryBase:withDirectiveReference(memoryBase,directivePin);
   const required=[
@@ -106,13 +109,13 @@ function registerProfile(registry,artifacts,revision,value,route,subagent,delega
     adapter:MASTRA_ADAPTER_COMPATIBILITY});
   return memoryRef;
 }
-function activationFor(revision,value,route,record,delegated,savedDelegation,directivePin,childDirectivePin) {
+function activationFor(revision,value,route,record,delegated,savedDelegation,directivePin,childDirectivePin,hostDeadlineMs,childHostDeadlineMs) {
   if(value.organizer!==undefined&&value.organizer!==organizerOff)throw conflict('Unsupported memory organizer posture.');
   const registry=new AgentProfileRegistry({resolveCapabilityRevision:(id,rev)=>[toolRef,delegationRef,savedDelegationRef,...authoringRefs,...workspaceRefs,...registeredTools].some(ref=>id===ref.id&&rev===ref.revision)});
   const reference=delegated?profileRef(delegated.revision):value.child?childRef:undefined;
   const artifacts=new Set();
-  const memoryPolicy=registerProfile(registry,artifacts,revision,value,route,reference,savedDelegation?savedDelegationRef:delegationRef,directivePin);
-  if(delegated)registerProfile(registry,artifacts,delegated.revision,delegated.value,route,undefined,undefined,childDirectivePin);
+  const memoryPolicy=registerProfile(registry,artifacts,revision,value,route,reference,savedDelegation?savedDelegationRef:delegationRef,directivePin,hostDeadlineMs);
+  if(delegated)registerProfile(registry,artifacts,delegated.revision,delegated.value,route,undefined,undefined,childDirectivePin,childHostDeadlineMs);
   const child=delegated?registry.activateAgentProfile(reference):
     reference?registerChild(registry,{memoryPolicy},MASTRA_ADAPTER_COMPATIBILITY):undefined;
   if(!record)return {activation:registry.activateAgentProfile(profileRef(revision)),child};
@@ -240,13 +243,13 @@ async function requestMemoryDraft(key,route,evidence,draft,input,signal) {
   return finish==='stop'?parseMemoryDraft(content,draft):undefined;
 }
 
-const maxHostDeadlineMs=90000;
-export function createStudio({getAssembly,dataDirectory,turnDeadlineMs=maxHostDeadlineMs,contextReader,memoryFixture,
-  backgroundFixture,directiveFixture,retention=mastraRetention()}) {
-  if(!Number.isInteger(turnDeadlineMs)||turnDeadlineMs<1||turnDeadlineMs>maxHostDeadlineMs)throw new Error('Invalid Studio turn deadline.');
+export function createStudio({getAssembly,dataDirectory,contextReader,memoryFixture,
+  backgroundFixture,directiveFixture,hostDeadlineFixture,retention=mastraRetention()}) {
   const fixture=process.env.TORI_EXECUTION_FIXTURE==='a1-request-capture' &&
     process.env.TORI_ZAI_API_KEY==='synthetic-a1-fixture' ? 'a1-request-capture' : undefined;
-  if((memoryFixture||backgroundFixture||directiveFixture)&&!fixture)throw new Error('Fault injection requires the deterministic fixture host.');
+  if((memoryFixture||backgroundFixture||directiveFixture||hostDeadlineFixture)&&!fixture)throw new Error('Fault injection requires the deterministic fixture host.');
+  const hostClock=hostDeadlineFixture?.clock??Date.now;
+  const hostTimeout=hostDeadlineFixture?.timeout??(milliseconds=>AbortSignal.timeout(milliseconds));
   const dir=resolve(dataDirectory);mkdirSync(dir,{recursive:true});
   // Keep a process-scoped SQLite lock for this store. A second host must not
   // mistake the first host's active Run for an orphan during startup.
@@ -377,6 +380,7 @@ export function createStudio({getAssembly,dataDirectory,turnDeadlineMs=maxHostDe
         definition:definitionOf(entry),version:entry.record.activationVersion,revision:entry.revision,
         number:entry.number,name:entry.name,route:entry.route,authoring:!!entry.authoring,workspaceAuthoring:!!entry.workspaceAuthoring,childRevision:entry.childRevision,
         savedMemory:pinAllowsSavedMemory(entry),memoryPolicy:pinnedMemoryPolicy(entry),directive:directiveSummary(entry),
+        hostDeadlineMs:entry.hostDeadlineMs,
         ...(graph?{execution:budget(assembly.executionSettings(graph))}:{}),
       };
     };
@@ -414,7 +418,7 @@ export function createStudio({getAssembly,dataDirectory,turnDeadlineMs=maxHostDe
         ...(test?.status==='completed'?{testRun:test.id}:{}),
       });
     }
-    return {workspace:state.workspace,definition,definitions,activeAgents,authoringChats:[...authoringChats.values()],hostDeadlineMs:turnDeadlineMs,retention,retentionPrune:pruned,fixture:!!fixture,childRevisions:state.drafts.filter(d=>definitionOf(d)!==definition).map(d=>({
+    return {workspace:state.workspace,definition,definitions,activeAgents,authoringChats:[...authoringChats.values()],hostDeadlineMs:initialHostDeadlineMs,retention,retentionPrune:pruned,fixture:!!fixture,childRevisions:state.drafts.filter(d=>definitionOf(d)!==definition).map(d=>({
       id:d.id,definition:definitionOf(d),number:d.number,context:d.graph.nodes.find(node=>node.id==='context'&&d.graph.edges.some(edge=>edge.source===node.id))?.values.reference,
       tool:d.graph.edges.some(edge=>edge.targetPort==='tool'),name:d.graph.nodes.find(node=>node.id==='agent')?.values.name||'Untitled agent',
     })),workingAssembly:saved?undefined:state.workingAssemblies?.[definition],graph:saved?.graph??null,revision:saved&&{id:saved.id,number:saved.number},
@@ -481,19 +485,20 @@ export function createStudio({getAssembly,dataDirectory,turnDeadlineMs=maxHostDe
   }
   function activateDefinition(state,definition,route,{saved,value,delegated}) {
     const current=newest(state.activations,definition);
-    if(current?.revision===saved.id&&current.route===route)return current;
+    if(current?.revision===saved.id&&current.route===route&&current.hostDeadlineMs===value.hostDeadlineMs)return current;
     const historic=directiveFixture?.historicalActivation===true;
     const directive=historic?undefined:directivePolicy(value.directive,model,route,proposalLifetimeMs);
     const childEntry=delegated&&state.activations.find(item=>item.revision===delegated.revision.id&&item.route===route);
+    const childHostDeadlineMs=childEntry?childEntry.hostDeadlineMs:delegated?.value.hostDeadlineMs;
     const childDirectivePin=!delegated||historic?undefined:childEntry?directiveReference(memoryReferenceOf(childEntry)):
       directiveRevision(directivePolicy(delegated.value.directive,model,route,proposalLifetimeMs));
     const {activation,child}=activationFor(saved,value,route,undefined,delegated,!!delegated,
-      historic?undefined:directiveRevision(directive),childDirectivePin);
+      historic?undefined:directiveRevision(directive),childDirectivePin,value.hostDeadlineMs,childHostDeadlineMs);
     const record={recordSchema:'vict.agent-activation-record@1',activationVersion:activation.activationVersion,
       agentProfileVersion:activation.agentProfileVersion,agentId:definition,agentRevision:saved.id,
       canonicalManifest:activation.canonicalManifestJson,artifacts:activation.artifactList,createdAt:activation.createdAt};
     if(!validateAgentActivationRecord(record).ok)throw conflict('VICT rejected the activation record.');
-    const entry={record,route,definition,directive,childDirectivePin,childRevision:delegated?.revision.id,savedDelegation:!!delegated,childContext:delegated?.contextPolicy??null,
+    const entry={record,route,definition,directive,childDirectivePin,hostDeadlineMs:value.hostDeadlineMs,childHostDeadlineMs,childRevision:delegated?.revision.id,savedDelegation:!!delegated,childContext:delegated?.contextPolicy??null,
       context:value.context,contextPolicy:contextPolicy(value.context),memory:value.memory,authoring:!!value.authoring,
       workspaceAuthoring:workspaceAuthoring(value),tool:value.tool?toolReference(value.tool):undefined,child:child?.activationVersion,
       output:value.output?outputRef:undefined,revision:saved.id,number:saved.number,name:value.name};
@@ -847,8 +852,16 @@ export function createStudio({getAssembly,dataDirectory,turnDeadlineMs=maxHostDe
     const route=pin.route??'general';
     const delegated=resolveChild(state,assembly,value.child,pin.childContext??null,revision,route);
     if(delegated?.revision.id!==pin.childRevision)throw conflict('The pinned child revision could not be restored.');
+    const deadlineArtifact=pin.record?.artifacts?.find(item=>item.kind==='instructions'&&item.id==='tori-instructions');
+    const pinnedMilliseconds=pin.hostDeadlineMs;
+    const legacyDeadline=pinnedMilliseconds===undefined&&deadlineArtifact?.revision===revision.id;
+    if(!legacyDeadline&&(!validHostDeadline(pinnedMilliseconds)||pinnedMilliseconds!==value.hostDeadlineMs||
+      deadlineArtifact?.revision!==hostDeadlineInstructionRevision(revision.id,pinnedMilliseconds)))
+      throw conflict('The original host deadline pin could not be restored.');
+    if(pin.childHostDeadlineMs!==undefined&&(!validHostDeadline(pin.childHostDeadlineMs)||pin.childHostDeadlineMs!==delegated?.value.hostDeadlineMs))
+      throw conflict('The pinned child host policy could not be restored.');
     const {activation,child}=activationFor(revision,value,route,pin.record,delegated,pin.savedDelegation,
-      directiveReference(memoryReferenceOf(pin)),pin.childDirectivePin);
+      directiveReference(memoryReferenceOf(pin)),pin.childDirectivePin,pinnedMilliseconds,pin.childHostDeadlineMs);
     if(child?.activationVersion!==pin.child)throw conflict('The pinned child activation could not be restored.');
     const target=input.draftTarget;
     const workspace=workspaceAuthoring(value);
@@ -876,13 +889,18 @@ export function createStudio({getAssembly,dataDirectory,turnDeadlineMs=maxHostDe
     }else if(target!==undefined)throw conflict('This activation does not have Draft Authoring.');
     nested?.signal.throwIfAborted();
     const {turnPolicy,generation}=activation.profile.profile;
+    const turnDeadlineMs=legacyDeadline?initialHostDeadlineMs:pinnedMilliseconds;
+    const hostAcceptedAt=hostClock();
+    const deadlineAt=hostAcceptedAt+turnDeadlineMs;
     const execution={maxSteps:turnPolicy.maxSteps,maxRetries:generation.maxRetries,maxToolCalls:turnPolicy.maxToolCalls,deadlineMs:turnDeadlineMs,
       temperature:value.temperature,topP:value.topP};
     const acceptedAt=directiveClock();
     const run={id:randomUUID(),session:session.id,activation:session.activation,revision:revision.id,number:revision.number,name:session.name,
       definition:definitionOf(pin),input:text,publicEvents:[],
       memory:pin.memory??'recent-100@1',
-      provider,model,route:pin.route??'general',tokens:value.tokens,outputContract:pin.output,execution,ownerId:hostOwner,started:now(),status:'running',events:[],...(fixture?{fixture}:{})};
+      provider,model,route:pin.route??'general',tokens:value.tokens,outputContract:pin.output,execution,
+      hostDeadline:{acceptedAt:hostAcceptedAt,deadlineAt,source:legacyDeadline?'legacy-90s':'activation',activation:session.activation},
+      ownerId:hostOwner,started:now(),status:'running',events:[],...(fixture?{fixture}:{})};
     if(background)run.startRequest={id:background.id,fingerprint:background.fingerprint};
     if(!nested&&!value.authoring)run.observation={actor,workspace:state.workspace,stream:randomUUID(),
       profile:activation.agentProfileVersion,thread:mastraThreadIdForConversation(session.id)};
@@ -910,7 +928,6 @@ export function createStudio({getAssembly,dataDirectory,turnDeadlineMs=maxHostDe
         intent.kind!=='explicit'?intent.reason:!memoryEnabled?'policy-off':pin.output?'structured-output':!memoryDraft?'context-unavailable':'unconfirmed'};
     }
     session.messages.push(source);
-    const deadlineAt=Date.now()+turnDeadlineMs;
     const draftTurn=value.authoring?authoringTransport.start(target,actor,run.id,deadlineAt,definition):undefined;
     const owner={session:session.id,publicTextStarted:false,draftTurn,definition,run,
       ...(run.observation?{hub:runHub()}:{}),
@@ -950,7 +967,8 @@ export function createStudio({getAssembly,dataDirectory,turnDeadlineMs=maxHostDe
     background?.accept({run:run.id,session:run.session,activation:run.activation,streamId:run.observation.stream});
     const finishInterpretation=interpretation&&startInterpretation({run,scope,directive,key,input:interpretation,turnStop:owner.stop.signal});
     const evidence={providerAttempts:0,modelSteps:0};
-    const expiry=AbortSignal.timeout(turnDeadlineMs);
+    const remaining=deadlineAt-hostClock();
+    const expiry=remaining<=0?AbortSignal.abort(new DOMException('Host deadline reached','TimeoutError')):hostTimeout(remaining);
     const deadline=AbortSignal.any([expiry,...(draftTurn?[draftTurn.signal]:[]),...(nested?[nested.signal]:[]),...(owner.stop?[owner.stop.signal]:[])]);
     const eventTimes=new Map();
     try {
@@ -1199,7 +1217,22 @@ export function createStudio({getAssembly,dataDirectory,turnDeadlineMs=maxHostDe
     }
     return nested?{testRun:run.id}:projection(latest,definition,assembly);
   }
-  return {dispatch,close:async()=>{
+  async function withPresentationLinks(run) {
+    if(!controlStores||!run?.report?.specialist?.children?.length)return run;
+    // This is a display-only join. Do not change or persist the Run report,
+    // public captures, Invocation records, or receipts.
+    try{
+      const records=await controlStores.invocations.listInvocationsForTurn(run.id);
+      if(!records.length)return run;
+      return {...run,activityInvocations:records.map(({invocationId,toolCallId})=>({invocationId,toolCallId}))};
+    }catch{return run;}
+  }
+  return {dispatch:async(path,input)=>{
+    const result=await dispatch(path,input);
+    if(path==='/run-observe'&&result?.run)return {...result,run:await withPresentationLinks(result.run)};
+    if(Array.isArray(result?.runs))return {...result,runs:await Promise.all(result.runs.map(withPresentationLinks))};
+    return result;
+  },close:async()=>{
     const jobs=[...interpretations.values()];
     for(const job of jobs)job.stop.abort();
     await Promise.allSettled(jobs.map(job=>job.done));
