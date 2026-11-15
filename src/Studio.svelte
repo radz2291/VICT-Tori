@@ -20,6 +20,7 @@
   import MemoryControls from './MemoryControls.svelte';
   import StudioShell from './StudioShell.svelte';
   import AgentsPage from './pages/AgentsPage.svelte';
+  import ExecutionPage from './pages/ExecutionPage.svelte';
   import SessionsPage from './pages/SessionsPage.svelte';
   import RunsPage from './pages/RunsPage.svelte';
   import { acceptRunPacket } from './run-observer.mjs';
@@ -2223,18 +2224,42 @@
       saveRevision={async()=>{await save();if(!dirty)await focusAgentRevision();}}
       startSession={()=>start(state.activation,true)}
       activateRevision={async()=>{await activate();if(activationMatchesSaved)await focusAgentRevision();}}/>
-  {:else if page==='Sessions'}
-    <SessionsPage {mobile} {inspectorVisible} {inspectorToggle} sidebarActions={executionHeaderActions} sidebarBody={executionSidebarBody}
-      bind:sessionTitle bind:conversationPane {session} {sessionBusy} workspace={state.workspace} {activityDetail}
-      {memoryView} {sending} {sessionRuns} {sessionComposer} {changeMemory}
-      inspectRun={async(id)=>{setRunScope('all');await openRun(id,true);}}
-      {recordIdentity} {recordMode} {rememberReadingPosition}/>
-  {:else if page==='Runs'}
-    <RunsPage {mobile} {inspectorVisible} {inspectorToggle} sidebarActions={executionHeaderActions} sidebarBody={executionSidebarBody}
-      bind:runTitle bind:runPane {run} {runOwner} {runSession} {runReturnTarget} runs={state.runs}
-      {session} {runScope} workspace={state.workspace} {selectedPrompt} {selectedReply} {activityDetail}
-      {runActionError} {observation} {runDuration} {runTokenUsage} {stoppingRun}
-      {openRun} {openSession} {stopWatchedRun} {openViewIcon} {elapsed} {historyDate} {recordIdentity} {recordMode} {runStatus}/>
+  {:else if executionPage}
+    <ExecutionPage page={page==='Sessions'?'Sessions':'Runs'} {mobile} {inspectorVisible} {inspectorToggle}
+      sidebarActions={executionHeaderActions} sidebarBody={executionSidebarBody}>
+      {#snippet toolbar()}
+        {#if page==='Sessions'}
+          <div class="execution-identity">
+            <h1 bind:this={sessionTitle} tabindex="-1"
+              aria-describedby={session?'selected-session-identity':undefined}>Sessions</h1>
+            {#if session}
+              <span id="selected-session-identity" class="visually-hidden">{session.title} · {recordIdentity(session)}{session.fixture?' · '+recordMode(session):''}</span>
+            {/if}
+          </div>
+        {:else}
+          {#if runReturnTarget}
+            <ControlButton.Root class="vict-btn vict-btn--quiet panel-shortcut" aria-label="Back to Session" title="Back to Session"
+              onclick={()=>openSession(runReturnTarget.id,true)}>
+              <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M19 12H5m7-7-7 7 7 7"/>
+              </svg>
+            </ControlButton.Root>
+          {/if}
+          <div class="execution-identity"><strong>Runs</strong></div>
+        {/if}
+      {/snippet}
+      {#if page==='Sessions'}
+        <SessionsPage bind:conversationPane {session} {sessionBusy} workspace={state.workspace} {activityDetail}
+          {memoryView} {sending} {sessionRuns} {sessionComposer} {changeMemory}
+          inspectRun={async(id)=>{setRunScope('all');await openRun(id,true);}}
+          {rememberReadingPosition}/>
+      {:else}
+        <RunsPage bind:runTitle bind:runPane {run} {runOwner} {runSession} runs={state.runs}
+          {session} {runScope} workspace={state.workspace} {selectedPrompt} {selectedReply} {activityDetail}
+          {runActionError} {observation} {runDuration} {runTokenUsage} {stoppingRun}
+          {openRun} {openSession} {stopWatchedRun} {openViewIcon} {elapsed} {historyDate} {recordIdentity} {recordMode} {runStatus}/>
+      {/if}
+    </ExecutionPage>
   {/if}
   {#snippet dialogs()}
     <Dialog.Root open={!!renameTarget} onOpenChange={open=>{if(!open&&!pending)renameTarget='';}}>
