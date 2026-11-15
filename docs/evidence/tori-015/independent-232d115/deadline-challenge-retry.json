@@ -1,0 +1,22 @@
+{
+  "candidate": "232d11540d53a842299d7eb41aad21307fd6ddc1",
+  "node": "v22.13.1",
+  "checks": [
+    {
+      "name": "missing deadline in current graph can save but cannot activate",
+      "pass": false,
+      "activation": "v1_9914ed82dd66998f5928964076a9625c933b79aca9ae057c1e8ec9ae31993af0",
+      "observedMilliseconds": 90000
+    },
+    {
+      "name": "child authored at 1 s expires under a 120 s parent",
+      "pass": false,
+      "childActivation": "v1_7b12f298561c54623902bb6d249c2659e8d8e45bcec90b20c14a5350e630d3ae",
+      "parentActivation": "v1_f13b7f05d2562f299db57d09d19bf8487519b4a4dea9a5a8f740870a70961726",
+      "initialRecordedDeadlineMs": 120000,
+      "childSignalAbortedAtOneSecond": false,
+      "childStateAtOneSecond": "Running",
+      "childTerminalState": "completed"
+    }
+  ]
+}

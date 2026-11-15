@@ -1,0 +1,16 @@
+{
+  "candidate": "232d11540d53a842299d7eb41aad21307fd6ddc1",
+  "node": "v22.13.1",
+  "checks": [
+    {
+      "name": "missing deadline in current graph can save but cannot activate",
+      "pass": false,
+      "activation": "v1_4e2f74815f28d139eacbedc3d337772eb4122cc71dfb328cc1a22714457705ff",
+      "observedMilliseconds": 90000
+    }
+  ],
+  "challengeError": {
+    "message": "Child never entered the fixture hold.",
+    "stack": "Error: Child never entered the fixture hold.\n    at file:///<Windows profile>/Desktop/RZ/261114-verification-evidence/tori015-independent-232d115/deadline-challenge.mjs:77:114\n    at async file:///<Windows profile>/Desktop/RZ/261114-verification-evidence/tori015-independent-232d115/deadline-challenge.mjs:77:21"
+  }
+}
