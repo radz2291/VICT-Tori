@@ -231,7 +231,7 @@
         <Button.Root class="vict-btn vict-btn--quiet" aria-expanded={directiveOpen} onclick={()=>directiveOpen=!directiveOpen}>Directive parameters</Button.Root>
         {#if directiveOpen}
           <section class="node-directive-parameters" aria-label="Directive parameters">
-            <DirectiveFields graph={data.graph} prefix="canvas-directive" edit={data.fields.edit} configure={data.fields.configure}
+            <DirectiveFields graph={data.graph} prefix="canvas-directive" edit={data.fields.edit} connect={data.fields.connect}
               disconnect={data.fields.disconnect} active={data.pinnedDirective}/>
           </section>
         {/if}

@@ -138,6 +138,11 @@ function providerModel(key, route, evidence, settings) {
   return createOpenAICompatible({
     name:provider,baseURL:endpoint,supportsStructuredOutputs:false,
     fetch:async (url,init)=>{
+      if(settings.hostSignal) {
+        const signals=init?.signal?[settings.hostSignal,init.signal]:[settings.hostSignal];
+        init={...init,signal:AbortSignal.any(signals)};
+        init.signal.throwIfAborted();
+      }
       if(String(url)!==endpoint+'/chat/completions')throw new Error('TORI_PROVIDER_ROUTE_DENIED');
       const headers=new Headers(init?.headers);headers.set('Authorization','Bearer '+key);
       const body=JSON.parse(init.body);
@@ -1008,7 +1013,7 @@ export function createStudio({getAssembly,dataDirectory,contextReader,memoryFixt
         'Ask if the target is ambiguous. Report actual tool outcomes and remaining work. Keep the answer concise.',
       ].join(' ')):undefined;
       const agentConfig={store:sessionStore,modelFactory:()=>providerModel(key,run.route,evidence,{
-        ...value,...execution,tool:!memoryOnly&&(value.tool||value.child||value.authoring),
+        ...value,...execution,hostSignal:deadline,tool:!memoryOnly&&(value.tool||value.child||value.authoring),
         ...(memoryOnly?{maxToolCalls:0}:{}),context:context.content,authoringGuide,authoringHistory,
         inspectOnly:workspace&&!draftTurn.allowChanges,
         savedMemoryContext,savedMemoryGuide:directive.status==='bound'?hasRecords=>savedMemoryGuide(run.started,session.created,hasRecords):undefined,
@@ -1043,6 +1048,7 @@ export function createStudio({getAssembly,dataDirectory,contextReader,memoryFixt
         if(!await controlStores.actors.get(actor))await controlStores.actors.upsert({actorId:actor,status:'active',roles:['developer'],createdAt:Date.now()});
         const childCapability=child&&createChildCapability({activation,child,parentRun:run,agentConfig,delegated,
           capability:pin.savedDelegation?savedDelegationRef:delegationRef,
+          ...(pin.childHostDeadlineMs!==undefined?{hostDeadline:{milliseconds:pin.childHostDeadlineMs,clock:hostClock,timeout:hostTimeout}}:{}),
           beforeChild:backgroundFixture?.child,
           runDelegated:async(childRun,task,includeContext,signal,childThread)=>{
             signal.throwIfAborted();
@@ -1058,7 +1064,7 @@ export function createStudio({getAssembly,dataDirectory,contextReader,memoryFixt
               },runId:childRun.id,
               scriptBinding:settings.tool,recordScript:receipt=>scriptEvidence(childRun,receipt),
               allowRead:settings.tool!=='local-reference@1'||process.env.TORI_CHILD_MCP_REVOKED!=='1',
-              agentConfig:{...agentConfig,modelFactory:()=>providerModel(key,run.route,childEvidence,{...settings,context:context.content})}});
+              agentConfig:{...agentConfig,modelFactory:()=>providerModel(key,run.route,childEvidence,{...settings,hostSignal:signal,context:context.content})}});
             childRun.governance={...result.governance,scope:profileRef(delegated.revision)};
             childRun.sentMaxOutputTokens=childEvidence.sentMaxOutputTokens;
             childRun.modelSteps=childEvidence.modelSteps;

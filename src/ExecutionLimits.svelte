@@ -41,7 +41,7 @@
 <div class={compact?'node-inline-setting':'configure-setting'}>
   <label for={prefix+'-host-deadline'}>Host deadline (seconds)</label>
   <Input id={prefix+'-host-deadline'} class="tori-field" type="number" min={hostDeadlineBounds.min/1000}
-    max={hostDeadlineBounds.max/1000} step={0.001} value={limits.hostDeadlineMs===0?'':limits.hostDeadlineMs/1000}
+    max={hostDeadlineBounds.max/1000} step={0.001} value={typeof limits.hostDeadlineMs==='number'&&limits.hostDeadlineMs!==0?limits.hostDeadlineMs/1000:''}
     aria-invalid={!validHostDeadline(limits.hostDeadlineMs)}
     oninput={event=>edit(rootId,'hostDeadlineMs',parseDeadline(event.currentTarget.value))}/>
   {#if !validHostDeadline(limits.hostDeadlineMs)}<Feedback kind="error" message="Enter a deadline from 1 to 120 seconds." />{/if}

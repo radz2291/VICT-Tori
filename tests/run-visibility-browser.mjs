@@ -124,7 +124,13 @@ try{
   await task('Sessions').click();
   await page.getByRole('main',{name:'Conversation'}).getByText(noAnswer.message,{exact:true}).waitFor();
   await page.getByRole('main',{name:'Conversation'}).getByText('No final answer was received.',{exact:true}).waitFor();
-  await page.locator('[data-session-id=rv-session-empty]').click();
+  const empty=page.locator('[data-session-id=rv-session-empty]');
+  if(!await empty.isVisible()){
+    const group=page.getByRole('complementary',{name:'Session history'}).getByRole('button',{name:'Search Sessions',exact:true});
+    await group.click();
+    await page.getByRole('textbox',{name:'Search Sessions',exact:true}).fill('Empty fixture Session');
+  }
+  await empty.click();
   if(await details.getAttribute('aria-expanded')!=='true')await details.click();
   await page.getByRole('button',{name:'Inspect runs',exact:true}).click();
   await page.getByRole('heading',{name:'No Runs yet',exact:true}).waitFor();

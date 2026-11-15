@@ -32,6 +32,15 @@ test('ordinary host deadline remains pinned across 100 seconds, expires at 120, 
     assert.equal(String(url),'https://api.z.ai/api/coding/paas/v4/chat/completions');
     const signal=init.signal;
     calls++;
+    const body=JSON.parse(init.body);
+    const user=body.messages.findLast(message=>message.role==='user');
+    if(user?.content==='Delegate the deadline challenge.'&&!body.messages.some(message=>message.role==='tool')){
+      const delta={role:'assistant',tool_calls:[{index:0,id:'deadline-child',type:'function',
+        function:{name:body.tools[0].function.name,arguments:JSON.stringify({task:'Wait under the original child pin.'})}}]};
+      const chunks=[{choices:[{index:0,delta,finish_reason:null}]},{choices:[{index:0,delta:{},finish_reason:'tool_calls'}]}];
+      return new Response(chunks.map(chunk=>'data: '+JSON.stringify({id:'deadline-fixture',object:'chat.completion.chunk',
+        created:1,model:body.model,...chunk})).join('\n\n')+'\n\ndata: [DONE]\n\n',{headers:{'Content-Type':'text/event-stream'}});
+    }
     provider.resolve(signal);
     await new Promise((_,reject)=>{
       if(signal.aborted)reject(signal.reason);
@@ -39,6 +48,7 @@ test('ordinary host deadline remains pinned across 100 seconds, expires at 120, 
     });
   };
   let service=start();
+  const running=new Set();
   try {
     const {history,emptyAssembly,add,change,wire,modelId}=assembly;
     const draft=history(emptyAssembly());
@@ -49,6 +59,8 @@ test('ordinary host deadline remains pinned across 100 seconds, expires at 120, 
     let revision;
     const save=async()=>{revision=(await service.dispatch('/save',{expected:revision,graph:draft.graph})).revision;};
     const activate=()=>service.dispatch('/activate',{revision});
+    edit(change('agent','hostDeadlineMs',undefined));await save();
+    await assert.rejects(activate(),/host deadline/);
     for(const invalid of [0,999,1000.5,120001]){
       edit(change('agent','hostDeadlineMs',invalid));await save();
       await assert.rejects(activate(),/host deadline/);
@@ -66,7 +78,12 @@ test('ordinary host deadline remains pinned across 100 seconds, expires at 120, 
     await service.close();
     service=start();
     const begun=now;
-    const send=(session,input)=>service.dispatch('/turn',{session:session.id,input});
+    const send=(session,input)=>{
+      const task=service.dispatch('/turn',{session:session.id,input});
+      running.add(task);
+      void task.then(()=>running.delete(task),()=>running.delete(task));
+      return task;
+    };
     const inFlight=send(pinned,'Hold for the pinned deadline.');
     const signal=await provider.promise;
     advance(100000);
@@ -94,6 +111,31 @@ test('ordinary host deadline remains pinned across 100 seconds, expires at 120, 
     advance(1);assert.equal(shortSignal.aborted,true);
     assert.equal((await shortTurn).runs[0].errorCode,'TORI_TURN_DEADLINE');
 
+    const parentDefinition=(await service.dispatch('/definitions',{})).definition;
+    const parent=history(emptyAssembly());
+    assert.equal(parent.apply([add('agent'),add('model'),add('child'),change('agent','hostDeadlineMs',120000),
+      change('agent','instructions','Use the saved child for this request.'),change('agent','maxSteps',2),
+      change('model','model',modelId),wire('model','model'),change('child','reference','saved:'+revision.id),wire('child','child')]).ok,true);
+    const parentRevision=(await service.dispatch('/save',{definition:parentDefinition,graph:parent.graph})).revision;
+    const parentActivation=(await service.dispatch('/activate',{definition:parentDefinition,revision:parentRevision})).activation;
+    const parentSession=(await service.dispatch('/sessions',{activation:parentActivation.version})).sessions[0];
+    provider=Promise.withResolvers();
+    const delegation=send(parentSession,'Delegate the deadline challenge.');
+    const childSignal=await provider.promise;
+    const inProgress=(await service.dispatch('',{})).runs.find(run=>run.parentRun&&run.state==='Running');
+    assert.equal(inProgress.activation,shortActivation.version);
+    assert.equal(inProgress.execution.deadlineMs,1000);
+    assert.equal(inProgress.hostDeadline.deadlineAt,inProgress.hostDeadline.acceptedAt+1000);
+    advance(999);assert.equal(childSignal.aborted,false);
+    advance(1);assert.equal(childSignal.aborted,true);
+    const result=await delegation;
+    const expiredChild=result.runs.find(run=>run.id===inProgress.id);
+    assert.equal(expiredChild.status,'cancelled');
+    assert.equal(expiredChild.errorCode,'TORI_CHILD_DEADLINE');
+    const holdingParent=result.runs.find(run=>run.id===inProgress.parentRun);
+    assert.equal(holdingParent.execution.deadlineMs,120000);
+    assert.notEqual(holdingParent.errorCode,'TORI_TURN_DEADLINE');
+
     const tampered=await makeSession();
     await service.close();
     const db=new DatabaseSync(join(directory,'studio.sqlite'));
@@ -102,8 +144,10 @@ test('ordinary host deadline remains pinned across 100 seconds, expires at 120, 
     db.prepare('UPDATE project SET value=? WHERE id=1').run(JSON.stringify(state));db.close();
     service=start();
     await assert.rejects(send(tampered,'Must not dispatch with a missing pin.'),/deadline pin/);
-    assert.equal(calls,3);
+    assert.equal(calls,5);
   }finally{
+    advance(240000);
+    await Promise.allSettled([...running]);
     globalThis.fetch=fetchBefore;
     await service?.close();
     await vite.close();

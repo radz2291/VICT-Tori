@@ -29,7 +29,7 @@ export function registerChild(registry,parent,adapter){
   return registry.activateAgentProfile(childRef);
 }
 
-export function createChildCapability({activation,child,parentRun,agentConfig,persist,delegated,runDelegated,beforeChild,capability=delegationRef,modelForTask=task=>
+export function createChildCapability({activation,child,parentRun,agentConfig,persist,delegated,runDelegated,beforeChild,hostDeadline,capability=delegationRef,modelForTask=task=>
   createDeterministicOfflineModel({script:{[task]:{kind:'text',text:childResult}}})}){
   const reference=delegated?{id:delegated.revision.definition??'tori-local-agent',revision:delegated.revision.id}:childRef;
   const saved=capability.id===savedDelegationRef.id;
@@ -63,27 +63,34 @@ export function createChildCapability({activation,child,parentRun,agentConfig,pe
 
   async function invokeChild(task,includeContext,context) {
     const id=randomUUID(), at=()=>new Date().toISOString();
+    const acceptedAt=hostDeadline?.clock();
+    const deadlineAt=hostDeadline?acceptedAt+hostDeadline.milliseconds:undefined;
+    const parentDeadlineAt=parentRun.hostDeadline?.deadlineAt;
+    const expiry=hostDeadline?hostDeadline.timeout(Math.max(0,deadlineAt-hostDeadline.clock())):undefined;
+    const signal=expiry&&context.signal?AbortSignal.any([context.signal,expiry]):expiry??context.signal;
     const run={id,ownerId:parentRun.ownerId,parentRun:parentRun.id,parentVictTurn:context.victTurnId,parentInvocation:context.victInvocationId,parentOperation:context.victIdempotencyKey,
       session:parentRun.session,activation:child.activationVersion,revision:reference.revision,number:delegated?.revision.number,name:delegated?.value.name??childName,
       definition:delegated?reference.id:undefined,
       provider:delegated?parentRun.provider:'offline-fixture',route:delegated?parentRun.route:undefined,
       input:task,model:delegated?'glm-5.3-flash':'deterministic-1',tokens:delegated?.value.tokens??256,status:'running',started:at(),
       execution:{maxSteps:child.profile.profile.turnPolicy.maxSteps,maxToolCalls:child.profile.profile.turnPolicy.maxToolCalls,
-        maxRetries:child.profile.profile.generation.maxRetries,deadlineMs:parentRun.execution?.deadlineMs},
+        maxRetries:child.profile.profile.generation.maxRetries,deadlineMs:hostDeadline?.milliseconds??parentRun.execution?.deadlineMs},
+      ...(hostDeadline?{hostDeadline:{acceptedAt,deadlineAt,source:'activation',activation:child.activationVersion,
+        parentDeadlineAt,effectiveDeadlineAt:Math.min(deadlineAt,parentDeadlineAt??deadlineAt)}}:{}),
       fixture:parentRun.fixture,events:[],publicEvents:[]};
     persist(run);
     try{
-      await beforeChild?.(run,context.signal);
-      context.signal?.throwIfAborted();
+      await beforeChild?.(run,signal);
+      signal?.throwIfAborted();
       const threadId=mastraThreadIdForConversation(id);
       let result;
       if(delegated){
-        result=await runDelegated(run,task,includeContext,context.signal,threadId);
+        result=await runDelegated(run,task,includeContext,signal,threadId);
       }else{
         const adapter=MastraProductAgent.create(child,{...agentConfig,modelFactory:()=>modelForTask(task)});
         result=await pinAgentTurnRunner(adapter,child).runTurn({
           turnId:id,threadId,actorId:context.victActorId,input:task,
-        },{abortSignal:context.signal,victRunId:id,onEvent:event=>{
+        },{abortSignal:signal,victRunId:id,onEvent:event=>{
           const captured=capturePublicEvent(event,at());
           appendPublicEventCapture(run.publicEvents,captured);
         }});
@@ -96,12 +103,15 @@ export function createChildCapability({activation,child,parentRun,agentConfig,pe
       run.errorCode=result.errorCode;
       run.usage=result.usage;
       run.events=result.events.filter(event=>event.kind.startsWith('response.')||event.kind.startsWith('tool.')).map(event=>({at:at(),label:'VICT · '+event.kind}));
+      signal?.throwIfAborted();
       if(result.status!=='completed'||!result.text)throw new Error('TORI_CHILD_INCOMPLETE');
       run.output=result.text;
       return saved?{text:result.text,runId:run.id}:{text:result.text};
     }catch{
-      run.status=context.signal?.aborted?'cancelled':'failed';
-      run.errorCode??='TORI_CHILD_INCOMPLETE';
+      run.status=signal?.aborted?'cancelled':'failed';
+      if(expiry?.aborted&&!context.signal?.aborted)run.errorCode='TORI_CHILD_DEADLINE';
+      else if(context.signal?.aborted&&hostDeadline)run.errorCode='TORI_PARENT_TURN_ENDED';
+      else run.errorCode??='TORI_CHILD_INCOMPLETE';
       throw new Error('TORI_CHILD_INCOMPLETE');
     }finally{
       run.ended=at();

@@ -26,6 +26,9 @@
         <dt>Host deadline pin</dt><dd>{run.hostDeadline.source==='activation'?'Pinned at activation':'Historical 90-second policy'}</dd>
         <dt>Accepted at</dt><dd><time datetime={new Date(run.hostDeadline.acceptedAt).toISOString()}>{new Date(run.hostDeadline.acceptedAt).toLocaleString()}</time></dd>
         <dt>Deadline at</dt><dd><time datetime={new Date(run.hostDeadline.deadlineAt).toISOString()}>{new Date(run.hostDeadline.deadlineAt).toLocaleString()}</time></dd>
+        {#if run.hostDeadline.effectiveDeadlineAt<run.hostDeadline.deadlineAt}
+          <dt>Parent turn boundary</dt><dd>Delegation ends at the earlier parent deadline · {new Date(run.hostDeadline.effectiveDeadlineAt).toLocaleString()}</dd>
+        {/if}
       {/if}
       {#if run.modelSteps!==undefined}<dt>Observed model steps</dt><dd>{run.modelSteps}</dd>{/if}
       {#if run.toolCalls!==undefined}<dt>Admitted tool calls</dt><dd>{run.toolCalls}</dd>{/if}

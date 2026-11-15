@@ -92,6 +92,7 @@ try{
   await tuning.click();
   assert.equal(await field('canvas-directive-sensitivity').count(),0);
   await button('Connect Directive').click();
+  await settings().getByRole('button',{name:'Disconnect Directive',exact:true}).waitFor();
   await field('canvas-directive-deadlineMs').fill('121');
   const save=async()=>{
     const response=page.waitForResponse(r=>r.url().endsWith('/api/studio/save'));

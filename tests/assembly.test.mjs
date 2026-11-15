@@ -76,11 +76,13 @@ test('a legacy workspace authoring graph keeps its budget and can activate with 
   legacyAgent.ports=legacyAgent.ports.filter(port=>port.id!=='directive');
   delete legacy.nodeTypes.find(node=>node.id==='agent').parameters.maxToolCalls;
   delete legacy.nodeTypes.find(node=>node.id==='agent').parameters.hostDeadlineMs;
+  delete legacy.nodes.find(node=>node.id==='agent').values.hostDeadlineMs;
   delete legacy.nodeTypes.find(node=>node.id==='memory').parameters.savedMemory;
   delete legacy.nodeTypes.find(node=>node.id==='memory').parameters.organizer;
   const upgraded=history(checkedAssembly(legacy));
   assert.equal(upgraded.graph.revision,legacy.revision);
-  assert.deepEqual(structuredClone(upgraded.graph.nodes),legacy.nodes);
+  assert.deepEqual(structuredClone(upgraded.graph.nodes),legacy.nodes.map(node=>node.id==='agent'?
+    {...node,values:{...node.values,hostDeadlineMs:90000}}:node));
   assert.equal(executionSettings(upgraded.graph).maxToolCalls,3);
   assert.equal(upgraded.apply([change('agent','maxSteps',1),change('agent','maxToolCalls',0),change('agent','maxRetries',8)]).ok,true);
   assert.equal(readiness(upgraded.graph),'');

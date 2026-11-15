@@ -115,8 +115,10 @@ const definitions:GraphDocumentV3['nodeTypes']=directiveDefinitions.map(node=>no
   ? {...node,parameters:{...node.parameters,hostDeadlineMs:{type:'number',default:initialHostDeadlineMs}}} : node);
 
 function upgrade(graph:GraphDocumentV3):GraphDocumentV3 {
-  return [legacyDefinitions,a1Definitions,a2Definitions,a3Definitions,resourceCatalog(a4Resources),authoringDefinitions,authoringBudgets,memoryDefinitions,historicDefinitions,directiveDefinitions].some(catalog=>JSON.stringify(graph.nodeTypes)===JSON.stringify(catalog))
-    ? {...graph,nodeTypes:structuredClone(definitions)} : graph;
+  const historical=[legacyDefinitions,a1Definitions,a2Definitions,a3Definitions,resourceCatalog(a4Resources),authoringDefinitions,authoringBudgets,memoryDefinitions,historicDefinitions,directiveDefinitions]
+    .some(catalog=>JSON.stringify(graph.nodeTypes)===JSON.stringify(catalog));
+  return historical?{...graph,nodeTypes:structuredClone(definitions),nodes:graph.nodes.map(node=>node.id===rootId
+    ? {...node,values:{...node.values,hostDeadlineMs:initialHostDeadlineMs}}:node)}:graph;
 }
 
 export function emptyAssembly():GraphDocumentV3 {
@@ -144,8 +146,15 @@ export function checkedAssembly(input:unknown) {
   if (!result.ok || assemblyIssues(upgrade(result.graph)).length) throw new Error('This document is not a supported Agent Assembly.');
   return upgrade(result.graph);
 }
+class AssemblyHistory extends GraphSessionV3 {
+  override apply(operations:readonly GraphOperationV3[],revision?:number) {
+    const authored=operations.flatMap(operation=>operation.type==='addNode'&&operation.nodeType===rootId
+      ? [operation,change(operation.id??rootId,'hostDeadlineMs',initialHostDeadlineMs)]:[operation]);
+    return super.apply(authored,revision);
+  }
+}
 export function history(graph:GraphDocumentV3) {
-  return new GraphSessionV3(upgrade(graph),{validate:assemblyIssues});
+  return new AssemblyHistory(upgrade(graph),{validate:assemblyIssues});
 }
 export function field(graph:GraphDocumentV3,id:string,key:string) {
   const node = graph.nodes.find(n=>n.id===id);
@@ -170,7 +179,7 @@ export function executionSettings(graph:GraphDocumentV3) {
     maxSteps:Number(field(graph,rootId,'maxSteps')??executionBounds.maxSteps.min),
     maxRetries:Number(field(graph,rootId,'maxRetries')??executionBounds.maxRetries.min),
     maxToolCalls:authoredToolCalls??defaultToolCalls,
-    hostDeadlineMs:Number(field(upgrade(graph),rootId,'hostDeadlineMs')),
+    hostDeadlineMs:upgrade(graph).nodes.find(node=>node.id===rootId)?.values.hostDeadlineMs,
     authoredToolCalls,defaultToolCalls,
   };
 }

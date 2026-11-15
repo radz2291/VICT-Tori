@@ -14,6 +14,7 @@
     message?: string;
     state?: string;
     status?: string;
+    provider?: string;
     started: string;
     parentRun?: string;
     streamId?: string;
@@ -58,7 +59,8 @@
     runTitle?: HTMLHeadingElement;
     runPane?: HTMLElement;
   } = $props();
-  const display=$derived(run?presentTurn(run,selectedReply?.text??'',activityDetail as Density,runs):undefined);
+  const display=$derived(run&&(selectedPrompt||!(run.parentRun&&run.provider==='offline-fixture'))
+    ?presentTurn(run,selectedReply?.text??'',activityDetail as Density,runs):undefined);
   const displayedMessages=$derived<ConversationMessage[]>(run&&display?[
     ...(selectedPrompt?[selectedPrompt]:[]),
     {id:run.id+'-agent',role:'assistant',text:selectedReply?.text??run.report?.finalAnswer??'',events:display.events},

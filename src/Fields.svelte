@@ -22,7 +22,7 @@
         <dt>Agent name</dt><dd data-node-value="name">{field(graph,id,'name')}</dd>
         <dt>Model</dt><dd>{binding(graph,'model')&&field(graph,modelNodeId,'model')?modelName:'Not connected'}</dd>
         <dt>System instructions</dt><dd class="configure-instructions" data-node-value="instructions">{instructions(graph)||'Not written'}</dd>
-        <dt>Execution</dt><dd data-node-value="execution">{hostExecution.maxSteps} steps · {hostExecution.maxToolCalls} calls · {hostExecution.maxRetries} retries · {hostExecution.hostDeadlineMs/1000} s</dd>
+        <dt>Execution</dt><dd data-node-value="execution">{hostExecution.maxSteps} steps · {hostExecution.maxToolCalls} calls · {hostExecution.maxRetries} retries · {typeof hostExecution.hostDeadlineMs==='number'?hostExecution.hostDeadlineMs/1000+' s':'Deadline missing'}</dd>
         {#if pinnedHostDeadline!==undefined}<dt>Active host deadline</dt><dd>{pinnedHostDeadline/1000} s</dd>{/if}
       </dl>
       <Button label="Show Agent on canvas" variant="secondary" onclick={()=>reveal(rootId)}/>

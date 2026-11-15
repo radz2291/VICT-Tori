@@ -4,7 +4,7 @@
   import { Input, Textarea } from '@victframework/ui-ai-svelte';
   import { binding, directiveIssues, directiveValues } from './assembly';
   import { directiveBounds, directiveSensitivity } from '../packages/directive/policy.mjs';
-  let {graph,prefix,edit,configure,disconnect,active}=$props();
+  let {graph,prefix,edit,connect,disconnect,active}=$props();
   const value=$derived(directiveValues(graph));
   const issues=$derived(directiveIssues(graph));
   const connected=$derived(!!binding(graph,'directive'));
@@ -71,6 +71,6 @@
   {#if connected}
     <Button label="Disconnect Directive" variant="secondary" onclick={()=>disconnect('directive')}/>
   {:else}
-    <Button label="Connect Directive" variant="secondary" onclick={()=>configure('directive','','')}/>
+    <Button label="Connect Directive" variant="secondary" onclick={event=>{event.stopPropagation();connect('directive','directive');}}/>
   {/if}
 </div>
