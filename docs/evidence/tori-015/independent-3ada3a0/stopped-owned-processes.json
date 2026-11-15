@@ -1,0 +1,50 @@
+[
+  {
+    "Name": "pwsh.exe",
+    "ProcessId": 58180,
+    "ParentProcessId": 45044,
+    "CreationDate": "2026-11-15T17:22:18.363749+08:00"
+  },
+  {
+    "Name": "conhost.exe",
+    "ProcessId": 60988,
+    "ParentProcessId": 58180,
+    "CreationDate": "2026-11-15T17:22:18.379705+08:00"
+  },
+  {
+    "Name": "pwsh.exe",
+    "ProcessId": 54524,
+    "ParentProcessId": 58180,
+    "CreationDate": "2026-11-15T17:22:23.739646+08:00"
+  },
+  {
+    "Name": "node.exe",
+    "ProcessId": 60532,
+    "ParentProcessId": 54524,
+    "CreationDate": "2026-11-15T17:22:35.311279+08:00"
+  },
+  {
+    "Name": "node.exe",
+    "ProcessId": 57172,
+    "ParentProcessId": 60532,
+    "CreationDate": "2026-11-15T17:22:35.466335+08:00"
+  },
+  {
+    "Name": "conhost.exe",
+    "ProcessId": 51548,
+    "ParentProcessId": 57172,
+    "CreationDate": "2026-11-15T17:22:35.477166+08:00"
+  },
+  {
+    "Name": "node.exe",
+    "ProcessId": 58288,
+    "ParentProcessId": 57172,
+    "CreationDate": "2026-11-15T17:27:44.187621+08:00"
+  },
+  {
+    "Name": "esbuild.exe",
+    "ProcessId": 60792,
+    "ParentProcessId": 58288,
+    "CreationDate": "2026-11-15T17:27:46.915931+08:00"
+  }
+]

@@ -1,0 +1,100 @@
+{
+  "candidate": "3ada3a08d869bce6805b3a85484f4335a1d54b23",
+  "observed": "2026-11-15T09:31:53.924Z",
+  "runs": [
+    {
+      "id": "4223a2f4-a0af-44be-91cc-d007df3a3416",
+      "name": "Deadline test",
+      "input": "Wait under the original child pin.",
+      "status": "cancelled",
+      "errorCode": "TORI_CHILD_DEADLINE",
+      "hostDeadline": {
+        "acceptedAt": 1794734990942,
+        "deadlineAt": 1794734991942,
+        "source": "activation",
+        "activation": "v1_b10d5db22783abcbaef18680cc615f2579dbe2965fed4a7171959af699bcffb3",
+        "parentDeadlineAt": 1794735110942,
+        "effectiveDeadlineAt": 1794734991942
+      },
+      "deadline": 1000,
+      "parentRun": "c5c9b217-2872-4581-b5da-9d00f775170a",
+      "events": [
+        "response.started",
+        "response.cancelled"
+      ]
+    },
+    {
+      "id": "c5c9b217-2872-4581-b5da-9d00f775170a",
+      "name": "Untitled agent",
+      "input": "Delegate the deadline challenge.",
+      "status": "running",
+      "hostDeadline": {
+        "acceptedAt": 1794734990942,
+        "deadlineAt": 1794735110942,
+        "source": "activation",
+        "activation": "v1_cdf7e56059d20c48778934a5d85b343857f3909e42de715f00c25528b2e1c8e2"
+      },
+      "deadline": 120000,
+      "events": [
+        "response.started",
+        "tool.requested",
+        "tool.started",
+        "tool.failed"
+      ]
+    },
+    {
+      "id": "f6d9db42-1918-4593-83a9-9b6dc910bcf5",
+      "name": "Deadline test",
+      "input": "Use the later, short activation.",
+      "status": "cancelled",
+      "errorCode": "TORI_TURN_DEADLINE",
+      "hostDeadline": {
+        "acceptedAt": 1794734989942,
+        "deadlineAt": 1794734990942,
+        "source": "activation",
+        "activation": "v1_b10d5db22783abcbaef18680cc615f2579dbe2965fed4a7171959af699bcffb3"
+      },
+      "deadline": 1000,
+      "events": [
+        "response.started",
+        "response.cancelled"
+      ]
+    },
+    {
+      "id": "58dfc7f3-3828-419c-8e69-b8459cf95551",
+      "name": "Deadline test",
+      "input": "Hold until Stop.",
+      "status": "cancelled",
+      "errorCode": "TORI_SESSION_STOP",
+      "hostDeadline": {
+        "acceptedAt": 1794734989942,
+        "deadlineAt": 1794735109942,
+        "source": "activation",
+        "activation": "v1_7675b4891217c0240a7b23752b1a7a572d675a0949b7b0fbddf1af845a387420"
+      },
+      "deadline": 120000,
+      "events": [
+        "response.started",
+        "response.cancelled"
+      ]
+    },
+    {
+      "id": "5f44da43-bdb6-45db-a452-d5cee724a749",
+      "name": "Deadline test",
+      "input": "Hold for the pinned deadline.",
+      "status": "cancelled",
+      "errorCode": "TORI_TURN_DEADLINE",
+      "hostDeadline": {
+        "acceptedAt": 1794734869942,
+        "deadlineAt": 1794734989942,
+        "source": "activation",
+        "activation": "v1_7675b4891217c0240a7b23752b1a7a572d675a0949b7b0fbddf1af845a387420"
+      },
+      "deadline": 120000,
+      "events": [
+        "response.started",
+        "response.cancelled"
+      ]
+    }
+  ]
+}
