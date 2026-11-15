@@ -7,7 +7,7 @@ import { AgentStreamHub, authenticatedActorContext, gateCapabilityInvoke } from 
 import { composeMastraTurnExecutor } from '@victframework/mastra';
 import { createScriptCapability } from './script-tools.mjs';
 import { delegateGrant } from './a4-runtime.mjs';
-import { editGrant } from './draft-authoring.mjs';
+import { editGrant } from './draft-authoring-grant.mjs';
 import { contextBudget, inputSchema, readGrant, schemaDigest, sources, toolRef } from './a3-catalog.mjs';
 
 export { toolRef };
@@ -78,7 +78,10 @@ const objectContract=(id,test,descriptiveJsonSchema)=>({
   parse(value){return test(value)?{ok:true,value}:{ok:false,issues:[{code:'INVALID',path:'$',message:'Invalid reference contract.'}]};},
 });
 
-export async function governedReadTurn({activation,stores,agentConfig,actorId,threadId,input,deadline,fixture,onEvent,childCapability,allowRead=true,draftTurn,runId,scriptBinding,recordScript=()=>{},hub=new AgentStreamHub({ledger:stores.streamLedger}),streamId=randomUUID(),userStop}) {
+export async function governedReadTurn({activation,stores,agentConfig,actorId,threadId,input,deadline,fixture,onEvent,childCapability,allowRead=true,draftTurn,runId,scriptBinding,recordScript=()=>{},hub=new AgentStreamHub({ledger:stores.streamLedger}),streamId=randomUUID(),userStop,exchange,askCapability}) {
+  // This seam is only wired by the exchange fixture for now. Active Studio
+  // routes keep their existing activation and never supply either argument.
+  if(askCapability&&!exchange)throw new Error('TORI_EXCHANGE_WIRE_REQUIRED');
   const governance={calls:0,disposition:undefined};
   const script=createScriptCapability(scriptBinding,recordScript);
   const callLimit=activation.profile.profile.turnPolicy.maxToolCalls;
@@ -113,6 +116,7 @@ export async function governedReadTurn({activation,stores,agentConfig,actorId,th
   const id=()=>randomUUID();
   const composition=composeMastraTurnExecutor({
     stores,activation,hub,agentConfig,
+    ...(exchange?{exchange}:{}),
     ids:{turnId:runId?()=>runId:id,streamId:()=>streamId,invocationId:id,approvalId:id,idempotencyKey:id,cancelId:id},
     capabilityBridge:{
       ...(draftTurn?{quietWriteApprovals:{
@@ -121,9 +125,10 @@ export async function governedReadTurn({activation,stores,agentConfig,actorId,th
           capabilityId:cap.id,capabilityRevision:cap.revision,
         })),
       }}:{}),
-      resolveCapability:(capId,rev)=>(draftTurn?.capabilities??[script?.capability,definition,childCapability])
+      resolveCapability:(capId,rev)=>(draftTurn?.capabilities??[script?.capability,definition,childCapability,askCapability])
         .find(cap=>cap?.id===capId&&cap.revision===rev),
       invoke:(cap,args,context)=>{
+        if(cap===askCapability)throw new Error('TORI_EXCHANGE_OUTSIDE_COORDINATOR');
         const sameActor=context.victActorId===actorId&&requester.scopes.includes('agent.turn.start');
         if(draftTurn){
           const granted=sameActor&&context.victTurnId===runId&&

@@ -3,7 +3,8 @@ import { setTimeout as delay } from 'node:timers/promises';
 import { workspaceOccurrence } from '../packages/authoring/index.mjs';
 import { createDraftAuthoring } from '@victframework/control/draft-authoring';
 
-export const editGrant = 'tori.draft.instructions.edit';
+import { editGrant } from './draft-authoring-grant.mjs';
+export { editGrant };
 export const authoringRefs = [
   { id: 'tori.draft.discover', revision: '1' },
   { id: 'tori.draft.instructions', revision: '1' },
