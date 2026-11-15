@@ -1,0 +1,10 @@
+
+file:///<Windows profile>/Desktop/RZ/261115-TORI-015-independent/.local/independent-vict-proof-232d115/browser.mjs:21
+    if (host.exitCode!==null || i===99) throw Error('Consumer host did not start.');
+                                              ^
+
+Error: Consumer host did not start.
+    at file:///<Windows profile>/Desktop/RZ/261115-TORI-015-independent/.local/independent-vict-proof-232d115/browser.mjs:21:47
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+
+Node.js v22.13.1
