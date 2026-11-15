@@ -1,0 +1,10 @@
+["<builder-home>\\Desktop\\RZ\\261114-verification-evidence\\toolchain\\node.exe","<builder-home>\\Desktop\\RZ\\261114-verification-evidence\\toolchain\\node_modules\\npm\\bin\\npm-cli.js","ci","--offline","--ignore-scripts","--no-audit","--no-fund"]
+Exit 0
+
+added 193 packages in 4m
+
+npm warn EBADENGINE Unsupported engine {
+npm warn EBADENGINE   package: 'posthog-node@5.63.1',
+npm warn EBADENGINE   required: { node: '^20.20.0 || >=22.22.0' },
+npm warn EBADENGINE   current: { node: 'v22.13.1', npm: '11.19.1' }
+npm warn EBADENGINE }

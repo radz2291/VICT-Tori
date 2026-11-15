@@ -1,0 +1,6 @@
+["<builder-home>\\Desktop\\RZ\\261114-verification-evidence\\toolchain\\node.exe","consumer.mjs"]
+Exit 0
+{"consumer":"installed @tori/memory with public VICT runtime","save":"saved","replay":"original receipt","crossAgentAdmissions":0,"forget":"forgotten"}
+
+(node:58284) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)

@@ -1,0 +1,157 @@
+TAP version 13
+# (node:56676) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# 3:43:13 pm [vite] (client) Forced re-optimization of dependencies
+# Upstream LLM API error {
+#   error: APICallError [AI_APICallError]: Z.AI rejected the request.
+#       at fetch (file:///<builder-home>/Desktop/RZ/261115-TORI-Hygiene/server/studio.mjs:201:15)
+#       at async postToApi (file:///<builder-home>/Desktop/RZ/261115-TORI-Hygiene/node_modules/@ai-sdk/provider-utils/dist/index.mjs:2167:22)
+#       at async OpenAICompatibleChatLanguageModel.doStream (file:///<builder-home>/Desktop/RZ/261115-TORI-Hygiene/node_modules/@ai-sdk/openai-compatible/dist/index.mjs:508:50)
+#       at async AISDKV6LanguageModel.doStream (file:///<builder-home>/Desktop/RZ/261115-TORI-Hygiene/node_modules/@mastra/core/dist/llm-DNEWp-X9.js:116:10) {
+#     cause: undefined,
+#     url: 'https://api.z.ai/api/coding/paas/v4/chat/completions',
+#     requestBodyValues: undefined,
+#     statusCode: 429,
+#     responseHeaders: undefined,
+#     responseBody: undefined,
+#     isRetryable: true,
+#     data: undefined,
+#     [Symbol(vercel.ai.error)]: true,
+#     [Symbol(vercel.ai.error.AI_APICallError)]: true
+#   },
+#   runId: '4304e51e-b33b-4a57-a410-2b08e8640da2',
+#   provider: 'zai.chat',
+#   modelId: 'glm-5.3-flash'
+# }
+# Upstream LLM API error {
+#   error: APICallError [AI_APICallError]: Z.AI rejected the request.
+#       at fetch (file:///<builder-home>/Desktop/RZ/261115-TORI-Hygiene/server/studio.mjs:201:15)
+#       at async postToApi (file:///<builder-home>/Desktop/RZ/261115-TORI-Hygiene/node_modules/@ai-sdk/provider-utils/dist/index.mjs:2167:22)
+#       at async OpenAICompatibleChatLanguageModel.doStream (file:///<builder-home>/Desktop/RZ/261115-TORI-Hygiene/node_modules/@ai-sdk/openai-compatible/dist/index.mjs:508:50)
+#       at async AISDKV6LanguageModel.doStream (file:///<builder-home>/Desktop/RZ/261115-TORI-Hygiene/node_modules/@mastra/core/dist/llm-DNEWp-X9.js:116:10) {
+#     cause: undefined,
+#     url: 'https://api.z.ai/api/coding/paas/v4/chat/completions',
+#     requestBodyValues: undefined,
+#     statusCode: 429,
+#     responseHeaders: undefined,
+#     responseBody: undefined,
+#     isRetryable: true,
+#     data: undefined,
+#     [Symbol(vercel.ai.error)]: true,
+#     [Symbol(vercel.ai.error.AI_APICallError)]: true
+#   },
+#   runId: 'e1560c29-d754-4415-951f-5b120cc0ef1d',
+#   provider: 'zai.chat',
+#   modelId: 'glm-5.3-flash'
+# }
+# Upstream LLM API error {
+#   error: APICallError [AI_APICallError]: Z.AI rejected the request.
+#       at fetch (file:///<builder-home>/Desktop/RZ/261115-TORI-Hygiene/server/studio.mjs:201:15)
+#       at async postToApi (file:///<builder-home>/Desktop/RZ/261115-TORI-Hygiene/node_modules/@ai-sdk/provider-utils/dist/index.mjs:2167:22)
+#       at async OpenAICompatibleChatLanguageModel.doStream (file:///<builder-home>/Desktop/RZ/261115-TORI-Hygiene/node_modules/@ai-sdk/openai-compatible/dist/index.mjs:508:50)
+#       at async AISDKV6LanguageModel.doStream (file:///<builder-home>/Desktop/RZ/261115-TORI-Hygiene/node_modules/@mastra/core/dist/llm-DNEWp-X9.js:116:10) {
+#     cause: undefined,
+#     url: 'https://api.z.ai/api/coding/paas/v4/chat/completions',
+#     requestBodyValues: undefined,
+#     statusCode: 429,
+#     responseHeaders: undefined,
+#     responseBody: undefined,
+#     isRetryable: true,
+#     data: undefined,
+#     [Symbol(vercel.ai.error)]: true,
+#     [Symbol(vercel.ai.error.AI_APICallError)]: true
+#   },
+#   runId: '9724eae3-a383-4423-856b-aa53ffc20ca6',
+#   provider: 'zai.chat',
+#   modelId: 'glm-5.3-flash'
+# }
+# Subtest: A2 sampling, retry limit, and deadline
+ok 1 - A2 sampling, retry limit, and deadline
+  ---
+  duration_ms: 19670.6425
+  ...
+# (node:58268) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# {"fixture":"protected in-memory counter","receipts":[{"decision":"approved","turnId":"e06c6d7a-583a-4948-aa59-6aa5f6be596d","approvalId":"eb0bbe20-6537-40ca-a8f0-62ca3de9bed4","invocationId":"74e826bb-a9d6-42ae-b737-0679c4237013","effects":1,"status":"completed","events":["tool.requested","tool.started","tool.awaiting_approval","tool.completed"]},{"decision":"declined","turnId":"1a1ce4ab-4acd-461e-a64d-119546f8af43","approvalId":"db5b5c79-5bf0-419e-aaaa-b37774f34d59","invocationId":"12c19de8-e01a-4564-a741-1238b98ed81c","effects":0,"status":"declined","events":["tool.requested","tool.started","tool.awaiting_approval","tool.failed"]}]}
+# Subtest: a distinct approver can allow or refuse a synthetic protected effect
+ok 2 - a distinct approver can allow or refuse a synthetic protected effect
+  ---
+  duration_ms: 1530.7383
+  ...
+# (node:57624) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# 3:43:37 pm [vite] (client) Forced re-optimization of dependencies
+# {"contextReads":3,"governedToolCalls":2,"modelSteps":[2,1],"terminal":["completed","TORI_MODEL_STEP_LIMIT"],"deletion":["application-domain","memory-store"]}
+# Subtest: A3 Studio uses pinned context, scoped memory, and a governed MCP read with a model-step boundary
+ok 3 - A3 Studio uses pinned context, scoped memory, and a governed MCP read with a model-step boundary
+  ---
+  duration_ms: 14492.9837
+  ...
+# Subtest: context refusal never returns content
+ok 4 - context refusal never returns content
+  ---
+  duration_ms: 1.4739
+  ...
+# (node:53080) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# {"valid":"accepted","invalid":"VICT_AGENT_STRUCTURED_OUTPUT_REJECTED","parent":"efee8a7d-945c-4e65-8d23-49e37ff367b5","child":"eca0d631-6547-40d3-a68c-f1fbba7bc055","invocation":"046a3af9-2b3d-4501-9b9b-8b8126c5e3cf","denial":"TORI_CHILD_SCOPE_DENIED"}
+# Subtest: A4 pins the output parser and one governed child, with denial and trace
+ok 5 - A4 pins the output parser and one governed child, with denial and trace
+  ---
+  duration_ms: 22545.7603
+  ...
+# Subtest: parent cancellation reaches the pinned child model and settles the child Run
+ok 6 - parent cancellation reaches the pinned child model and settles the child Run
+  ---
+  duration_ms: 1156.6558
+  ...
+# (node:57240) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: typed links, shared edit and history retain the last valid graph
+ok 7 - typed links, shared edit and history retain the last valid graph
+  ---
+  duration_ms: 12966.5133
+  ...
+# Subtest: output limit upgrades older graphs, rejects wrong wires and checks numeric boundaries
+ok 8 - output limit upgrades older graphs, rejects wrong wires and checks numeric boundaries
+  ---
+  duration_ms: 63.6052
+  ...
+# Subtest: a legacy workspace authoring graph keeps its budget and can activate with a different policy
+ok 9 - a legacy workspace authoring graph keeps its budget and can activate with a different policy
+  ---
+  duration_ms: 101.5355
+  ...
+# Subtest: save incomplete, reject stale writes, pin and restore activation after restart
+ok 10 - save incomplete, reject stale writes, pin and restore activation after restart
+  ---
+  duration_ms: 135.5632
+  ...
+# (node:56988) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: authoring restores completed history and a prior test after a deadline and restart
+ok 11 - authoring restores completed history and a prior test after a deadline and restart
+  ---
+  duration_ms: 27036.2716
+  ...
+# (node:57120) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# (node:57524) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: all 16 O-05 cells retain authoritative identities without replay
+    # Subtest: tab-close / in-flight turn
+    ok 1 - tab-close / in-flight turn
+      ---
+      duration_ms: 26818.0116
+      ...
+    # {"fault":"tab-close","kind":"in-flight turn","session":"2581e923-ba52-4f09-8bff-e35e0d2ba2e5","activation":"v1_a1e05f1076637ae3fc4972a9f440f636456d88df4a2696908c497ff9842a528d","run":"52e8ba29-e3eb-4b58-8beb-0b58199a09ae","owner":"b185c6de-26be-4931-8bab-b521d17a530d","firstPid":57524,"currentPid":57524,"rejoined":"Running","terminal":"Finished","stream":"a308a996-6903-4147-9fa1-12d43460774c"}
+# (node:56784) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+# (Use `node --trace-warnings ...` to show where the warning was created)
+    # Subtest: tab-close / background Run
+    ok 2 - tab-close / background Run
+      ---
+      duration_ms: 25403.4631
+      ...
+    # {"fault":"tab-close","kind":"background Run","run":"4775fcfd-32f9-4a51-bce6-d55f2562e69a","session":"bb290d71-51c2-4a3c-8d2f-52b2d02aae2a","activation":"v1_8100a8215ecbab07879b6291622e532bb459444f284964b6cecf4e339b13d2e7","streamId":"a0cb31e6-0f81-4a4a-8448-9dd8238ec0ad","owner":"1862a4df-22ce-4880-bc16-dc6f705ff68f","firstPid":56784,"currentPid":56784,"rejoined":"Running","terminal":"Finished","stream":"a0cb31e6-0f81-4a4a-8448-9dd8238ec0ad"}
+# (node:58000) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+# (Use `node --trace-warnings ...` to show where the warning was created)

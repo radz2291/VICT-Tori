@@ -1,0 +1,2 @@
+*.log text eol=lf
+consumers/*/package-lock.json -text !eol whitespace=cr-at-eol

@@ -1,0 +1,43 @@
+["<builder-home>\\Desktop\\RZ\\261114-verification-evidence\\toolchain\\node.exe","<builder-home>\\Desktop\\RZ\\261114-verification-evidence\\toolchain\\node_modules\\npm\\bin\\npm-cli.js","pack","<builder-home>\\Desktop\\RZ\\261115-TORI-Hygiene\\packages\\memory","--pack-destination","<builder-home>\\Desktop\\RZ\\261114-verification-evidence\\tori-foundation-consumers-kSbi15\\archives","--offline","--ignore-scripts","--json"]
+Exit 0
+[
+  {
+    "id": "@tori/memory@0.1.0",
+    "name": "@tori/memory",
+    "version": "0.1.0",
+    "size": 11438,
+    "unpackedSize": 39034,
+    "shasum": "869f020f3bacaf514d4c8df5c3fe10f9f969426e",
+    "integrity": "sha512-QTvB43ojdPzBqjHxJyQdqgRu4G2bp36KmCDVv+Oa+VS9Sx5c0JbiEozItMB1gxZvgzrN8G60mbRWFkRPyxc4qw==",
+    "filename": "tori-memory-0.1.0.tgz",
+    "files": [
+      {
+        "path": "README.md",
+        "size": 2165,
+        "mode": 420
+      },
+      {
+        "path": "index.mjs",
+        "size": 26319,
+        "mode": 420
+      },
+      {
+        "path": "intent.mjs",
+        "size": 9262,
+        "mode": 420
+      },
+      {
+        "path": "package.json",
+        "size": 306,
+        "mode": 420
+      },
+      {
+        "path": "policy.mjs",
+        "size": 982,
+        "mode": 420
+      }
+    ],
+    "entryCount": 5,
+    "bundled": []
+  }
+]

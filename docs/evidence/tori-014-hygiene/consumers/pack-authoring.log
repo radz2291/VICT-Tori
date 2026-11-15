@@ -1,0 +1,28 @@
+["<builder-home>\\Desktop\\RZ\\261114-verification-evidence\\toolchain\\node.exe","<builder-home>\\Desktop\\RZ\\261114-verification-evidence\\toolchain\\node_modules\\npm\\bin\\npm-cli.js","pack","<builder-home>\\Desktop\\RZ\\261115-TORI-Hygiene\\packages\\authoring","--pack-destination","<builder-home>\\Desktop\\RZ\\261114-verification-evidence\\tori-foundation-consumers-kSbi15\\archives","--offline","--ignore-scripts","--json"]
+Exit 0
+[
+  {
+    "id": "@tori/authoring@0.1.0",
+    "name": "@tori/authoring",
+    "version": "0.1.0",
+    "size": 3088,
+    "unpackedSize": 9914,
+    "shasum": "c3dd35c93b155a64c3e3447a0aaef840529f6404",
+    "integrity": "sha512-LcPHn3/t9dxpoIx3XhHUcXLV+N5xHBofzW5xey+cC950R45GOfP7jsCyNp32rD6lkdueVLD1FVMSaa8fSxHJWQ==",
+    "filename": "tori-authoring-0.1.0.tgz",
+    "files": [
+      {
+        "path": "index.mjs",
+        "size": 9718,
+        "mode": 420
+      },
+      {
+        "path": "package.json",
+        "size": 196,
+        "mode": 420
+      }
+    ],
+    "entryCount": 2,
+    "bundled": []
+  }
+]

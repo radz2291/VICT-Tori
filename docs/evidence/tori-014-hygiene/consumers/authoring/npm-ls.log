@@ -1,0 +1,22 @@
+["<builder-home>\\Desktop\\RZ\\261114-verification-evidence\\toolchain\\node.exe","<builder-home>\\Desktop\\RZ\\261114-verification-evidence\\toolchain\\node_modules\\npm\\bin\\npm-cli.js","ls","--all"]
+Exit 0
+independent-tori-authoring-consumer@ <builder-home>\Desktop\RZ\261114-verification-evidence\tori-foundation-consumers-kSbi15\authoring
+├─┬ @tori/authoring@0.1.0
+│ └── zod@3.25.76
+├─┬ @victframework/contracts@0.4.0-rc.1
+│ └── zod@3.25.76 deduped
+├─┬ @victframework/control@0.4.0-rc.1
+│ ├── @victframework/contracts@0.4.0-rc.1 deduped
+│ └── @victframework/runtime@0.4.0-rc.1 deduped
+├─┬ @victframework/kernel@0.4.0-rc.1
+│ ├── @victframework/contracts@0.4.0-rc.1 deduped
+│ └── @victframework/sdk@0.4.0-rc.1 deduped
+├─┬ @victframework/runtime@0.4.0-rc.1
+│ ├── @victframework/contracts@0.4.0-rc.1 deduped
+│ ├── @victframework/kernel@0.4.0-rc.1 deduped
+│ └── @victframework/sdk@0.4.0-rc.1 deduped
+├─┬ @victframework/sdk@0.4.0-rc.1
+│ ├── @victframework/contracts@0.4.0-rc.1 deduped
+│ ├── @victframework/ui@0.4.0-rc.1 deduped
+│ └── zod@3.25.76 deduped
+└── @victframework/ui@0.4.0-rc.1

@@ -1,0 +1,33 @@
+["<builder-home>\\Desktop\\RZ\\261114-verification-evidence\\toolchain\\node.exe","<builder-home>\\Desktop\\RZ\\261114-verification-evidence\\toolchain\\node_modules\\npm\\bin\\npm-cli.js","pack","<builder-home>\\Desktop\\RZ\\261115-TORI-Hygiene\\packages\\directive","--pack-destination","<builder-home>\\Desktop\\RZ\\261114-verification-evidence\\tori-foundation-consumers-kSbi15\\archives","--offline","--ignore-scripts","--json"]
+Exit 0
+[
+  {
+    "id": "@tori/directive@0.1.0",
+    "name": "@tori/directive",
+    "version": "0.1.0",
+    "size": 2267,
+    "unpackedSize": 5774,
+    "shasum": "09d2877ea070f78504925b5a6d627891eb46a12b",
+    "integrity": "sha512-gTYlqzNgNJtpyg+J5b3BsAQqeIlrjLr717fYzCPuVpca4Vncx4AHtVfZId82emw5zupoFt/fS6Gs7XdMPxEpCw==",
+    "filename": "tori-directive-0.1.0.tgz",
+    "files": [
+      {
+        "path": "activation.mjs",
+        "size": 1996,
+        "mode": 420
+      },
+      {
+        "path": "package.json",
+        "size": 233,
+        "mode": 420
+      },
+      {
+        "path": "policy.mjs",
+        "size": 3545,
+        "mode": 420
+      }
+    ],
+    "entryCount": 3,
+    "bundled": []
+  }
+]

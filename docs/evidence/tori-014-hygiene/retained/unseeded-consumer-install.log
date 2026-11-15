@@ -1,0 +1,6 @@
+["<builder-home>\\Desktop\\RZ\\261114-verification-evidence\\toolchain\\node.exe","<builder-home>\\Desktop\\RZ\\261114-verification-evidence\\toolchain\\node_modules\\npm\\bin\\npm-cli.js","install","--offline","--ignore-scripts","--no-audit","--no-fund"]
+Exit 1
+
+npm error code ENOTCACHED
+npm error request to https://registry.npmjs.org/zod failed: cache mode is 'only-if-cached' but no cached response is available.
+npm error A complete log of this run can be found in: <builder-home>\AppData\Local\npm-cache\_logs\2026-11-15T07_39_56_353Z-debug-0.log
